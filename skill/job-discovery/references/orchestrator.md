@@ -55,7 +55,7 @@ as **SOURCES** in the same brief, verbatim. Packs with a concrete URL `entry` ge
 Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
-Parallelism: respect `max_parallel` in YAML (currently 1, so serial). Never parallel two
+Parallelism: respect `max_parallel` in YAML (default 5). Never parallel two
 `linkedin_*` packs at any cap. Goal = finish the full pack list every run.
 Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
 
