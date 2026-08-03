@@ -43,8 +43,48 @@ written until **Approve** (create path) or until Register (register-only).
         go to (5).
    4. `mkdir -p ~/.config` and write exactly one line: canonical `REPO` into
       `~/.config/profile-root`. State registered (or switched from
-      `current_canon`).
-   5. Print `./next-steps.md` (remaining Gaps or shells-only residual). STOP.
+      `current_canon`). This is the **host** user home pointer (coding-agent
+      `$HOME`). Aside scout/apply also read this file via dual-home resolve when
+      their `$HOME` is `…/.aside/runtime/home` — do not dual-write into the
+      Aside runtime tree from this skill.
+   5. Print `./next-steps.md` with placeholders filled, then STOP:
+      - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, or `none`
+        (scaffold-only / register-only).
+      - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
+        Never print bare `bash scripts/agents/install.sh` or
+        `bash scripts/aside/install.sh` without an absolute kit root or the
+        README get-kit recipe. Operator is often only in a profile directory.
+
+      **Resolve `KIT_ROOT` (optional):** take the real path of this skill
+      directory (`…/skill/job-profile-init`). Parent of `skill/` is a candidate
+      kit root if both of these files exist:
+      `$KIT_ROOT/scripts/agents/install.sh` and
+      `$KIT_ROOT/scripts/aside/install.sh`. Symlink installs usually resolve;
+      a copied skill with no kit tree does not — then treat as unresolved.
+
+      **If `KIT_ROOT` resolved** — set `{{KIT_INSTALL}}` to:
+
+      > Aside (scout/apply), if not already installed:
+      > `bash "<KIT_ROOT>/scripts/aside/install.sh"`
+      > You already have `job-profile-init` loaded. Re-run
+      > `bash "<KIT_ROOT>/scripts/agents/install.sh"` only if another agent home
+      > is missing the skill. Commands are absolute; CWD does not matter.
+
+      **If unresolved** — set `{{KIT_INSTALL}}` to (mirror README SSOT; do not
+      invent a different host or script path):
+
+      > Kit skills are not on this machine as a checkout. Get job-kit, then
+      > install channels you need (README "Get the kit" + Install sections):
+      >
+      > ```bash
+      > git clone https://github.com/rafaeelricco/job-kit.git
+      > cd job-kit
+      > bash scripts/aside/install.sh    # scout/apply into Aside
+      > bash scripts/agents/install.sh  # only if coding-agent homes lack job-profile-init
+      > ```
+      >
+      > Private clone: use your host's auth. Do not run kit installers from the
+      > profile directory.
 
    Profile `scripts/install.sh` remains for **manual** register/switch outside
    this skill; the skill never shells it.
@@ -54,7 +94,7 @@ written until **Approve** (create path) or until Register (register-only).
 - Intake: `./intake.md` (named stages, defaults, stop rules)
 - Emit tree: `./emit-tree.md` (tree map, tokens, leak gate)
 - Fill: `./fill.md` (SoT gate, invent matrix, field map, packs, CV, gaps)
-- Next steps: `./next-steps.md` (post-fill residual gaps + install)
+- Next steps: `./next-steps.md` (Gaps + adaptive kit install; see step 5)
 - Templates: `./templates/` (only allowed shell source tree; never live donor data)
 
 ## Hard refuses

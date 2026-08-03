@@ -5,8 +5,12 @@ description: "Read this when you need to draft and stage one job application fro
 
 # Job application
 
-Profile root: same ordered resolver as job-scout
-(`PROFILE_ROOT` → `~/.config/profile-root` → CWD walk → STOP).
+Profile root: **same ordered resolver as job-scout** (read
+`job-scout/SKILL.md` Profile root block and obey it — including Aside
+dual-home step and STOP recovery). Shorthand:
+`$PROFILE_ROOT` → `$HOME/.config/profile-root` → host
+`$HOST_HOME/.config/profile-root` when `$HOME` is Aside runtime home → CWD
+walk → STOP.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 

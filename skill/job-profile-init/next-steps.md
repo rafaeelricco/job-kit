@@ -1,6 +1,10 @@
-# Next steps (print after fill; inject remaining Gaps)
+# Next steps (print after Register; inject Gaps + kit install line)
 
-0. Coding agents (Claude / Codex / Grok): `bash scripts/agents/install.sh` (job-profile-init). Aside (scout/apply): `bash scripts/aside/install.sh` from the kit checkout.
+# The agent must fill {{KIT_INSTALL}} per SKILL.md resolve rules — never leave
+
+# the placeholder, never invent CWD-relative `scripts/...` from a profile dir.
+
+0. {{KIT_INSTALL}}
 1. Resolve remaining Gaps from the fill report (if any): {{GAPS_OR_NONE}}.
 2. Confirm `data/search_packs.yaml` still matches intent (scout runs every pack in file).
    `impl` stems must match job-scout references (`surface-linkedin-jobs`, `surface-open-web`, …).
