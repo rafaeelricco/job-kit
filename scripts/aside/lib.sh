@@ -3,7 +3,10 @@
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
 # Skill folder names under skill/ that Aside may load.
-SKILL_NAMES="job-discovery job-apply profile-scaffold"
+SKILL_NAMES="job-scout application-stage profile-init"
+# Prior Aside basenames from this kit; install/uninstall may remove orphans.
+# Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
+LEGACY_SKILL_NAMES="job-discovery job-apply profile-scaffold"
 
 # resolve_repo_root
 # Prints absolute job-kit root (parent of scripts/).
@@ -95,6 +98,27 @@ is_kit_skill_link() {
   expected="$(skill_source "${repo}" "${name}")"
   current="$(readlink "${dest}")"
   [ "${current}" = "${expected}" ]
+}
+
+# unlink_legacy_skills DEST_ROOT REPO
+# Removes DEST_ROOT/<legacy> only when it is a symlink to REPO/skill/<legacy>.
+# Source dir need not exist (post-rename orphans). Prints status lines.
+# Side effects: may rm -f legacy kit links. Does not touch foreign paths.
+unlink_legacy_skills() {
+  local dest_root="$1" repo="$2" name dest
+  for name in ${LEGACY_SKILL_NAMES}; do
+    dest="$(skill_dest "${dest_root}" "${name}")"
+    if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
+      continue
+    fi
+    if is_kit_skill_link "${dest}" "${repo}" "${name}"; then
+      rm -f "${dest}" || {
+        echo "error: failed to remove legacy link: ${dest}" >&2
+        return 1
+      }
+      echo "removed legacy: ${dest}"
+    fi
+  done
 }
 
 # ensure_aside_skills_user DEST_ROOT

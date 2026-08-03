@@ -1,7 +1,7 @@
-# Contract (worker) — job discovery search
+# Contract (search) — job scout search
 
 Paste this file **verbatim** into every search brief. Workers inherit nothing.
-Sibling pack `prompts/job-apply/` drafts. This pack never does.
+Sibling skill `application-stage` drafts. This pack never does.
 
 === LIST-ONLY ===
 MUST report jobs or contacts. NEVER apply, open Easy Apply, fill forms, message,
