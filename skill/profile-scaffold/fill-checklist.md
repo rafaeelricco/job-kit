@@ -1,6 +1,6 @@
 # Fill checklist (print after materialize)
 
-0. Ensure job-kit is installed (`curl …/install.sh | bash` or local install) before discovery/apply.
+0. Ensure job-kit is installed into Aside (`bash scripts/aside/install.sh` from the kit checkout) before discovery/apply.
 1. Fill Fact-law values: salary, work auth, routes, positions, keywords, experiences, skills…
 2. Edit `data/search_packs.yaml` formulations to match stack.
 3. Add private evidence + name-map rows under `private/` when clients need domain phrases.
