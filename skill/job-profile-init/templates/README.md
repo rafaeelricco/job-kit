@@ -1,6 +1,6 @@
 # Profile
 
-Canonical facts for **job-scout** (list-only scout) and **application-stage**
+Canonical facts for **job-scout** (list-only scout) and **job-application**
 (draft + stage, never submit). Skills live in **job-kit**, not in this tree.
 
 ## Layout
@@ -27,13 +27,14 @@ Writes `~/.config/profile-root` to this directory so scout and apply resolve
 
 ## Fill before a useful run
 
-1. Fact-law files under `data/` (see application-stage Fact law table in the skill).
-2. `data/search_packs.yaml` formulations to match your stack.
-3. `private/` evidence + name map when client names must stay offline.
-4. `cv/en-us-resume.pdf` (or tailored PDF) before apply attachments.
+1. Prefer `/job-profile-init` with a source of truth so the agent fills `data/*` and
+   confirms search packs (never invents salary/visa/stack).
+2. Review Gaps in the fill report; fix any empty fields scout needs.
+3. `private/` is optional later (client depth for letters); not required for scout.
+4. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
 
 ## Rules
 
 - Facts are read from files, never recalled from chat memory.
-- job-scout is list-only; application-stage stops at review and waits for an explicit yes.
+- job-scout is list-only; job-application stops at review and waits for an explicit yes.
 - Never sign up, solve CAPTCHAs, or submit applications from the packs.

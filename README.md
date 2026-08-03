@@ -11,17 +11,50 @@ against a real profile, and draft applications without inventing facts.
 That only works when **procedure** (what the agent may do) stays separate
 from **facts** (who you are, what you want, what you can prove).
 
-This repo is the procedure: three agent skills, installed with safe
-symlinks into [Aside Browser](https://aside.com). Salary band, work
+This repo is the procedure: three agent skills on two install channels.
+Scout and apply install into [Aside Browser](https://aside.com); profile
+init installs into coding agents (Claude Code primary). Salary band, work
 authorization, experience, and client evidence stay in a profile
 directory you control, never in this tree.
 
-- **One skill tree:** Aside links here; no generated skill copies.
+- **One skill tree:** installers symlink here; no generated skill copies.
 - **Safe re-runs:** exact links are no-ops; foreign conflicts fail unless
   you pass `--force`.
 - **Facts stay local:** `data/` and `private/` are not part of this repository.
 
-## Install (Aside only)
+## Which skill goes where
+
+| Skill | Channel | Install |
+| ----- | ------- | ------- |
+| `job-scout` | Aside | `scripts/aside/install.sh` |
+| `job-application` | Aside | `scripts/aside/install.sh` |
+| `job-profile-init` | Coding agents (Claude) | `scripts/agents/install.sh` |
+
+## Install — coding agents (Claude primary)
+
+**Prerequisites:** Bash, Git; Claude Code user skills dir (default
+`~/.claude/skills`).
+
+From a job-kit checkout:
+
+```bash
+bash scripts/agents/install.sh
+```
+
+Links `skill/job-profile-init` into `~/.claude/skills/job-profile-init`.
+Idempotent when the link already matches. Foreign conflicts fail; pass
+`--force` to replace. Override dest with absolute `CLAUDE_SKILLS` (extension
+for Codex/Grok skill dirs — one dest per run).
+
+```bash
+CLAUDE_SKILLS=/path/to/skills bash scripts/agents/install.sh
+bash scripts/agents/install.sh --force
+```
+
+Does **not** install scout/apply into coding agents. Does not create a
+profile or write salary or work-auth data.
+
+## Install — Aside
 
 **Prerequisites:** Bash, Git, Aside Browser with an account profile
 (default `~/.aside/u/0`).
@@ -32,7 +65,7 @@ From a job-kit checkout:
 bash scripts/aside/install.sh
 ```
 
-Links `skill/{job-scout,application-stage,profile-init}` into
+Links `skill/{job-scout,job-application}` into
 `~/.aside/u/0/skills/user/` as absolute symlinks. Idempotent when links
 already match. Foreign conflicts fail; pass `--force` to replace them.
 
@@ -42,59 +75,67 @@ ASIDE_SKILLS_USER=/path/to/skills/user bash scripts/aside/install.sh
 bash scripts/aside/install.sh --force
 ```
 
-These scripts only install skill symlinks. They do not create a profile,
-write salary or work-auth data, or log into any service.
+Does **not** install `job-profile-init` into Aside. These scripts only
+install skill symlinks. They do not create a profile, write salary or
+work-auth data, or log into any service.
 
 ## Update
 
-`git pull` in the checkout, then re-run install (idempotent re-link).
+`git pull` in the checkout, then re-run **both** installers you use
+(idempotent re-link). Channels are independent.
 
 Update never modifies profile checkouts or `~/.config/profile-root`.
 
-Install removes legacy kit links (`job-discovery`, `job-apply`, `profile-scaffold`)
-when they still point at this checkout. Existing profile `data/search_packs.yaml`
-must use `impl` stems that match current job-scout reference basenames
+Aside install removes legacy kit links (`job-discovery`, `job-apply`,
+`profile-scaffold`, `application-stage`, `profile-init`) when they still
+point at this checkout. Agents install removes legacy `profile-init` the
+same way. Existing profile `data/search_packs.yaml` must use `impl` stems
+that match current job-scout reference basenames
 (`surface-linkedin-jobs`, `surface-open-web`, …).
 
 ## Uninstall
 
 ```bash
+bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
 
-Removes only symlinks that point at this kit’s `skill/*` trees. Leaves other
-Aside skills, profile checkouts, and `~/.config/profile-root` alone.
+Each uninstall only touches its channel. Aside never removes Claude links;
+agents never removes Aside links. Leaves profile checkouts and
+`~/.config/profile-root` alone.
 
 ## Installed Paths
 
-| Source                    | Destination                                  |
-| ------------------------- | -------------------------------------------- |
-| `skill/job-scout`         | `~/.aside/u/0/skills/user/job-scout`         |
-| `skill/application-stage` | `~/.aside/u/0/skills/user/application-stage` |
-| `skill/profile-init`      | `~/.aside/u/0/skills/user/profile-init`      |
+| Source | Destination |
+| -------------------------- | --------------------------------------------- |
+| `skill/job-scout` | `~/.aside/u/0/skills/user/job-scout` |
+| `skill/job-application` | `~/.aside/u/0/skills/user/job-application` |
+| `skill/job-profile-init` | `~/.claude/skills/job-profile-init` |
 
-Override the destination root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`.
-Run the installer as your normal user, not with `sudo`.
+Override Aside root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`; agent dest
+with `CLAUDE_SKILLS`. Run the installer as your normal user, not with `sudo`.
 
 ## Getting Started
 
-### 1. Install the kit into Aside
+### 1. Install profile init into a coding agent
 
 ```bash
-bash scripts/aside/install.sh
+bash scripts/agents/install.sh
 ```
 
 ### 2. Create a profile
 
-With an agent that loaded `profile-init`:
+With an agent that loaded `job-profile-init`:
 
 ```text
-/profile-init
+/job-profile-init
 ```
 
-The intake asks for a target path, identity fields, and home market code. It
-writes a data-only tree: `data/`, `private/`, `cv/`, and profile `scripts/`,
-not a second copy of the skills.
+The intake asks for a target path, identity fields, home market, and a **source
+of truth** (CV / LinkedIn export file / notes path or paste). It writes the
+data-only tree, then fills Fact-law YAML from that source (no invent; gaps
+listed). You confirm search pack places (all or specific). `private/` stays an
+empty stub. Skills stay in job-kit, not in the profile.
 
 ### 3. Register the profile root
 
@@ -107,23 +148,25 @@ resolve facts when the skills are linked into Aside.
 
 ### 4. Fill facts
 
-Edit under the profile checkout at least:
+Review the fill **Gaps** report. Hand-edit only what SoT could not supply
+(common: visa/sponsorship, salary band, EOR Yes/No). Add `private/` later when
+letters need client depth. Ensure `cv/en-us-resume.pdf` exists before apply.
 
-- `data/candidate.yaml`: salary, work auth, routes, `home_market`
-- `data/job_search.yaml`: titles, keywords, locations, blacklists
-- `data/search_packs.yaml`: formulations the scout runs
-- `data/basics.yaml`, `data/profiles.yaml`, `data/experiences.yml`, …
-- `private/` when letters need project depth
+### 5. Run scout and apply (Aside)
 
-### 5. Run the skills
+Install Aside channel first if not already:
+
+```bash
+bash scripts/aside/install.sh
+```
 
 ```text
 /job-scout
-/application-stage
+/job-application
 ```
 
 **job-scout** lists and ranks openings; it never applies or messages.
-**application-stage** drafts and stages one application at a time; it stops at review
+**job-application** drafts and stages one application at a time; it stops at review
 and waits for an explicit yes. Neither skill submits.
 
 ## Profile root
@@ -144,20 +187,21 @@ PROFILE_ROOT=/path/to/other-profile
 
 ## Skills
 
-| Skill               | Role                                                              |
+| Skill | Role |
 | ------------------- | ----------------------------------------------------------------- |
-| `job-scout`         | List-only job scout across every pack in `data/search_packs.yaml` |
-| `application-stage` | Draft letter and form fields for one posting; stage only          |
-| `profile-init`      | Create a new data-only profile checkout                           |
+| `job-scout` | List-only job scout across every pack in `data/search_packs.yaml` (Aside) |
+| `job-application` | Draft letter and form fields for one posting; stage only (Aside) |
+| `job-profile-init` | Create a new data-only profile checkout (coding agents) |
 
 ## Layout
 
-| Path                       | Role                                  |
-| -------------------------- | ------------------------------------- |
-| `skill/job-scout/`         | Scout law, contracts, surfaces        |
-| `skill/application-stage/` | Apply law, draft contract             |
-| `skill/profile-init/`      | Intake + templates for empty profiles |
-| `scripts/aside/`           | Aside install / uninstall             |
+| Path | Role |
+| -------------------------- | ----------------------------------------- |
+| `skill/job-scout/` | Scout law, contracts, surfaces |
+| `skill/job-application/` | Apply law, draft contract |
+| `skill/job-profile-init/` | Intake + templates for empty profiles |
+| `scripts/aside/` | Aside install / uninstall (scout+apply) |
+| `scripts/agents/` | Coding-agent install / uninstall (profile init) |
 
 ## License
 
