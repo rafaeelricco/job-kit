@@ -14,7 +14,40 @@ Options:
   -h, --help  Show this help.
 
 Writes ~/.config/profile-root with this checkout's absolute path.
+Resolves the HOST home first: run inside Aside (HOME ending in
+/.aside/runtime/home) the pointer still lands on the real user home.
+Also mirrors into <host>/.aside/runtime/home/.config/profile-root when that
+Aside runtime home directory already exists.
 EOF
+}
+
+resolve_host_home() {
+  # Inside Aside, HOME is <host>/.aside/runtime/home. Strip that suffix so the
+  # host pointer is not written into the sandbox tree — and re-nested each run.
+  local suffix="/.aside/runtime/home"
+  case "${HOME}" in
+    *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
+    *) printf '%s\n' "${HOME}" ;;
+  esac
+}
+
+write_pointer() {
+  # $1 = pointer file. Write, then read back: a silent failure here leaves the
+  # operator with a profile the skills cannot resolve.
+  mkdir -p "$(dirname "$1")"
+  printf '%s\n' "${REPO}" > "$1"
+  [ "$(tr -d '\n' < "$1")" = "${REPO}" ] || {
+    echo "error: pointer write did not stick: $1" >&2
+    exit 1
+  }
+}
+
+mirror_aside_runtime() {
+  local aside_rt
+  aside_rt="${HOST_HOME}/.aside/runtime/home"
+  if [ -d "${aside_rt}" ]; then
+    write_pointer "${aside_rt}/.config/profile-root"
+  fi
 }
 
 resolve_repo() {
@@ -36,7 +69,7 @@ resolve_repo() {
 }
 
 main() {
-  local assume_yes=0 current current_canon result
+  local assume_yes=0 current current_canon result pointer
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -47,14 +80,16 @@ main() {
   done
 
   REPO="$(resolve_repo)"
+  HOST_HOME="$(resolve_host_home)"
   if [ ! -f "${REPO}/data/candidate.yaml" ] || [ ! -f "${REPO}/data/job_search.yaml" ]; then
     echo "error: missing data/candidate.yaml or data/job_search.yaml under ${REPO}" >&2
     exit 1
   fi
 
   result="registered: ${REPO}"
-  if [ -f "${HOME}/.config/profile-root" ]; then
-    current="$(tr -d '\n' < "${HOME}/.config/profile-root")"
+  pointer="${HOST_HOME}/.config/profile-root"
+  if [ -f "${pointer}" ]; then
+    current="$(tr -d '\n' < "${pointer}")"
     if [ -n "${current}" ] && [ -d "${current}" ]; then
       current_canon="$(cd "${current}" && pwd -P)"
     else
@@ -63,9 +98,9 @@ main() {
     if [ "${current_canon}" = "${REPO}" ]; then
       # Normalize symlink / .. forms so uninstall's path match succeeds.
       if [ "${current}" != "${REPO}" ]; then
-        mkdir -p "${HOME}/.config"
-        printf '%s\n' "${REPO}" > "${HOME}/.config/profile-root"
+        write_pointer "${pointer}"
       fi
+      mirror_aside_runtime
       echo "already registered: ${REPO}"
       exit 0
     fi
@@ -80,8 +115,8 @@ main() {
     fi
   fi
 
-  mkdir -p "${HOME}/.config"
-  printf '%s\n' "${REPO}" > "${HOME}/.config/profile-root"
+  write_pointer "${pointer}"
+  mirror_aside_runtime
   echo "${result}"
 }
 

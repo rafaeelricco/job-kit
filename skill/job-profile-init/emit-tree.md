@@ -53,3 +53,18 @@ After substitution, no `{{…}}` tokens may remain. Target must not contain skil
 `fill.md` overwrites Fact-law files under `data/` and may place `cv/en-us-resume.pdf`.
 It must not write skill trees or any path outside the emitted layout (`data/`, `cv/`,
 root README, `scripts/`). Re-run this leak gate after fill.
+
+## Unfilled inventory (what the template ships blank)
+
+`fill.md` closes these from SoT. When fill does not run (**scaffold-only**) every
+line below is still open, and SKILL step 4.8 prints them as Gaps — never `none`.
+
+- `data/job_search.yaml`: `positions` (`Software Engineer` placeholder),
+  `keywords.primary` (`TODO-skill`), `locations`
+- `data/candidate.yaml`: `salary_expectations.salary_range_usd`,
+  `availability.notice_period`, `legal_authorization.*`,
+  `employment_routes.employer_of_record`, `work_preferences_from_resume.*`
+- `data/experiences.yml`, `data/projects.yml`, `data/skills.yaml`,
+  `data/skills-by-company.yml`, `data/languages.yaml`: empty
+- `data/basics.yaml`: `phone`, `location`, `url.href`
+- `cv/en-us-resume.pdf`: absent
