@@ -17,8 +17,9 @@ init installs into coding agents (Claude Code, Codex, Grok). Salary band, work
 authorization, experience, and client evidence stay in a profile
 directory you control, never in this tree.
 
-- **One skill tree:** installers symlink here; no generated skill copies.
-- **Safe re-runs:** exact links are no-ops; foreign conflicts fail unless
+- **Agents channel:** installers symlink `job-profile-init` into coding-agent skills.
+- **Aside channel:** installers **copy** scout/apply into `~/.aside/u/0/skills/builtin`.
+- **Safe re-runs:** kit-owned destinations re-sync; foreign conflicts fail unless
   you pass `--force`.
 - **Facts stay local:** `data/` and `private/` are not part of this repository.
 
@@ -77,30 +78,31 @@ From a job-kit checkout:
 bash scripts/aside/install.sh
 ```
 
-Links `skill/{job-scout,job-application}` into
-`~/.aside/u/0/skills/user/` as absolute symlinks. Idempotent when links
-already match. Foreign conflicts fail; pass `--force` to replace them.
+Copies `skill/{job-scout,job-application}` into
+`~/.aside/u/0/skills/builtin/` as real directories (not symlinks). Re-install
+re-syncs kit-owned trees. Foreign conflicts fail; pass `--force` to replace them.
+Also removes any leftover kit links under `skills/user/` from older installs.
 
 ```bash
 ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
-ASIDE_SKILLS_USER=/path/to/skills/user bash scripts/aside/install.sh
+ASIDE_SKILLS=/path/to/skills/builtin bash scripts/aside/install.sh
 bash scripts/aside/install.sh --force
 ```
 
 Does **not** install `job-profile-init` into Aside. These scripts only
-install skill symlinks. They do not create a profile, write salary or
+install skill trees. They do not create a profile, write salary or
 work-auth data, or log into any service.
 
 ## Update
 
 `git pull` in the checkout, then re-run **both** installers you use
-(idempotent re-link). Channels are independent.
+(agents: re-link; Aside: re-copy). Channels are independent.
 
 Update never modifies profile checkouts or `~/.config/profile-root`.
 
-Aside install removes legacy kit links (`job-discovery`, `job-apply`,
-`profile-scaffold`, `application-stage`, `profile-init`) when they still
-point at this checkout. Agents install removes legacy `profile-init` the
+Aside install removes legacy kit names (`job-discovery`, `job-apply`,
+`profile-scaffold`, `application-stage`, `profile-init`) when they are still
+kit-owned for this checkout. Agents install removes legacy `profile-init` the
 same way. Existing profile `data/search_packs.yaml` must use `impl` stems
 that match current job-scout reference basenames
 (`surface-linkedin-jobs`, `surface-open-web`, …).
@@ -119,17 +121,17 @@ links; agents never removes Aside links. Leaves profile checkouts and
 
 ## Installed Paths
 
-| Source                   | Destination                                |
-| ------------------------ | ------------------------------------------ |
-| `skill/job-scout`        | `~/.aside/u/0/skills/user/job-scout`       |
-| `skill/job-application`  | `~/.aside/u/0/skills/user/job-application` |
-| `skill/job-profile-init` | `~/.claude/skills/job-profile-init`        |
-| `skill/job-profile-init` | `~/.agents/skills/job-profile-init`        |
-| `skill/job-profile-init` | `~/.grok/skills/job-profile-init`          |
+| Source                   | Destination                                   |
+| ------------------------ | --------------------------------------------- |
+| `skill/job-scout`        | `~/.aside/u/0/skills/builtin/job-scout`       |
+| `skill/job-application`  | `~/.aside/u/0/skills/builtin/job-application` |
+| `skill/job-profile-init` | `~/.claude/skills/job-profile-init`           |
+| `skill/job-profile-init` | `~/.agents/skills/job-profile-init`           |
+| `skill/job-profile-init` | `~/.grok/skills/job-profile-init`             |
 
-Override Aside root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`; single agent
-dest with `CLAUDE_SKILLS`. Run the installer as your normal user, not with
-`sudo`.
+Override Aside root with `ASIDE_SKILLS` (or legacy `ASIDE_SKILLS_USER`) or
+`ASIDE_ACCOUNT`; single agent dest with `CLAUDE_SKILLS`. Run the installer as
+your normal user, not with `sudo`.
 
 ## Getting Started
 
@@ -160,7 +162,7 @@ bash /path/to/your-profile/scripts/install.sh
 ```
 
 This writes `~/.config/profile-root` to that absolute path so scout and apply
-resolve facts when the skills are linked into Aside.
+resolve facts when the skills are installed into Aside.
 
 ### 4. Fill facts
 

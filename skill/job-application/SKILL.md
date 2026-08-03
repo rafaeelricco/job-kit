@@ -1,6 +1,6 @@
 ---
-name: "job-application"
-description: "Draft and stage one job application from a posting. Never submit. Use when the user asks to apply, write a cover letter, fill an application form, or stage an Easy Apply; stop at review and wait for an explicit yes."
+name: job-application
+description: "Read this when you need to draft and stage one job application from a posting. Never submit. Use when the user asks to apply, write a cover letter, fill an application form, or stage an Easy Apply; stop at review and wait for an explicit yes."
 ---
 
 # Job application
