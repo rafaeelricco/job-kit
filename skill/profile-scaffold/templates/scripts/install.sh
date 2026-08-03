@@ -38,23 +38,10 @@ resolve_repo() {
 
 kit_installed() {
   local d
-  if [ -f "${HOME}/.job-kit/skill/job-discovery/SKILL.md" ]; then
+  d="${ASIDE_SKILLS_USER:-${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/user}/job-discovery"
+  if [ -e "${d}/SKILL.md" ] || [ -L "${d}" ]; then
     return 0
   fi
-  # Common skill roots (create-time defaults; keep product names out of README)
-  for d in \
-    "${HOME}/.grok/skills/job-discovery" \
-    "${HOME}/.claude/skills/job-discovery" \
-    "${HOME}/.agents/skills/job-discovery" \
-    "${HOME}/.aside/u/0/skills/user/job-discovery"
-  do
-    if [ -e "${d}/SKILL.md" ] || [ -f "${d}/SKILL.md" ]; then
-      return 0
-    fi
-    if [ -L "${d}" ]; then
-      return 0
-    fi
-  done
   return 1
 }
 
@@ -75,9 +62,9 @@ main() {
   fi
 
   if ! kit_installed; then
-    echo "error: job-kit skills not found." >&2
+    echo "error: job-kit skills not found in Aside." >&2
     echo "Install first:" >&2
-    echo "  curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/install.sh | bash" >&2
+    echo "  bash /path/to/job-kit/scripts/aside/install.sh" >&2
     exit 1
   fi
 
