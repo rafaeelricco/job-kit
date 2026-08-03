@@ -13,32 +13,26 @@ and only via the target's `scripts/install.sh`.
 Registering an existing profile is a valid outcome of this flow: it writes only
 that pointer and skips emit and fill. It is not an edit of that profile.
 
-Prefer the harness plan/approval workflow when one exists; otherwise ask in
-normal messages and present the summary as one. Either way: nothing is written
-until the user approves at intake item 8.
+Prefer harness plan/approval when present; else normal messages. Nothing is
+written until **Approve** (create path) or until install (register-only).
 
-1. Read `./intake.md` now; ask one question at a time in that order
-   (identity + source of truth). Registering an existing profile (intake Q1) is
-   the whole intake — skip the remaining questions and go to step 4 with that
-   path as `<target>`.
-2. On approval of the identity summary, obey `./emit-tree.md` end-to-end
-   (write → rewrite tokens → leak gate).
-3. Unless the user chose **scaffold only** (intake Q7): read `./fill.md` now;
-   obey it end-to-end (source gate → Fact fill → pack confirm → CV place →
-   post-fill leak gate → gap report). Missing or unreadable SoT → STOP and
-   follow up; do not invent; do not claim a filled profile. Scaffold-only →
-   skip fill; state the profile is shells-only.
-4. Register the profile: run `bash "<target>/scripts/install.sh"` (intake Q1
-   absolute path, quoted). Exit 0 → state the profile is now the active profile
-   root. Exit 2 → show the user the current registered path (from stderr) and
-   ask whether to switch; yes → re-run with `--yes`; no → state the profile
-   exists but is not the active root and print the switch command for later.
-   Then print `./next-steps.md` (with remaining gaps filled into the template
-   slots; or shells-only residual for scaffold-only). STOP.
+1. Read `./intake.md` now; run its named stages (**Route** → **Folder** →
+   **Source** → **Identity** → **Approve**). **Register** ends intake: skip to
+   step 4 with that path as `<target>` (zero Folder/Source/Identity/Approve).
+2. On Approve: obey `./emit-tree.md` end-to-end (write → tokens → leak gate).
+3. Unless **scaffold-only**: obey `./fill.md` end-to-end (SoT gate → Fact fill →
+   pack confirm → CV place → post-fill leak gate → gap report). Missing or
+   unreadable SoT → STOP; do not invent; do not claim a filled profile.
+   Scaffold-only → skip fill; state shells-only.
+4. Run `bash "<target>/scripts/install.sh"` (absolute path, quoted). Exit 0 →
+   active profile root. Exit 2 → show current registered path from stderr; ask
+   whether to switch; yes → re-run with `--yes`; no → leave inactive and print
+   the switch command. Print `./next-steps.md` (remaining Gaps or shells-only
+   residual). STOP.
 
 ## References
 
-- Intake: `./intake.md` (questions, defaults, stop rules)
+- Intake: `./intake.md` (named stages, defaults, stop rules)
 - Emit tree: `./emit-tree.md` (tree map, tokens, leak gate)
 - Fill: `./fill.md` (SoT gate, invent matrix, field map, packs, CV, gaps)
 - Next steps: `./next-steps.md` (post-fill residual gaps + install)

@@ -6,22 +6,22 @@ Never invent. Never network-import LinkedIn.
 
 ## Source gate
 
-1. Resolve SoT from intake Q7 (paths and/or paste buffer this turn).
+1. Resolve SoT from intake **Source** (paths and/or paste buffer this turn).
 2. Paths must exist and be readable. Unreadable → STOP; name path; ask again.
-3. No path and no paste → STOP; same follow-up as intake Q7.
+3. No path and no paste → STOP; same follow-up as intake Source.
 4. Chat memory alone is not SoT. Do not fill from "I think you said…".
 5. Read all SoT files (PDF/text/md). Prefer quoted facts over paraphrase.
 
 ## Invent matrix
 
-| Class                                                                 | SoT present                                                                     | SoT silent                                               |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR, routes, relocation | Map verbatim / clear synonym into `data/candidate.yaml`                         | Leave empty; list under Gaps                             |
-| Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write | Suggest from SoT stack only; never write without confirm |
-| Experiences, skills, projects, languages                              | Extract only what is printed                                                    | Leave `[]` / empty rows; Gaps                            |
-| Search pack places                                                    | N/A                                                                             | Catalog multi_select (below)                             |
-| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given            | Gaps: operator places PDF                                |
-| Identity (name, email, LI, GH, home_market)                           | Intake tokens already written; if CV conflicts, **intake wins**; ask once       | Intake only                                              |
+| Class                                                                 | SoT present                                                                                                                   | SoT silent                                               |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR, routes, relocation | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
+| Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write                                               | Suggest from SoT stack only; never write without confirm |
+| Experiences, skills, projects, languages                              | Extract only what is printed                                                                                                  | Leave `[]` / empty rows; Gaps                            |
+| Search pack places                                                    | N/A                                                                                                                           | Catalog multi_select (below)                             |
+| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Gaps: operator places PDF                                |
+| Identity (name, email, LI, GH, home_market)                           | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                       |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
@@ -37,7 +37,7 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 5. `data/projects.yml` — public portfolio only.
 6. `data/languages.yaml` — only levels printed in SoT.
 7. Optional: `data/basics.yaml` headline / phone / location if SoT prints them.
-8. Do not rewrite `profiles.yaml` identity tokens unless user corrects intake.
+8. Do not rewrite identity tokens unless the operator corrects approved values.
 
 ## Suggestions (positions / keywords / blacklists)
 

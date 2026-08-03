@@ -1,45 +1,79 @@
 # Intake
 
-One question at a time, in this order. Do not batch.
+Named stages only — never number the questions or steps. Stages run in order.
+Batch only independent enums (Route modes; Source modes when the harness
+supports multi-option tools). Dependent branches stay sequential. Enumerables:
+options, most-likely first, labelled **(Recommended)**, free-text escape.
+Never treat silence as an answer.
 
-Where the harness offers structured choices, ask each enumerable question as
-options — most likely first, labelled recommended — and always leave a
-free-text escape. Where it does not, ask the same choices as a short numbered
-list in one message. Never treat silence as an answer.
+## Route
 
-1. **Target path** — two ways to answer; offer both.
-   - **Register an existing profile**: a directory holding both
-     `data/candidate.yaml` and `data/job_search.yaml`, ignoring any path under a
-     `templates/` directory. Look where the operator points and where the
-     session already is; do not sweep the filesystem. Choosing one ends the
-     intake: no emit, no fill, only the pointer write at step 4.
-   - **Create new**: ask which parent directory the profile should live under.
-     Seed that question with neutral signals only — the session working
-     directory and its parent, plus the parent of any existing profile found.
-     Assume no layout convention. Once the parent is known, propose names
-     matching what that directory already uses; the operator may name it.
-     Target must be absolute, and must not exist or be an empty directory. Test
-     before offering — never offer one this law would refuse. Else STOP.
-2. **Display name** → `data/basics.yaml` `name`.
-3. **Email** (optional; `""` OK) → `basics.email`.
-4. **LinkedIn username** (required, no `@`). Empty → STOP.
-5. **GitHub username** (optional).
-6. **Home market code** → `data/candidate.yaml` `home_market`. Free text, no
-   default: the short country or region label job-scout uses to bucket and
-   report openings. State the shape; recommend no value.
-7. **Source of truth** — ask the mode first, then the payload. Modes: file
-   path(s) (recommended), paste next, scaffold only.
-   - File path(s): absolute path to CV / LinkedIn export PDF / notes. Accept
-     multi-file (e.g. CV + preferences.md).
-   - Paste next: the user pastes the source in the following message.
-   - Scaffold only: emit + next-steps, **skip fill**, state the profile is
-     shells-only. Offer it, but select it only on the user's own explicit intent.
-     Empty, missing path, or unreadable → STOP with this follow-up (do not emit
-     yet), then re-ask:
-   > Need a source of truth (file path and/or paste). I will not invent salary,
-   > visa, stack, or experience. Reply with path(s) or paste, then we continue.
-8. Present the identity + SoT summary as the plan and wait for explicit
-   approval — the harness approval step where one exists, otherwise an explicit
-   yes in chat. Approval gates the first write; silence is not approval.
-   Corrections → re-ask only the named fields and re-present. On approval →
-   emit-tree (then fill, unless scaffold-only).
+Two outcomes; offer both.
+
+- **Register existing**: directory holding both `data/candidate.yaml` and
+  `data/job_search.yaml` (ignore any path under a `templates/` directory). Look
+  where the operator points and where the session already is; do not sweep the
+  filesystem. Choosing this **ends intake** — no Folder, Source, Identity, or
+  Approve; no emit; no fill. Hand off to install only with that path as
+  `<target>`.
+- **Create new** → continue to Folder.
+
+## Folder (create only)
+
+Parent directory + profile folder name → absolute `<target>`.
+
+- Recommend parent from session working directory, its parent, and the parent of
+  any existing profile already found this session. Assume no layout convention.
+- Propose a folder slug matching sibling naming in that parent; operator may
+  rename. Do not treat the slug as display name (identity comes later).
+- `<target>` must be absolute and must not exist or be an empty directory. Test
+  before offering — never offer a path this law would refuse. Else STOP.
+
+## Source (create only)
+
+One stage. Accept mode and path payload in the **same turn** when possible.
+
+Modes: **file path(s)** (Recommended) | **paste** | **scaffold-only**.
+
+- **path(s):** absolute path(s) to CV / LinkedIn export PDF / notes. Multi-file
+  OK (e.g. CV + preferences.md). Unreadable or missing → STOP (do not emit);
+  re-ask with:
+  > Need a source of truth (file path and/or paste). I will not invent salary,
+  > visa, stack, or experience. Reply with path(s) or paste, then we continue.
+- **paste:** the following user message is the SoT buffer. Chat memory alone is
+  not SoT.
+- **scaffold-only:** emit + install + next-steps; **skip fill**; state
+  shells-only. Offer it; select only on the operator's explicit intent.
+
+## Identity (create only)
+
+Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`,
+`home_market`.
+
+### When Source is path or paste
+
+1. Read the SoT. Build an identity **draft** only from printed facts (LinkedIn
+   URL → username without `@`).
+2. Present the draft. Ask **only** empty or conflicting fields — never re-ask
+   fields the draft already settled unless the operator disputes them.
+3. Required before Approve: `display_name`, `linkedin_username` (no `@`),
+   `home_market` (short country/region label job-scout uses to bucket openings).
+   `email` and `github_username` optional (`""` OK).
+4. Recommend `home_market` only when SoT prints a clear location/country signal;
+   never invent one.
+5. Operator answers overwrite the draft for those fields.
+
+### When Source is scaffold-only
+
+No extract. Ask required fields (`display_name`, `linkedin_username`,
+`home_market`); offer optional email and GitHub. No invented defaults. Attach
+recommended answers only when grounded (e.g. name from conversation context the
+operator just typed — not guessed from chat memory about prior sessions).
+
+## Approve (create only)
+
+Present the plan: absolute `<target>`, identity tokens, Source mode (and paths
+or paste/scaffold). Prefer the harness plan/approval step when one exists;
+otherwise an explicit yes in chat. Silence is not approval. Corrections → re-ask
+only the named fields → re-present. On approval → emit-tree (then fill, unless
+scaffold-only). **No write before this yes.**
