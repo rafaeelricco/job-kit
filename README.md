@@ -1,19 +1,19 @@
 # job-kit
 
-Finding a job is tedious, and you cannot do it at scale by hand. Two hard parts
-show up every time: **where to look**, and **whether an opening actually fits**
-your stack, seniority, geo, and work-auth constraints. Miss either and you
-burn time on dead listings or applications that were never going to clear the
-form filters.
+Finding a job by hand does not scale. At volume you hit the same two
+bottlenecks every time: **where to look**, and **whether an opening
+actually fits** your stack, seniority, geo, and work authorization. Miss
+either and you burn time on dead listings or applications that never
+clear the form filters.
 
-Agents can run that loop for you: sweep the surfaces you care about, score fit
-against a real profile, and draft applications without inventing facts. That
-only works if the **procedure** (what the agent may do) is separate from the
-**facts** (who you are, what you want, what you can prove).
+Agents can run that loop: sweep the surfaces you care about, score fit
+against a real profile, and draft applications without inventing facts.
+That only works when **procedure** (what the agent may do) stays separate
+from **facts** (who you are, what you want, what you can prove).
 
-**job-kit** is that procedure: three agent skills, installed with safe
-symlinks, updated from this repo. Your salary band, work authorization,
-experiences, and client evidence stay in a profile directory you control,
+This repo is the procedure: three agent skills, installed with safe
+symlinks and updated from here. Salary band, work authorization,
+experience, and client evidence stay in a profile directory you control,
 never in this tree.
 
 - **One skill tree:** agents link here; no generated skill copies.
