@@ -14,8 +14,8 @@ Two outcomes; offer both.
   `data/job_search.yaml` (ignore any path under a `templates/` directory). Look
   where the operator points and where the session already is; do not sweep the
   filesystem. Choosing this **ends intake** — no Folder, Source, Identity, or
-  Approve; no emit; no fill. Hand off to install only with that path as
-  `<target>`.
+  Approve; no emit; no fill. Hand off to **Register** (SKILL step 4) with that
+  path as `<target>`. Does not require `scripts/install.sh` on the profile.
 - **Create new** → continue to Folder.
 
 ## Folder (create only)
@@ -42,7 +42,7 @@ Modes: **file path(s)** (Recommended) | **paste** | **scaffold-only**.
   > visa, stack, or experience. Reply with path(s) or paste, then we continue.
 - **paste:** the following user message is the SoT buffer. Chat memory alone is
   not SoT.
-- **scaffold-only:** emit + install + next-steps; **skip fill**; state
+- **scaffold-only:** emit + Register + next-steps; **skip fill**; state
   shells-only. Offer it; select only on the operator's explicit intent.
 
 ## Identity (create only)

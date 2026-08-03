@@ -152,10 +152,10 @@ With an agent that loaded `job-profile-init`:
 Intake is stage-shaped: **Route** (register existing or create), **Folder**,
 **Source** (CV / LinkedIn export path or paste, or scaffold-only), **Identity**
 (draft from SoT; ask only empties/conflicts), then **Approve** before any write.
-Register-only runs install and stops. Create writes the data-only tree, fills
-Fact-law YAML from SoT (no invent; gaps listed), confirms search pack places,
-then registers `~/.config/profile-root`. Skills stay in job-kit, not in the
-profile.
+Register-only registers `~/.config/profile-root` (skill-owned; no profile
+`install.sh`) and stops. Create writes the data-only tree, fills Fact-law YAML
+from SoT (no invent; gaps listed), confirms search pack places, then registers
+the same way. Skills stay in job-kit, not in the profile.
 
 ### 3. Fill facts
 
