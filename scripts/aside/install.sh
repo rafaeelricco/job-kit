@@ -52,12 +52,13 @@ main() {
   ensure_aside_skills_user "${dest_root}"
 
   echo "== job-kit Aside install from ${repo} =="
-  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
   for name in ${SKILL_NAMES}; do
     source="$(skill_source "${repo}" "${name}")"
     dest="$(skill_dest "${dest_root}" "${name}")"
     link_skill "${source}" "${dest}" "${force}"
   done
+  # Only after every new skill links: remove pre-rename kit basenames for this checkout.
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
   echo "Install completed -> ${dest_root}"
 }
 
