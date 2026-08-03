@@ -15,7 +15,7 @@ Source = `./templates/` only. Destination = intake target path.
   cv/README.md
 ```
 
-No skill pack trees inside the profile. Skills come from job-kit Aside install.
+No skill pack trees inside the profile. Skills come from job-kit install (agents: profile init; Aside: scout/apply).
 
 Copy the entire `./templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
@@ -38,3 +38,9 @@ rg -n 'rafael-r1cco|rafaelricco@|Ambar|Ashraf|Prevou|Hart|\{\{' "<target>"
 
 Any hit → STOP and fix templates or rewrite; do not hand off a dirty tree.
 After substitution, no `{{…}}` tokens may remain. Target must not contain skill pack trees.
+
+## After fill
+
+`fill.md` overwrites Fact-law files under `data/` and may place `cv/en-us-resume.pdf`.
+It must not write `private/**` or skill trees. Re-run this leak gate after fill.
+`private/` remains an empty stub for later; do not remove the tree in this change.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install job-kit skills into Aside user skills (symlinks).
+# Install job-profile-init into coding-agent user skills (symlink).
 # Compatible with macOS Bash 3.2. Local checkout only; no clone.
 set -euo pipefail
 
@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Install job-kit Aside-channel skills (user skills only).
+Install job-kit job-profile-init into coding agents (Claude primary).
 
 Usage: install.sh [options]
 
@@ -21,17 +21,18 @@ Options:
   -h, --help    Show this help
 
 Environment:
-  ASIDE_SKILLS_USER  Absolute Aside skills/user directory
-  ASIDE_ACCOUNT      Account id under ~/.aside/u/ (default: 0)
+  CLAUDE_SKILLS  Absolute skills directory (default: ~/.claude/skills)
+                 Extension for other agents: one dest per run
+                 e.g. CLAUDE_SKILLS=~/.codex/skills or ~/.grok/skills
 
-Links skill/{job-scout,job-application} into the Aside
-user-skills directory. Local checkout only; no clone.
+Links skill/job-profile-init into the coding-agent skills directory.
+Does not install job-scout or job-application. Local checkout only; no clone.
 EOF
 }
 
 # main
-# Parses args, resolves paths, links each skill into Aside.
-# Side effects: may create skills/user leaf; may write symlinks.
+# Parses args, resolves paths, links job-profile-init into agent skills.
+# Side effects: may create skills leaf; may write symlinks.
 main() {
   local force=0 repo dest_root name source dest
   while [ "$#" -gt 0 ]; do
@@ -48,10 +49,10 @@ main() {
   done
 
   repo="$(resolve_repo_root)"
-  dest_root="$(resolve_aside_skills_user)"
-  ensure_aside_skills_user "${dest_root}"
+  dest_root="$(resolve_claude_skills)"
+  ensure_skills_dir "${dest_root}"
 
-  echo "== job-kit Aside install from ${repo} =="
+  echo "== job-kit agents install from ${repo} =="
   for name in ${SKILL_NAMES}; do
     source="$(skill_source "${repo}" "${name}")"
     dest="$(skill_dest "${dest_root}" "${name}")"
