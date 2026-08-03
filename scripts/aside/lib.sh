@@ -5,8 +5,11 @@
 # Skill folder names under skill/ that Aside may load (Aside channel only).
 SKILL_NAMES="job-scout job-application"
 # Prior Aside basenames from this kit; install/uninstall may remove orphans.
-# Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
+# Predicates: kit symlink OR kit copy (.job-kit marker). Source dir need not exist for legacy links.
 LEGACY_SKILL_NAMES="job-discovery job-apply profile-scaffold application-stage profile-init"
+
+# Marker written at DEST/.job-kit so uninstall can tell kit copies from foreign dirs.
+KIT_MARKER=".job-kit"
 
 # resolve_repo_root
 # Prints absolute job-kit root (parent of scripts/).
@@ -41,25 +44,26 @@ resolve_repo_root() {
   printf '%s\n' "${repo}"
 }
 
-# resolve_aside_skills_user
-# Prints Aside user-skills directory.
-# Default: $HOME/.aside/u/0/skills/user
-# Override: absolute ASIDE_SKILLS_USER, or ASIDE_ACCOUNT for u/<id>.
+# resolve_aside_skills_root
+# Prints Aside skills directory for this channel.
+# Default: $HOME/.aside/u/0/skills/builtin
+# Override: absolute ASIDE_SKILLS (preferred) or legacy ASIDE_SKILLS_USER, or ASIDE_ACCOUNT for u/<id>.
 # Side effects: none.
-resolve_aside_skills_user() {
-  local account path
-  if [ -n "${ASIDE_SKILLS_USER:-}" ]; then
-    case "${ASIDE_SKILLS_USER}" in
-      /*) printf '%s\n' "${ASIDE_SKILLS_USER}" ;;
+resolve_aside_skills_root() {
+  local account path override
+  override="${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-}}"
+  if [ -n "${override}" ]; then
+    case "${override}" in
+      /*) printf '%s\n' "${override}" ;;
       *)
-        echo "error: ASIDE_SKILLS_USER must be an absolute path" >&2
+        echo "error: ASIDE_SKILLS must be an absolute path" >&2
         return 1
         ;;
     esac
     return 0
   fi
   account="${ASIDE_ACCOUNT:-0}"
-  path="${HOME}/.aside/u/${account}/skills/user"
+  path="${HOME}/.aside/u/${account}/skills/builtin"
   printf '%s\n' "${path}"
 }
 
@@ -100,10 +104,48 @@ is_kit_skill_link() {
   [ "${current}" = "${expected}" ]
 }
 
+# is_kit_skill_copy DEST REPO NAME
+# Exit 0 if DEST is a real directory with .job-kit marker pointing at REPO/skill/NAME.
+# Side effects: none.
+is_kit_skill_copy() {
+  local dest="$1" repo="$2" name="$3" marker expected
+  [ -d "${dest}" ] || return 1
+  [ ! -L "${dest}" ] || return 1
+  marker="${dest}/${KIT_MARKER}"
+  [ -f "${marker}" ] || return 1
+  expected="$(skill_source "${repo}" "${name}")"
+  [ "$(cat "${marker}")" = "${expected}" ]
+}
+
+# is_kit_owned DEST REPO NAME
+# Exit 0 if DEST is a kit symlink or a kit-marked copy for NAME.
+# Side effects: none.
+is_kit_owned() {
+  is_kit_skill_link "$@" || is_kit_skill_copy "$@"
+}
+
+# remove_owned_path DEST
+# Removes DEST when it is a symlink/file (rm -f) or directory (rm -rf).
+# Side effects: may rm. Prints error and returns 1 on failure.
+remove_owned_path() {
+  local dest="$1"
+  if [ -L "${dest}" ] || [ -f "${dest}" ]; then
+    rm -f "${dest}" || {
+      echo "error: failed to remove: ${dest}" >&2
+      return 1
+    }
+  else
+    rm -rf "${dest}" || {
+      echo "error: failed to remove: ${dest}" >&2
+      return 1
+    }
+  fi
+}
+
 # unlink_legacy_skills DEST_ROOT REPO
-# Removes DEST_ROOT/<legacy> only when it is a symlink to REPO/skill/<legacy>.
+# Removes DEST_ROOT/<legacy> when kit-owned (old symlink or marked copy).
 # Source dir need not exist (post-rename orphans). Prints status lines.
-# Side effects: may rm -f legacy kit links. Does not touch foreign paths.
+# Side effects: may rm kit-owned legacy paths. Does not touch foreign paths.
 unlink_legacy_skills() {
   local dest_root="$1" repo="$2" name dest
   for name in ${LEGACY_SKILL_NAMES}; do
@@ -111,20 +153,17 @@ unlink_legacy_skills() {
     if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
       continue
     fi
-    if is_kit_skill_link "${dest}" "${repo}" "${name}"; then
-      rm -f "${dest}" || {
-        echo "error: failed to remove legacy link: ${dest}" >&2
-        return 1
-      }
+    if is_kit_owned "${dest}" "${repo}" "${name}"; then
+      remove_owned_path "${dest}" || return 1
       echo "removed legacy: ${dest}"
     fi
   done
 }
 
-# ensure_aside_skills_user DEST_ROOT
+# ensure_aside_skills_root DEST_ROOT
 # Creates DEST_ROOT only if its parent already exists (Aside already set up).
-# Side effects: may mkdir DEST_ROOT. Exits 1 if parent is missing.
-ensure_aside_skills_user() {
+# Side effects: may mkdir DEST_ROOT. Returns 1 if parent is missing.
+ensure_aside_skills_root() {
   local dest_root="$1" parent
   parent="$(dirname "${dest_root}")"
   if [ -d "${dest_root}" ]; then
@@ -156,11 +195,13 @@ require_skill_source() {
   }
 }
 
-# link_skill SOURCE DEST FORCE
-# Idempotent symlink. Exact → no-op. Any other existing path → fail unless FORCE=1.
-# Side effects: may rm + ln -s. Prints status lines.
-link_skill() {
-  local source="$1" dest="$2" force="$3" parent name
+# copy_skill SOURCE DEST FORCE REPO
+# Full-tree copy. Kit-owned dest or old kit link → replace. Foreign → fail unless FORCE=1.
+# Never leaves a symlink at DEST. Writes DEST/.job-kit with SOURCE path.
+# Stages under a temp sibling + marker, then replaces dest so a failed cp cannot wipe a working install.
+# Side effects: may mv/rm + cp -R. Prints status lines.
+copy_skill() {
+  local source="$1" dest="$2" force="$3" repo="$4" parent name tmp bak
   require_skill_source "${source}" || return 1
 
   parent="$(dirname "${dest}")"
@@ -170,25 +211,12 @@ link_skill() {
     return 1
   }
   dest="$(cd "${parent}" && pwd -P)/${name}"
-
-  if is_exact_link "${dest}" "${source}"; then
-    echo "up to date: ${dest}"
-    return 0
-  fi
+  parent="$(dirname "${dest}")"
 
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    if [ "${force}" -eq 1 ]; then
-      if [ -d "${dest}" ] && [ ! -L "${dest}" ]; then
-        rm -rf "${dest}" || {
-          echo "error: failed to remove foreign path: ${dest}" >&2
-          return 1
-        }
-      else
-        rm -f "${dest}" || {
-          echo "error: failed to remove foreign path: ${dest}" >&2
-          return 1
-        }
-      fi
+    if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}"; then
+      :
+    elif [ "${force}" -eq 1 ]; then
       echo "forced remove: ${dest}"
     else
       echo "error: foreign path blocks install: ${dest}" >&2
@@ -197,29 +225,82 @@ link_skill() {
     fi
   fi
 
-  ln -s "${source}" "${dest}" || {
-    echo "error: failed to link ${dest} -> ${source}" >&2
+  tmp="${parent}/.${name}.job-kit.$$"
+  bak="${parent}/.${name}.job-kit-bak.$$"
+  rm -rf "${tmp}" "${bak}"
+  cp -R "${source}" "${tmp}" || {
+    echo "error: failed to copy ${source} -> ${tmp}" >&2
     return 1
   }
-  echo "linked: ${dest} -> ${source}"
+  printf '%s\n' "${source}" > "${tmp}/${KIT_MARKER}" || {
+    rm -rf "${tmp}"
+    echo "error: failed to write marker: ${tmp}/${KIT_MARKER}" >&2
+    return 1
+  }
+
+  if [ -L "${dest}" ] || [ -e "${dest}" ]; then
+    mv "${dest}" "${bak}" || {
+      rm -rf "${tmp}"
+      echo "error: failed to move aside: ${dest}" >&2
+      return 1
+    }
+    if ! mv "${tmp}" "${dest}"; then
+      mv "${bak}" "${dest}" 2>/dev/null || true
+      rm -rf "${tmp}"
+      echo "error: failed to replace ${dest}" >&2
+      return 1
+    fi
+    rm -rf "${bak}"
+  else
+    mv "${tmp}" "${dest}" || {
+      rm -rf "${tmp}"
+      echo "error: failed to install ${dest}" >&2
+      return 1
+    }
+  fi
+  echo "copied: ${source} -> ${dest}"
 }
 
 # unlink_skill DEST REPO NAME
-# Removes DEST only when it is a kit-owned skill link for NAME.
-# Side effects: may rm -f. Prints removed/skipped.
+# Removes DEST only when kit-owned (symlink or marked copy) for NAME.
+# Side effects: may rm. Prints removed/skipped.
 unlink_skill() {
   local dest="$1" repo="$2" name="$3"
   if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
     echo "skipped (missing): ${dest}"
     return 0
   fi
-  if ! is_kit_skill_link "${dest}" "${repo}" "${name}"; then
-    echo "skipped (not kit link): ${dest}"
+  if ! is_kit_owned "${dest}" "${repo}" "${name}"; then
+    echo "skipped (not kit-owned): ${dest}"
     return 0
   fi
-  rm -f "${dest}" || {
-    echo "error: failed to remove: ${dest}" >&2
-    return 1
-  }
+  remove_owned_path "${dest}" || return 1
   echo "removed: ${dest}"
+}
+
+# remove_legacy_user_skills REPO [DEST_ROOT]
+# Drop kit-owned SKILL_NAMES + LEGACY under ~/.aside/u/<account>/skills/user
+# so reinstall does not leave stale user/ trees after the channel moves to builtin.
+# When DEST_ROOT is the same physical path as skills/user, only remove LEGACY basenames
+# (do not delete current SKILL_NAMES just installed there via ASIDE_SKILLS override).
+# Side effects: may rm kit-owned paths under skills/user.
+remove_legacy_user_skills() {
+  local repo="$1" dest_root="${2:-}" account="${ASIDE_ACCOUNT:-0}" user_root name dest
+  local user_phys dest_phys
+  user_root="${HOME}/.aside/u/${account}/skills/user"
+  [ -d "${user_root}" ] || return 0
+  user_phys="$(cd "${user_root}" && pwd -P)"
+  if [ -n "${dest_root}" ] && [ -d "${dest_root}" ]; then
+    dest_phys="$(cd "${dest_root}" && pwd -P)"
+    if [ "${user_phys}" = "${dest_phys}" ]; then
+      unlink_legacy_skills "${user_root}" "${repo}" || return 1
+      echo "skipped user skill migration: install dest is ${user_phys}"
+      return 0
+    fi
+  fi
+  unlink_legacy_skills "${user_root}" "${repo}" || return 1
+  for name in ${SKILL_NAMES}; do
+    dest="$(skill_dest "${user_root}" "${name}")"
+    unlink_skill "${dest}" "${repo}" "${name}" || return 1
+  done
 }

@@ -1,6 +1,6 @@
 ---
-name: "job-scout"
-description: "List-only job scout across every search pack. Never apply, message, connect, or edit the repo. Use when the user asks to find jobs, scout openings, run job scout, or produce a job scout report; stop after the report."
+name: job-scout
+description: "Read this when you need a list-only job scout across every search pack. Never apply, message, connect, or edit the repo. Use when the user asks to find jobs, scout openings, run job scout, or produce a job scout report; stop after the report."
 ---
 
 # Job scout
