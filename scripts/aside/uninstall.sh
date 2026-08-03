@@ -55,7 +55,7 @@ main() {
     dest="$(skill_dest "${dest_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}"
   done
-  remove_legacy_user_skills "${repo}" || return 1
+  remove_legacy_user_skills "${repo}" "${dest_root}" || return 1
   echo "Uninstall completed for ${dest_root}"
 }
 

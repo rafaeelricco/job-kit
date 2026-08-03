@@ -60,7 +60,7 @@ main() {
   done
   # Only after every new skill copies: remove pre-rename kit basenames for this checkout.
   unlink_legacy_skills "${dest_root}" "${repo}" || return 1
-  remove_legacy_user_skills "${repo}" || return 1
+  remove_legacy_user_skills "${repo}" "${dest_root}" || return 1
   echo "Install completed -> ${dest_root}"
 }
 
