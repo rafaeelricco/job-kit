@@ -33,7 +33,7 @@ resolve_repo() {
 }
 
 main() {
-  local assume_yes=0 answer current
+  local assume_yes=0 answer current current_canon
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -49,7 +49,12 @@ main() {
     exit 0
   fi
   current="$(tr -d '\n' < "${HOME}/.config/profile-root")"
-  if [ "${current}" != "${REPO}" ]; then
+  if [ -n "${current}" ] && [ -d "${current}" ]; then
+    current_canon="$(cd "${current}" && pwd -P)"
+  else
+    current_canon=""
+  fi
+  if [ "${current_canon}" != "${REPO}" ]; then
     echo "error: profile-root points elsewhere: ${current}" >&2
     echo "  this checkout: ${REPO}" >&2
     exit 1
