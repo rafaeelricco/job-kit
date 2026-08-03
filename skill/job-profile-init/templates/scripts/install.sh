@@ -61,6 +61,11 @@ main() {
       current_canon=""
     fi
     if [ "${current_canon}" = "${REPO}" ]; then
+      # Normalize symlink / .. forms so uninstall's path match succeeds.
+      if [ "${current}" != "${REPO}" ]; then
+        mkdir -p "${HOME}/.config"
+        printf '%s\n' "${REPO}" > "${HOME}/.config/profile-root"
+      fi
       echo "already registered: ${REPO}"
       exit 0
     fi

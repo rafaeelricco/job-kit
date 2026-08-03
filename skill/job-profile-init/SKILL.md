@@ -33,7 +33,9 @@ written until **Approve** (create path) or until Register (register-only).
    3. If `~/.config/profile-root` exists, read the one-line path as `current`.
       If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
       else `current_canon=""`.
-      - `current_canon` equals `REPO` → state already registered; go to (5).
+      - `current_canon` equals `REPO` → if stored `current` differs from
+        `REPO`, rewrite `~/.config/profile-root` to canonical `REPO`; state
+        already registered; go to (5).
       - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
         whether to switch to `REPO`. Yes → continue to (4). No → leave
         inactive; print later switch hint
