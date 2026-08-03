@@ -1,4 +1,4 @@
-# Bucket/report label code used by job-scout (e.g. BR, LATAM, PL).
+# Short country or region label job-scout uses to bucket and report openings.
 home_market: "{{home_market}}"
 
 availability:

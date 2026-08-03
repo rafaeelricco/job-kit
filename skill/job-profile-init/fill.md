@@ -2,7 +2,7 @@
 
 Runs only on the intake target after emit-tree succeeds (or on an already
 scaffolded empty target when the operator says "continue fill" with SoT).
-Never invent. Never write `private/**`. Never network-import LinkedIn.
+Never invent. Never network-import LinkedIn.
 
 ## Source gate
 
@@ -20,7 +20,6 @@ Never invent. Never write `private/**`. Never network-import LinkedIn.
 | Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write | Suggest from SoT stack only; never write without confirm |
 | Experiences, skills, projects, languages                              | Extract only what is printed                                                    | Leave `[]` / empty rows; Gaps                            |
 | Search pack places                                                    | N/A                                                                             | Catalog multi_select (below)                             |
-| `private/**`                                                          | skip always                                                                     | stub only                                                |
 | CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given            | Gaps: operator places PDF                                |
 | Identity (name, email, LI, GH, home_market)                           | Intake tokens already written; if CV conflicts, **intake wins**; ask once       | Intake only                                              |
 
@@ -39,7 +38,6 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 6. `data/languages.yaml` — only levels printed in SoT.
 7. Optional: `data/basics.yaml` headline / phone / location if SoT prints them.
 8. Do not rewrite `profiles.yaml` identity tokens unless user corrects intake.
-9. Never write under `private/`.
 
 ## Suggestions (positions / keywords / blacklists)
 
@@ -57,7 +55,7 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
    `max_parallel` / `extract_batch_size`.
 4. Rewrite each remaining pack's `formulations` (≥3) using confirmed
    `[role]` / `[skill:<group>]` tokens from filled `job_search.yaml`.
-   Keep `impl` stems as `surface-*` (job-scout references after PR #2).
+   Keep `impl` stems as `surface-*`, matching job-scout reference basenames.
 5. Keep full `data/sources.yaml` so tier-entry packs still resolve.
 6. Warn once: every pack left in the file runs on every job-scout session.
 

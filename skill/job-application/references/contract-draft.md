@@ -3,7 +3,7 @@
 Paste this file **verbatim** into every drafting brief. Drafts inherit nothing.
 This file is the sole home of Fact, Voice and Gate law.
 Paths below are relative to the absolute Profile root printed in the drafting brief
-(ordered resolver in SKILL.md). Resolve every `data/*` and `private/*` path against
+(ordered resolver in SKILL.md). Resolve every `data/*` path against
 that root, not session CWD. Unreadable Fact file → stop and say so.
 Sibling skill `job-scout` is LIST-ONLY and never applies. This pack drafts.
 
@@ -29,25 +29,25 @@ If a derived writing-style file exists outside this skill, this card wins on con
 
 Facts are read, never recalled. Read the file, use what it prints, stop if you cannot.
 
-| Fact                                                     | Read from                                                                                                    |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| language level                                           | `data/languages.yaml`                                                                                        |
-| salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                                                        |
-| name, email, phone, site                                 | `data/basics.yaml`                                                                                           |
-| LinkedIn, GitHub                                         | `data/profiles.yaml`                                                                                         |
-| roles, employers, dates, public work bullets             | `data/experiences.yml`                                                                                       |
-| public portfolio projects                                | `data/projects.yml`                                                                                          |
-| skills / stack inventory                                 | `data/skills.yaml`, `data/skills-by-company.yml`                                                             |
-| project depth, technical cause, STAR-style evidence      | `private/impact/`, `private/projects/`, `private/interview/` (read only; outbound still uses domain phrases) |
-| client name to domain phrase                             | name map in `private/README.md`                                                                              |
+| Fact                                                     | Read from                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| language level                                           | `data/languages.yaml`                                                             |
+| salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                             |
+| name, email, phone, site                                 | `data/basics.yaml`                                                                |
+| LinkedIn, GitHub                                         | `data/profiles.yaml`                                                              |
+| roles, employers, dates, public work bullets             | `data/experiences.yml`                                                            |
+| public portfolio projects                                | `data/projects.yml`                                                               |
+| skills / stack inventory                                 | `data/skills.yaml`, `data/skills-by-company.yml`                                  |
+| project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
-- `data/experiences.yml` prints CV bullets, counts included. A count is CV surface, never
-  letter evidence. Technical cause comes from `private/impact/`.
+- Prefer concrete technical cause + plain outcome from those files over bare counts or
+  résumé statistics (see Voice law). A count alone is not letter evidence.
 - Language level: use the printed string as printed. It is self-assessed.
   NEVER assert a certification, a test score, or a bare single letter grade.
-- Client names stay in `private/`. Outbound text carries the domain phrase, never the
-  everyday name. The employer may be named. Its clients may not.
+- NEVER name an employer's client in outbound text (letter, form free-text, subject).
+  Name the employer when the Fact file does. If a bullet needs a client, use a domain
+  phrase already present in the Fact file; never invent one and never recall a name.
 - Say the gap out loud when the ad lists a skill you hold but not currently:
   "<skill> is real but predates my current role, treat it as secondary."
 - Disqualifying questions get the true answer, including when it disqualifies.

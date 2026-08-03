@@ -5,21 +5,23 @@ Canonical facts for **job-scout** (list-only scout) and **job-application**
 
 ## Layout
 
-| Folder     | What's in it                                         |
-| ---------- | ---------------------------------------------------- |
-| `data/`    | Canonical YAML about you. Edit here first.           |
-| `private/` | Confidential interview prep. Client names only here. |
-| `scripts/` | Register this checkout as Profile root               |
-| `cv/`      | Compiled resume PDF(s) for attachments               |
+| Folder     | What's in it                               |
+| ---------- | ------------------------------------------ |
+| `data/`    | Canonical YAML about you. Edit here first. |
+| `scripts/` | Register this checkout as Profile root     |
+| `cv/`      | Compiled resume PDF(s) for attachments     |
 
 `data/` may mix `.yaml` and `.yml`.
 
 ## Register Profile root
 
-From this checkout root (after job-kit is installed):
+`/job-profile-init` registers this checkout automatically at the end of the flow.
+
+To register manually, or to switch the active profile later:
 
 ```bash
-bash scripts/install.sh
+bash scripts/install.sh          # register (fails if another profile is active)
+bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
 Writes `~/.config/profile-root` to this directory so scout and apply resolve
@@ -30,8 +32,7 @@ Writes `~/.config/profile-root` to this directory so scout and apply resolve
 1. Prefer `/job-profile-init` with a source of truth so the agent fills `data/*` and
    confirms search packs (never invents salary/visa/stack).
 2. Review Gaps in the fill report; fix any empty fields scout needs.
-3. `private/` is optional later (client depth for letters); not required for scout.
-4. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
+3. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
 
 ## Rules
 

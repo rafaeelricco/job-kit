@@ -7,7 +7,7 @@ description: "Read this when you need to draft and stage one job application fro
 
 Profile root: same ordered resolver as job-scout
 (`PROFILE_ROOT` → `~/.config/profile-root` → CWD walk → STOP).
-Resolve every `data/*` and `private/*` Fact path against that root, not session CWD.
+Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.
