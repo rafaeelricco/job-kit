@@ -14,15 +14,15 @@ Never invent. Never write `private/**`. Never network-import LinkedIn.
 
 ## Invent matrix
 
-| Class | SoT present | SoT silent |
-| ----- | ----------- | ---------- |
-| Salary, notice, work auth, visa, sponsorship, EOR, routes, relocation | Map verbatim / clear synonym into `data/candidate.yaml` | Leave empty; list under Gaps |
-| Positions, keywords groups, locations, blacklists | Extract; **suggestions** only if labeled as such and user confirms before write | Suggest from SoT stack only; never write without confirm |
-| Experiences, skills, projects, languages | Extract only what is printed | Leave `[]` / empty rows; Gaps |
-| Search pack places | N/A | Catalog multi_select (below) |
-| `private/**` | skip always | stub only |
-| CV binary | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given | Gaps: operator places PDF |
-| Identity (name, email, LI, GH, home_market) | Intake tokens already written; if CV conflicts, **intake wins**; ask once | Intake only |
+| Class                                                                 | SoT present                                                                     | SoT silent                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR, routes, relocation | Map verbatim / clear synonym into `data/candidate.yaml`                         | Leave empty; list under Gaps                             |
+| Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write | Suggest from SoT stack only; never write without confirm |
+| Experiences, skills, projects, languages                              | Extract only what is printed                                                    | Leave `[]` / empty rows; Gaps                            |
+| Search pack places                                                    | N/A                                                                             | Catalog multi_select (below)                             |
+| `private/**`                                                          | skip always                                                                     | stub only                                                |
+| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given            | Gaps: operator places PDF                                |
+| Identity (name, email, LI, GH, home_market)                           | Intake tokens already written; if CV conflicts, **intake wins**; ask once       | Intake only                                              |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
