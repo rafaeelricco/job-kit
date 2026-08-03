@@ -2,11 +2,17 @@
 # Shared helpers for coding-agent skill install/uninstall.
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
-# Skill folder names under skill/ for coding agents (Claude primary).
+# Skill folder names under skill/ for coding agents.
 SKILL_NAMES="job-profile-init"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
 LEGACY_SKILL_NAMES="profile-init"
+
+# AGENT_TARGETS — space-separated ids. Dest map matches personal dotfiles:
+#   claude → $HOME/.claude/skills   (parent $HOME/.claude)
+#   codex  → $HOME/.agents/skills   (parent $HOME/.agents; not ~/.codex/skills)
+#   grok   → $HOME/.grok/skills     (parent $HOME/.grok)
+AGENT_TARGETS="claude codex grok"
 
 # resolve_repo_root
 # Prints absolute job-kit root (parent of scripts/).
@@ -41,23 +47,58 @@ resolve_repo_root() {
   printf '%s\n' "${repo}"
 }
 
-# resolve_claude_skills
-# Prints coding-agent skills directory.
-# Default: $HOME/.claude/skills
-# Override: absolute CLAUDE_SKILLS.
-# Side effects: none.
-resolve_claude_skills() {
-  if [ -n "${CLAUDE_SKILLS:-}" ]; then
-    case "${CLAUDE_SKILLS}" in
-      /*) printf '%s\n' "${CLAUDE_SKILLS}" ;;
-      *)
-        echo "error: CLAUDE_SKILLS must be an absolute path" >&2
-        return 1
-        ;;
-    esac
+# resolve_override_skills
+# Prints absolute CLAUDE_SKILLS when set (single-dest escape hatch). Empty if unset.
+# Side effects: none. Errors if set but not absolute.
+resolve_override_skills() {
+  if [ -z "${CLAUDE_SKILLS:-}" ]; then
     return 0
   fi
-  printf '%s\n' "${HOME}/.claude/skills"
+  case "${CLAUDE_SKILLS}" in
+    /*) printf '%s\n' "${CLAUDE_SKILLS}" ;;
+    *)
+      echo "error: CLAUDE_SKILLS must be an absolute path" >&2
+      return 1
+      ;;
+  esac
+}
+
+# agent_skills_root TARGET
+# Prints default skills directory for TARGET (claude|codex|grok).
+agent_skills_root() {
+  case "$1" in
+    claude) printf '%s\n' "${HOME}/.claude/skills" ;;
+    codex)  printf '%s\n' "${HOME}/.agents/skills" ;;
+    grok)   printf '%s\n' "${HOME}/.grok/skills" ;;
+    *)
+      echo "error: unknown agent target: $1" >&2
+      return 1
+      ;;
+  esac
+}
+
+# agent_parent_dir TARGET
+# Prints agent home that must already exist for TARGET to be eligible.
+agent_parent_dir() {
+  case "$1" in
+    claude) printf '%s\n' "${HOME}/.claude" ;;
+    codex)  printf '%s\n' "${HOME}/.agents" ;;
+    grok)   printf '%s\n' "${HOME}/.grok" ;;
+    *)
+      echo "error: unknown agent target: $1" >&2
+      return 1
+      ;;
+  esac
+}
+
+# agent_label TARGET — human label for status lines.
+agent_label() {
+  case "$1" in
+    claude) printf '%s\n' "Claude Code" ;;
+    codex)  printf '%s\n' "Codex" ;;
+    grok)   printf '%s\n' "Grok" ;;
+    *) printf '%s\n' "$1" ;;
+  esac
 }
 
 # skill_source REPO NAME
@@ -118,24 +159,70 @@ unlink_legacy_skills() {
   done
 }
 
-# ensure_skills_dir DEST_ROOT
+# ensure_skills_dir DEST_ROOT [HINT]
 # Creates DEST_ROOT only if its parent already exists (agent home already set up).
-# Side effects: may mkdir DEST_ROOT. Exits 1 if parent is missing.
+# Side effects: may mkdir DEST_ROOT. Returns 1 if parent is missing.
 ensure_skills_dir() {
-  local dest_root="$1" parent
+  local dest_root="$1" hint="${2:-}" parent
   parent="$(dirname "${dest_root}")"
   if [ -d "${dest_root}" ]; then
     return 0
   fi
   if [ ! -d "${parent}" ]; then
     echo "error: coding-agent skills parent missing: ${parent}" >&2
-    echo "  Expected Claude Code skills under ~/.claude (or set CLAUDE_SKILLS)." >&2
+    if [ -n "${hint}" ]; then
+      echo "  ${hint}" >&2
+    else
+      echo "  Open the agent once, mkdir the parent, or set CLAUDE_SKILLS." >&2
+    fi
     return 1
   fi
   mkdir -p "${dest_root}" || {
     echo "error: failed to create: ${dest_root}" >&2
     return 1
   }
+}
+
+# install_skills_into DEST_ROOT REPO FORCE
+# Links every SKILL_NAMES entry into DEST_ROOT; then unlinks legacy names there.
+install_skills_into() {
+  local dest_root="$1" repo="$2" force="$3" name source dest
+  ensure_skills_dir "${dest_root}" || return 1
+  for name in ${SKILL_NAMES}; do
+    source="$(skill_source "${repo}" "${name}")"
+    dest="$(skill_dest "${dest_root}" "${name}")"
+    link_skill "${source}" "${dest}" "${force}" || return 1
+  done
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
+}
+
+# uninstall_skills_from DEST_ROOT REPO
+# Removes kit-owned legacy + SKILL_NAMES links under DEST_ROOT only.
+uninstall_skills_from() {
+  local dest_root="$1" repo="$2" name dest
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
+  for name in ${SKILL_NAMES}; do
+    dest="$(skill_dest "${dest_root}" "${name}")"
+    unlink_skill "${dest}" "${repo}" "${name}"
+  done
+}
+
+# remove_legacy_codex_skills_dir REPO
+# Best-effort: drop kit-owned job-profile-init (and profile-init) under
+# ~/.codex/skills — wrong path from older docs; never touches foreign files.
+remove_legacy_codex_skills_dir() {
+  local repo="$1" legacy_root="${HOME}/.codex/skills" name dest
+  [ -d "${legacy_root}" ] || [ -L "${legacy_root}" ] || return 0
+  for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+    dest="$(skill_dest "${legacy_root}" "${name}")"
+    if is_kit_skill_link "${dest}" "${repo}" "${name}"; then
+      rm -f "${dest}" || {
+        echo "error: failed to remove legacy Codex path: ${dest}" >&2
+        return 1
+      }
+      echo "removed legacy Codex path: ${dest}"
+    fi
+  done
 }
 
 # require_skill_source SOURCE
