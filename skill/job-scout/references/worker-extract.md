@@ -1,4 +1,4 @@
-# extract-jd
+# worker-extract
 
 === EXTRACT-ONLY ===
 Obey CONTRACT_EXTRACT end-to-end — it carries the list-only guardrails, the status values,

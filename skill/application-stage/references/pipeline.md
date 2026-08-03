@@ -1,4 +1,4 @@
-# Job apply — orchestrator
+# Application stage — pipeline
 
 Paths are relative to the Profile root from `SKILL.md` (absolute after symlink resolve).
 Resolve every `data/*` and `private/*` path against that root, not session CWD.
