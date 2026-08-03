@@ -5,12 +5,12 @@ Canonical facts for **job-discovery** (list-only scout) and **job-apply**
 
 ## Layout
 
-| Folder | What's in it |
-| ------ | ------------ |
-| `data/` | Canonical YAML about you. Edit here first. |
+| Folder     | What's in it                                         |
+| ---------- | ---------------------------------------------------- |
+| `data/`    | Canonical YAML about you. Edit here first.           |
 | `private/` | Confidential interview prep. Client names only here. |
-| `scripts/` | Register this checkout as Profile root |
-| `cv/` | Compiled resume PDF(s) for attachments |
+| `scripts/` | Register this checkout as Profile root               |
+| `cv/`      | Compiled resume PDF(s) for attachments               |
 
 `data/` may mix `.yaml` and `.yml`.
 

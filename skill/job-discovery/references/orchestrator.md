@@ -136,8 +136,8 @@ Derived here from extract output. NEVER set by a worker. First match wins.
 
 | Printed on the JD                                                                                     | Bucket                                      |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `hiring_route` names EOR / Deel / Oyster / "hire from anywhere"                                       | `{home_market}-EOR`                                    |
-| `hiring_route` names contractor / B2B, **or** `location` prints LATAM / global / anywhere / worldwide | `{home_market}-direct`                                 |
+| `hiring_route` names EOR / Deel / Oyster / "hire from anywhere"                                       | `{home_market}-EOR`                         |
+| `hiring_route` names contractor / B2B, **or** `location` prints LATAM / global / anywhere / worldwide | `{home_market}-direct`                      |
 | `work_auth` names a jurisdiction requirement, **or** `location` restricts to a country or region      | `EU/US-only` (blocker = the printed string) |
 | none of the above                                                                                     | `unbucketed`                                |
 

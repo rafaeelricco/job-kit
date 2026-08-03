@@ -26,7 +26,7 @@ PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER · SOURCES when the pack 
      (including Remote when listed); merge and dedupe URLs after the cycle.
    - No control → append one OR-clause from CONSTRAINTS locations (Remote + listed
      countries; Europe OK for listed EU).
-   Never positive-geo a country listed in CONSTRAINTS `location_blacklist`.
+     Never positive-geo a country listed in CONSTRAINTS `location_blacklist`.
 
 ## Required output
 

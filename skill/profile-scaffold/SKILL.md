@@ -1,6 +1,6 @@
 ---
 name: profile-scaffold
-description: 'Scaffold a new job-search profile checkout: Fact-law YAML shells, search packs skeleton, private stub, and profile-root install scripts. Never imports LinkedIn or a resume; never copies donor private data. Use when the user runs /profile-scaffold, asks to scaffold a profile, create a profile for job skills, or set up job discovery data for someone new.'
+description: "Scaffold a new job-search profile checkout: Fact-law YAML shells, search packs skeleton, private stub, and profile-root install scripts. Never imports LinkedIn or a resume; never copies donor private data. Use when the user runs /profile-scaffold, asks to scaffold a profile, create a profile for job skills, or set up job discovery data for someone new."
 ---
 
 # Profile scaffold

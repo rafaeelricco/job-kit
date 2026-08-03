@@ -100,11 +100,11 @@ clone when uninstalling managed mode). Profile directories and
 
 ## Installed Paths
 
-| Source | Destination (per `--link-dir`) |
-| ------ | ------------------------------ |
-| `skill/job-discovery` | `<link-dir>/job-discovery` |
-| `skill/job-apply` | `<link-dir>/job-apply` |
-| `skill/profile-scaffold` | `<link-dir>/profile-scaffold` |
+| Source                   | Destination (per `--link-dir`) |
+| ------------------------ | ------------------------------ |
+| `skill/job-discovery`    | `<link-dir>/job-discovery`     |
+| `skill/job-apply`        | `<link-dir>/job-apply`         |
+| `skill/profile-scaffold` | `<link-dir>/profile-scaffold`  |
 
 If you pass no `--link-dir` and `JOB_KIT_LINK_DIRS` is unset, install uses the
 defaults built into `scripts/install.sh` (see that file). Managed and local
@@ -182,20 +182,20 @@ PROFILE_ROOT=/path/to/other-profile
 
 ## Skills
 
-| Skill | Role |
-| ----- | ---- |
-| `job-discovery` | List-only job scout across every pack in `data/search_packs.yaml` |
-| `job-apply` | Draft letter and form fields for one posting; stage only |
-| `profile-scaffold` | Create a new data-only profile checkout |
+| Skill              | Role                                                              |
+| ------------------ | ----------------------------------------------------------------- |
+| `job-discovery`    | List-only job scout across every pack in `data/search_packs.yaml` |
+| `job-apply`        | Draft letter and form fields for one posting; stage only          |
+| `profile-scaffold` | Create a new data-only profile checkout                           |
 
 ## Layout
 
-| Path | Role |
-| ---- | ---- |
-| `skill/job-discovery/` | Scout law, contracts, surfaces |
-| `skill/job-apply/` | Apply law, draft contract |
+| Path                      | Role                                  |
+| ------------------------- | ------------------------------------- |
+| `skill/job-discovery/`    | Scout law, contracts, surfaces        |
+| `skill/job-apply/`        | Apply law, draft contract             |
 | `skill/profile-scaffold/` | Wizard + templates for empty profiles |
-| `scripts/` | install / update / uninstall |
+| `scripts/`                | install / update / uninstall          |
 
 ## License
 

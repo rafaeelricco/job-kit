@@ -20,13 +20,13 @@ No `prompts/` and no skill pack trees. Skills come from job-kit install.
 Copy the entire `./templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
 
-| Token | Wizard field |
-| ----- | -------------- |
+| Token                   | Wizard field      |
+| ----------------------- | ----------------- |
 | `{{linkedin_username}}` | LinkedIn username |
-| `{{display_name}}` | Display name |
-| `{{email}}` | Email |
-| `{{github_username}}` | GitHub username |
-| `{{home_market}}` | Home market code |
+| `{{display_name}}`      | Display name      |
+| `{{email}}`             | Email             |
+| `{{github_username}}`   | GitHub username   |
+| `{{home_market}}`       | Home market code  |
 
 Make `scripts/install.sh` and `scripts/uninstall.sh` executable (`chmod +x`).
 

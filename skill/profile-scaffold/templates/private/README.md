@@ -6,17 +6,17 @@ domain phrasing only.
 
 ## Layout
 
-| Path | Use |
-| ---- | --- |
+| Path         | Use                                                  |
+| ------------ | ---------------------------------------------------- |
 | `interview/` | Skim pack before a call (stories, tech, brief index) |
-| `impact/` | Full PR / achievement memory |
-| `projects/` | Per-client dossier (deep brief + links) |
+| `impact/`    | Full PR / achievement memory                         |
+| `projects/`  | Per-client dossier (deep brief + links)              |
 
 ## Name map
 
 | Everyday name | Domain phrase (outbound only) | Dossier folder | Impact file |
 | ------------- | ----------------------------- | -------------- | ----------- |
-| <!-- TODO --> | <!-- TODO --> | | |
+| <!-- TODO --> | <!-- TODO -->                 |                |             |
 
 Add employer subfolders as needed. Outbound text carries the domain phrase, never
 the everyday client name. The employer may be named; its clients may not.

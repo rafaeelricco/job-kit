@@ -2,10 +2,10 @@
 home_market: "{{home_market}}"
 
 availability:
-  notice_period: ""  # TODO e.g. "2 weeks"
+  notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
-  salary_range_usd: ""  # TODO e.g. "80000-120000"
+  salary_range_usd: "" # TODO e.g. "80000-120000"
 
 self_identification:
   gender: ""
@@ -33,7 +33,7 @@ legal_authorization:
   requires_uk_sponsorship: ""
 
 employment_routes:
-  employer_of_record: ""  # Yes | No: gates {home_market}-EOR bucket
+  employer_of_record: "" # Yes | No: gates {home_market}-EOR bucket
   direct_contractor: ""
   local_employment: ""
 
