@@ -31,12 +31,29 @@ directory you control, never in this tree.
 | `job-application`  | Aside                                 | `scripts/aside/install.sh`  |
 | `job-profile-init` | Coding agents (Claude / Codex / Grok) | `scripts/agents/install.sh` |
 
+## Get the kit
+
+Installers need a **local job-kit checkout**. They do not clone for you and do
+not run from a profile directory. If you only have a profile tree, obtain the
+kit first:
+
+```bash
+git clone https://github.com/rafaeelricco/job-kit.git
+cd job-kit
+```
+
+Private clone: use whatever auth your host requires (`gh repo clone
+rafaeelricco/job-kit`, HTTPS token, or SSH remote). Then run the channel
+installers below from **this** checkout (or pass absolute paths to those
+scripts). Update later with `git pull` in the same checkout, then re-run the
+installers you use.
+
 ## Install — coding agents (Claude, Codex, Grok)
 
 **Prerequisites:** Bash, Git; at least one agent home already present
 (`~/.claude`, `~/.agents`, or `~/.grok` — open that agent once if missing).
 
-From a job-kit checkout:
+From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
 ```bash
 bash scripts/agents/install.sh
@@ -72,7 +89,7 @@ removed when present).
 **Prerequisites:** Bash, Git, Aside Browser with an account profile
 (default `~/.aside/u/0`).
 
-From a job-kit checkout:
+From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
 ```bash
 bash scripts/aside/install.sh
@@ -137,6 +154,9 @@ your normal user, not with `sudo`.
 
 ### 1. Install profile init into coding agents
 
+If you do not already have a job-kit checkout, start with
+[Get the kit](#get-the-kit). Then from the checkout:
+
 ```bash
 bash scripts/agents/install.sh
 ```
@@ -169,7 +189,9 @@ and `data/projects.yml`.
 Install Aside channel first if not already:
 
 ```bash
-bash scripts/aside/install.sh
+bash /absolute/path/to/job-kit/scripts/aside/install.sh
+# or, from a job-kit checkout:
+# bash scripts/aside/install.sh
 ```
 
 ```text
@@ -187,15 +209,23 @@ Skills resolve the active profile in this order:
 
 1. `$PROFILE_ROOT` if that directory has `data/candidate.yaml` and
    `data/job_search.yaml`
-2. `~/.config/profile-root` (one absolute path line) with the same probe
-3. Walk the session CWD upward until both probe files exist
-4. Otherwise stop and name what was tried
+2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
+3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
+   home’s `~/.config/profile-root` (same one-line absolute path). Profile init
+   and `scripts/install.sh` register under the real user home; Aside’s sandboxed
+   `HOME` does not share that file unless this step runs.
+4. Walk the session CWD upward until both probe files exist
+5. Otherwise stop and name what was tried
 
 Override for a second profile without rewriting the config file:
 
 ```bash
 PROFILE_ROOT=/path/to/other-profile
 ```
+
+Aside must be allowed to **read** that directory (sandbox). A correct pointer
+to a blocked path still fails — grant FS access or move the profile to an
+allowed location.
 
 ## Skills
 
