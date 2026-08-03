@@ -10,11 +10,10 @@ Register this profile checkout as Profile root.
 Usage: install.sh [options]
 
 Options:
-  -y, --yes   No-op reserved for scripts; always non-interactive.
+  -y, --yes   Overwrite a registration pointing at a different profile.
   -h, --help  Show this help.
 
 Writes ~/.config/profile-root with this checkout's absolute path.
-Requires job-kit skills to be installed (managed clone or link dirs).
 EOF
 }
 
@@ -36,19 +35,11 @@ resolve_repo() {
   printf '%s\n' "${repo}"
 }
 
-kit_installed() {
-  local d
-  d="${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}}/job-scout"
-  if [ -e "${d}/SKILL.md" ] || [ -L "${d}" ]; then
-    return 0
-  fi
-  return 1
-}
-
 main() {
+  local assume_yes=0 current current_canon result
   while [ "$#" -gt 0 ]; do
     case "$1" in
-      -y|--yes) ;;
+      -y|--yes) assume_yes=1 ;;
       -h|--help) usage; exit 0 ;;
       *) echo "error: unknown option: $1" >&2; usage >&2; exit 2 ;;
     esac
@@ -61,17 +52,32 @@ main() {
     exit 1
   fi
 
-  if ! kit_installed; then
-    echo "error: job-kit skills not found in Aside." >&2
-    echo "Install first:" >&2
-    echo "  bash /path/to/job-kit/scripts/aside/install.sh" >&2
-    exit 1
+  result="registered: ${REPO}"
+  if [ -f "${HOME}/.config/profile-root" ]; then
+    current="$(tr -d '\n' < "${HOME}/.config/profile-root")"
+    if [ -n "${current}" ] && [ -d "${current}" ]; then
+      current_canon="$(cd "${current}" && pwd -P)"
+    else
+      current_canon=""
+    fi
+    if [ "${current_canon}" = "${REPO}" ]; then
+      echo "already registered: ${REPO}"
+      exit 0
+    fi
+    if [ -n "${current_canon}" ]; then
+      if [ "${assume_yes}" -eq 1 ]; then
+        result="switched: ${current_canon} -> ${REPO}"
+      else
+        echo "error: profile root already registered: ${current_canon}" >&2
+        echo "  use --yes to switch to ${REPO}" >&2
+        exit 2
+      fi
+    fi
   fi
 
   mkdir -p "${HOME}/.config"
   printf '%s\n' "${REPO}" > "${HOME}/.config/profile-root"
-  echo "Profile root registered: ${REPO}"
-  echo "Wrote ${HOME}/.config/profile-root"
+  echo "${result}"
 }
 
 main "$@"

@@ -14,14 +14,14 @@ from **facts** (who you are, what you want, what you can prove).
 This repo is the procedure: three agent skills on two install channels.
 Scout and apply install into [Aside Browser](https://aside.com); profile
 init installs into coding agents (Claude Code, Codex, Grok). Salary band, work
-authorization, experience, and client evidence stay in a profile
+authorization, experience, and other facts stay in a profile
 directory you control, never in this tree.
 
 - **Agents channel:** installers symlink `job-profile-init` into coding-agent skills.
 - **Aside channel:** installers **copy** scout/apply into `~/.aside/u/0/skills/builtin`.
 - **Safe re-runs:** kit-owned destinations re-sync; foreign conflicts fail unless
   you pass `--force`.
-- **Facts stay local:** `data/` and `private/` are not part of this repository.
+- **Facts stay local:** profile `data/` is not part of this repository.
 
 ## Which skill goes where
 
@@ -152,25 +152,18 @@ With an agent that loaded `job-profile-init`:
 The intake asks for a target path, identity fields, home market, and a **source
 of truth** (CV / LinkedIn export file / notes path or paste). It writes the
 data-only tree, then fills Fact-law YAML from that source (no invent; gaps
-listed). You confirm search pack places (all or specific). `private/` stays an
-empty stub. Skills stay in job-kit, not in the profile.
+listed). You confirm search pack places (all or specific). At the end, the skill
+registers the new profile as the active Profile root (`~/.config/profile-root`).
+Skills stay in job-kit, not in the profile.
 
-### 3. Register the profile root
-
-```bash
-bash /path/to/your-profile/scripts/install.sh
-```
-
-This writes `~/.config/profile-root` to that absolute path so scout and apply
-resolve facts when the skills are installed into Aside.
-
-### 4. Fill facts
+### 3. Fill facts
 
 Review the fill **Gaps** report. Hand-edit only what SoT could not supply
-(common: visa/sponsorship, salary band, EOR Yes/No). Add `private/` later when
-letters need client depth. Ensure `cv/en-us-resume.pdf` exists before apply.
+(common: visa/sponsorship, salary band, EOR Yes/No). Ensure `cv/en-us-resume.pdf`
+exists before apply. Letter depth comes from what you put in `data/experiences.yml`
+and `data/projects.yml`.
 
-### 5. Run scout and apply (Aside)
+### 4. Run scout and apply (Aside)
 
 Install Aside channel first if not already:
 
