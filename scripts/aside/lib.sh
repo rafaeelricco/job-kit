@@ -198,9 +198,10 @@ require_skill_source() {
 # copy_skill SOURCE DEST FORCE REPO
 # Full-tree copy. Kit-owned dest or old kit link → replace. Foreign → fail unless FORCE=1.
 # Never leaves a symlink at DEST. Writes DEST/.job-kit with SOURCE path.
-# Side effects: may rm + cp -R. Prints status lines.
+# Stages under a temp sibling + marker, then replaces dest so a failed cp cannot wipe a working install.
+# Side effects: may mv/rm + cp -R. Prints status lines.
 copy_skill() {
-  local source="$1" dest="$2" force="$3" repo="$4" parent name
+  local source="$1" dest="$2" force="$3" repo="$4" parent name tmp bak
   require_skill_source "${source}" || return 1
 
   parent="$(dirname "${dest}")"
@@ -210,6 +211,7 @@ copy_skill() {
     return 1
   }
   dest="$(cd "${parent}" && pwd -P)/${name}"
+  parent="$(dirname "${dest}")"
 
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}"; then
@@ -221,17 +223,41 @@ copy_skill() {
       echo "  use --force to replace, or remove it manually" >&2
       return 1
     fi
-    remove_owned_path "${dest}" || return 1
   fi
 
-  cp -R "${source}" "${dest}" || {
-    echo "error: failed to copy ${source} -> ${dest}" >&2
+  tmp="${parent}/.${name}.job-kit.$$"
+  bak="${parent}/.${name}.job-kit-bak.$$"
+  rm -rf "${tmp}" "${bak}"
+  cp -R "${source}" "${tmp}" || {
+    echo "error: failed to copy ${source} -> ${tmp}" >&2
     return 1
   }
-  printf '%s\n' "${source}" > "${dest}/${KIT_MARKER}" || {
-    echo "error: failed to write marker: ${dest}/${KIT_MARKER}" >&2
+  printf '%s\n' "${source}" > "${tmp}/${KIT_MARKER}" || {
+    rm -rf "${tmp}"
+    echo "error: failed to write marker: ${tmp}/${KIT_MARKER}" >&2
     return 1
   }
+
+  if [ -L "${dest}" ] || [ -e "${dest}" ]; then
+    mv "${dest}" "${bak}" || {
+      rm -rf "${tmp}"
+      echo "error: failed to move aside: ${dest}" >&2
+      return 1
+    }
+    if ! mv "${tmp}" "${dest}"; then
+      mv "${bak}" "${dest}" 2>/dev/null || true
+      rm -rf "${tmp}"
+      echo "error: failed to replace ${dest}" >&2
+      return 1
+    fi
+    rm -rf "${bak}"
+  else
+    mv "${tmp}" "${dest}" || {
+      rm -rf "${tmp}"
+      echo "error: failed to install ${dest}" >&2
+      return 1
+    }
+  fi
   echo "copied: ${source} -> ${dest}"
 }
 
@@ -252,18 +278,29 @@ unlink_skill() {
   echo "removed: ${dest}"
 }
 
-# remove_legacy_user_skills REPO
-# Best-effort: drop kit-owned SKILL_NAMES + LEGACY under ~/.aside/u/<account>/skills/user
-# so reinstall does not leave stale user/ symlinks after the channel moves to builtin.
-# When ASIDE_SKILLS / ASIDE_SKILLS_USER override is set, still only touches account user/ tree.
+# remove_legacy_user_skills REPO [DEST_ROOT]
+# Drop kit-owned SKILL_NAMES + LEGACY under ~/.aside/u/<account>/skills/user
+# so reinstall does not leave stale user/ trees after the channel moves to builtin.
+# When DEST_ROOT is the same physical path as skills/user, only remove LEGACY basenames
+# (do not delete current SKILL_NAMES just installed there via ASIDE_SKILLS override).
 # Side effects: may rm kit-owned paths under skills/user.
 remove_legacy_user_skills() {
-  local repo="$1" account="${ASIDE_ACCOUNT:-0}" user_root name dest
+  local repo="$1" dest_root="${2:-}" account="${ASIDE_ACCOUNT:-0}" user_root name dest
+  local user_phys dest_phys
   user_root="${HOME}/.aside/u/${account}/skills/user"
   [ -d "${user_root}" ] || return 0
+  user_phys="$(cd "${user_root}" && pwd -P)"
+  if [ -n "${dest_root}" ] && [ -d "${dest_root}" ]; then
+    dest_phys="$(cd "${dest_root}" && pwd -P)"
+    if [ "${user_phys}" = "${dest_phys}" ]; then
+      unlink_legacy_skills "${user_root}" "${repo}" || return 1
+      echo "skipped user skill migration: install dest is ${user_phys}"
+      return 0
+    fi
+  fi
   unlink_legacy_skills "${user_root}" "${repo}" || return 1
   for name in ${SKILL_NAMES}; do
     dest="$(skill_dest "${user_root}" "${name}")"
-    unlink_skill "${dest}" "${repo}" "${name}"
+    unlink_skill "${dest}" "${repo}" "${name}" || return 1
   done
 }
