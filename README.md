@@ -12,114 +12,71 @@ That only works when **procedure** (what the agent may do) stays separate
 from **facts** (who you are, what you want, what you can prove).
 
 This repo is the procedure: three agent skills, installed with safe
-symlinks and updated from here. Salary band, work authorization,
-experience, and client evidence stay in a profile directory you control,
-never in this tree.
+symlinks into [Aside Browser](https://aside.com). Salary band, work
+authorization, experience, and client evidence stay in a profile
+directory you control, never in this tree.
 
-- **One skill tree:** agents link here; no generated skill copies.
-- **Safe re-runs:** exact links are no-ops; conflicts can be backed up or
-  overridden.
+- **One skill tree:** Aside links here; no generated skill copies.
+- **Safe re-runs:** exact links are no-ops; foreign conflicts fail unless
+  you pass `--force`.
 - **Facts stay local:** `data/` and `private/` are not part of this repository.
 
-## Quick Install
+## Install (Aside only)
 
-**Prerequisites:** Git. An agent that can load skills from a directory of
-symlinks (or from the managed clone's `skill/` tree). A browser session is
-required only when a skill needs to open live job pages.
+**Prerequisites:** Bash, Git, Aside Browser with an account profile
+(default `~/.aside/u/0`).
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/install.sh | bash
-```
-
-Remote install uses managed mode and clones `~/.job-kit` by default.
-
-## Local Checkout Install
-
-Use local mode from the primary checkout to avoid a second clone:
+From a job-kit checkout:
 
 ```bash
-bash scripts/install.sh --local
+bash scripts/aside/install.sh
 ```
 
-Local mode links skills directly from that checkout. It never clones or changes
-Git state. Edits to an existing skill are live immediately. After adding or
-removing a skill, reconcile global links with:
+Links `skill/{job-discovery,job-apply,profile-scaffold}` into
+`~/.aside/u/0/skills/user/` as absolute symlinks. Idempotent when links
+already match. Foreign conflicts fail; pass `--force` to replace them.
 
 ```bash
-bash scripts/update.sh --local
+ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
+ASIDE_SKILLS_USER=/path/to/skills/user bash scripts/aside/install.sh
+bash scripts/aside/install.sh --force
 ```
 
-The default clone is `~/.job-kit`. Use `--dir PATH` or `JOB_KIT_DIR` to override
-it. Use `--yes` to back up conflicts without prompting, `--override` to remove
-conflicts without backups. Pass `--link-dir PATH` once per destination skill
-root (or set `JOB_KIT_LINK_DIRS` to a colon-separated list). Backup and
-override modes cannot be used together.
-
-These scripts only install skill symlinks. They do not create a profile, write
-salary or work-auth data, or log into any service.
+These scripts only install skill symlinks. They do not create a profile,
+write salary or work-auth data, or log into any service.
 
 ## Update
 
-Managed update is authoritative and destructive inside the managed clone. It
-fetches GitHub `main`, forces local `main` to that commit, and removes every
-untracked, ignored, and nested-repository path with `git clean -ffdx`. Invoking
-update is the authorization for this cleanup; `--yes` still means “back up
-installer conflicts without prompting.”
-
-Local update only reconciles links from the checkout that created the local
-installation. It never fetches, pulls, checks out, resets, cleans, commits, or
-changes the index or working tree.
+`git pull` in the checkout, then re-run install (idempotent re-link).
 
 Update never modifies profile checkouts or `~/.config/profile-root`.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/update.sh | bash
-```
-
 ## Uninstall
 
-Local uninstall removes managed skill links while preserving the checkout:
-
 ```bash
-bash scripts/uninstall.sh --local
+bash scripts/aside/uninstall.sh
 ```
 
-Remote uninstall requires an explicit confirmation flag:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/uninstall.sh | bash -s -- --yes
-```
-
-Local interactive execution without `--yes` requires typing the exact token
-`UNINSTALL`. Any other response cancels unchanged. A noninteractive run without
-the flag exits with status 2.
-
-Uninstall removes only verified links that point into this kit (and the managed
-clone when uninstalling managed mode). Profile directories and
-`~/.config/profile-root` are left alone unless you delete them yourself.
+Removes only symlinks that point at this kit’s `skill/*` trees. Leaves other
+Aside skills, profile checkouts, and `~/.config/profile-root` alone.
 
 ## Installed Paths
 
-| Source                   | Destination (per `--link-dir`) |
-| ------------------------ | ------------------------------ |
-| `skill/job-discovery`    | `<link-dir>/job-discovery`     |
-| `skill/job-apply`        | `<link-dir>/job-apply`         |
-| `skill/profile-scaffold` | `<link-dir>/profile-scaffold`  |
+| Source                   | Destination                                 |
+| ------------------------ | ------------------------------------------- |
+| `skill/job-discovery`    | `~/.aside/u/0/skills/user/job-discovery`    |
+| `skill/job-apply`        | `~/.aside/u/0/skills/user/job-apply`        |
+| `skill/profile-scaffold` | `~/.aside/u/0/skills/user/profile-scaffold` |
 
-If you pass no `--link-dir` and `JOB_KIT_LINK_DIRS` is unset, install uses the
-defaults built into `scripts/install.sh` (see that file). Managed and local
-modes cannot coexist; uninstall one before installing the other.
-
-Managed clones must use the official GitHub HTTPS or SSH origin for
-`rafaeelricco/job-kit` and be a standalone checkout at the path passed through
-`--dir`. Run the installer as your normal user, not with `sudo`.
+Override the destination root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`.
+Run the installer as your normal user, not with `sudo`.
 
 ## Getting Started
 
-### 1. Install the kit
+### 1. Install the kit into Aside
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/install.sh | bash
+bash scripts/aside/install.sh
 ```
 
 ### 2. Create a profile
@@ -141,7 +98,7 @@ bash /path/to/your-profile/scripts/install.sh
 ```
 
 This writes `~/.config/profile-root` to that absolute path so discovery and apply
-resolve facts when the skills live under `~/.job-kit`.
+resolve facts when the skills are linked into Aside.
 
 ### 4. Fill facts
 
@@ -195,7 +152,7 @@ PROFILE_ROOT=/path/to/other-profile
 | `skill/job-discovery/`    | Scout law, contracts, surfaces        |
 | `skill/job-apply/`        | Apply law, draft contract             |
 | `skill/profile-scaffold/` | Wizard + templates for empty profiles |
-| `scripts/`                | install / update / uninstall          |
+| `scripts/aside/`          | Aside install / uninstall             |
 
 ## License
 
