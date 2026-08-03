@@ -1,0 +1,8 @@
+# TODO map company key -> role, period, skills[]
+# Example:
+# Acme:
+#   role: Software Engineer
+#   period: Jan 2024 - Present
+#   skills:
+#     - TypeScript
+{}

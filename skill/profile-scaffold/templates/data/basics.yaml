@@ -1,0 +1,8 @@
+name: "{{display_name}}"
+headline: ""  # TODO
+email: "{{email}}"
+phone: ""
+location: ""
+url:
+  label: "Website"
+  href: ""

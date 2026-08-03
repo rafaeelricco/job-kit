@@ -1,0 +1,125 @@
+# Where to search. Groups named by search_packs.yaml entry lines:
+#   from data/sources.yaml tier_1_high_alpha | tier_2_aggregators | baseline_floor
+# access: public | account_optional | account_required (account_required -> log, do not sign up)
+# Edit freely; keep the three required group names below if packs still reference them.
+
+tier_1_high_alpha:
+  - name: Wellfound
+    url: https://wellfound.com/jobs
+    why: Startup roles with founder-adjacent contact; remote and equity filters
+    density: high
+    cadence: daily
+    access: account_optional
+    channels: [ats, founder]
+    notes: Browsing may be gated — public listings only, log the gate, never sign up
+
+  - name: a16z portfolio jobs
+    url: https://jobs.a16z.com
+    why: Official VC aggregator; remote and salary filters
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+
+  - name: Sequoia portfolio jobs
+    url: https://www.sequoiacap.com/jobs
+    why: Official VC aggregator over the Sequoia portfolio
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+
+  - name: Index Ventures startup jobs
+    url: https://www.indexventures.com/startup-jobs
+    why: Official VC aggregator; heavy EU portfolio
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+
+  - name: GitHub HIRING.md / JOBS.md
+    url: https://github.com/search?q=path%3AHIRING.md&type=code
+    why: Repos advertising roles in-tree; maintainer contact public in the same repo
+    density: medium_high
+    cadence: ad_hoc
+    access: public
+    channels: [direct_email, ats]
+    notes: Also try path:JOBS.md and path:hiring.md
+
+tier_2_aggregators:
+  - name: We Work Remotely
+    url: https://weworkremotely.com
+    why: Curated remote-only board; programming category well moderated
+    density: high
+    cadence: daily
+    access: public
+    channels: [ats]
+
+  - name: RemoteOK
+    url: https://remoteok.com
+    why: High-volume remote board with worldwide-hire filters
+    density: high
+    cadence: daily
+    access: public
+    channels: [ats]
+
+  - name: Himalayas
+    url: https://himalayas.app
+    why: Remote board with explicit hire-from-country filters
+    density: high
+    cadence: daily
+    access: public
+    channels: [ats]
+
+  - name: HiringCafe
+    url: https://hiring.cafe
+    why: Indexes company career pages; remote/tech filters
+    density: high
+    cadence: daily
+    access: account_optional
+    channels: [ats]
+
+  - name: Remotive
+    url: https://remotive.com
+    why: Curated remote board, software category
+    density: medium_high
+    cadence: daily
+    access: public
+    channels: [ats]
+
+baseline_floor:
+  - name: Google Jobs
+    url: https://www.google.com/search
+    why: SERP aggregation over career pages no board indexes
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+    notes: "A query surface, not a board — never a site: host; run the formulation as a plain search"
+
+  - name: Greenhouse
+    url: https://job-boards.greenhouse.io
+    why: ATS host; reaches company boards no aggregator indexes
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+    notes: "No browsable global index — use only as a site: restriction, never open the root"
+
+  - name: Lever
+    url: https://jobs.lever.co
+    why: ATS host; reaches company boards no aggregator indexes
+    density: high
+    cadence: continuous
+    access: public
+    channels: [ats]
+    notes: "No browsable global index — use only as a site: restriction, never open the root"
+
+  - name: Ashby
+    url: https://jobs.ashbyhq.com
+    why: ATS host; weighted to recent startups
+    density: medium_high
+    cadence: continuous
+    access: public
+    channels: [ats]
+    notes: "No browsable global index — use only as a site: restriction, never open the root"

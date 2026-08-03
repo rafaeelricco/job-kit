@@ -1,0 +1,53 @@
+work_model:
+  remote: true
+  hybrid: true
+  onsite: false
+
+experience_level:
+  internship: false
+  entry: false
+  associate: false
+  mid_senior_level: true
+  director: false
+  executive: false
+
+job_types:
+  full_time: true
+  contract: true
+  part_time: false
+  temporary: false
+  internship: false
+  other: false
+  volunteer: false
+
+date_posted:
+  all_time: false
+  month: true
+  week: true
+  "24_hours": true
+
+positions:
+  - "Software Engineer"  # TODO replace with target titles
+
+keywords:
+  # groups named here become [skill:<group>] in search_packs.yaml
+  primary:
+    - "TODO-skill"
+  hiring_model:
+    - "remote"
+    - "Employer of Record"
+
+locations:
+  - "Remote"  # TODO strong-pay markets as needed
+
+apply_once_at_company: true
+
+distance_km: 100000
+
+company_blacklist: []
+
+title_blacklist:
+  - Internship
+  - Junior
+
+location_blacklist: []

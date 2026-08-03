@@ -1,0 +1,4 @@
+# TODO: one object per role.
+# Keys: company, position, location, date, summary, url.label, url.href
+# summary = public CV bullets (not letter technical cause — that lives in private/).
+[]

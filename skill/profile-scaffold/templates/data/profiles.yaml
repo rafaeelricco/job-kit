@@ -1,0 +1,7 @@
+profiles:
+  - network: "LinkedIn"
+    username: "{{linkedin_username}}"
+    url: "https://www.linkedin.com/in/{{linkedin_username}}/"
+  - network: "GitHub"
+    username: "{{github_username}}"
+    url: "https://github.com/{{github_username}}"

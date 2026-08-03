@@ -1,0 +1,47 @@
+# Bucket/report label code used by job-discovery (e.g. BR, LATAM, PL).
+home_market: "{{home_market}}"
+
+availability:
+  notice_period: ""  # TODO e.g. "2 weeks"
+
+salary_expectations:
+  salary_range_usd: ""  # TODO e.g. "80000-120000"
+
+self_identification:
+  gender: ""
+  pronouns: ""
+  veteran: ""
+  disability: ""
+  ethnicity: ""
+
+legal_authorization:
+  eu_work_authorization: ""
+  us_work_authorization: ""
+  requires_us_visa: ""
+  requires_us_sponsorship: ""
+  requires_eu_visa: ""
+  legally_allowed_to_work_in_eu: ""
+  legally_allowed_to_work_in_us: ""
+  requires_eu_sponsorship: ""
+  canada_work_authorization: ""
+  requires_canada_visa: ""
+  legally_allowed_to_work_in_canada: ""
+  requires_canada_sponsorship: ""
+  uk_work_authorization: ""
+  requires_uk_visa: ""
+  legally_allowed_to_work_in_uk: ""
+  requires_uk_sponsorship: ""
+
+employment_routes:
+  employer_of_record: ""  # Yes | No: gates {home_market}-EOR bucket
+  direct_contractor: ""
+  local_employment: ""
+
+work_preferences_from_resume:
+  remote_work: ""
+  in_person_work: ""
+  in_person_work_note: ""
+  open_to_relocation: ""
+  willing_to_complete_assessments: ""
+  willing_to_undergo_drug_tests: ""
+  willing_to_undergo_background_checks: ""
