@@ -133,11 +133,10 @@ require_skill_source() {
 }
 
 # link_skill SOURCE DEST FORCE
-# Idempotent symlink. Exact → no-op. Kit-owned wrong path → replace.
-# Foreign path → fail unless FORCE=1.
+# Idempotent symlink. Exact → no-op. Any other existing path → fail unless FORCE=1.
 # Side effects: may rm + ln -s. Prints status lines.
 link_skill() {
-  local source="$1" dest="$2" force="$3" current parent name
+  local source="$1" dest="$2" force="$3" parent name
   require_skill_source "${source}" || return 1
 
   parent="$(dirname "${dest}")"
@@ -154,56 +153,23 @@ link_skill() {
   fi
 
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    if [ -L "${dest}" ]; then
-      current="$(readlink "${dest}")"
-      case "${current}" in
-        */skill/job-discovery|*/skill/job-apply|*/skill/profile-scaffold)
-          rm -f "${dest}" || {
-            echo "error: failed to remove kit link: ${dest}" >&2
-            return 1
-          }
-          echo "replaced kit link: ${dest}"
-          ;;
-        *)
-          if [ "${force}" -eq 1 ]; then
-            if [ -d "${dest}" ] && [ ! -L "${dest}" ]; then
-              rm -rf "${dest}" || {
-                echo "error: failed to remove foreign path: ${dest}" >&2
-                return 1
-              }
-            else
-              rm -f "${dest}" || {
-                echo "error: failed to remove foreign path: ${dest}" >&2
-                return 1
-              }
-            fi
-            echo "forced remove: ${dest}"
-          else
-            echo "error: foreign path blocks install: ${dest}" >&2
-            echo "  use --force to replace, or remove it manually" >&2
-            return 1
-          fi
-          ;;
-      esac
-    else
-      if [ "${force}" -eq 1 ]; then
-        if [ -d "${dest}" ]; then
-          rm -rf "${dest}" || {
-            echo "error: failed to remove foreign path: ${dest}" >&2
-            return 1
-          }
-        else
-          rm -f "${dest}" || {
-            echo "error: failed to remove foreign path: ${dest}" >&2
-            return 1
-          }
-        fi
-        echo "forced remove: ${dest}"
+    if [ "${force}" -eq 1 ]; then
+      if [ -d "${dest}" ] && [ ! -L "${dest}" ]; then
+        rm -rf "${dest}" || {
+          echo "error: failed to remove foreign path: ${dest}" >&2
+          return 1
+        }
       else
-        echo "error: foreign path blocks install: ${dest}" >&2
-        echo "  use --force to replace, or remove it manually" >&2
-        return 1
+        rm -f "${dest}" || {
+          echo "error: failed to remove foreign path: ${dest}" >&2
+          return 1
+        }
       fi
+      echo "forced remove: ${dest}"
+    else
+      echo "error: foreign path blocks install: ${dest}" >&2
+      echo "  use --force to replace, or remove it manually" >&2
+      return 1
     fi
   fi
 
