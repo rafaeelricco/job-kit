@@ -149,12 +149,13 @@ With an agent that loaded `job-profile-init`:
 /job-profile-init
 ```
 
-The intake asks for a target path, identity fields, home market, and a **source
-of truth** (CV / LinkedIn export file / notes path or paste). It writes the
-data-only tree, then fills Fact-law YAML from that source (no invent; gaps
-listed). You confirm search pack places (all or specific). At the end, the skill
-registers the new profile as the active Profile root (`~/.config/profile-root`).
-Skills stay in job-kit, not in the profile.
+Intake is stage-shaped: **Route** (register existing or create), **Folder**,
+**Source** (CV / LinkedIn export path or paste, or scaffold-only), **Identity**
+(draft from SoT; ask only empties/conflicts), then **Approve** before any write.
+Register-only runs install and stops. Create writes the data-only tree, fills
+Fact-law YAML from SoT (no invent; gaps listed), confirms search pack places,
+then registers `~/.config/profile-root`. Skills stay in job-kit, not in the
+profile.
 
 ### 3. Fill facts
 

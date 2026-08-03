@@ -18,7 +18,7 @@ No skill pack trees inside the profile. Skills come from job-kit install (agents
 Copy the entire `./templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
 
-| Token                   | Intake field      |
+| Token                   | Approved identity |
 | ----------------------- | ----------------- |
 | `{{linkedin_username}}` | LinkedIn username |
 | `{{display_name}}`      | Display name      |
