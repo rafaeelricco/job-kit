@@ -13,8 +13,8 @@ One free-text question at a time. Do not batch.
    STOP with this follow-up (do not emit yet):
    > Need a source of truth (file path and/or paste). I will not invent salary,
    > visa, stack, or experience. Reply with path(s) or paste, then we continue.
-   Accept multi-file (e.g. CV + preferences.md). "Scaffold only" is allowed only
-   when the user says that exact intent — then emit + next-steps, **skip fill**,
-   and state the profile is shells-only.
+   > Accept multi-file (e.g. CV + preferences.md). "Scaffold only" is allowed only
+   > when the user says that exact intent — then emit + next-steps, **skip fill**,
+   > and state the profile is shells-only.
 8. Print identity + SoT summary → wait for explicit confirm → emit-tree
    (then fill, unless scaffold-only).
