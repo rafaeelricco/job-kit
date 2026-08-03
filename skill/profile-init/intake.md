@@ -1,4 +1,4 @@
-# Wizard
+# Intake
 
 One free-text question at a time. Do not batch.
 
@@ -8,4 +8,4 @@ One free-text question at a time. Do not batch.
 4. **LinkedIn username** (required, no `@`). Empty → STOP.
 5. **GitHub username** (optional).
 6. **Home market code**: default `BR` → `data/candidate.yaml` `home_market`.
-7. Print summary → wait for explicit confirm → proceed to materialize.
+7. Print summary → wait for explicit confirm → proceed to emit-tree.

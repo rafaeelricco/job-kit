@@ -1,12 +1,12 @@
-# search-people
+# surface-people
 
 === SEARCH-ONLY ===
 Contacts only — not jobs. Emit `### Contacts`, never `### Candidates`. Rows never enter extract.
-Obey CONTRACT_WORKER end-to-end. Skip its CONSTRAINTS filter step: that one is job-rows only.
+Obey CONTRACT_SEARCH end-to-end. Skip its CONSTRAINTS filter step: that one is job-rows only.
 
 ## Inputs (caller pastes verbatim — do not summarize)
 
-PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER
+PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_SEARCH
 
 ## Surface deltas
 
@@ -17,4 +17,4 @@ PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER
 
 ## Required output
 
-`### Contacts` then `### Defect log`, both exactly per CONTRACT_WORKER.
+`### Contacts` then `### Defect log`, both exactly per CONTRACT_SEARCH.

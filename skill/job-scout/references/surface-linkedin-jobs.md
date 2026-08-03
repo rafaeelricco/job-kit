@@ -1,12 +1,12 @@
-# search-jobs-board
+# surface-linkedin-jobs
 
 === SEARCH-ONLY ===
-Surface: `linkedin_jobs`. Obey CONTRACT_WORKER end-to-end — it carries the evidence rules,
+Surface: `linkedin_jobs`. Obey CONTRACT_SEARCH end-to-end — it carries the evidence rules,
 the search procedure, the URL rules, and both output schemas.
 
 ## Inputs (caller pastes verbatim — do not summarize)
 
-PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER
+PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_SEARCH
 
 ## Surface deltas
 
@@ -20,4 +20,4 @@ PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER
 
 ## Required output
 
-`### Candidates` then `### Defect log`, both exactly per CONTRACT_WORKER.
+`### Candidates` then `### Defect log`, both exactly per CONTRACT_SEARCH.

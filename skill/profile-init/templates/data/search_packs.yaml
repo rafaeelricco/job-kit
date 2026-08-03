@@ -1,5 +1,5 @@
-# Intent packs for job discovery. One pack = one surface × one intent.
-# impl → file stem under the job-discovery skill references/ (e.g. search-jobs-board).
+# Intent packs for job scout. One pack = one surface × one intent.
+# impl → file stem under the job-scout skill references/ (e.g. surface-linkedin-jobs).
 # [role], [skill:<group>] from data/job_search.yaml positions / keywords.*.
 # [industry], [company] from phase-0 profile card.
 # Every pack runs every discovery session (YAML order).
@@ -10,7 +10,7 @@ extract_batch_size: 10
 
 packs:
   - id: li-jobs-primary
-    impl: search-jobs-board
+    impl: surface-linkedin-jobs
     surface: linkedin_jobs
     entry: https://www.linkedin.com/jobs/
     formulations:
@@ -19,7 +19,7 @@ packs:
       - '"Senior" [role] remote'
 
   - id: hn-whoishiring
-    impl: search-open-web
+    impl: surface-open-web
     surface: hn
     entry: https://hnhiring.com
     formulations:
@@ -28,7 +28,7 @@ packs:
       - "[role] remote"
 
   - id: waas
-    impl: search-open-web
+    impl: surface-open-web
     surface: waas
     entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
     formulations:
@@ -37,7 +37,7 @@ packs:
       - '"Founding Engineer" OR [role]'
 
   - id: boards-tier1
-    impl: search-open-web
+    impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml tier_1_high_alpha
     formulations:
@@ -46,7 +46,7 @@ packs:
       - "hiring [skill:hiring_model] [skill:primary]"
 
   - id: boards-tier2
-    impl: search-open-web
+    impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml tier_2_aggregators
     formulations:
@@ -55,7 +55,7 @@ packs:
       - "[skill:primary] engineer remote"
 
   - id: boards-baseline
-    impl: search-open-web
+    impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml baseline_floor
     formulations:

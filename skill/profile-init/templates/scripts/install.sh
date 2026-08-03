@@ -38,7 +38,7 @@ resolve_repo() {
 
 kit_installed() {
   local d
-  d="${ASIDE_SKILLS_USER:-${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/user}/job-discovery"
+  d="${ASIDE_SKILLS_USER:-${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/user}/job-scout"
   if [ -e "${d}/SKILL.md" ] || [ -L "${d}" ]; then
     return 0
   fi

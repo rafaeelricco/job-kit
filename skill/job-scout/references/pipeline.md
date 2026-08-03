@@ -1,4 +1,4 @@
-# Job discovery — orchestrator
+# Job scout — pipeline
 
 Paths are relative to the Profile root from `SKILL.md` (ordered resolver in SKILL.md).
 Resolve every `data/*` path against that root, not session CWD.
@@ -48,7 +48,7 @@ they are the workers' only source for filters and for `[industry]` / `[company]`
 ## Phase 1 — SEARCH (all packs)
 
 For **each** pack: run `./references/<impl>.md` with
-PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_WORKER (`./references/contract.worker.md`) **verbatim**.
+PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
 When pack `entry` names a `data/sources.yaml` tier, resolve it and paste the selected rows
 as **SOURCES** in the same brief, verbatim. Packs with a concrete URL `entry` get PACK only.
 
@@ -61,20 +61,20 @@ Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
 
 ## Phase 2 — MERGE (main only)
 
-Merge per `./references/contract.worker.md` "URL normalize". One row per normalized URL.
+Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.
 No company-dedupe here — a dead listing must not evict a live one from the same company.
 Contacts side-channel only; never enter extract.
 
 ## Phase 3 — EXTRACT (batches ≤5)
 
-For each unique job URL: run `./references/extract-jd.md` with URL_BATCH + CONTRACT_EXTRACT
-(`./references/contract.extract.md`). People contacts skip. Emit `### Verified` rows.
+For each unique job URL: run `./references/worker-extract.md` with URL_BATCH + CONTRACT_EXTRACT
+(`./references/contract-extract.md`). People contacts skip. Emit `### Verified` rows.
 
 ## Phase 4 — CONTRACT GATE (main)
 
-Every row has every search key from `./references/contract.worker.md` plus every extract key from
-`./references/contract.extract.md`, whatever its status. Missing key → halt; name it under Gaps.
+Every row has every search key from `./references/contract-search.md` plus every extract key from
+`./references/contract-extract.md`, whatever its status. Missing key → halt; name it under Gaps.
 Never invent a field to pass the gate. Unknown = `—`.
 
 ### Location gate (post-extract, main)
@@ -103,7 +103,7 @@ highest score). Company losers → Dropped. Bucket per `## Bucket`.
 Print the per-factor breakdown in `### Score audit`. A row whose factors do not sum to its
 printed score is a defect: fix the row, do not adjust the sum.
 
-Emit final markdown **exactly** per `./references/report-format.md`. Named headings only. Then **STOP**.
+Emit final markdown **exactly** per `./references/scout-report.md`. Named headings only. Then **STOP**.
 
 ## Score (0–10; keep ≥ 7)
 

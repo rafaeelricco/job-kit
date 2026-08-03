@@ -1,6 +1,6 @@
-# Job discovery — report format
+# Job scout — report format
 
-The output contract for `orchestrator.md` Phase 5. Main-only, same as that file.
+The output contract for `pipeline.md` Phase 5. Main-only, same as that file.
 Never paste either into a worker brief.
 
 ## Report format
@@ -71,7 +71,7 @@ From people-pack `### Contacts` only. Never invent contact/channel.
 | company | title | skills | seniority | geo/auth | salary | recency |   = |
 | ------- | ----- | -----: | --------: | -------: | -----: | ------: | --: |
 
-One row per row that entered a ranked table. Factors exactly per `orchestrator.md` `## Score`.
+One row per row that entered a ranked table. Factors exactly per `pipeline.md` `## Score`.
 The `=` column MUST equal the score printed in the ranked tables — a mismatch is a defect,
 not a rounding.
 
@@ -82,7 +82,7 @@ not a rounding.
 | {pack_id} |               ≥3 |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
 
 One row per pack in `data/search_packs.yaml` (all packs every run).
-Carry `formulations_run` and `row_runs` as the worker printed them; `contract.worker.md`
+Carry `formulations_run` and `row_runs` as the worker printed them; `contract-search.md`
 owns both. NEVER print one without the other.
 Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry packs stay visible).
 
@@ -107,6 +107,6 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 
 - `bucket_short`: `{home_market}-direct` | `{home_market}-EOR` | `EU/US-only` | `unbucketed`
 - `bucket` full: `{home_market}-friendly (direct)` | `{home_market}-friendly (EOR)` | `EU/US-only` | `unbucketed`
-  (derivation table in `orchestrator.md`, under `## Bucket`)
+  (derivation table in `pipeline.md`, under `## Bucket`)
 - `channel`: `direct_email` | `dm_request` | `founder` | `ats`
 - `verdict`: `pass` or `defect: {name}`

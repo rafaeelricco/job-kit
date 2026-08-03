@@ -32,7 +32,7 @@ From a job-kit checkout:
 bash scripts/aside/install.sh
 ```
 
-Links `skill/{job-discovery,job-apply,profile-scaffold}` into
+Links `skill/{job-scout,application-stage,profile-init}` into
 `~/.aside/u/0/skills/user/` as absolute symlinks. Idempotent when links
 already match. Foreign conflicts fail; pass `--force` to replace them.
 
@@ -51,6 +51,11 @@ write salary or work-auth data, or log into any service.
 
 Update never modifies profile checkouts or `~/.config/profile-root`.
 
+Install removes legacy kit links (`job-discovery`, `job-apply`, `profile-scaffold`)
+when they still point at this checkout. Existing profile `data/search_packs.yaml`
+must use `impl` stems that match current job-scout reference basenames
+(`surface-linkedin-jobs`, `surface-open-web`, …).
+
 ## Uninstall
 
 ```bash
@@ -62,11 +67,11 @@ Aside skills, profile checkouts, and `~/.config/profile-root` alone.
 
 ## Installed Paths
 
-| Source                   | Destination                                 |
-| ------------------------ | ------------------------------------------- |
-| `skill/job-discovery`    | `~/.aside/u/0/skills/user/job-discovery`    |
-| `skill/job-apply`        | `~/.aside/u/0/skills/user/job-apply`        |
-| `skill/profile-scaffold` | `~/.aside/u/0/skills/user/profile-scaffold` |
+| Source                    | Destination                                  |
+| ------------------------- | -------------------------------------------- |
+| `skill/job-scout`         | `~/.aside/u/0/skills/user/job-scout`         |
+| `skill/application-stage` | `~/.aside/u/0/skills/user/application-stage` |
+| `skill/profile-init`      | `~/.aside/u/0/skills/user/profile-init`      |
 
 Override the destination root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`.
 Run the installer as your normal user, not with `sudo`.
@@ -81,13 +86,13 @@ bash scripts/aside/install.sh
 
 ### 2. Create a profile
 
-With an agent that loaded `profile-scaffold`:
+With an agent that loaded `profile-init`:
 
 ```text
-/profile-scaffold
+/profile-init
 ```
 
-The wizard asks for a target path, identity fields, and home market code. It
+The intake asks for a target path, identity fields, and home market code. It
 writes a data-only tree: `data/`, `private/`, `cv/`, and profile `scripts/`,
 not a second copy of the skills.
 
@@ -97,7 +102,7 @@ not a second copy of the skills.
 bash /path/to/your-profile/scripts/install.sh
 ```
 
-This writes `~/.config/profile-root` to that absolute path so discovery and apply
+This writes `~/.config/profile-root` to that absolute path so scout and apply
 resolve facts when the skills are linked into Aside.
 
 ### 4. Fill facts
@@ -113,12 +118,12 @@ Edit under the profile checkout at least:
 ### 5. Run the skills
 
 ```text
-/job-discovery
-/job-apply
+/job-scout
+/application-stage
 ```
 
-**job-discovery** lists and ranks openings; it never applies or messages.
-**job-apply** drafts and stages one application at a time; it stops at review
+**job-scout** lists and ranks openings; it never applies or messages.
+**application-stage** drafts and stages one application at a time; it stops at review
 and waits for an explicit yes. Neither skill submits.
 
 ## Profile root
@@ -139,20 +144,20 @@ PROFILE_ROOT=/path/to/other-profile
 
 ## Skills
 
-| Skill              | Role                                                              |
-| ------------------ | ----------------------------------------------------------------- |
-| `job-discovery`    | List-only job scout across every pack in `data/search_packs.yaml` |
-| `job-apply`        | Draft letter and form fields for one posting; stage only          |
-| `profile-scaffold` | Create a new data-only profile checkout                           |
+| Skill               | Role                                                              |
+| ------------------- | ----------------------------------------------------------------- |
+| `job-scout`         | List-only job scout across every pack in `data/search_packs.yaml` |
+| `application-stage` | Draft letter and form fields for one posting; stage only          |
+| `profile-init`      | Create a new data-only profile checkout                           |
 
 ## Layout
 
-| Path                      | Role                                  |
-| ------------------------- | ------------------------------------- |
-| `skill/job-discovery/`    | Scout law, contracts, surfaces        |
-| `skill/job-apply/`        | Apply law, draft contract             |
-| `skill/profile-scaffold/` | Wizard + templates for empty profiles |
-| `scripts/aside/`          | Aside install / uninstall             |
+| Path                       | Role                                  |
+| -------------------------- | ------------------------------------- |
+| `skill/job-scout/`         | Scout law, contracts, surfaces        |
+| `skill/application-stage/` | Apply law, draft contract             |
+| `skill/profile-init/`      | Intake + templates for empty profiles |
+| `scripts/aside/`           | Aside install / uninstall             |
 
 ## License
 
