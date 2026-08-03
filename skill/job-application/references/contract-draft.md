@@ -33,6 +33,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | language level                                           | `data/languages.yaml`                                                             |
 | salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                             |
+| assessment, drug test, background check, in-person       | `data/candidate.yaml` `work_preferences_from_resume`                              |
 | name, email, phone, site                                 | `data/basics.yaml`                                                                |
 | LinkedIn, GitHub                                         | `data/profiles.yaml`                                                              |
 | roles, employers, dates, public work bullets             | `data/experiences.yml`                                                            |
@@ -51,6 +52,11 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 - Say the gap out loud when the ad lists a skill you hold but not currently:
   "<skill> is real but predates my current role, treat it as secondary."
 - Disqualifying questions get the true answer, including when it disqualifies.
+- Screening binaries (assessment, drug test, background check, in-person) answer from
+  `work_preferences_from_resume` verbatim. Key empty → no answer exists: surface it,
+  never infer a Yes from willingness shown in another field.
+- No file prints demographic / EEO self-identification. Those questions are the
+  operator's to answer in the form. NEVER invent one, NEVER recall one from context.
 
 ### Sponsorship, classify before answering
 

@@ -7,12 +7,10 @@ availability:
 salary_expectations:
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
-self_identification:
-  gender: ""
-  pronouns: ""
-  veteran: ""
-  disability: ""
-  ethnicity: ""
+# No self-identification block, deliberately. EEO / demographic questions are
+# voluntary and per-employer; answer them in the ATS form at apply time.
+# job-application must never stage protected-class data from a file — the whole
+# Fact card is pasted verbatim into every drafting brief.
 
 legal_authorization:
   eu_work_authorization: ""

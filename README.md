@@ -170,19 +170,28 @@ With an agent that loaded `job-profile-init`:
 ```
 
 Intake is stage-shaped: **Route** (register existing or create), **Folder**,
-**Source** (CV / LinkedIn export path or paste, or scaffold-only), **Identity**
-(draft from SoT; ask only empties/conflicts), then **Approve** before any write.
-Register-only registers `~/.config/profile-root` (skill-owned; no profile
-`install.sh`) and stops. Create writes the data-only tree, fills Fact-law YAML
-from SoT (no invent; gaps listed), confirms search pack places, then registers
-the same way. Skills stay in job-kit, not in the profile.
+**Activate ask** (set this path as Profile root?), **Source** (CV / LinkedIn
+export path or paste, or scaffold-only), **Identity** (draft from SoT; ask only
+empties/conflicts), then **Approve** before any write. On Activate **Yes**, the
+skill writes host `~/.config/profile-root` and mirrors into Aside
+`~/.aside/runtime/home/.config/profile-root` when that tree exists; optional
+session `export PROFILE_ROOT` for the coding agent only (Aside does **not**
+inherit process env). Create also writes the data-only tree and fills Fact-law
+YAML from SoT (no invent; gaps listed). Skills stay in job-kit, not in the
+profile.
 
 ### 3. Fill facts
 
-Review the fill **Gaps** report. Hand-edit only what SoT could not supply
-(common: visa/sponsorship, salary band, EOR Yes/No). Ensure `cv/en-us-resume.pdf`
-exists before apply. Letter depth comes from what you put in `data/experiences.yml`
-and `data/projects.yml`.
+Fill asks once, in one message, for the blockers your source of truth left empty:
+salary band, notice period, work authorization for your home market, EOR Yes/No,
+and the assessment / drug-test / background-check / in-person binaries. `skip` is
+always a valid answer and lands in **Gaps** instead. Nothing is inferred or
+defaulted. Review the Gaps report and hand-edit the rest. Ensure
+`cv/en-us-resume.pdf` exists before apply. Letter depth comes from what you put in
+`data/experiences.yml` and `data/projects.yml`.
+
+No demographic or EEO self-identification is stored in the profile — those
+questions are voluntary and per-employer, so you answer them in the ATS form.
 
 ### 4. Run scout and apply (Aside)
 
@@ -205,19 +214,28 @@ and waits for an explicit yes. Neither skill submits.
 
 ## Profile root
 
+`/job-profile-init` **Activate ask** (after the profile path is known) is how
+the machine pointer is set. Durable writes:
+
+| File | Who reads it |
+| ---- | ------------ |
+| `$HOST_HOME/.config/profile-root` | Coding agents; Aside dual-home step |
+| `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is runtime home (mirror on Activate / `scripts/install.sh`) |
+
+`PROFILE_ROOT` is a **session override** only (coding agent or shell). Aside
+does not inherit env from the init session.
+
 Skills resolve the active profile in this order:
 
 1. `$PROFILE_ROOT` if that directory has `data/candidate.yaml` and
    `data/job_search.yaml`
 2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
 3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
-   home’s `~/.config/profile-root` (same one-line absolute path). Profile init
-   and `scripts/install.sh` register under the real user home; Aside’s sandboxed
-   `HOME` does not share that file unless this step runs.
+   home’s `~/.config/profile-root` (same one-line absolute path)
 4. Walk the session CWD upward until both probe files exist
 5. Otherwise stop and name what was tried
 
-Override for a second profile without rewriting the config file:
+Override for one session without rewriting pointer files:
 
 ```bash
 PROFILE_ROOT=/path/to/other-profile
