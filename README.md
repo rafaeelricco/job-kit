@@ -13,7 +13,7 @@ from **facts** (who you are, what you want, what you can prove).
 
 This repo is the procedure: three agent skills on two install channels.
 Scout and apply install into [Aside Browser](https://aside.com); profile
-init installs into coding agents (Claude Code primary). Salary band, work
+init installs into coding agents (Claude Code, Codex, Grok). Salary band, work
 authorization, experience, and client evidence stay in a profile
 directory you control, never in this tree.
 
@@ -24,16 +24,16 @@ directory you control, never in this tree.
 
 ## Which skill goes where
 
-| Skill | Channel | Install |
-| ----- | ------- | ------- |
-| `job-scout` | Aside | `scripts/aside/install.sh` |
-| `job-application` | Aside | `scripts/aside/install.sh` |
-| `job-profile-init` | Coding agents (Claude) | `scripts/agents/install.sh` |
+| Skill              | Channel                               | Install                     |
+| ------------------ | ------------------------------------- | --------------------------- |
+| `job-scout`        | Aside                                 | `scripts/aside/install.sh`  |
+| `job-application`  | Aside                                 | `scripts/aside/install.sh`  |
+| `job-profile-init` | Coding agents (Claude / Codex / Grok) | `scripts/agents/install.sh` |
 
-## Install — coding agents (Claude primary)
+## Install — coding agents (Claude, Codex, Grok)
 
-**Prerequisites:** Bash, Git; Claude Code user skills dir (default
-`~/.claude/skills`).
+**Prerequisites:** Bash, Git; at least one agent home already present
+(`~/.claude`, `~/.agents`, or `~/.grok` — open that agent once if missing).
 
 From a job-kit checkout:
 
@@ -41,18 +41,30 @@ From a job-kit checkout:
 bash scripts/agents/install.sh
 ```
 
-Links `skill/job-profile-init` into `~/.claude/skills/job-profile-init`.
-Idempotent when the link already matches. Foreign conflicts fail; pass
-`--force` to replace. Override dest with absolute `CLAUDE_SKILLS` (extension
-for Codex/Grok skill dirs — one dest per run).
+Links `skill/job-profile-init` into each eligible target (parent dir must
+exist). Destinations match the personal multi-agent layout:
+
+| Target      | Skills root                         |
+| ----------- | ----------------------------------- |
+| Claude Code | `~/.claude/skills/job-profile-init` |
+| Codex       | `~/.agents/skills/job-profile-init` |
+| Grok        | `~/.grok/skills/job-profile-init`   |
+
+Idempotent when a link already matches. Foreign conflicts fail; pass
+`--force` to replace. Skip a target with `--skip-claude`, `--skip-codex`,
+or `--skip-grok`. Single custom dest: absolute `CLAUDE_SKILLS` (escape hatch;
+skip flags ignored).
 
 ```bash
+bash scripts/agents/install.sh --skip-codex
 CLAUDE_SKILLS=/path/to/skills bash scripts/agents/install.sh
 bash scripts/agents/install.sh --force
 ```
 
-Does **not** install scout/apply into coding agents. Does not create a
-profile or write salary or work-auth data.
+Does **not** install scout/apply into coding agents. Does not create agent
+home dirs, a profile, or salary / work-auth data. Codex skills live under
+`~/.agents/skills`, not `~/.codex/skills` (legacy kit links there are
+removed when present).
 
 ## Install — Aside
 
@@ -100,24 +112,28 @@ bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
 
-Each uninstall only touches its channel. Aside never removes Claude links;
-agents never removes Aside links. Leaves profile checkouts and
+Each uninstall only touches its channel. Agents uninstall supports the same
+`--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent
+links; agents never removes Aside links. Leaves profile checkouts and
 `~/.config/profile-root` alone.
 
 ## Installed Paths
 
-| Source | Destination |
-| -------------------------- | --------------------------------------------- |
-| `skill/job-scout` | `~/.aside/u/0/skills/user/job-scout` |
-| `skill/job-application` | `~/.aside/u/0/skills/user/job-application` |
-| `skill/job-profile-init` | `~/.claude/skills/job-profile-init` |
+| Source                   | Destination                                |
+| ------------------------ | ------------------------------------------ |
+| `skill/job-scout`        | `~/.aside/u/0/skills/user/job-scout`       |
+| `skill/job-application`  | `~/.aside/u/0/skills/user/job-application` |
+| `skill/job-profile-init` | `~/.claude/skills/job-profile-init`        |
+| `skill/job-profile-init` | `~/.agents/skills/job-profile-init`        |
+| `skill/job-profile-init` | `~/.grok/skills/job-profile-init`          |
 
-Override Aside root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`; agent dest
-with `CLAUDE_SKILLS`. Run the installer as your normal user, not with `sudo`.
+Override Aside root with `ASIDE_SKILLS_USER` or `ASIDE_ACCOUNT`; single agent
+dest with `CLAUDE_SKILLS`. Run the installer as your normal user, not with
+`sudo`.
 
 ## Getting Started
 
-### 1. Install profile init into a coding agent
+### 1. Install profile init into coding agents
 
 ```bash
 bash scripts/agents/install.sh
@@ -187,21 +203,21 @@ PROFILE_ROOT=/path/to/other-profile
 
 ## Skills
 
-| Skill | Role |
-| ------------------- | ----------------------------------------------------------------- |
-| `job-scout` | List-only job scout across every pack in `data/search_packs.yaml` (Aside) |
-| `job-application` | Draft letter and form fields for one posting; stage only (Aside) |
-| `job-profile-init` | Create a new data-only profile checkout (coding agents) |
+| Skill              | Role                                                                      |
+| ------------------ | ------------------------------------------------------------------------- |
+| `job-scout`        | List-only job scout across every pack in `data/search_packs.yaml` (Aside) |
+| `job-application`  | Draft letter and form fields for one posting; stage only (Aside)          |
+| `job-profile-init` | Create a new data-only profile checkout (coding agents)                   |
 
 ## Layout
 
-| Path | Role |
-| -------------------------- | ----------------------------------------- |
-| `skill/job-scout/` | Scout law, contracts, surfaces |
-| `skill/job-application/` | Apply law, draft contract |
-| `skill/job-profile-init/` | Intake + templates for empty profiles |
-| `scripts/aside/` | Aside install / uninstall (scout+apply) |
-| `scripts/agents/` | Coding-agent install / uninstall (profile init) |
+| Path                      | Role                                            |
+| ------------------------- | ----------------------------------------------- |
+| `skill/job-scout/`        | Scout law, contracts, surfaces                  |
+| `skill/job-application/`  | Apply law, draft contract                       |
+| `skill/job-profile-init/` | Intake + templates for empty profiles           |
+| `scripts/aside/`          | Aside install / uninstall (scout+apply)         |
+| `scripts/agents/`         | Coding-agent install / uninstall (profile init) |
 
 ## License
 
