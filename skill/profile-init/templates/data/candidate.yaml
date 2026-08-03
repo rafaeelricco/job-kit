@@ -1,4 +1,4 @@
-# Bucket/report label code used by job-discovery (e.g. BR, LATAM, PL).
+# Bucket/report label code used by job-scout (e.g. BR, LATAM, PL).
 home_market: "{{home_market}}"
 
 availability:

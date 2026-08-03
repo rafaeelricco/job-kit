@@ -1,12 +1,12 @@
-# search-open-web
+# surface-open-web
 
 === SEARCH-ONLY ===
-Surfaces: `hn`, `waas`, `web_boards`. Obey CONTRACT_WORKER end-to-end — it carries the
+Surfaces: `hn`, `waas`, `web_boards`. Obey CONTRACT_SEARCH end-to-end — it carries the
 evidence rules, the search procedure, the URL rules, and both output schemas.
 
 ## Inputs (caller pastes verbatim — do not summarize)
 
-PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER · SOURCES when the pack names a group
+PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_SEARCH · SOURCES when the pack names a group
 
 ## Surface deltas
 
@@ -30,4 +30,4 @@ PROFILE_CARD · CONSTRAINTS · PACK · CONTRACT_WORKER · SOURCES when the pack 
 
 ## Required output
 
-`### Candidates` then `### Defect log`, both exactly per CONTRACT_WORKER.
+`### Candidates` then `### Defect log`, both exactly per CONTRACT_SEARCH.

@@ -1,6 +1,6 @@
-# Materialize
+# Emit tree
 
-Source = `./templates/` only. Destination = wizard target path.
+Source = `./templates/` only. Destination = intake target path.
 
 ## Tree to write
 
@@ -15,12 +15,12 @@ Source = `./templates/` only. Destination = wizard target path.
   cv/README.md
 ```
 
-No `prompts/` and no skill pack trees. Skills come from job-kit install.
+No skill pack trees inside the profile. Skills come from job-kit Aside install.
 
 Copy the entire `./templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
 
-| Token                   | Wizard field      |
+| Token                   | Intake field      |
 | ----------------------- | ----------------- |
 | `{{linkedin_username}}` | LinkedIn username |
 | `{{display_name}}`      | Display name      |
@@ -37,4 +37,4 @@ rg -n 'rafael-r1cco|rafaelricco@|Ambar|Ashraf|Prevou|Hart|\{\{' "<target>"
 ```
 
 Any hit → STOP and fix templates or rewrite; do not hand off a dirty tree.
-After substitution, no `{{…}}` tokens may remain. Target must not contain `prompts/`.
+After substitution, no `{{…}}` tokens may remain. Target must not contain skill pack trees.

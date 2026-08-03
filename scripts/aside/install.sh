@@ -24,7 +24,7 @@ Environment:
   ASIDE_SKILLS_USER  Absolute Aside skills/user directory
   ASIDE_ACCOUNT      Account id under ~/.aside/u/ (default: 0)
 
-Links skill/{job-discovery,job-apply,profile-scaffold} into the Aside
+Links skill/{job-scout,application-stage,profile-init} into the Aside
 user-skills directory. Local checkout only; no clone.
 EOF
 }
@@ -52,6 +52,7 @@ main() {
   ensure_aside_skills_user "${dest_root}"
 
   echo "== job-kit Aside install from ${repo} =="
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
   for name in ${SKILL_NAMES}; do
     source="$(skill_source "${repo}" "${name}")"
     dest="$(skill_dest "${dest_root}" "${name}")"

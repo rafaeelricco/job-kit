@@ -49,6 +49,7 @@ main() {
   dest_root="$(resolve_aside_skills_user)"
 
   echo "== job-kit Aside uninstall for ${dest_root} =="
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
   for name in ${SKILL_NAMES}; do
     dest="$(skill_dest "${dest_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}"

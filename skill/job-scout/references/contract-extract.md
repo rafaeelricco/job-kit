@@ -1,4 +1,4 @@
-# Contract (extract) — job discovery JD open
+# Contract (extract) — job scout JD open
 
 Paste this file **verbatim** into every extract brief. Workers inherit nothing.
 
@@ -19,7 +19,7 @@ Unknown value = `—`. NEVER invent a value.
 - Salary, work_auth, hiring_route, seniority-as-fact: **only** from the opened JD page.
 - Carry every search column unchanged. Do not re-derive author or contact.
 
-## Search columns (must keep; schema owned by contract.worker.md)
+## Search columns (must keep; schema owned by contract-search.md)
 
 `company | title | url | source | channel | author | contact | date | why`
 
