@@ -1,9 +1,9 @@
 ---
-name: "application-stage"
+name: "job-application"
 description: "Draft and stage one job application from a posting. Never submit. Use when the user asks to apply, write a cover letter, fill an application form, or stage an Easy Apply; stop at review and wait for an explicit yes."
 ---
 
-# Application stage
+# Job application
 
 Profile root: same ordered resolver as job-scout
 (`PROFILE_ROOT` → `~/.config/profile-root` → CWD walk → STOP).

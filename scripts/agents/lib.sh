@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Shared helpers for Aside skill install/uninstall.
+# Shared helpers for coding-agent skill install/uninstall.
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
-# Skill folder names under skill/ that Aside may load (Aside channel only).
-SKILL_NAMES="job-scout job-application"
-# Prior Aside basenames from this kit; install/uninstall may remove orphans.
+# Skill folder names under skill/ for coding agents (Claude primary).
+SKILL_NAMES="job-profile-init"
+# Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
-LEGACY_SKILL_NAMES="job-discovery job-apply profile-scaffold application-stage profile-init"
+LEGACY_SKILL_NAMES="profile-init"
 
 # resolve_repo_root
 # Prints absolute job-kit root (parent of scripts/).
@@ -34,33 +34,30 @@ resolve_repo_root() {
     echo "error: not a job-kit checkout (missing skill/): ${repo}" >&2
     return 1
   }
-  [ -d "${repo}/scripts/aside" ] || {
-    echo "error: not a job-kit checkout (missing scripts/aside/): ${repo}" >&2
+  [ -d "${repo}/scripts/agents" ] || {
+    echo "error: not a job-kit checkout (missing scripts/agents/): ${repo}" >&2
     return 1
   }
   printf '%s\n' "${repo}"
 }
 
-# resolve_aside_skills_user
-# Prints Aside user-skills directory.
-# Default: $HOME/.aside/u/0/skills/user
-# Override: absolute ASIDE_SKILLS_USER, or ASIDE_ACCOUNT for u/<id>.
+# resolve_claude_skills
+# Prints coding-agent skills directory.
+# Default: $HOME/.claude/skills
+# Override: absolute CLAUDE_SKILLS.
 # Side effects: none.
-resolve_aside_skills_user() {
-  local account path
-  if [ -n "${ASIDE_SKILLS_USER:-}" ]; then
-    case "${ASIDE_SKILLS_USER}" in
-      /*) printf '%s\n' "${ASIDE_SKILLS_USER}" ;;
+resolve_claude_skills() {
+  if [ -n "${CLAUDE_SKILLS:-}" ]; then
+    case "${CLAUDE_SKILLS}" in
+      /*) printf '%s\n' "${CLAUDE_SKILLS}" ;;
       *)
-        echo "error: ASIDE_SKILLS_USER must be an absolute path" >&2
+        echo "error: CLAUDE_SKILLS must be an absolute path" >&2
         return 1
         ;;
     esac
     return 0
   fi
-  account="${ASIDE_ACCOUNT:-0}"
-  path="${HOME}/.aside/u/${account}/skills/user"
-  printf '%s\n' "${path}"
+  printf '%s\n' "${HOME}/.claude/skills"
 }
 
 # skill_source REPO NAME
@@ -121,18 +118,18 @@ unlink_legacy_skills() {
   done
 }
 
-# ensure_aside_skills_user DEST_ROOT
-# Creates DEST_ROOT only if its parent already exists (Aside already set up).
+# ensure_skills_dir DEST_ROOT
+# Creates DEST_ROOT only if its parent already exists (agent home already set up).
 # Side effects: may mkdir DEST_ROOT. Exits 1 if parent is missing.
-ensure_aside_skills_user() {
+ensure_skills_dir() {
   local dest_root="$1" parent
   parent="$(dirname "${dest_root}")"
   if [ -d "${dest_root}" ]; then
     return 0
   fi
   if [ ! -d "${parent}" ]; then
-    echo "error: Aside skills parent missing: ${parent}" >&2
-    echo "  Install Aside Browser and sign in first (expected under ~/.aside)." >&2
+    echo "error: coding-agent skills parent missing: ${parent}" >&2
+    echo "  Expected Claude Code skills under ~/.claude (or set CLAUDE_SKILLS)." >&2
     return 1
   fi
   mkdir -p "${dest_root}" || {
