@@ -81,21 +81,26 @@ kit_checkout_missing() {
 # Prints the first required job-kit path that REF does not carry with the right
 # object type in the repository at DIR; prints nothing when REF is a complete
 # checkout. Probes the object store, so an update can be rejected before it
-# reaches the working tree. Matches on type, not mere existence, to mirror the
-# `-d` / `-f` tests in kit_checkout_missing — a blob named `skill` is not a
-# skills directory.
+# reaches the working tree. Matches on tree-entry mode, not mere existence, to
+# mirror the `-d` / `-f` tests in kit_checkout_missing: a blob named `skill` is
+# not a skills directory, and `cat-file -t` reports `blob` for a symlink too, so
+# only regular-file modes are accepted for the required files.
 # Side effects: none.
 git_ref_missing() {
-  local dir="$1" ref="$2" rel
+  local dir="$1" ref="$2" rel mode
   if [ "$(git -C "${dir}" cat-file -t "${ref}:skill" 2>/dev/null)" != "tree" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
   for rel in ${KIT_REQUIRED_FILES}; do
-    if [ "$(git -C "${dir}" cat-file -t "${ref}:${rel}" 2>/dev/null)" != "blob" ]; then
-      printf '%s\n' "${rel}"
-      return 0
-    fi
+    mode="$(git -C "${dir}" ls-tree "${ref}" -- "${rel}" 2>/dev/null | awk '{print $1}')"
+    case "${mode}" in
+      100644|100755) ;;
+      *)
+        printf '%s\n' "${rel}"
+        return 0
+        ;;
+    esac
   done
 }
 
@@ -106,7 +111,7 @@ git_ref_missing() {
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
   local dest="$1" url stage parent missing
-  if [ -e "${dest}" ]; then
+  if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     missing="$(kit_checkout_missing "${dest}")"
     [ -z "${missing}" ] \
       || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
@@ -195,7 +200,7 @@ fetch_git_clone() {
 # Side effects: creates or updates DEST.
 fetch_kit() {
   local dest="$1" missing
-  if [ ! -e "${dest}" ]; then
+  if [ ! -L "${dest}" ] && [ ! -e "${dest}" ]; then
     if have git; then
       fetch_git_clone "${dest}"
     else
@@ -208,7 +213,7 @@ fetch_kit() {
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
 
-  if [ -e "${dest}/.git" ]; then
+  if [ -L "${dest}/.git" ] || [ -e "${dest}/.git" ]; then
     have git || die "cached checkout is a git repository but git is not installed: ${dest}"
     is_git_repo "${dest}" \
       || die "cache path has a .git entry but is not a usable git repository: ${dest}"
