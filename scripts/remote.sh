@@ -27,28 +27,39 @@ JOB_KIT_HOME="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Install job-kit skills without cloning by hand.
+Install or uninstall job-kit skills without cloning by hand.
 
-Usage: remote.sh [channel] [installer options…]
+Usage: remote.sh [channel] [options…]
+       remote.sh uninstall [target] [options…]
 
-Channels:
+Install channels:
   all       Aside + coding agents, skipping absent targets (default)
   aside     Aside only (fails when Aside is not set up)
   agents    Coding agents only (fails when no agent home exists)
   fetch     Refresh the cached checkout, install nothing
+
+Uninstall:
+  uninstall           Both channels (default target: all)
+  uninstall all       Same
+  uninstall aside     Aside only
+  uninstall agents    Coding agents only
+
   -h, --help  Show this help
 
-Options after the channel are forwarded to the channel installer, e.g.
-`remote.sh agents --skip-codex`. Channel `all` forwards only --force;
-use an explicit channel for target-specific flags.
+Install options after the channel are forwarded to the installer, e.g.
+`remote.sh agents --skip-codex`. Channel `all` forwards only --force.
+
+Uninstall options:
+  --purge             After uninstall, remove the cached checkout
+  --skip-claude|codex|grok  Forwarded only with `uninstall agents`
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME/job-kit)
   JOB_KIT_REF   Branch or tag to fetch (default main)
   JOB_KIT_SLUG  GitHub owner/repo (default rafaeelricco/job-kit)
 
-Keeps the cached checkout in place: coding-agent skills symlink into it, and
-Aside re-installs read it to prove kit ownership.
+Install keeps the cache (agent skills symlink into it; Aside ownership
+markers point at it). Uninstall leaves the cache unless --purge.
 EOF
 }
 
@@ -304,6 +315,47 @@ require_checkout() {
   [ -z "${missing}" ] || die "not a job-kit checkout (missing ${missing}): ${dir}"
 }
 
+# ensure_kit_cache DEST
+# Ensures DEST is a complete job-kit checkout. If DEST is absent, fetches it.
+# If DEST exists but is incomplete, dies (same ownership guard as install).
+# Does not refresh an already-complete cache (uninstall ownership strings
+# match install's pwd -P path; avoid needless network).
+# Side effects: may create DEST via fetch_kit.
+ensure_kit_cache() {
+  local dest raw missing
+  raw="$(strip_trailing_slashes "$1")"
+  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
+    fetch_kit "${raw}"
+    require_checkout "${raw}"
+    return 0
+  fi
+  dest="$(resolve_cache_path "${raw}")"
+  missing="$(kit_checkout_missing "${dest}")"
+  [ -z "${missing}" ] \
+    || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+}
+
+# purge_kit_cache DEST
+# Removes DEST only when it is a complete job-kit checkout (never foreign trees).
+# Side effects: may rm -rf DEST (and a symlink at DEST when DEST is a link).
+purge_kit_cache() {
+  local dest raw missing
+  raw="$(strip_trailing_slashes "$1")"
+  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
+    echo "cache already absent: ${raw}"
+    return 0
+  fi
+  dest="$(resolve_cache_path "${raw}")"
+  missing="$(kit_checkout_missing "${dest}")"
+  [ -z "${missing}" ] \
+    || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
+  rm -rf "${dest}" || die "failed to remove cache: ${dest}"
+  if [ -L "${raw}" ]; then
+    rm -f "${raw}" || die "failed to remove cache symlink: ${raw}"
+  fi
+  echo "purged cache: ${dest}"
+}
+
 # aside_ready
 # Exit 0 when Aside's skills parent exists, or ASIDE_SKILLS is set.
 # Side effects: none.
@@ -325,15 +377,88 @@ agents_ready() {
 }
 
 # main
-# Parses the channel, refreshes the cache, delegates to channel installers.
-# Side effects: writes the cached checkout; runs installers.
+# Parses install channel or `uninstall [target]`, ensures cache, delegates.
+# Side effects: may write/remove cache; runs install or uninstall scripts.
 main() {
-  local channel="all" ran=0 arg
+  local channel="all" mode="install" target="all" ran=0 arg purge=0
+  # Bash 3.2: plain indexed array for agent uninstall flags (no --purge).
+  local -a agent_flags
+  agent_flags=()
+
   if [ "$#" -gt 0 ]; then
     case "$1" in
+      uninstall)
+        mode="uninstall"
+        shift
+        case "${1:-}" in
+          all|aside|agents) target="$1"; shift ;;
+        esac
+        ;;
       all|aside|agents|fetch) channel="$1"; shift ;;
       -h|--help) usage; exit 0 ;;
     esac
+  fi
+
+  if [ "${mode}" = "uninstall" ]; then
+    purge=0
+    agent_flags=()
+    for arg in "$@"; do
+      if [ "${arg}" = "--purge" ]; then
+        purge=1
+        continue
+      fi
+      case "${target}" in
+        all)
+          die "uninstall all accepts only --purge (got: ${arg}); use 'uninstall agents' for --skip-*"
+          ;;
+        aside)
+          die "uninstall aside accepts only --purge (got: ${arg})"
+          ;;
+        agents)
+          case "${arg}" in
+            --skip-claude|--skip-codex|--skip-grok)
+              agent_flags[${#agent_flags[@]}]="${arg}"
+              ;;
+            *)
+              die "unknown uninstall agents option: ${arg} (expected --skip-* or --purge)"
+              ;;
+          esac
+          ;;
+      esac
+    done
+
+    ensure_kit_cache "${JOB_KIT_HOME}"
+    require_checkout "${JOB_KIT_HOME}"
+
+    case "${target}" in
+      aside)
+        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        ;;
+      agents)
+        if [ "${#agent_flags[@]}" -eq 0 ]; then
+          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+        else
+          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh" "${agent_flags[@]}"
+        fi
+        ;;
+      all)
+        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+        ;;
+    esac
+
+    echo
+    if [ "${purge}" -eq 1 ]; then
+      purge_kit_cache "${JOB_KIT_HOME}"
+      echo "job-kit uninstall finished (cache purged)"
+    else
+      echo "job-kit uninstall finished"
+      echo "  cache kept at: ${JOB_KIT_HOME}"
+      echo "  reinstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- all"
+      echo "  purge cache: bash ${JOB_KIT_HOME}/scripts/remote.sh uninstall --purge"
+      echo "           or: rm -rf ${JOB_KIT_HOME}"
+    fi
+    return 0
   fi
 
   fetch_kit "${JOB_KIT_HOME}"
@@ -373,7 +498,8 @@ main() {
   echo
   echo "job-kit cached at: ${JOB_KIT_HOME}"
   echo "  keep it: agent skills symlink into it, Aside re-runs prove ownership by it"
-  echo "  uninstall: bash ${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+  echo "  uninstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
+  echo "         or: bash ${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
   echo "             bash ${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
 }
 
