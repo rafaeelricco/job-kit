@@ -53,6 +53,11 @@ Yes).
       - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
         whether to switch to `REPO`. Yes → continue to (5). No → leave inactive;
         print later Activate hint; go to (8).
+      - `current_canon` empty but `current` non-empty → the pointer names a path
+        this process cannot traverse (e.g. a live profile under an Aside-blocked
+        parent). Treat it as a conflict, **not** a free slot: show `current`, say
+        it could not be resolved, ask the same switch question, same Yes/No
+        handling. Only an absent or empty pointer line skips the ask.
    5. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
       `REPO` into `$HOST_HOME/.config/profile-root`.
    6. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its

@@ -144,6 +144,17 @@ main() {
         echo "  use --yes to switch to ${REPO}" >&2
         exit 2
       fi
+    elif [ -n "${current}" ]; then
+      # Non-empty but unresolvable: it may name a live profile this process
+      # cannot traverse (Aside FS sandbox). Not a free slot — gate it too.
+      if [ "${assume_yes}" -eq 1 ]; then
+        result="switched: ${current} (unresolvable) -> ${REPO}"
+      else
+        echo "error: profile root already registered but not resolvable: ${current}" >&2
+        echo "  it may be a live profile this process cannot traverse" >&2
+        echo "  use --yes to switch to ${REPO}" >&2
+        exit 2
+      fi
     fi
   fi
 
