@@ -46,9 +46,17 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Prints an error to stderr and exits 1.
 die() { echo "error: $*" >&2; exit 1; }
 
-# Files that, together with `skill/`, make a tree a job-kit checkout. Single
-# source of truth for both the filesystem and the git-ref layout probes.
-KIT_REQUIRED_FILES="scripts/agents/install.sh scripts/agents/lib.sh scripts/aside/install.sh scripts/aside/lib.sh"
+# Files that, together with `skill/`, make a tree a usable job-kit checkout:
+# the channel installers, plus the SKILL.md of every skill they install. The
+# payload matters as much as the scripts — `require_skill_source` in
+# scripts/{agents,aside}/lib.sh rejects a skill without SKILL.md, and by then
+# the cache has already been replaced. Single source of truth for both the
+# filesystem and the git-ref layout probes.
+KIT_REQUIRED_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+scripts/aside/install.sh scripts/aside/lib.sh
+skill/job-profile-init/SKILL.md
+skill/job-scout/SKILL.md
+skill/job-application/SKILL.md"
 
 # kit_checkout_missing DIR
 # Prints the first required job-kit path missing from DIR; prints nothing when
