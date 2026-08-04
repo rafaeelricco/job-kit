@@ -70,18 +70,21 @@ kit_checkout_missing() {
 }
 
 # git_ref_missing DIR REF
-# Prints the first required job-kit path absent from REF in the repository at
-# DIR; prints nothing when REF carries a complete checkout. Probes the object
-# store, so an update can be rejected before it reaches the working tree.
+# Prints the first required job-kit path that REF does not carry with the right
+# object type in the repository at DIR; prints nothing when REF is a complete
+# checkout. Probes the object store, so an update can be rejected before it
+# reaches the working tree. Matches on type, not mere existence, to mirror the
+# `-d` / `-f` tests in kit_checkout_missing — a blob named `skill` is not a
+# skills directory.
 # Side effects: none.
 git_ref_missing() {
   local dir="$1" ref="$2" rel
-  if ! git -C "${dir}" cat-file -e "${ref}:skill" 2>/dev/null; then
+  if [ "$(git -C "${dir}" cat-file -t "${ref}:skill" 2>/dev/null)" != "tree" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
   for rel in ${KIT_REQUIRED_FILES}; do
-    if ! git -C "${dir}" cat-file -e "${ref}:${rel}" 2>/dev/null; then
+    if [ "$(git -C "${dir}" cat-file -t "${ref}:${rel}" 2>/dev/null)" != "blob" ]; then
       printf '%s\n' "${rel}"
       return 0
     fi
