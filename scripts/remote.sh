@@ -7,6 +7,21 @@ JOB_KIT_SLUG="${JOB_KIT_SLUG:-rafaeelricco/job-kit}"
 JOB_KIT_REF="${JOB_KIT_REF:-main}"
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/job-kit}"
 
+# strip_trailing_slashes PATH
+# Prints PATH with trailing slashes removed (a lone "/" is kept). Without this,
+# a JOB_KIT_HOME value like `/path/to/link/` makes `[ -L ]` and `rm -rf` operate
+# on the target directory instead of the symlink itself.
+# Side effects: none.
+strip_trailing_slashes() {
+  local p="$1"
+  while [ "${#p}" -gt 1 ] && [ "${p%/}" != "${p}" ]; do
+    p="${p%/}"
+  done
+  printf '%s' "${p}"
+}
+
+JOB_KIT_HOME="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+
 # usage
 # Prints CLI help to stdout.
 # Side effects: none.
@@ -47,13 +62,17 @@ have() { command -v "$1" >/dev/null 2>&1; }
 die() { echo "error: $*" >&2; exit 1; }
 
 # Files that, together with `skill/`, make a tree a usable job-kit checkout:
-# the channel installers, plus the SKILL.md of every skill they install. The
-# payload matters as much as the scripts — `require_skill_source` in
-# scripts/{agents,aside}/lib.sh rejects a skill without SKILL.md, and by then
-# the cache has already been replaced. Single source of truth for both the
+# the channel installers and uninstallers, plus the SKILL.md of every skill
+# they install. The payload matters as much as the scripts —
+# `require_skill_source` in scripts/{agents,aside}/lib.sh rejects a skill
+# without SKILL.md, and by then the cache has already been replaced. Uninstall
+# scripts are required too: the success banner points at them, so a cache that
+# lacks them strands agent symlinks. Single source of truth for both the
 # filesystem and the git-ref layout probes.
 KIT_REQUIRED_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+scripts/agents/uninstall.sh
 scripts/aside/install.sh scripts/aside/lib.sh
+scripts/aside/uninstall.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
@@ -61,16 +80,19 @@ skill/job-application/SKILL.md"
 # kit_checkout_missing DIR
 # Prints the first required job-kit path missing from DIR; prints nothing when
 # DIR is a complete checkout. Gates destructive replacement, so a stray `skill/`
-# alone must never be enough to mark a directory as kit-owned.
+# alone must never be enough to mark a directory as kit-owned. Rejects symlinks
+# for required files (and for `skill/`) because Bash `test -f`/`-d` follow them,
+# which would accept a tarball entry that the git-ref probe rejects as mode
+# `120000`.
 # Side effects: none.
 kit_checkout_missing() {
   local dir="$1" rel
-  if [ ! -d "${dir}/skill" ]; then
+  if [ -L "${dir}/skill" ] || [ ! -d "${dir}/skill" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
   for rel in ${KIT_REQUIRED_FILES}; do
-    if [ ! -f "${dir}/${rel}" ]; then
+    if [ -L "${dir}/${rel}" ] || [ ! -f "${dir}/${rel}" ]; then
       printf '%s\n' "${rel}"
       return 0
     fi
@@ -82,9 +104,9 @@ kit_checkout_missing() {
 # object type in the repository at DIR; prints nothing when REF is a complete
 # checkout. Probes the object store, so an update can be rejected before it
 # reaches the working tree. Matches on tree-entry mode, not mere existence, to
-# mirror the `-d` / `-f` tests in kit_checkout_missing: a blob named `skill` is
-# not a skills directory, and `cat-file -t` reports `blob` for a symlink too, so
-# only regular-file modes are accepted for the required files.
+# mirror kit_checkout_missing: a blob named `skill` is not a skills directory,
+# and only regular-file modes (`100644`/`100755`) are accepted for required
+# files so a mode-`120000` symlink cannot pass the probe.
 # Side effects: none.
 git_ref_missing() {
   local dir="$1" ref="$2" rel mode
@@ -108,9 +130,12 @@ git_ref_missing() {
 # Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
 # required. DEST is removed only once the download proves to be a complete
 # job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
+# DEST is slash-normalized so a trailing slash cannot make `rm -rf` walk through
+# a symlink and wipe the link target.
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
-  local dest="$1" url stage parent missing
+  local dest url stage parent missing
+  dest="$(strip_trailing_slashes "$1")"
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     missing="$(kit_checkout_missing "${dest}")"
     [ -z "${missing}" ] \
@@ -196,10 +221,12 @@ fetch_git_clone() {
 # Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
 # that is not already a complete job-kit checkout is never fetched into, checked
 # out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path.
+# path. DEST is slash-normalized first so trailing-slash symlink paths keep the
+# `-L` / `rm -rf` semantics of the bare path.
 # Side effects: creates or updates DEST.
 fetch_kit() {
-  local dest="$1" missing
+  local dest missing
+  dest="$(strip_trailing_slashes "$1")"
   if [ ! -L "${dest}" ] && [ ! -e "${dest}" ]; then
     if have git; then
       fetch_git_clone "${dest}"
