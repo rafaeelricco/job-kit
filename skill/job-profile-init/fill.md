@@ -16,11 +16,12 @@ Never invent. Never network-import LinkedIn.
 
 | Class                                                                 | SoT present                                                                                                                   | SoT silent                                               |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR, routes, relocation | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
+| Salary, notice, work auth, visa, sponsorship, EOR                      | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
+| Routes (non-EOR), relocation, remote / in-person prefs, screening binaries (`willing_to_*`, `in_person_work*`) | Map only when SoT prints a clear answer                                                                                       | Leave empty; **do not** list under Gaps                  |
 | Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write                                               | Suggest from SoT stack only; never write without confirm |
-| Experiences, skills, projects, languages                              | Extract only what is printed                                                                                                  | Leave `[]` / empty rows; Gaps                            |
+| Experiences, skills, projects, languages (incl. levels, experience URLs) | Extract only what is printed                                                                                                | Leave `[]` / empty rows; **do not** list under Gaps      |
 | Search pack places                                                    | N/A                                                                                                                           | Catalog multi_select (below)                             |
-| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Gaps: operator places PDF                                |
+| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Report only under **### CV** (not Gaps)                  |
 | Identity (name, email, LI, GH, home_market)                           | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                       |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
@@ -29,8 +30,8 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 ## Write order (overwrite Fact files only)
 
 1. `data/candidate.yaml` — salary_range_usd, notice_period, legal_authorization*,
-   employment_routes*, open_to_relocation / remote prefs and the
-   `willing_to_*` / `in_person_work` screening binaries when evidenced.
+   `employment_routes.employer_of_record` when evidenced; other routes / relocation /
+   remote prefs / screening binaries only when SoT prints them (never invent, never force).
 2. `data/job_search.yaml` — positions, keywords.*, locations, blacklists
    (defaults for work_model / levels / job_types stay unless SoT contradicts).
 3. `data/experiences.yml` — one object per role; keys per template comment.
@@ -52,7 +53,6 @@ grow per session and it does not shrink because the turn is long.
 | 2   | `availability.notice_period`                                   | notice owed to current employer       |
 | 3   | `legal_authorization.*` for the `home_market` jurisdiction     | one grouped question, not 16 fields   |
 | 4   | `employment_routes.employer_of_record`                         | Yes / No — gates the EOR scout bucket |
-| 5   | `work_preferences_from_resume.willing_to_*` + `in_person_work` | one grouped question                  |
 
 - **`skip` is a first-class answer.** It writes nothing and emits a Gaps line. Offer
   it explicitly on every item.
@@ -88,7 +88,7 @@ grow per session and it does not shrink because the turn is long.
 
 1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf`
    (overwrite only if user confirms when a different PDF already exists).
-2. Never generate PDF/LaTeX. Non-PDF SoT → Gaps line for operator PDF.
+2. Never generate PDF/LaTeX. Non-PDF SoT → report under **### CV** only (not Gaps).
 
 ## Post-fill leak gate
 
@@ -98,7 +98,7 @@ Same `rg` as emit-tree against target. Any hit → STOP; fix; do not hand off.
 
 ```text
 ### Gaps
-- <field or file>: missing from SoT | needs operator | blocker skipped
+- <scout-critical only>: missing from SoT | needs operator | blocker skipped
 ### Filled
 - <file>: <one-line what was written>
 ### Packs
@@ -107,5 +107,17 @@ Same `rg` as emit-tree against target. Any hit → STOP; fix; do not hand off.
 - placed: yes path | no — operator must add cv/en-us-resume.pdf
 ```
 
-Partial fill is OK. Scout needs non-TODO `positions` + real `keywords.primary`
-and candidate salary/auth when available; Gaps must name what still blocks a useful scout.
+Partial fill is OK. **Gaps allowlist only** — omit a line when that key is filled:
+
+- `salary_expectations.salary_range_usd`
+- `availability.notice_period`
+- `legal_authorization.*` for `home_market`
+- `employment_routes.employer_of_record`
+- `job_search` `positions` / `keywords.primary` (and `locations` if still empty after
+  suggestions)
+
+**Never Gaps:** screening binaries (`willing_to_*`, `in_person_work*`),
+`direct_contractor`, `local_employment`, empty `projects.yml` / `languages.yaml` /
+experience `url.*`, or CV (use **### CV**). Apply surfaces empty screening keys at
+form time (`job-application` Fact law). Blocker `skip` still emits a Gaps line
+**only** when the skipped key is on this allowlist.

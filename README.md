@@ -183,12 +183,13 @@ profile.
 ### 3. Fill facts
 
 Fill asks once, in one message, for the blockers your source of truth left empty:
-salary band, notice period, work authorization for your home market, EOR Yes/No,
-and the assessment / drug-test / background-check / in-person binaries. `skip` is
-always a valid answer and lands in **Gaps** instead. Nothing is inferred or
-defaulted. Review the Gaps report and hand-edit the rest. Ensure
-`cv/en-us-resume.pdf` exists before apply. Letter depth comes from what you put in
-`data/experiences.yml` and `data/projects.yml`.
+salary band, notice period, work authorization for your home market, and EOR
+Yes/No. `skip` is always a valid answer and lands in **Gaps** instead. Nothing is
+inferred or defaulted. Gaps name only what still blocks a useful scout; screening
+binaries and other optional Fact shells stay empty until you hand-edit or answer
+them in the ATS at apply time. Ensure `cv/en-us-resume.pdf` exists before apply.
+Letter depth comes from what you put in `data/experiences.yml` and
+`data/projects.yml`.
 
 No demographic or EEO self-identification is stored in the profile — those
 questions are voluntary and per-employer, so you answer them in the ATS form.
