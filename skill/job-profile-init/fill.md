@@ -111,7 +111,7 @@ Partial fill is OK. **Gaps allowlist only** — omit a line when that key is fil
 
 - `salary_expectations.salary_range_usd`
 - `availability.notice_period`
-- `legal_authorization.*` for `home_market`
+- `legal_authorization.*`
 - `employment_routes.employer_of_record`
 - `job_search` `positions` / `keywords.primary` (and `locations` if still empty after
   suggestions)
