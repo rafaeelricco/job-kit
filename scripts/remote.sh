@@ -46,13 +46,35 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Prints an error to stderr and exits 1.
 die() { echo "error: $*" >&2; exit 1; }
 
+# kit_checkout_missing DIR
+# Prints the first required job-kit path missing from DIR; prints nothing when
+# DIR is a complete checkout. Gates destructive replacement, so a stray `skill/`
+# alone must never be enough to mark a directory as kit-owned.
+# Side effects: none.
+kit_checkout_missing() {
+  local dir="$1" rel
+  if [ ! -d "${dir}/skill" ]; then
+    printf '%s\n' "skill/"
+    return 0
+  fi
+  for rel in scripts/agents/install.sh scripts/agents/lib.sh \
+             scripts/aside/install.sh scripts/aside/lib.sh; do
+    if [ ! -f "${dir}/${rel}" ]; then
+      printf '%s\n' "${rel}"
+      return 0
+    fi
+  done
+}
+
 # fetch_tarball DEST
 # Downloads JOB_KIT_REF and replaces DEST. No git required.
-# Side effects: may rm -rf DEST — only when DEST is absent or a kit checkout.
+# Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
-  local dest="$1" url stage parent
-  if [ -e "${dest}" ] && [ ! -d "${dest}/skill" ]; then
-    die "cache path exists and is not a job-kit checkout: ${dest}"
+  local dest="$1" url stage parent missing
+  if [ -e "${dest}" ]; then
+    missing="$(kit_checkout_missing "${dest}")"
+    [ -z "${missing}" ] \
+      || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
   fi
   have tar || die "need git, or tar plus curl/wget, to fetch job-kit"
   url="https://codeload.github.com/${JOB_KIT_SLUG}/tar.gz/${JOB_KIT_REF}"
@@ -104,11 +126,9 @@ fetch_git() {
 # Fails unless DIR has the layout the channel installers expect.
 # Side effects: none.
 require_checkout() {
-  local dir="$1" rel
-  [ -d "${dir}/skill" ] || die "not a job-kit checkout (missing skill/): ${dir}"
-  for rel in scripts/aside/install.sh scripts/agents/install.sh; do
-    [ -f "${dir}/${rel}" ] || die "not a job-kit checkout (missing ${rel}): ${dir}"
-  done
+  local dir="$1" missing
+  missing="$(kit_checkout_missing "${dir}")"
+  [ -z "${missing}" ] || die "not a job-kit checkout (missing ${missing}): ${dir}"
 }
 
 # aside_ready
