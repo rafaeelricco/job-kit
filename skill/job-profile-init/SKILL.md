@@ -60,6 +60,10 @@ Yes).
       `$HOST_HOME/.aside/runtime/home/.config/profile-root`. If runtime home
       missing, skip mirror; state skip. This is how Aside sandbox `$HOME` sees
       the pointer without inheriting coding-agent env.
+      If the mirror write fails (read-only, full disk), **roll (5) back** —
+      restore the host pointer's previous contents, or remove it when it did not
+      exist — then STOP with the error. Never leave agents on the new profile
+      while Aside still resolves the old one through a stale mirror.
    7. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
       equivalent). State whether export ran. **Aside will not see this export** —
       host pointer + dual-home read + runtime mirror cover Aside.
