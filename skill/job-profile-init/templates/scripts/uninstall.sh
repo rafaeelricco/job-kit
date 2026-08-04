@@ -14,6 +14,16 @@ Options:
 EOF
 }
 
+resolve_host_home() {
+  # Inside Aside, HOME is <host>/.aside/runtime/home. Strip that suffix so the
+  # host pointer is read from the real user home, matching install.sh.
+  local suffix="/.aside/runtime/home"
+  case "${HOME}" in
+    *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
+    *) printf '%s\n' "${HOME}" ;;
+  esac
+}
+
 resolve_repo() {
   local script source_dir repo
   script="${BASH_SOURCE[0]}"
@@ -32,8 +42,36 @@ resolve_repo() {
   printf '%s\n' "${repo}"
 }
 
+mirror_matches() {
+  # job-scout reads the Aside mirror before the host pointer, so a mirror still
+  # naming this checkout keeps resolving it after uninstall.
+  [ -f "$1" ] && [ "$(tr -d '\n' < "$1")" = "${REPO}" ]
+}
+
+confirm_unregister() {
+  local target="$1" answer
+  if [ "${assume_yes}" -eq 1 ]; then
+    return 0
+  fi
+  if [ ! -t 0 ] && [ ! -r /dev/tty ]; then
+    echo "error: noninteractive uninstall requires --yes" >&2
+    exit 2
+  fi
+  printf 'Remove %s? Type UNREGISTER to continue: ' "${target}"
+  if [ -r /dev/tty ]; then
+    IFS= read -r answer < /dev/tty || answer=""
+  else
+    IFS= read -r answer || answer=""
+  fi
+  if [ "${answer}" != "UNREGISTER" ]; then
+    echo "Cancelled; no changes."
+    exit 0
+  fi
+}
+
 main() {
-  local assume_yes=0 answer current
+  local current current_canon pointer mirror
+  assume_yes=0
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -44,36 +82,40 @@ main() {
   done
 
   REPO="$(resolve_repo)"
-  if [ ! -f "${HOME}/.config/profile-root" ]; then
-    echo "already unregistered: no ${HOME}/.config/profile-root"
+  HOST_HOME="$(resolve_host_home)"
+  pointer="${HOST_HOME}/.config/profile-root"
+  mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
+  if [ ! -f "${pointer}" ]; then
+    if mirror_matches "${mirror}"; then
+      confirm_unregister "${mirror}"
+      rm -f "${mirror}"
+      echo "removed ${mirror}"
+      echo "Profile checkout preserved at ${REPO}"
+      exit 0
+    fi
+    echo "already unregistered: no ${pointer}"
     exit 0
   fi
-  current="$(tr -d '\n' < "${HOME}/.config/profile-root")"
-  if [ "${current}" != "${REPO}" ]; then
+  current="$(tr -d '\n' < "${pointer}")"
+  if [ -n "${current}" ] && [ -d "${current}" ]; then
+    current_canon="$(cd "${current}" && pwd -P)"
+  else
+    current_canon=""
+  fi
+  if [ "${current_canon}" != "${REPO}" ]; then
     echo "error: profile-root points elsewhere: ${current}" >&2
     echo "  this checkout: ${REPO}" >&2
     exit 1
   fi
 
-  if [ "${assume_yes}" -eq 0 ]; then
-    if [ ! -t 0 ] && [ ! -r /dev/tty ]; then
-      echo "error: noninteractive uninstall requires --yes" >&2
-      exit 2
-    fi
-    printf 'Remove %s? Type UNREGISTER to continue: ' "${HOME}/.config/profile-root"
-    if [ -r /dev/tty ]; then
-      IFS= read -r answer < /dev/tty || answer=""
-    else
-      IFS= read -r answer || answer=""
-    fi
-    if [ "${answer}" != "UNREGISTER" ]; then
-      echo "Cancelled; no changes."
-      exit 0
-    fi
-  fi
+  confirm_unregister "${pointer}"
 
-  rm -f "${HOME}/.config/profile-root"
-  echo "removed ${HOME}/.config/profile-root"
+  rm -f "${pointer}"
+  echo "removed ${pointer}"
+  if mirror_matches "${mirror}"; then
+    rm -f "${mirror}"
+    echo "removed ${mirror}"
+  fi
   echo "Profile checkout preserved at ${REPO}"
 }
 

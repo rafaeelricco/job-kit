@@ -5,9 +5,13 @@ description: "Read this when you need to draft and stage one job application fro
 
 # Job application
 
-Profile root: same ordered resolver as job-scout
-(`PROFILE_ROOT` → `~/.config/profile-root` → CWD walk → STOP).
-Resolve every `data/*` and `private/*` Fact path against that root, not session CWD.
+Profile root: **same ordered resolver as job-scout** (read
+`job-scout/SKILL.md` Profile root block and obey it — including Aside
+dual-home / runtime mirror and STOP recovery). Shorthand:
+`$PROFILE_ROOT` → `$HOME/.config/profile-root` (often Aside runtime mirror) →
+host `$HOST_HOME/.config/profile-root` when `$HOME` is Aside runtime home →
+CWD walk → STOP.
+Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.

@@ -1,7 +1,7 @@
 # Application stage — pipeline
 
 Paths are relative to the Profile root from `SKILL.md` (absolute after symlink resolve).
-Resolve every `data/*` and `private/*` path against that root, not session CWD.
+Resolve every `data/*` path against that root, not session CWD.
 Skill-local files: `./references/`. You read the ad, select evidence, then draft.
 
 Never paste any part of this file into a drafting brief. The contract carries every rule a draft needs.

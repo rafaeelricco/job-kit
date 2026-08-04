@@ -5,15 +5,40 @@ description: "Read this when you need a list-only job scout across every search 
 
 # Job scout
 
-Profile root: resolve in order; print absolute path before any work; STOP if none:
+Profile root: resolve in order; print absolute path before any work; STOP if none.
 
-1. `$PROFILE_ROOT` if dir has `data/candidate.yaml` and `data/job_search.yaml`
-2. `~/.config/profile-root` (one absolute path line) if same probe passes
-3. Walk session CWD upward until both probe files exist
-4. else STOP; name attempts; tell operator to run profile `scripts/install.sh` or set PROFILE_ROOT
+**Probe** (must all pass for a candidate dir): directory exists and is readable;
+contains `data/candidate.yaml` and `data/job_search.yaml`. Unreadable dir
+(sandbox `Operation not permitted`, missing path) → treat as fail for that
+candidate; try the next step. Do not invent a profile path.
+
+1. `$PROFILE_ROOT` if set and probe passes. Session-only override — coding-agent
+   `export` from `/job-profile-init` does **not** appear here unless Aside (or
+   the operator) set it for **this** process.
+2. File `$HOME/.config/profile-root` (one absolute path line, trim newline). If
+   the line is non-empty, probe that path. Activate mirrors into Aside runtime
+   home so sandboxed `$HOME` often hits this step.
+3. **Aside dual-home:** if `$HOME` is exactly or ends with
+   `/.aside/runtime/home`, also try the **host** pointer:
+   - `HOST_HOME` = `${HOME%/.aside/runtime/home}` when that strip shortens
+     `$HOME`; else `$HOST_HOME` env if set and absolute.
+   - Read `$HOST_HOME/.config/profile-root` (one absolute path line) and probe.
+   - `/job-profile-init` Activate writes this host file; runtime mirror covers
+     step 2 when present.
+4. Walk session CWD upward until probe passes.
+5. else STOP. Name each attempt (env, each pointer file + line, walk start).
+   Recovery (in order operators can try):
+   - Set `PROFILE_ROOT=/absolute/path/to/profile` for this Aside session (path
+     must pass probe **and** be readable inside Aside's FS sandbox).
+   - Grant Aside filesystem access to that profile directory (macOS sandbox).
+   - Re-run `/job-profile-init` with Activate **Yes** (or profile
+     `scripts/install.sh`) so host + Aside-runtime pointer files match the live
+     profile.
+   - Do **not** tell operators that bare `bash scripts/install.sh` from Aside
+     CWD alone fixes a missing host pointer without a real profile path.
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
-Unreadable required file → stop and say so.
+Unreadable required Fact file under a resolved root → stop and say so.
 Skill-local files: `./references/*` only.
 Pack list: `data/search_packs.yaml` under Profile root.
 
