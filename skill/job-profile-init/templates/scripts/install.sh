@@ -33,12 +33,13 @@ resolve_host_home() {
 
 write_pointer() {
   # $1 = pointer file. Write, then read back: a silent failure here leaves the
-  # operator with a profile the skills cannot resolve.
-  mkdir -p "$(dirname "$1")"
-  printf '%s\n' "${REPO}" > "$1"
+  # operator with a profile the skills cannot resolve. Returns non-zero rather
+  # than exiting so callers can roll back a pointer they already wrote.
+  mkdir -p "$(dirname "$1")" || return 1
+  printf '%s\n' "${REPO}" > "$1" || return 1
   [ "$(tr -d '\n' < "$1")" = "${REPO}" ] || {
     echo "error: pointer write did not stick: $1" >&2
-    exit 1
+    return 1
   }
 }
 
@@ -48,6 +49,33 @@ mirror_aside_runtime() {
   if [ -d "${aside_rt}" ]; then
     write_pointer "${aside_rt}/.config/profile-root"
   fi
+}
+
+activate_pointers() {
+  # $1 = host pointer. Write it, then mirror. A mirror failure would otherwise
+  # leave agents on the new profile while Aside still resolves the old one
+  # (job-scout reads the mirror first), so roll the host pointer back to exactly
+  # what it was.
+  local pointer="$1" backup=""
+  if [ -f "${pointer}" ]; then
+    backup="$(mktemp)"
+    cp "${pointer}" "${backup}"
+  fi
+  if write_pointer "${pointer}" && mirror_aside_runtime; then
+    if [ -n "${backup}" ]; then
+      rm -f "${backup}"
+    fi
+    return 0
+  fi
+  if [ -n "${backup}" ]; then
+    cp "${backup}" "${pointer}"
+    rm -f "${backup}"
+    echo "error: activation failed; restored previous ${pointer}" >&2
+  else
+    rm -f "${pointer}"
+    echo "error: activation failed; removed partial ${pointer}" >&2
+  fi
+  exit 1
 }
 
 resolve_repo() {
@@ -98,9 +126,13 @@ main() {
     if [ "${current_canon}" = "${REPO}" ]; then
       # Normalize symlink / .. forms so uninstall's path match succeeds.
       if [ "${current}" != "${REPO}" ]; then
-        write_pointer "${pointer}"
+        activate_pointers "${pointer}"
+      else
+        mirror_aside_runtime || {
+          echo "error: Aside runtime mirror write failed under ${HOST_HOME}" >&2
+          exit 1
+        }
       fi
-      mirror_aside_runtime
       echo "already registered: ${REPO}"
       exit 0
     fi
@@ -115,8 +147,7 @@ main() {
     fi
   fi
 
-  write_pointer "${pointer}"
-  mirror_aside_runtime
+  activate_pointers "${pointer}"
   echo "${result}"
 }
 
