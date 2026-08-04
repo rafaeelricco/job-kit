@@ -182,9 +182,18 @@ bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
 
-After a remote install those live in the cache — run them as
-`bash ~/.local/share/job-kit/scripts/agents/uninstall.sh` (same for `aside`),
-then delete the cache directory.
+After a remote install those live in the cached checkout, at the path the
+installer prints on every run — `$JOB_KIT_HOME` if you set it, otherwise
+`${XDG_DATA_HOME:-~/.local/share}/job-kit`:
+
+```bash
+JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}"
+bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
+bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
+```
+
+Delete the cache directory only after both uninstalls run — removing it first
+strands the coding-agent symlinks that point into it.
 
 Each uninstall only touches its channel. Agents uninstall supports the same
 `--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent
