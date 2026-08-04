@@ -7,7 +7,8 @@ either and you burn time on dead listings or applications that never
 clear the form filters.
 
 Agents can run that loop: sweep the surfaces you care about, score fit
-against a real profile, and draft applications without inventing facts.
+against a real profile, and draft applications from profile facts (apply may
+stage a labeled form invent only when the ad requires a value no file prints).
 That only works when **procedure** (what the agent may do) stays separate
 from **facts** (who you are, what you want, what you can prove).
 
@@ -50,8 +51,10 @@ installers you use.
 
 ## Install — coding agents (Claude, Codex, Grok)
 
-**Prerequisites:** Bash, Git; at least one agent home already present
+**Prerequisites:** Bash; at least one agent home already present
 (`~/.claude`, `~/.agents`, or `~/.grok` — open that agent once if missing).
+Git is only needed to clone or `git pull` the kit ([Get the kit](#get-the-kit),
+[Update](#update)).
 
 From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
@@ -81,13 +84,14 @@ bash scripts/agents/install.sh --force
 
 Does **not** install scout/apply into coding agents. Does not create agent
 home dirs, a profile, or salary / work-auth data. Codex skills live under
-`~/.agents/skills`, not `~/.codex/skills` (legacy kit links there are
-removed when present).
+`~/.agents/skills`, not `~/.codex/skills`. Default multi-target install also
+removes legacy kit links under `~/.codex/skills` when present; the
+`CLAUDE_SKILLS` single-dest escape hatch skips that cleanup.
 
 ## Install — Aside
 
-**Prerequisites:** Bash, Git, Aside Browser with an account profile
-(default `~/.aside/u/0`).
+**Prerequisites:** Bash; Aside Browser with an account profile
+(default `~/.aside/u/0`, including a `skills` parent for the builtin root).
 
 From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
@@ -98,7 +102,8 @@ bash scripts/aside/install.sh
 Copies `skill/{job-scout,job-application}` into
 `~/.aside/u/0/skills/builtin/` as real directories (not symlinks). Re-install
 re-syncs kit-owned trees. Foreign conflicts fail; pass `--force` to replace them.
-Also removes any leftover kit links under `skills/user/` from older installs.
+Also removes leftover kit-owned trees under `skills/user/` from older installs
+(symlinks or marked copies of current or legacy skill basenames).
 
 ```bash
 ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
@@ -120,9 +125,10 @@ Update never modifies profile checkouts or `~/.config/profile-root`.
 Aside install removes legacy kit names (`job-discovery`, `job-apply`,
 `profile-scaffold`, `application-stage`, `profile-init`) when they are still
 kit-owned for this checkout. Agents install removes legacy `profile-init` the
-same way. Existing profile `data/search_packs.yaml` must use `impl` stems
-that match current job-scout reference basenames
-(`surface-linkedin-jobs`, `surface-open-web`, …).
+same way. Search packs live in the installed job-scout skill
+(`references/search_packs.yaml`); `impl` stems must match surface reference
+basenames (`surface-linkedin-jobs`, `surface-open-web`, …). Profile
+`data/search_packs.yaml` is not used — remove if present from older setups.
 
 ## Uninstall
 
@@ -161,7 +167,7 @@ If you do not already have a job-kit checkout, start with
 bash scripts/agents/install.sh
 ```
 
-### 2. Create a profile
+### 2. Create or register a profile
 
 With an agent that loaded `job-profile-init`:
 
@@ -169,26 +175,37 @@ With an agent that loaded `job-profile-init`:
 /job-profile-init
 ```
 
-Intake is stage-shaped: **Route** (register existing or create), **Folder**,
-**Activate ask** (set this path as Profile root?), **Source** (CV / LinkedIn
-export path or paste, or scaffold-only), **Identity** (draft from SoT; ask only
-empties/conflicts), then **Approve** before any write. On Activate **Yes**, the
-skill writes host `~/.config/profile-root` and mirrors into Aside
-`~/.aside/runtime/home/.config/profile-root` when that tree exists; optional
-session `export PROFILE_ROOT` for the coding agent only (Aside does **not**
-inherit process env). Create also writes the data-only tree and fills Fact-law
-YAML from SoT (no invent; gaps listed). Skills stay in job-kit, not in the
-profile.
+**Register existing:** Route picks an already-valid profile → **Activate ask**
+only → skill step 4 pointer work if Yes. No Folder / Source / Identity /
+Approve / emit / fill.
+
+**Create:** Route → Folder → **Activate ask** (stores Yes/No; does **not**
+write yet) → Source (CV / LinkedIn export path or paste, or scaffold-only) →
+Identity (draft from SoT; ask only empties/conflicts) → **Approve** (first
+tree write). Then emit → fill (unless scaffold-only) → **Activate** only if
+ask was Yes: host `~/.config/profile-root` plus Aside runtime mirror when
+that tree exists; optional session `export PROFILE_ROOT` for the coding agent
+only (Aside does **not** inherit process env). Fact fill is no-invent; Gaps
+listed. Skills stay in job-kit, not in the profile.
+
+Later Activate/switch without the skill: run the **profile** checkout’s
+`bash scripts/install.sh` (emitted under that profile; not a kit-root script).
 
 ### 3. Fill facts
 
-Fill asks once, in one message, for the blockers your source of truth left empty:
-salary band, notice period, work authorization for your home market, EOR Yes/No,
-and the assessment / drug-test / background-check / in-person binaries. `skip` is
-always a valid answer and lands in **Gaps** instead. Nothing is inferred or
-defaulted. Review the Gaps report and hand-edit the rest. Ensure
-`cv/en-us-resume.pdf` exists before apply. Letter depth comes from what you put in
-`data/experiences.yml` and `data/projects.yml`.
+On create (not scaffold-only / not register-only), after SoT gate the skill:
+writes Fact shells from SoT → asks once, in one message, for blockers left
+empty (salary band, notice period, home-market work authorization, EOR
+Yes/No; `skip` always valid → **Gaps**) → confirms Suggestions
+(positions / keywords / blacklists) before write →
+CV place → Gaps report. Blockers are never invented or defaulted. Template
+defaults for `work_model` / levels / `job_types` stay unless SoT contradicts.
+Gaps name only what still blocks a useful scout (those blockers plus empty
+positions / primary keywords / locations after suggestions). Screening
+binaries and other optional Fact shells stay empty until you hand-edit or
+answer them in the ATS at apply time. Ensure `cv/en-us-resume.pdf` exists
+before apply. Letter depth comes from `data/experiences.yml` and
+`data/projects.yml`.
 
 No demographic or EEO self-identification is stored in the profile — those
 questions are voluntary and per-employer, so you answer them in the ATS form.
@@ -208,19 +225,23 @@ bash /absolute/path/to/job-kit/scripts/aside/install.sh
 /job-application
 ```
 
-**job-scout** lists and ranks openings; it never applies or messages.
-**job-application** drafts and stages one application at a time; it stops at review
-and waits for an explicit yes. Neither skill submits.
+**job-scout** lists and ranks openings across every pack in
+`skill/job-scout/references/search_packs.yaml` (every pack, YAML order); it never applies, messages, or connects.
+**job-application** drafts and stages one application at a time; it may open
+an Apply control that only reveals the form, stops at review, and waits for
+an explicit yes. Neither skill transmits Submit / Send / final Confirm.
 
 ## Profile root
 
-`/job-profile-init` **Activate ask** (after the profile path is known) is how
-the machine pointer is set. Durable writes:
+`/job-profile-init` **Activate** (skill step 4 after intake, only if Activate
+ask was Yes) is how the durable machine pointer is set. Manual path without
+the skill: the **profile** checkout’s `scripts/install.sh` (not job-kit’s
+`scripts/agents` or `scripts/aside`). Durable writes:
 
-| File | Who reads it |
-| ---- | ------------ |
-| `$HOST_HOME/.config/profile-root` | Coding agents; Aside dual-home step |
-| `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is runtime home (mirror on Activate / `scripts/install.sh`) |
+| File                                                  | Who reads it                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step                                                               |
+| `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is runtime home (mirror on Activate or profile `scripts/install.sh`) |
 
 `PROFILE_ROOT` is a **session override** only (coding agent or shell). Aside
 does not inherit env from the init session.
@@ -247,11 +268,11 @@ allowed location.
 
 ## Skills
 
-| Skill              | Role                                                                      |
-| ------------------ | ------------------------------------------------------------------------- |
-| `job-scout`        | List-only job scout across every pack in `data/search_packs.yaml` (Aside) |
-| `job-application`  | Draft letter and form fields for one posting; stage only (Aside)          |
-| `job-profile-init` | Create a new data-only profile checkout (coding agents)                   |
+| Skill              | Role                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `job-scout`        | List-only job scout across every pack in skill-local `references/search_packs.yaml` (Aside) |
+| `job-application`  | Draft letter and form fields for one posting; stage only, never submit (Aside)              |
+| `job-profile-init` | Create a data-only profile, or register/activate an existing one (coding agents)            |
 
 ## Layout
 

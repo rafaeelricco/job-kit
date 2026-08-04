@@ -31,9 +31,11 @@ Anything that would touch a company or the user's account → stop; put it under
 1. Login wall / paywall / signup / CAPTCHA → log the defect and move on.
    Never create an account. Never solve a CAPTCHA. Never retry around a gate.
 2. Interpolate pack tokens before searching: `[role]` from CONSTRAINTS positions;
-   `[skill:<group>]` from CONSTRAINTS keyword groups (e.g. `ai`, `backend`);
+   `[skill:<group>]` from CONSTRAINTS keyword groups (e.g. `ai`, `backend`, `frontend`, `mobile`);
    `[industry]` / `[company]` from PROFILE_CARD. Never leave a bracketed token in a
-   submitted query. Never hardcode YAML terms.
+   submitted query. Do not repeat a keyword-group term as a literal when the same
+   line already carries that group's `[skill:<group>]` token; curated narrow literals
+   (a deliberate subset of a group, or terms in no group) are allowed.
 3. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
 4. **Geo coverage (job packs)** — do not accept the surface default geography.
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location

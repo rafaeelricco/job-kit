@@ -81,7 +81,7 @@ not a rounding.
 | --------- | ---------------: | -------: | ----------: | ----------------------: | ---------------------------------: | ---------------------- |
 | {pack_id} |               ≥3 |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
 
-One row per pack in `data/search_packs.yaml` (all packs every run).
+One row per pack in `./references/search_packs.yaml` (all packs every run).
 Carry `formulations_run` and `row_runs` as the worker printed them; `contract-search.md`
 owns both. NEVER print one without the other.
 Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry packs stay visible).

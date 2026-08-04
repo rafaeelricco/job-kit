@@ -40,12 +40,12 @@ candidate; try the next step. Do not invent a profile path.
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required Fact file under a resolved root → stop and say so.
 Skill-local files: `./references/*` only.
-Pack list: `data/search_packs.yaml` under Profile root.
+Pack list: `./references/search_packs.yaml` (skill-local; not under Profile root).
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
-4. Run **every** pack in `data/search_packs.yaml` (Profile root), YAML order. No subset.
+4. Run **every** pack in `./references/search_packs.yaml`, YAML order. No subset.
 5. Browser/web tools only as phases allow. Never apply, message, connect, or edit the repo.
 6. No invent. Evidence staging is law. See the two contract cards.
 7. Deliver the report exactly per `./references/scout-report.md`, then STOP.
@@ -58,4 +58,4 @@ Pack list: `data/search_packs.yaml` under Profile root.
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
 - Search surfaces: `./references/surface-{linkedin-jobs,open-web,social,people}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
-- Search packs: `data/search_packs.yaml` under Profile root (every pack, YAML order)
+- Search packs: `./references/search_packs.yaml` (every pack, YAML order)
