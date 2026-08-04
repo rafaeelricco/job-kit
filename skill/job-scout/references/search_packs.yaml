@@ -8,13 +8,13 @@ max_parallel: 5
 extract_batch_size: 10
 
 packs:
-  - id: li-jobs-rag
+  - id: li-jobs-product
     impl: surface-linkedin-jobs
     surface: linkedin_jobs
     entry: https://www.linkedin.com/jobs/
     formulations:
-      - '("Full Stack" OR "Applied AI" OR "AI Engineer" OR "LLM Engineer" OR FDE) [skill:ai]'
-      - "[skill:ai] engineer"
+      - '"Product Engineer" OR "AI Product Engineer" OR "Founding Product Engineer"'
+      - '[role] ("developer tools" OR "developer experience" OR "API platform")'
       - "[skill:ai] [role]"
 
   - id: hn-whoishiring
@@ -22,63 +22,63 @@ packs:
     surface: hn
     entry: https://hnhiring.com
     formulations:
-      - "[skill:ai]"
-      - '[skill:backend] OR "React Native" OR Expo'
-      - '("Event Sourcing" OR CQRS OR "Applied AI") remote OR [skill:hiring_model]'
+      - '"Product Engineer" OR "product engineering"'
+      - '[skill:ai] (agentic OR "AI agents" OR "developer tools")'
+      - '("end to end" OR "idea to production" OR "0 to 1") engineer [skill:hiring_model]'
 
   - id: waas
     impl: surface-open-web
     surface: waas
     entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
     formulations:
-      - '("Full Stack" OR "Applied AI" OR FDE) [skill:ai]'
-      - "[skill:backend] engineer"
-      - '"Founding Engineer" OR "AI Engineer" OR FDE'
+      - '"Product Engineer" OR "Founding Engineer"'
+      - '[skill:ai] (agentic OR "developer tools" OR API)'
+      - 'TypeScript Python ("developer experience" OR SDK OR "API platform")'
 
   - id: boards-tier1
     impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml tier_1_high_alpha
     formulations:
-      - '("Senior Full Stack" OR "Applied AI") [skill:ai]'
-      - '("Event Sourcing" OR CQRS OR "multi-tenant") engineer remote'
-      - "hiring [skill:hiring_model] [skill:backend]"
+      - '"Product Engineer" [skill:ai]'
+      - '("developer tools" OR "AI infrastructure" OR "API platform") engineer'
+      - '"Founding Engineer" OR "Founding Product Engineer"'
 
   - id: boards-tier2
     impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml tier_2_aggregators
     formulations:
-      - '("Full Stack" OR "Applied AI" OR FDE) [skill:ai]'
-      - "[skill:ai] engineer"
-      - '"AI Engineer" OR "Applied AI" OR FDE'
+      - '"Product Engineer" ([skill:ai] OR "developer tools")'
+      - "[skill:ai] engineer (agentic OR LLM OR agents)"
+      - "full stack (TypeScript OR Python) [skill:ai]"
 
   - id: boards-baseline
     impl: surface-open-web
     surface: web_boards
     entry: from data/sources.yaml baseline_floor
     formulations:
-      - '("Senior Full Stack" OR "Applied AI" OR "Event Sourcing") remote'
-      - "([skill:mobile] OR offline) engineer [skill:hiring_model]"
-      - "[skill:ai] engineer ([skill:hiring_model] OR LATAM)"
+      - '"Product Engineer" [skill:hiring_model]'
+      - '"Product Engineer" ("developer tools" OR "AI agents" OR API)'
+      - '[skill:ai] engineer ("end to end" OR "own the product")'
 
   - id: li-jobs-hybrid
     impl: surface-linkedin-jobs
     surface: linkedin_jobs
     entry: https://www.linkedin.com/jobs/
     formulations:
-      - '"Product Engineer" OR "AI Product Engineer" OR "Full Stack AI" OR FDE'
+      - '(TypeScript OR React OR "Node.js") Python [skill:ai]'
       - '"Founding Engineer" ([skill:ai] OR [skill:backend] OR [skill:frontend])'
-      - '(Python OR TypeScript) (RAG OR "Event Sourcing" OR Expo OR FDE) engineer'
+      - '(WebRTC OR WebSockets OR "real-time" OR "low latency") ([skill:ai] OR engineer)'
 
   - id: li-posts-en
     impl: surface-social
     surface: linkedin_posts
     entry: https://www.linkedin.com/search/results/content/
     formulations:
-      - '("we''re hiring" OR "now hiring") AND ([role] OR [skill:ai])'
-      - '"open role" OR "join our team" [skill:backend]'
-      - 'hiring engineer remote ([skill:ai] OR [skill:backend] OR "React Native")'
+      - '("we''re hiring" OR "now hiring") AND ([role] OR "Product Engineer")'
+      - '"open role" OR "join our team" ([skill:ai] OR "developer tools")'
+      - 'hiring engineer remote (agentic OR "AI agents" OR "developer experience")'
 
   - id: li-posts-pt
     impl: surface-social
@@ -87,7 +87,7 @@ packs:
     formulations:
       - '("estamos contratando" OR "vaga aberta") (remota OR remoto OR exterior OR internacional) ([role] OR engineer)'
       - 'buscamos [skill:ai] (remota OR exterior OR "fora do Brasil")'
-      - '"vaga remota" OR "trabalho remoto" [skill:backend] (exterior OR internacional OR EOR OR Deel)'
+      - '"vaga remota" ("Product Engineer" OR [skill:ai]) (exterior OR internacional OR EOR OR Deel)'
 
   - id: x-dm-me
     impl: surface-social
@@ -96,16 +96,16 @@ packs:
     formulations:
       - 'hiring "DM me" engineer remote'
       - '"we''re hiring" ("email me" OR "send CV") engineer'
-      - "founding engineer hiring (DM OR email)"
+      - '("founding engineer" OR "product engineer") hiring (DM OR email)'
 
   - id: x-funding
     impl: surface-social
     surface: x
     entry: https://x.com/search?f=live
     formulations:
-      - '("just raised" OR "Series A") hiring engineer'
+      - '("just raised" OR "Series A" OR "seed round") hiring ("product engineer" OR engineer)'
       - '"out of stealth" hiring (engineer OR founding)'
-      - "raised funding hiring [skill:ai]"
+      - 'raised hiring [skill:ai] (agents OR "developer tools")'
 
   - id: people-ta
     impl: surface-people
@@ -114,4 +114,4 @@ packs:
     formulations:
       - '("Tech Recruiter" OR "Talent Acquisition") [industry]'
       - "Recruiter [company] OR [skill:ai]"
-      - '"Engineering Recruiter" remote'
+      - '"Engineering Recruiter" ([industry] OR "developer tools")'
