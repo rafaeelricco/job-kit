@@ -51,7 +51,8 @@ Install options after the channel are forwarded to the installer, e.g.
 
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
-                      (refused with `uninstall aside` or `uninstall agents`)
+                      (refused with `uninstall aside` or `uninstall agents`,
+                      and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
   --skip-claude|codex|grok  Forwarded only with `uninstall agents`
 
 Environment:
@@ -429,6 +430,25 @@ main() {
       esac
     done
 
+    # Validate the purge before anything is uninstalled: a refused option
+    # combination must leave the machine untouched, not half torn down.
+    if [ "${purge}" -eq 1 ]; then
+      # Agent skills symlink into JOB_KIT_HOME. Partial uninstall leaves some
+      # of those links (or the whole agents channel) still pointing at the
+      # cache — refuse to delete it until both channels are torn down.
+      [ "${target}" = "all" ] \
+        || die "refusing --purge with partial uninstall (use 'uninstall all --purge' or omit --purge)"
+      # A skills-root override narrows its channel to that one destination, so
+      # the default homes keep kit-owned links/copies that the purge would
+      # strand. Unset it and rerun to uninstall the default homes too.
+      [ -z "${CLAUDE_SKILLS:-}" ] \
+        || die "refusing --purge while CLAUDE_SKILLS narrows the agents uninstall to ${CLAUDE_SKILLS} (unset it, or omit --purge)"
+      [ -z "${ASIDE_SKILLS:-}" ] \
+        || die "refusing --purge while ASIDE_SKILLS narrows the Aside uninstall to ${ASIDE_SKILLS} (unset it, or omit --purge)"
+      [ -z "${ASIDE_SKILLS_USER:-}" ] \
+        || die "refusing --purge while ASIDE_SKILLS_USER narrows the Aside uninstall to ${ASIDE_SKILLS_USER} (unset it, or omit --purge)"
+    fi
+
     ensure_kit_cache "${JOB_KIT_HOME}"
     require_checkout "${JOB_KIT_HOME}"
 
@@ -451,11 +471,6 @@ main() {
 
     echo
     if [ "${purge}" -eq 1 ]; then
-      # Agent skills symlink into JOB_KIT_HOME. Partial uninstall leaves some
-      # of those links (or the whole agents channel) still pointing at the
-      # cache — refuse to delete it until both channels are torn down.
-      [ "${target}" = "all" ] \
-        || die "refusing --purge with partial uninstall (use 'uninstall all --purge' or omit --purge)"
       purge_kit_cache "${JOB_KIT_HOME}"
       echo "job-kit uninstall finished (cache purged)"
     else

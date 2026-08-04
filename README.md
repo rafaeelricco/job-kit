@@ -193,7 +193,9 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 Add `--purge` after a **full** uninstall (`uninstall` / `uninstall all`) to
 delete the cached checkout. Partial targets refuse it — agent skills symlink
 into the cache, so purging after `uninstall aside` or `uninstall agents` would
-leave dangling links:
+leave dangling links. `--purge` is refused for the same reason while
+`CLAUDE_SKILLS`, `ASIDE_SKILLS`, or `ASIDE_SKILLS_USER` narrows a channel to one
+destination — unset it so the default homes are uninstalled too:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
