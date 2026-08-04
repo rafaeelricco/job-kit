@@ -46,6 +46,10 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Prints an error to stderr and exits 1.
 die() { echo "error: $*" >&2; exit 1; }
 
+# Files that, together with `skill/`, make a tree a job-kit checkout. Single
+# source of truth for both the filesystem and the git-ref layout probes.
+KIT_REQUIRED_FILES="scripts/agents/install.sh scripts/agents/lib.sh scripts/aside/install.sh scripts/aside/lib.sh"
+
 # kit_checkout_missing DIR
 # Prints the first required job-kit path missing from DIR; prints nothing when
 # DIR is a complete checkout. Gates destructive replacement, so a stray `skill/`
@@ -57,9 +61,27 @@ kit_checkout_missing() {
     printf '%s\n' "skill/"
     return 0
   fi
-  for rel in scripts/agents/install.sh scripts/agents/lib.sh \
-             scripts/aside/install.sh scripts/aside/lib.sh; do
+  for rel in ${KIT_REQUIRED_FILES}; do
     if [ ! -f "${dir}/${rel}" ]; then
+      printf '%s\n' "${rel}"
+      return 0
+    fi
+  done
+}
+
+# git_ref_missing DIR REF
+# Prints the first required job-kit path absent from REF in the repository at
+# DIR; prints nothing when REF carries a complete checkout. Probes the object
+# store, so an update can be rejected before it reaches the working tree.
+# Side effects: none.
+git_ref_missing() {
+  local dir="$1" ref="$2" rel
+  if ! git -C "${dir}" cat-file -e "${ref}:skill" 2>/dev/null; then
+    printf '%s\n' "skill/"
+    return 0
+  fi
+  for rel in ${KIT_REQUIRED_FILES}; do
+    if ! git -C "${dir}" cat-file -e "${ref}:${rel}" 2>/dev/null; then
       printf '%s\n' "${rel}"
       return 0
     fi
@@ -116,12 +138,20 @@ is_git_repo() {
 }
 
 # fetch_git_update DEST
-# Shallow-fetches JOB_KIT_REF into the existing git checkout at DEST.
-# Side effects: fetches and detaches HEAD under DEST.
+# Shallow-fetches JOB_KIT_REF from the configured JOB_KIT_SLUG into the existing
+# git checkout at DEST, and verifies the fetched tree before checking it out, so
+# a ref without the kit layout leaves the working cache — and the agent symlinks
+# into it — untouched. Fetches the slug URL directly rather than the literal
+# `origin`, so JOB_KIT_SLUG stays authoritative for a cache cloned from
+# elsewhere.
+# Side effects: fetches into DEST; detaches HEAD only after validation.
 fetch_git_update() {
-  local dest="$1"
-  git -C "${dest}" fetch --depth 1 origin "${JOB_KIT_REF}" \
-    || die "git fetch failed for ${JOB_KIT_REF}"
+  local dest="$1" missing
+  git -C "${dest}" fetch --depth 1 "https://github.com/${JOB_KIT_SLUG}.git" "${JOB_KIT_REF}" \
+    || die "git fetch failed for ${JOB_KIT_SLUG}@${JOB_KIT_REF}"
+  missing="$(git_ref_missing "${dest}" FETCH_HEAD)"
+  [ -z "${missing}" ] \
+    || die "fetched ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing}); cache left unchanged"
   git -C "${dest}" checkout --detach FETCH_HEAD >/dev/null 2>&1 \
     || die "git checkout failed in ${dest} (local changes?)"
   echo "updated: ${dest} @ ${JOB_KIT_REF}"
@@ -129,12 +159,20 @@ fetch_git_update() {
 
 # fetch_git_clone DEST
 # Shallow-clones JOB_KIT_SLUG at JOB_KIT_REF into a DEST that does not exist.
-# Side effects: creates DEST.
+# Removes the clone it just made when the result is not a job-kit checkout, so a
+# wrong slug or ref cannot leave a foreign tree parked at the cache path where
+# the ownership guard would then block every later run.
+# Side effects: creates DEST; removes it again only on a failed layout check.
 fetch_git_clone() {
-  local dest="$1"
+  local dest="$1" missing
   mkdir -p "$(dirname "${dest}")" || die "failed to create: $(dirname "${dest}")"
   git clone --depth 1 --branch "${JOB_KIT_REF}" \
     "https://github.com/${JOB_KIT_SLUG}.git" "${dest}" || die "git clone failed"
+  missing="$(kit_checkout_missing "${dest}")"
+  if [ -n "${missing}" ]; then
+    rm -rf "${dest}"
+    die "cloned ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing})"
+  fi
   echo "cloned: ${dest} @ ${JOB_KIT_REF}"
 }
 
