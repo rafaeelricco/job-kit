@@ -20,7 +20,7 @@ Finds and reports jobs. Never acts on them. Done when the Report ships → **STO
 | `data/candidate.yaml`                                                            | salary, work auth, employment_routes, relocation                |
 | `data/job_search.yaml`                                                           | positions, keywords, filters, blacklists, apply_once_at_company |
 | `data/sources.yaml`                                                              | tiers, access, channels                                         |
-| `data/search_packs.yaml`                                                         | every pack, YAML order                                          |
+| `./references/search_packs.yaml`                                                 | every pack, YAML order (skill-local)                            |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`, `skills-by-company.yml` | card                                                            |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
@@ -28,8 +28,8 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
 ## Phase 0 — preflight + context (main)
 
 1. Resolve Profile root per SKILL.md; print `Profile root: /abs/path`. Probe
-   `data/candidate.yaml`, `data/job_search.yaml`, and `data/search_packs.yaml` under
-   that root. Any missing → STOP, name the file.
+   `data/candidate.yaml` and `data/job_search.yaml` under that root. Probe
+   `./references/search_packs.yaml` next to this skill. Any missing → STOP, name the file.
 2. LinkedIn session → identity must equal LinkedIn `username` in
    `data/profiles.yaml` under Profile root. Fail → STOP. No partial sweep.
 3. Read inputs → print `### Profile card` and `### Constraints`.
@@ -40,7 +40,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      (employers that pay USD, EUR, or GBP). Remote roles paid in those currencies are
      in scope regardless of company country. Home-market countries in `location_blacklist`
      are job-location only; hire-from routes use `home_market`.
-4. Run **every** pack listed in `data/search_packs.yaml` (file order). No subset.
+4. Run **every** pack listed in `./references/search_packs.yaml` (file order). No subset.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
 they are the workers' only source for filters and for `[industry]` / `[company]`.
