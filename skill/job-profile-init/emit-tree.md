@@ -7,7 +7,7 @@ Source = `./templates/` only. Destination = intake target path.
 ```
 <target>/
   README.md
-  data/                 # Fact-law shells + search_packs.yaml
+  data/                 # Fact-law shells only
   scripts/install.sh
   scripts/uninstall.sh
   cv/README.md
@@ -56,15 +56,16 @@ root README, `scripts/`). Re-run this leak gate after fill.
 
 ## Unfilled inventory (what the template ships blank)
 
-`fill.md` closes these from SoT. When fill does not run (**scaffold-only**) every
-line below is still open, and SKILL step 4.8 prints them as Gaps — never `none`.
+`fill.md` closes Fact files from SoT. When fill does not run (**scaffold-only**),
+SKILL step 4.8 prints **only the scout-critical lines below** as Gaps — never
+`none`, and never optional shells (screening, projects, languages, CV).
 
 - `data/job_search.yaml`: `positions` (`Software Engineer` placeholder),
   `keywords.primary` (`TODO-skill`), `locations`
 - `data/candidate.yaml`: `salary_expectations.salary_range_usd`,
   `availability.notice_period`, `legal_authorization.*`,
-  `employment_routes.employer_of_record`, `work_preferences_from_resume.*`
-- `data/experiences.yml`, `data/projects.yml`, `data/skills.yaml`,
-  `data/skills-by-company.yml`, `data/languages.yaml`: empty
-- `data/basics.yaml`: `phone`, `location`, `url.href`
-- `cv/en-us-resume.pdf`: absent
+  `employment_routes.employer_of_record`
+
+Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
+`work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
+empties, `cv/en-us-resume.pdf`.
