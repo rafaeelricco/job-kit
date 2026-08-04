@@ -20,23 +20,71 @@ directory you control, never in this tree.
 
 - **Agents channel:** installers symlink `job-profile-init` into coding-agent skills.
 - **Aside channel:** installers **copy** scout/apply into `~/.aside/u/0/skills/builtin`.
+- **No manual clone:** one `remote.sh` command caches the kit and installs both channels.
 - **Safe re-runs:** kit-owned destinations re-sync; foreign conflicts fail unless
   you pass `--force`.
 - **Facts stay local:** profile `data/` is not part of this repository.
 
 ## Which skill goes where
 
-| Skill              | Channel                               | Install                     |
-| ------------------ | ------------------------------------- | --------------------------- |
-| `job-scout`        | Aside                                 | `scripts/aside/install.sh`  |
-| `job-application`  | Aside                                 | `scripts/aside/install.sh`  |
-| `job-profile-init` | Coding agents (Claude / Codex / Grok) | `scripts/agents/install.sh` |
+| Skill              | Channel                               | Install            |
+| ------------------ | ------------------------------------- | ------------------ |
+| `job-scout`        | Aside                                 | `remote.sh aside`  |
+| `job-application`  | Aside                                 | `remote.sh aside`  |
+| `job-profile-init` | Coding agents (Claude / Codex / Grok) | `remote.sh agents` |
 
-## Get the kit
+Local-clone equivalents are in [Work locally](#work-locally).
 
-Installers need a **local job-kit checkout**. They do not clone for you and do
-not run from a profile directory. If you only have a profile tree, obtain the
-kit first:
+## Install
+
+No clone needed. One command fetches job-kit into a cached checkout
+(`~/.local/share/job-kit` by default) and runs the channel installers from
+there:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- all
+```
+
+`all` installs both channels and skips whichever target is absent — no Aside
+profile, or no agent home, is a skip, not an error. Read the script first if
+you prefer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh -o remote.sh
+bash remote.sh all
+```
+
+| Channel  | Installs                                            |
+| -------- | --------------------------------------------------- |
+| `all`    | Both, skipping absent targets (default)             |
+| `aside`  | `job-scout` + `job-application` (fails if no Aside) |
+| `agents` | `job-profile-init` (fails if no agent home)         |
+| `fetch`  | Nothing — refresh the cached checkout only          |
+
+Options after the channel are forwarded to the installer. `all` forwards only
+`--force`; use an explicit channel for `--skip-claude` / `--skip-codex` /
+`--skip-grok`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents --skip-codex
+```
+
+| Variable       | Default                  | Role                |
+| -------------- | ------------------------ | ------------------- |
+| `JOB_KIT_HOME` | `$XDG_DATA_HOME/job-kit` | Cached checkout     |
+| `JOB_KIT_REF`  | `main`                   | Branch or tag       |
+| `JOB_KIT_SLUG` | `rafaeelricco/job-kit`   | GitHub `owner/repo` |
+
+Uses `git` when present (shallow clone, shallow fetch on re-run), otherwise
+`curl`/`wget` + `tar`. **Keep the cached checkout in place** — coding-agent
+skills symlink into it, and Aside re-installs read it to prove kit ownership.
+Windows needs Git Bash. Installs no profile, no salary or work-auth data, and
+logs into nothing.
+
+## Work locally
+
+Clone when you want to edit skills and see the change without reinstalling —
+the agents channel symlinks, so edits in the checkout are live:
 
 ```bash
 git clone https://github.com/rafaeelricco/job-kit.git
@@ -44,19 +92,15 @@ cd job-kit
 ```
 
 Private clone: use whatever auth your host requires (`gh repo clone
-rafaeelricco/job-kit`, HTTPS token, or SSH remote). Then run the channel
-installers below from **this** checkout (or pass absolute paths to those
-scripts). Update later with `git pull` in the same checkout, then re-run the
-installers you use.
+rafaeelricco/job-kit`, HTTPS token, or SSH remote). Run the channel installers
+from **this** checkout, or pass absolute paths to them. They never clone for
+you and never run from a profile directory. Update with `git pull` here, then
+re-run the installers you use.
 
-## Install — coding agents (Claude, Codex, Grok)
+### Coding agents (Claude, Codex, Grok)
 
 **Prerequisites:** Bash; at least one agent home already present
 (`~/.claude`, `~/.agents`, or `~/.grok` — open that agent once if missing).
-Git is only needed to clone or `git pull` the kit ([Get the kit](#get-the-kit),
-[Update](#update)).
-
-From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
 ```bash
 bash scripts/agents/install.sh
@@ -88,12 +132,10 @@ home dirs, a profile, or salary / work-auth data. Codex skills live under
 removes legacy kit links under `~/.codex/skills` when present; the
 `CLAUDE_SKILLS` single-dest escape hatch skips that cleanup.
 
-## Install — Aside
+### Aside
 
 **Prerequisites:** Bash; Aside Browser with an account profile
 (default `~/.aside/u/0`, including a `skills` parent for the builtin root).
-
-From that job-kit checkout (after [Get the kit](#get-the-kit) if needed):
 
 ```bash
 bash scripts/aside/install.sh
@@ -117,7 +159,10 @@ work-auth data, or log into any service.
 
 ## Update
 
-`git pull` in the checkout, then re-run **both** installers you use
+Remote install: re-run the same one-liner — it refreshes the cached checkout at
+`$JOB_KIT_HOME` and re-runs the installers.
+
+Local checkout: `git pull`, then re-run **both** installers you use
 (agents: re-link; Aside: re-copy). Channels are independent.
 
 Update never modifies profile checkouts or `~/.config/profile-root`.
@@ -136,6 +181,19 @@ basenames (`surface-linkedin-jobs`, `surface-open-web`, …). Profile
 bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
+
+After a remote install those live in the cached checkout, at the path the
+installer prints on every run — `$JOB_KIT_HOME` if you set it, otherwise
+`${XDG_DATA_HOME:-~/.local/share}/job-kit`:
+
+```bash
+JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}"
+bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
+bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
+```
+
+Delete the cache directory only after both uninstalls run — removing it first
+strands the coding-agent symlinks that point into it.
 
 Each uninstall only touches its channel. Agents uninstall supports the same
 `--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent
@@ -160,12 +218,11 @@ your normal user, not with `sudo`.
 
 ### 1. Install profile init into coding agents
 
-If you do not already have a job-kit checkout, start with
-[Get the kit](#get-the-kit). Then from the checkout:
-
 ```bash
-bash scripts/agents/install.sh
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents
 ```
+
+From a clone instead: `bash scripts/agents/install.sh`.
 
 ### 2. Create or register a profile
 
@@ -212,13 +269,13 @@ questions are voluntary and per-employer, so you answer them in the ATS form.
 
 ### 4. Run scout and apply (Aside)
 
-Install Aside channel first if not already:
+Install the Aside channel first if not already:
 
 ```bash
-bash /absolute/path/to/job-kit/scripts/aside/install.sh
-# or, from a job-kit checkout:
-# bash scripts/aside/install.sh
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- aside
 ```
+
+From a clone instead: `bash scripts/aside/install.sh`.
 
 ```text
 /job-scout
@@ -283,6 +340,7 @@ allowed location.
 | `skill/job-profile-init/` | Intake + templates for empty profiles           |
 | `scripts/aside/`          | Aside install / uninstall (scout+apply)         |
 | `scripts/agents/`         | Coding-agent install / uninstall (profile init) |
+| `scripts/remote.sh`       | Fetch to cache + run installers (no clone)      |
 
 ## License
 
