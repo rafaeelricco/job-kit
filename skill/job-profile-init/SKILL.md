@@ -46,7 +46,9 @@ Yes).
       - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
         else `current_canon=""`.
       - `current_canon` equals `REPO` → if stored `current` differs from `REPO`,
-        rewrite host (and mirror if present) to canonical `REPO`; state already
+        rewrite host to canonical `REPO`. Then run (6) **unconditionally** — the
+        runtime home may have appeared after the host write, or hold a stale line,
+        and `job-scout` reads the mirror before the host pointer. State already
         active; go to (8).
       - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
         whether to switch to `REPO`. Yes → continue to (5). No → leave inactive;
