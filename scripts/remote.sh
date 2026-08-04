@@ -406,10 +406,10 @@ main() {
     purge=0
     agent_flags=()
     for arg in "$@"; do
-      if [ "${arg}" = "--purge" ]; then
-        purge=1
-        continue
-      fi
+      case "${arg}" in
+        --purge) purge=1; continue ;;
+        -h|--help) usage; exit 0 ;;
+      esac
       case "${target}" in
         all)
           die "uninstall all accepts only --purge (got: ${arg}); use 'uninstall agents' for --skip-*"
