@@ -14,15 +14,14 @@ Never invent. Never network-import LinkedIn.
 
 ## Invent matrix
 
-| Class                                                                 | SoT present                                                                                                                   | SoT silent                                               |
-| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR                      | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
+| Class                                                                                                          | SoT present                                                                                                                   | SoT silent                                               |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR                                                              | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
 | Routes (non-EOR), relocation, remote / in-person prefs, screening binaries (`willing_to_*`, `in_person_work*`) | Map only when SoT prints a clear answer                                                                                       | Leave empty; **do not** list under Gaps                  |
-| Positions, keywords groups, locations, blacklists                     | Extract; **suggestions** only if labeled as such and user confirms before write                                               | Suggest from SoT stack only; never write without confirm |
-| Experiences, skills, projects, languages (incl. levels, experience URLs) | Extract only what is printed                                                                                                | Leave `[]` / empty rows; **do not** list under Gaps      |
-| Search pack places                                                    | N/A                                                                                                                           | Catalog multi_select (below)                             |
-| CV binary                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Report only under **### CV** (not Gaps)                  |
-| Identity (name, email, LI, GH, home_market)                           | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                       |
+| Positions, keywords groups, locations, blacklists                                                              | Extract; **suggestions** only if labeled as such and user confirms before write                                               | Suggest from SoT stack only; never write without confirm |
+| Experiences, skills, projects, languages (incl. levels, experience URLs)                                       | Extract only what is printed                                                                                                  | Leave `[]` / empty rows; **do not** list under Gaps      |
+| CV binary                                                                                                      | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Report only under **### CV** (not Gaps)                  |
+| Identity (name, email, LI, GH, home_market)                                                                    | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                       |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
@@ -47,12 +46,12 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 field the fill just wrote from SoT. The table below is the whole set: it does not
 grow per session and it does not shrink because the turn is long.
 
-| #   | Key path                                                       | Ask                                   |
-| --- | -------------------------------------------------------------- | ------------------------------------- |
-| 1   | `salary_expectations.salary_range_usd`                         | target band in USD                    |
-| 2   | `availability.notice_period`                                   | notice owed to current employer       |
-| 3   | `legal_authorization.*` for the `home_market` jurisdiction     | one grouped question, not 16 fields   |
-| 4   | `employment_routes.employer_of_record`                         | Yes / No — gates the EOR scout bucket |
+| #   | Key path                                                   | Ask                                   |
+| --- | ---------------------------------------------------------- | ------------------------------------- |
+| 1   | `salary_expectations.salary_range_usd`                     | target band in USD                    |
+| 2   | `availability.notice_period`                               | notice owed to current employer       |
+| 3   | `legal_authorization.*` for the `home_market` jurisdiction | one grouped question, not 16 fields   |
+| 4   | `employment_routes.employer_of_record`                     | Yes / No — gates the EOR scout bucket |
 
 - **`skip` is a first-class answer.** It writes nothing and emits a Gaps line. Offer
   it explicitly on every item.
@@ -70,19 +69,6 @@ grow per session and it does not shrink because the turn is long.
    (titles, stack terms, junior/intern title filters already in template).
 2. Wait for confirm or edits. No silent write of suggestions.
 3. Then write `job_search.yaml`.
-
-## Pack confirm
-
-1. Print catalog of **places** = template packs in `data/search_packs.yaml`
-   (id + one-line surface/entry) after emit (still full template list).
-2. Ask: **all** (default) or **specific pack ids**.
-3. Write `data/search_packs.yaml` keeping only selected packs; keep
-   `max_parallel` / `extract_batch_size`.
-4. Rewrite each remaining pack's `formulations` (≥3) using confirmed
-   `[role]` / `[skill:<group>]` tokens from filled `job_search.yaml`.
-   Keep `impl` stems as `surface-*`, matching job-scout reference basenames.
-5. Keep full `data/sources.yaml` so tier-entry packs still resolve.
-6. Warn once: every pack left in the file runs on every job-scout session.
 
 ## CV
 

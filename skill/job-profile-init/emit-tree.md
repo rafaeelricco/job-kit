@@ -7,7 +7,7 @@ Source = `./templates/` only. Destination = intake target path.
 ```
 <target>/
   README.md
-  data/                 # Fact-law shells + search_packs.yaml
+  data/                 # Fact-law shells only
   scripts/install.sh
   scripts/uninstall.sh
   cv/README.md

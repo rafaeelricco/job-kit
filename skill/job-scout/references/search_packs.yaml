@@ -1,0 +1,117 @@
+# Intent packs for job scout. One pack = one surface × one intent.
+# impl → file stem under this skill's references/ (e.g. surface-linkedin-jobs).
+# [role], [skill:<group>] from data/job_search.yaml positions / keywords.*.
+# [industry], [company] from phase-0 profile card.
+# Every pack runs every discovery session (YAML order).
+
+max_parallel: 5
+extract_batch_size: 10
+
+packs:
+  - id: li-jobs-rag
+    impl: surface-linkedin-jobs
+    surface: linkedin_jobs
+    entry: https://www.linkedin.com/jobs/
+    formulations:
+      - '("Full Stack" OR "Applied AI" OR "AI Engineer" OR "LLM Engineer" OR FDE) [skill:ai]'
+      - "[skill:ai] engineer"
+      - "[skill:ai] [role]"
+
+  - id: hn-whoishiring
+    impl: surface-open-web
+    surface: hn
+    entry: https://hnhiring.com
+    formulations:
+      - "[skill:ai]"
+      - '[skill:backend] OR "React Native" OR Expo'
+      - '("Event Sourcing" OR CQRS OR "Applied AI") remote OR [skill:hiring_model]'
+
+  - id: waas
+    impl: surface-open-web
+    surface: waas
+    entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
+    formulations:
+      - '("Full Stack" OR "Applied AI" OR FDE) [skill:ai]'
+      - "[skill:backend] engineer"
+      - '"Founding Engineer" OR "AI Engineer" OR FDE'
+
+  - id: boards-tier1
+    impl: surface-open-web
+    surface: web_boards
+    entry: from data/sources.yaml tier_1_high_alpha
+    formulations:
+      - '("Senior Full Stack" OR "Applied AI") [skill:ai]'
+      - '("Event Sourcing" OR CQRS OR "multi-tenant") engineer remote'
+      - "hiring [skill:hiring_model] [skill:backend]"
+
+  - id: boards-tier2
+    impl: surface-open-web
+    surface: web_boards
+    entry: from data/sources.yaml tier_2_aggregators
+    formulations:
+      - '("Full Stack" OR "Applied AI" OR FDE) [skill:ai]'
+      - "[skill:ai] engineer"
+      - '"AI Engineer" OR "Applied AI" OR FDE'
+
+  - id: boards-baseline
+    impl: surface-open-web
+    surface: web_boards
+    entry: from data/sources.yaml baseline_floor
+    formulations:
+      - '("Senior Full Stack" OR "Applied AI" OR "Event Sourcing") remote'
+      - "([skill:mobile] OR offline) engineer [skill:hiring_model]"
+      - "[skill:ai] engineer ([skill:hiring_model] OR LATAM)"
+
+  - id: li-jobs-hybrid
+    impl: surface-linkedin-jobs
+    surface: linkedin_jobs
+    entry: https://www.linkedin.com/jobs/
+    formulations:
+      - '"Product Engineer" OR "AI Product Engineer" OR "Full Stack AI" OR FDE'
+      - '"Founding Engineer" ([skill:ai] OR [skill:backend] OR [skill:frontend])'
+      - '(Python OR TypeScript) (RAG OR "Event Sourcing" OR Expo OR FDE) engineer'
+
+  - id: li-posts-en
+    impl: surface-social
+    surface: linkedin_posts
+    entry: https://www.linkedin.com/search/results/content/
+    formulations:
+      - '("we''re hiring" OR "now hiring") AND ([role] OR [skill:ai])'
+      - '"open role" OR "join our team" [skill:backend]'
+      - 'hiring engineer remote ([skill:ai] OR [skill:backend] OR "React Native")'
+
+  - id: li-posts-pt
+    impl: surface-social
+    surface: linkedin_posts
+    entry: https://www.linkedin.com/search/results/content/
+    formulations:
+      - '("estamos contratando" OR "vaga aberta") (remota OR remoto OR exterior OR internacional) ([role] OR engineer)'
+      - 'buscamos [skill:ai] (remota OR exterior OR "fora do Brasil")'
+      - '"vaga remota" OR "trabalho remoto" [skill:backend] (exterior OR internacional OR EOR OR Deel)'
+
+  - id: x-dm-me
+    impl: surface-social
+    surface: x
+    entry: https://x.com/search?f=live
+    formulations:
+      - 'hiring "DM me" engineer remote'
+      - '"we''re hiring" ("email me" OR "send CV") engineer'
+      - "founding engineer hiring (DM OR email)"
+
+  - id: x-funding
+    impl: surface-social
+    surface: x
+    entry: https://x.com/search?f=live
+    formulations:
+      - '("just raised" OR "Series A") hiring engineer'
+      - '"out of stealth" hiring (engineer OR founding)'
+      - "raised funding hiring [skill:ai]"
+
+  - id: people-ta
+    impl: surface-people
+    surface: people
+    entry: https://www.linkedin.com/search/results/people/
+    formulations:
+      - '("Tech Recruiter" OR "Talent Acquisition") [industry]'
+      - "Recruiter [company] OR [skill:ai]"
+      - '"Engineering Recruiter" remote'

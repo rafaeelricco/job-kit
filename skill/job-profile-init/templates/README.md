@@ -29,13 +29,15 @@ Writes `~/.config/profile-root` to this directory so scout and apply resolve
 
 ## Fill before a useful run
 
-1. Prefer `/job-profile-init` with a source of truth so the agent fills `data/*` and
-   confirms search packs (never invents salary/visa/stack).
+1. Prefer `/job-profile-init` with a source of truth so the agent fills `data/*`
+   (never invents salary/visa/stack).
 2. Review Gaps in the fill report; fix any empty fields scout needs.
 3. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
+4. Search packs live in the installed job-scout skill (`references/search_packs.yaml`),
+   not under this profile.
 
 ## Rules
 
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only; job-application stops at review and waits for an explicit yes.
-- Never sign up, solve CAPTCHAs, or submit applications from the packs.
+- Never sign up, solve CAPTCHAs, or submit applications.

@@ -28,7 +28,7 @@ Yes).
    not discovered at (4.4) after emit and fill already wrote the tree.
 2. On Approve: obey `./emit-tree.md` end-to-end (write → tokens → leak gate).
 3. Unless **scaffold-only**: obey `./fill.md` end-to-end (SoT gate → Fact fill →
-   blocker fill → pack confirm → CV place → post-fill leak gate → gap report).
+   blocker fill → CV place → post-fill leak gate → gap report).
    Missing or unreadable SoT → STOP; do not invent; do not claim a filled profile.
    Scaffold-only → skip fill; state shells-only.
 4. **Activate** Profile root for absolute `<target>` only if Activate ask was
@@ -96,7 +96,7 @@ Yes).
       a copied skill with no kit tree does not — then treat as unresolved.
 
       **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
-      that cannot run reports *unknown*, never *installed*.
+      that cannot run reports _unknown_, never _installed_.
 
       - Agents: for each of `$HOST_HOME/{.claude,.agents,.grok}` that is a
         directory, compare bare `readlink "<home>/skills/job-profile-init"` (no
@@ -113,14 +113,14 @@ Yes).
       commands the operator actually needs, never a conditional they must evaluate:
 
       - Both channels installed → `Kit channels already installed from <KIT_ROOT>.
-        Nothing to run.`
+Nothing to run.`
       - Aside not installed → `Install scout/apply into Aside:
-        bash "<KIT_ROOT>/scripts/aside/install.sh"`
+bash "<KIT_ROOT>/scripts/aside/install.sh"`
       - Agents probe matched no eligible home → `Link job-profile-init into your
-        agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
+agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
       - Agents probe matched some but not all eligible homes → name the homes that
         are missing it, then the same absolute command.
-      - Any probe *unknown* → print its command with the reason it could not be
+      - Any probe _unknown_ → print its command with the reason it could not be
         checked. Commands are absolute; CWD does not matter.
 
       **If unresolved** — probe Aside repo-agnostically first: `$ASIDE_ROOT/job-scout/.job-kit`
@@ -149,7 +149,7 @@ Yes).
 
 - Intake: `./intake.md` (pointer pre-discovery, named stages, Activate ask, stop rules)
 - Emit tree: `./emit-tree.md` (tree map, tokens, leak gate, unfilled inventory)
-- Fill: `./fill.md` (SoT gate, invent matrix, field map, blocker fill, packs, CV, gaps)
+- Fill: `./fill.md` (SoT gate, invent matrix, field map, blocker fill, CV, gaps)
 - Next steps: `./next-steps.md` (Gaps + Activate note + adaptive kit install)
 - Templates: `./templates/` (only allowed shell source tree; never live donor data)
 
