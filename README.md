@@ -190,7 +190,10 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 | `uninstall aside`     | `job-scout` + `job-application` (kit-owned only)       |
 | `uninstall agents`    | `job-profile-init` kit links (+ legacy `profile-init`) |
 
-Add `--purge` to delete the cached checkout after skills are removed:
+Add `--purge` after a **full** uninstall (`uninstall` / `uninstall all`) to
+delete the cached checkout. Partial targets refuse it — agent skills symlink
+into the cache, so purging after `uninstall aside` or `uninstall agents` would
+leave dangling links:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
@@ -214,8 +217,8 @@ bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
 bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
 ```
 
-Delete the cache only after uninstall (or use `--purge`). Removing the cache
-first strands coding-agent symlinks that still point into it.
+Delete the cache only after a full uninstall (or use `uninstall --purge`).
+Removing the cache first strands coding-agent symlinks that still point into it.
 
 Each uninstall only touches its channel. Agents uninstall supports the same
 `--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent

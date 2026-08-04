@@ -50,7 +50,8 @@ Install options after the channel are forwarded to the installer, e.g.
 `remote.sh agents --skip-codex`. Channel `all` forwards only --force.
 
 Uninstall options:
-  --purge             After uninstall, remove the cached checkout
+  --purge             After full uninstall only, remove the cached checkout
+                      (refused with `uninstall aside` or `uninstall agents`)
   --skip-claude|codex|grok  Forwarded only with `uninstall agents`
 
 Environment:
@@ -59,7 +60,8 @@ Environment:
   JOB_KIT_SLUG  GitHub owner/repo (default rafaeelricco/job-kit)
 
 Install keeps the cache (agent skills symlink into it; Aside ownership
-markers point at it). Uninstall leaves the cache unless --purge.
+markers point at it). Uninstall leaves the cache unless full
+`uninstall --purge` (partial uninstall + purge would strand agent links).
 EOF
 }
 
@@ -449,6 +451,11 @@ main() {
 
     echo
     if [ "${purge}" -eq 1 ]; then
+      # Agent skills symlink into JOB_KIT_HOME. Partial uninstall leaves some
+      # of those links (or the whole agents channel) still pointing at the
+      # cache — refuse to delete it until both channels are torn down.
+      [ "${target}" = "all" ] \
+        || die "refusing --purge with partial uninstall (use 'uninstall all --purge' or omit --purge)"
       purge_kit_cache "${JOB_KIT_HOME}"
       echo "job-kit uninstall finished (cache purged)"
     else
