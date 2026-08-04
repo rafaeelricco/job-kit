@@ -20,7 +20,8 @@ directory you control, never in this tree.
 
 - **Agents channel:** installers symlink `job-profile-init` into coding-agent skills.
 - **Aside channel:** installers **copy** scout/apply into `~/.aside/u/0/skills/builtin`.
-- **No manual clone:** one `remote.sh` command caches the kit and installs both channels.
+- **No manual clone:** one `remote.sh` command caches the kit and installs both channels;
+  the same script uninstalls with `bash -s -- uninstall`.
 - **Safe re-runs:** kit-owned destinations re-sync; foreign conflicts fail unless
   you pass `--force`.
 - **Facts stay local:** profile `data/` is not part of this repository.
@@ -177,14 +178,35 @@ basenames (`surface-linkedin-jobs`, `surface-open-web`, …). Profile
 
 ## Uninstall
 
+No clone needed (same entrypoint as install):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
+```
+
+| Target                | Removes                                                |
+| --------------------- | ------------------------------------------------------ |
+| `uninstall` / `… all` | Aside kit copies + agent kit links (default)           |
+| `uninstall aside`     | `job-scout` + `job-application` (kit-owned only)       |
+| `uninstall agents`    | `job-profile-init` kit links (+ legacy `profile-init`) |
+
+Add `--purge` to delete the cached checkout after skills are removed:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
+```
+
+`uninstall agents` accepts the same `--skip-*` flags as install. Uninstall
+only removes kit-owned paths (exact cache path match). Foreign skills stay.
+
+Local checkout:
+
 ```bash
 bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
 
-After a remote install those live in the cached checkout, at the path the
-installer prints on every run — `$JOB_KIT_HOME` if you set it, otherwise
-`${XDG_DATA_HOME:-~/.local/share}/job-kit`:
+After a remote install, channel scripts also live in the cache:
 
 ```bash
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}"
@@ -192,8 +214,8 @@ bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
 bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
 ```
 
-Delete the cache directory only after both uninstalls run — removing it first
-strands the coding-agent symlinks that point into it.
+Delete the cache only after uninstall (or use `--purge`). Removing the cache
+first strands coding-agent symlinks that still point into it.
 
 Each uninstall only touches its channel. Agents uninstall supports the same
 `--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent
@@ -340,7 +362,7 @@ allowed location.
 | `skill/job-profile-init/` | Intake + templates for empty profiles           |
 | `scripts/aside/`          | Aside install / uninstall (scout+apply)         |
 | `scripts/agents/`         | Coding-agent install / uninstall (profile init) |
-| `scripts/remote.sh`       | Fetch to cache + run installers (no clone)      |
+| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone) |
 
 ## License
 
