@@ -67,7 +67,9 @@ kit_checkout_missing() {
 }
 
 # fetch_tarball DEST
-# Downloads JOB_KIT_REF and replaces DEST. No git required.
+# Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
+# required. DEST is removed only once the download proves to be a complete
+# job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
   local dest="$1" url stage parent missing
@@ -93,33 +95,79 @@ fetch_tarball() {
     rm -rf "${stage}"
     die "need curl or wget to fetch job-kit"
   fi
+  missing="$(kit_checkout_missing "${stage}")"
+  if [ -n "${missing}" ]; then
+    rm -rf "${stage}"
+    die "downloaded ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing}); cache left unchanged"
+  fi
   rm -rf "${dest}"
   mv "${stage}" "${dest}" || { rm -rf "${stage}"; die "failed to cache: ${dest}"; }
   echo "fetched: ${dest} @ ${JOB_KIT_REF}"
 }
 
-# fetch_git DEST
-# Shallow clone, or shallow fetch when DEST is already a git checkout.
-# Falls back to fetch_tarball when DEST exists without .git (tarball cache).
-# Side effects: may clone/fetch/checkout under DEST.
-fetch_git() {
+# is_git_repo DIR
+# Exit 0 when DIR is itself a git repository root, including a linked worktree
+# or submodule where `.git` is a file rather than a directory.
+# Side effects: none.
+is_git_repo() {
+  local dir="$1"
+  [ -e "${dir}/.git" ] || return 1
+  git -C "${dir}" rev-parse --git-dir >/dev/null 2>&1
+}
+
+# fetch_git_update DEST
+# Shallow-fetches JOB_KIT_REF into the existing git checkout at DEST.
+# Side effects: fetches and detaches HEAD under DEST.
+fetch_git_update() {
   local dest="$1"
-  if [ -d "${dest}/.git" ]; then
-    git -C "${dest}" fetch --depth 1 origin "${JOB_KIT_REF}" \
-      || die "git fetch failed for ${JOB_KIT_REF}"
-    git -C "${dest}" checkout --detach FETCH_HEAD >/dev/null 2>&1 \
-      || die "git checkout failed in ${dest} (local changes?)"
-    echo "updated: ${dest} @ ${JOB_KIT_REF}"
-    return 0
-  fi
-  if [ -e "${dest}" ]; then
-    fetch_tarball "${dest}"
-    return 0
-  fi
+  git -C "${dest}" fetch --depth 1 origin "${JOB_KIT_REF}" \
+    || die "git fetch failed for ${JOB_KIT_REF}"
+  git -C "${dest}" checkout --detach FETCH_HEAD >/dev/null 2>&1 \
+    || die "git checkout failed in ${dest} (local changes?)"
+  echo "updated: ${dest} @ ${JOB_KIT_REF}"
+}
+
+# fetch_git_clone DEST
+# Shallow-clones JOB_KIT_SLUG at JOB_KIT_REF into a DEST that does not exist.
+# Side effects: creates DEST.
+fetch_git_clone() {
+  local dest="$1"
   mkdir -p "$(dirname "${dest}")" || die "failed to create: $(dirname "${dest}")"
   git clone --depth 1 --branch "${JOB_KIT_REF}" \
     "https://github.com/${JOB_KIT_SLUG}.git" "${dest}" || die "git clone failed"
   echo "cloned: ${dest} @ ${JOB_KIT_REF}"
+}
+
+# fetch_kit DEST
+# Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
+# that is not already a complete job-kit checkout is never fetched into, checked
+# out, or deleted, and a git-shaped DEST never enters the destructive tarball
+# path.
+# Side effects: creates or updates DEST.
+fetch_kit() {
+  local dest="$1" missing
+  if [ ! -e "${dest}" ]; then
+    if have git; then
+      fetch_git_clone "${dest}"
+    else
+      fetch_tarball "${dest}"
+    fi
+    return 0
+  fi
+
+  missing="$(kit_checkout_missing "${dest}")"
+  [ -z "${missing}" ] \
+    || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+
+  if [ -e "${dest}/.git" ]; then
+    have git || die "cached checkout is a git repository but git is not installed: ${dest}"
+    is_git_repo "${dest}" \
+      || die "cache path has a .git entry but is not a usable git repository: ${dest}"
+    fetch_git_update "${dest}"
+    return 0
+  fi
+
+  fetch_tarball "${dest}"
 }
 
 # require_checkout DIR
@@ -163,11 +211,7 @@ main() {
     esac
   fi
 
-  if have git; then
-    fetch_git "${JOB_KIT_HOME}"
-  else
-    fetch_tarball "${JOB_KIT_HOME}"
-  fi
+  fetch_kit "${JOB_KIT_HOME}"
   require_checkout "${JOB_KIT_HOME}"
 
   case "${channel}" in
