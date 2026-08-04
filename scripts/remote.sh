@@ -80,19 +80,40 @@ skill/job-application/SKILL.md"
 # kit_checkout_missing DIR
 # Prints the first required job-kit path missing from DIR; prints nothing when
 # DIR is a complete checkout. Gates destructive replacement, so a stray `skill/`
-# alone must never be enough to mark a directory as kit-owned. Rejects symlinks
-# for required files (and for `skill/`) because Bash `test -f`/`-d` follow them,
-# which would accept a tarball entry that the git-ref probe rejects as mode
-# `120000`.
+# alone must never be enough to mark a directory as kit-owned. Rejects a
+# symlink at any path component (parent directory or leaf) because Bash
+# `test -f`/`-d` follow intermediate links, which would accept a tarball where
+# e.g. `skill/job-scout` is mode-`120000` while the leaf `SKILL.md` is a
+# regular file — a shape the git-ref probe rejects.
 # Side effects: none.
 kit_checkout_missing() {
-  local dir="$1" rel
+  local dir="$1" rel cur part rest
   if [ -L "${dir}/skill" ] || [ ! -d "${dir}/skill" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
   for rel in ${KIT_REQUIRED_FILES}; do
-    if [ -L "${dir}/${rel}" ] || [ ! -f "${dir}/${rel}" ]; then
+    cur="${dir}"
+    rest="${rel}"
+    while [ -n "${rest}" ]; do
+      case "${rest}" in
+        */*)
+          part="${rest%%/*}"
+          rest="${rest#*/}"
+          ;;
+        *)
+          part="${rest}"
+          rest=""
+          ;;
+      esac
+      [ -n "${part}" ] || continue
+      cur="${cur}/${part}"
+      if [ -L "${cur}" ]; then
+        printf '%s\n' "${rel}"
+        return 0
+      fi
+    done
+    if [ ! -f "${dir}/${rel}" ]; then
       printf '%s\n' "${rel}"
       return 0
     fi
@@ -126,16 +147,34 @@ git_ref_missing() {
   done
 }
 
+# resolve_cache_path PATH
+# Prints PATH after stripping trailing slashes. When PATH is an existing
+# symlink, prints the physical directory it resolves to (`pwd -P`), so a
+# tarball refresh updates the real cache that agent installers record via
+# `pwd -P` rather than deleting the link and orphaning that target.
+# Side effects: none. Dies on a dangling symlink.
+resolve_cache_path() {
+  local p
+  p="$(strip_trailing_slashes "$1")"
+  if [ -L "${p}" ]; then
+    [ -d "${p}" ] || die "cache path is a dangling symlink: ${p}"
+    (cd "${p}" && pwd -P) || die "failed to resolve cache symlink: ${p}"
+    return 0
+  fi
+  printf '%s' "${p}"
+}
+
 # fetch_tarball DEST
 # Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
 # required. DEST is removed only once the download proves to be a complete
 # job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
-# DEST is slash-normalized so a trailing slash cannot make `rm -rf` walk through
-# a symlink and wipe the link target.
+# DEST is slash-normalized and symlink-resolved so a cache behind a link is
+# refreshed in place (agent links/`pwd -P` markers stay valid) rather than
+# replacing the link itself.
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
   local dest url stage parent missing
-  dest="$(strip_trailing_slashes "$1")"
+  dest="$(resolve_cache_path "$1")"
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     missing="$(kit_checkout_missing "${dest}")"
     [ -z "${missing}" ] \
@@ -202,14 +241,17 @@ fetch_git_update() {
 # Shallow-clones JOB_KIT_SLUG at JOB_KIT_REF into a DEST that does not exist.
 # Removes the clone it just made when the result is not a job-kit checkout, so a
 # wrong slug or ref cannot leave a foreign tree parked at the cache path where
-# the ownership guard would then block every later run.
+# the ownership guard would then block every later run. Validates via
+# `git_ref_missing` (object modes) rather than the filesystem probe alone, so a
+# `core.symlinks=false` checkout that materializes mode-`120000` entries as
+# plain files still fails before the cache is kept.
 # Side effects: creates DEST; removes it again only on a failed layout check.
 fetch_git_clone() {
   local dest="$1" missing
   mkdir -p "$(dirname "${dest}")" || die "failed to create: $(dirname "${dest}")"
   git clone --depth 1 --branch "${JOB_KIT_REF}" \
     "https://github.com/${JOB_KIT_SLUG}.git" "${dest}" || die "git clone failed"
-  missing="$(kit_checkout_missing "${dest}")"
+  missing="$(git_ref_missing "${dest}" HEAD)"
   if [ -n "${missing}" ]; then
     rm -rf "${dest}"
     die "cloned ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing})"
@@ -221,13 +263,14 @@ fetch_git_clone() {
 # Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
 # that is not already a complete job-kit checkout is never fetched into, checked
 # out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path. DEST is slash-normalized first so trailing-slash symlink paths keep the
-# `-L` / `rm -rf` semantics of the bare path.
+# path. DEST is slash-normalized and symlink-resolved first so a cache behind a
+# link is refreshed at its physical path (matching agent `pwd -P` markers).
 # Side effects: creates or updates DEST.
 fetch_kit() {
-  local dest missing
-  dest="$(strip_trailing_slashes "$1")"
-  if [ ! -L "${dest}" ] && [ ! -e "${dest}" ]; then
+  local dest missing raw
+  raw="$(strip_trailing_slashes "$1")"
+  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
+    dest="${raw}"
     if have git; then
       fetch_git_clone "${dest}"
     else
@@ -236,6 +279,7 @@ fetch_kit() {
     return 0
   fi
 
+  dest="$(resolve_cache_path "${raw}")"
   missing="$(kit_checkout_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
