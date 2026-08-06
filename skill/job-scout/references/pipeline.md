@@ -64,9 +64,11 @@ Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
 
 ## Phase 2 — MERGE (main only)
 
-Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect →
-`formulations_short`; candidates not merge-eligible until re-run; main enforces; every
-pack id must have Defect log row before extract.
+Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
+verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
+re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run;
+carry actual `formulations_run` (usually 0). Every pack id must have Defect log row
+before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.

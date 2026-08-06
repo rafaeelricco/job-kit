@@ -41,6 +41,8 @@ Anything that would touch a company or the user's account → stop; put it under
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
 4. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
+   Already returned `auth_gate` at (2) → skip remaining SEARCH-ONLY steps for this pack;
+   report actual `formulations_run` (usually 0) with that verdict.
 5. **Geo coverage (job packs)** — do not accept the surface default geography.
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as

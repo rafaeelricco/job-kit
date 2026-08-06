@@ -35,12 +35,14 @@ forward, and name the ones you dropped. Pick the title whose printed stack overl
 `data/skills.yaml`; a title the ad prints with no stack of its own wins only when it is the
 only title. NEVER address two titles in one letter.
 
-**Ad gate (outcome):** `### Ad` printed **and** prechecks green before Fit/Select:
+**Ad gate (outcome):** `### Ad` printed **and** terminal prechecks green before Fit:
 
 1. Untrusted harvest done (quotes ready for Review `### Untrusted content`)
-2. CV path resolvable — missing/unopenable PDF → **STOP** (no Phase 3)
+2. CV path resolvable — missing/unopenable PDF → **STOP** (no Fit, no Phase 3)
 3. Ad-stated Gate precheck — Facts cannot meet a hard format requirement → **STOP**
-   Tracks 1–3 and Fit may run in parallel. Select waits on Fit only.
+   (no Fit, no Phase 3)
+   2–3 green before Fit. Track 1 and Fit may parallel after 2–3 green. Select waits
+   on Fit only.
 
 ## Phase 1 — FIT
 
