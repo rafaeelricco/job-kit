@@ -360,13 +360,13 @@ allowed location.
 
 ## Layout
 
-| Path                      | Role                                            |
-| ------------------------- | ----------------------------------------------- |
-| `skill/job-scout/`        | Scout law, contracts, surfaces                  |
-| `skill/job-application/`  | Apply law, draft contract                       |
-| `skill/job-profile-init/` | Intake + templates for empty profiles           |
-| `scripts/aside/`          | Aside install / uninstall (scout+apply)         |
-| `scripts/agents/`         | Coding-agent install / uninstall (profile init) |
+| Path                      | Role                                             |
+| ------------------------- | ------------------------------------------------ |
+| `skill/job-scout/`        | Scout law, contracts, surfaces                   |
+| `skill/job-application/`  | Apply law, draft contract                        |
+| `skill/job-profile-init/` | Intake + templates for empty profiles            |
+| `scripts/aside/`          | Aside install / uninstall (scout+apply)          |
+| `scripts/agents/`         | Coding-agent install / uninstall (profile init)  |
 | `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone) |
 
 ## License

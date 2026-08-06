@@ -4,7 +4,8 @@ Named stages only — never number the questions or steps. Stages run in order.
 Batch only independent enums (Route modes; Source modes when the harness
 supports multi-option tools). Dependent branches stay sequential. Enumerables:
 options, most-likely first, labelled **(Recommended)**, free-text escape.
-Never treat silence as an answer.
+Never treat silence as an answer. Invent matrix + Hard refuses: `./fill.md` /
+`SKILL.md` — do not restate full invent lists here.
 
 ## Existing Profile root (read-only pre-discovery)
 
@@ -95,8 +96,13 @@ Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`,
 
 ### When Source is path or paste
 
-1. Read the SoT. Build an identity **draft** only from printed facts (LinkedIn
-   URL → username without `@`).
+1. Full-ingest the SoT into a session **SoT buffer** (paths: read each file once
+   here; paste: the paste body is the buffer). Record a **Source key** (stable
+   identity of this SoT: sorted absolute path(s), or a paste fingerprint). Build
+   an identity **draft** only from the buffer (LinkedIn URL → username without
+   `@`). Invent matrix + Hard refuses bind — extract only what is printed; never
+   invent identity fields. Fill reuses this buffer when the Source key is
+   unchanged (see `./fill.md` Source gate).
 2. Present the draft. Ask **only** empty or conflicting fields — never re-ask
    fields the draft already settled unless the operator disputes them.
 3. Required before Approve: `display_name`, `linkedin_username` (no `@`),

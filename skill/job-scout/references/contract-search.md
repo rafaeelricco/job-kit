@@ -30,18 +30,22 @@ Anything that would touch a company or the user's account → stop; put it under
 
 1. Login wall / paywall / signup / CAPTCHA → log the defect and move on.
    Never create an account. Never solve a CAPTCHA. Never retry around a gate.
-2. Interpolate pack tokens before searching: `[role]` from CONSTRAINTS positions;
+2. **LinkedIn session (surfaces `linkedin_*` and pack id `people-ta`):** must already be
+   signed in as LinkedIn `username` from `data/profiles.yaml` (Profile root). Fail →
+   return zero candidates/contacts and defect `auth_gate`. No retry workaround.
+   Other surfaces: no LinkedIn session required.
+3. Interpolate pack tokens before searching: `[role]` from CONSTRAINTS positions;
    `[skill:<group>]` from CONSTRAINTS keyword groups (e.g. `ai`, `backend`, `frontend`, `mobile`);
    `[industry]` / `[company]` from PROFILE_CARD. Never leave a bracketed token in a
    submitted query. Do not repeat a keyword-group term as a literal when the same
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
-3. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
-4. **Geo coverage (job packs)** — do not accept the surface default geography.
+4. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
+5. **Geo coverage (job packs)** — do not accept the surface default geography.
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
    the surface file states. Never multiply packs by region.
-5. **Job rows only** — apply CONSTRAINTS filters: work_model, experience_level,
+6. **Job rows only** — apply CONSTRAINTS filters: work_model, experience_level,
    job_types, date_posted. Blacklists only remove.
    **Location keep (first match):**
    - card location hits `location_blacklist` → drop
@@ -51,8 +55,8 @@ Anything that would touch a company or the user's account → stop; put it under
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)
      Outside other positive filters → not a candidate. People packs skip this step.
-6. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
-7. One call = one surface × one pack. Cards + URLs only. Public contacts only.
+7. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
+8. One call = one surface × one pack. Cards + URLs only. Public contacts only.
 
 ## Search Candidate (fixed columns, pipe table)
 

@@ -1,10 +1,10 @@
 # Contract (draft) — application stage
 
-Paste this file **verbatim** into every drafting brief. Drafts inherit nothing.
+Paste this file **verbatim** into every **Phase 3 drafting brief**. Drafts inherit nothing.
 This file is the sole home of Fact, Voice and Gate law.
-Paths below are relative to the absolute Profile root printed in the drafting brief
-(ordered resolver in SKILL.md). Resolve every `data/*` path against
-that root, not session CWD. Unreadable Fact file → stop and say so.
+Main Phases 0–2 bind Fact + Gate + untrusted without pasting Voice; Phase 3 full paste binds Voice.
+Paths below are relative to the absolute Profile root (resolver: application SKILL.md).
+Resolve every `data/*` path against that root, not session CWD. Unreadable Fact file → stop and say so.
 Sibling skill `job-scout` is LIST-ONLY and never applies. This pack drafts.
 
 === DRAFT AND STAGE, NEVER SUBMIT ===
@@ -87,6 +87,9 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
   Does not: repository statistics or résumé jargon
   (e.g. `58 PRs`, `+17k LOC`, `~40% of commits`, `top main-branch committer`).
   Prefer the verb a human would say over a résumé compound noun.
+- Numbers: outcome numbers ship, process numbers never. An outcome is a number the reader can
+  act on. A process number counts your activity (e.g. PR count, LOC, commit share).
+- No hedging: `maybe`, `I think`, `I believe I could`, `I am confident that`. State it or cut it.
 - Cut exact dates, internal praise, and the titles of people who noticed.
 
 ## Gate law
