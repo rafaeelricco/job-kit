@@ -2,47 +2,60 @@
 
 Runs only on the intake target after emit-tree succeeds (or on an already
 scaffolded empty target when the operator says "continue fill" with SoT).
-Never invent. Never network-import LinkedIn.
+Never invent. Full matrix below. Hard refuses: SKILL.md. Never network-import LinkedIn.
 
 ## Source gate
 
-1. Resolve SoT from intake **Source** (paths and/or paste buffer this turn).
+1. Resolve SoT from intake **Source** (paths and/or paste). Compute the same
+   **Source key** as intake (sorted absolute path(s), or paste fingerprint).
 2. Paths must exist and be readable. Unreadable → STOP; name path; ask again.
 3. No path and no paste → STOP; same follow-up as intake Source.
 4. Chat memory alone is not SoT. Do not fill from "I think you said…".
-5. Read all SoT files (PDF/text/md). Prefer quoted facts over paraphrase.
+5. **Reuse vs fresh read:**
+   - Source key matches the intake (or prior fill) key **and** a session **SoT
+     buffer** exists → reuse that buffer; do **not** re-read path files or re-parse
+     PDF text.
+   - Source key changed, or no buffer (e.g. **continue-fill** on a scaffolded
+     target with no prior Identity ingest) → read each SoT file **once** here
+     (PDF/text/md); full-ingest into the buffer; set the Source key.
+6. Prefer quoted facts over paraphrase. Hold the buffer for Fact fan-out; never
+   re-read SoT as a second pass after the buffer is set. Missing or unreadable →
+   STOP (unless scaffold-only, which skips fill entirely).
 
 ## Invent matrix
 
-| Class                                                                                                          | SoT present                                                                                                                   | SoT silent                                               |
-| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR                                                              | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                             |
-| Routes (non-EOR), relocation, remote / in-person prefs, screening binaries (`willing_to_*`, `in_person_work*`) | Map only when SoT prints a clear answer                                                                                       | Leave empty; **do not** list under Gaps                  |
-| Positions, keywords groups, locations, blacklists                                                              | Extract; **suggestions** only if labeled as such and user confirms before write                                               | Suggest from SoT stack only; never write without confirm |
-| Experiences, skills, projects, languages (incl. levels, experience URLs)                                       | Extract only what is printed                                                                                                  | Leave `[]` / empty rows; **do not** list under Gaps      |
-| CV binary                                                                                                      | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Report only under **### CV** (not Gaps)                  |
-| Identity (name, email, LI, GH, home_market)                                                                    | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                       |
+| Class                                                                                                          | SoT present                                                                                                                   | SoT silent                                                 |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR                                                              | Map verbatim / clear synonym into `data/candidate.yaml`                                                                       | Leave empty; list under Gaps                               |
+| Routes (non-EOR), relocation, remote / in-person prefs, screening binaries (`willing_to_*`, `in_person_work*`) | Map only when SoT prints a clear answer                                                                                       | Leave empty; **do not** list under Gaps                    |
+| Positions, keywords groups, locations, blacklists                                                              | **Suggestions stage only**; confirm before write; never write in Fact fan-out                                                 | Suggest from SoT stack only; skip → `[]` + Gaps when empty |
+| Experiences, skills, projects, languages (incl. levels, experience URLs)                                       | Extract only what is printed                                                                                                  | Leave `[]` / empty rows; **do not** list under Gaps        |
+| CV binary                                                                                                      | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                          | Report only under **### CV** (not Gaps)                    |
+| Identity (name, email, LI, GH, home_market)                                                                    | Tokens from **Approve** (SoT draft + operator fixes). Do not clobber on fill. Operator re-correct → rewrite those tokens only | Approve-only (scaffold had no SoT)                         |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
 
-## Write order (overwrite Fact files only)
+## Fact fan-out
 
-1. `data/candidate.yaml` — salary_range_usd, notice_period, legal_authorization*,
-   `employment_routes.employer_of_record` when evidenced; other routes / relocation /
-   remote prefs / screening binaries only when SoT prints them (never invent, never force).
-2. `data/job_search.yaml` — positions, keywords.*, locations, blacklists
-   (defaults for work_model / levels / job_types stay unless SoT contradicts).
-3. `data/experiences.yml` — one object per role; keys per template comment.
-4. `data/skills.yaml` + `data/skills-by-company.yml` when SoT maps company→skills.
-5. `data/projects.yml` — public portfolio only.
-6. `data/languages.yaml` — only levels printed in SoT.
-7. Optional: `data/basics.yaml` phone / location / url.href if SoT prints them.
-8. Do not rewrite identity tokens unless the operator corrects approved values.
+Order free after Source gate (one buffer; reuse or one fresh read); invent matrix binds.
+**Not in this step:** `job_search` positions / keywords / locations / blacklists —
+sole writer is Suggestions; `work_model` / `levels` / `job_types` only when SoT
+contradicts defaults.
 
-## Blocker fill (after write order, before Suggestions)
+- `data/candidate.yaml` — salary_range_usd, notice_period, legal_authorization*,
+  `employment_routes.employer_of_record` when evidenced; other routes / relocation /
+  remote prefs / screening binaries only when SoT prints them (never invent, never force).
+- `data/experiences.yml` — one object per role; keys per template comment.
+- `data/skills.yaml` + `data/skills-by-company.yml` when SoT maps company→skills.
+- `data/projects.yml` — public portfolio only.
+- `data/languages.yaml` — only levels printed in SoT.
+- Optional: `data/basics.yaml` phone / location / url.href if SoT prints them.
+- Do not rewrite identity tokens unless the operator corrects approved values.
 
-**One message.** Ask only the blockers the write order left empty — never re-ask a
+## Blocker fill (after Fact fan-out, before Suggestions)
+
+**One message.** Ask only the blockers the Fact fan-out left empty — never re-ask a
 field the fill just wrote from SoT. The table below is the whole set: it does not
 grow per session and it does not shrink because the turn is long.
 
@@ -68,17 +81,26 @@ grow per session and it does not shrink because the turn is long.
 1. Print `### Suggestions` with labeled lists derived only from SoT
    (titles, stack terms, junior/intern title filters already in template).
 2. Wait for confirm or edits. No silent write of suggestions.
-3. Then write `job_search.yaml`.
+3. After confirm, write `data/job_search.yaml` positions / keywords / locations /
+   blacklists from confirmed values only. `work_model` / `levels` / `job_types`
+   stay template defaults unless Fact fan-out already wrote them from SoT.
+4. Skip → write empty arrays `[]`, clearing placeholders (`Software Engineer`,
+   `TODO-skill`, `Remote`). Gaps allowlist still lists empties.
 
 ## CV
 
-1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf`
-   (overwrite only if user confirms when a different PDF already exists).
+1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf` by path
+   (overwrite only if user confirms when a different PDF already exists). Do not
+   re-parse PDF text when the SoT buffer already holds facts.
 2. Never generate PDF/LaTeX. Non-PDF SoT → report under **### CV** only (not Gaps).
 
 ## Post-fill leak gate
 
-Same `rg` as emit-tree against target. Any hit → STOP; fix; do not hand off.
+Both must pass before gap report / next-steps:
+
+1. Same `rg '{{'` as emit-tree against target. Any hit → STOP; fix; do not hand off.
+2. YAML-parse every `data/*.{yaml,yml}` touched this fill. Any parse error → STOP;
+   fix; do not hand off.
 
 ## Gap report (required before next-steps)
 

@@ -5,20 +5,17 @@ description: "Read this when you need to draft and stage one job application fro
 
 # Job application
 
-Profile root: **same ordered resolver as job-scout** (read
-`job-scout/SKILL.md` Profile root block and obey it — including Aside
-dual-home / runtime mirror and STOP recovery). Shorthand:
-`$PROFILE_ROOT` → `$HOME/.config/profile-root` (often Aside runtime mirror) →
-host `$HOST_HOME/.config/profile-root` when `$HOME` is Aside runtime home →
-CWD walk → STOP.
+Profile root: **same ordered resolver as job-scout** — obey `job-scout/SKILL.md`
+Profile root steps (SSOT). Recovery essay: `job-scout/references/profile-root.md`.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.
-2. Read `./references/contract-draft.md` before Phase 0. Main opens the posting, so
-   bot-check and untrusted-content bind from the first fetch. Sole home of Fact, Voice, Gate law.
+2. Dual-load `./references/contract-draft.md` (sole home of Fact, Voice, Gate law):
+   - Phases 0–2: bind Fact + Gate + untrusted/bot-check. Voice not until Phase 3 paste.
+   - Main opens the posting, so bot-check and untrusted-content bind from the first fetch.
 3. Phase 3: every drafting brief carries (1) absolute Profile root, (2) `### Letter plan`,
-   (3) `./references/contract-draft.md` pasted **verbatim**. Never summarize the contract.
+   (3) full contract pasted **verbatim** (Voice binds with the paste). Never summarize.
 4. Facts from the files Fact law names, under the profile root above.
 5. One application at a time. Each stops at review and waits for an explicit yes.
 6. Deliver the review exactly per `./references/pipeline.md` "Review format", then STOP.
