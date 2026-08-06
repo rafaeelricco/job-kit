@@ -33,8 +33,9 @@ Yes).
    Missing or unreadable SoT → STOP; do not invent; do not claim a filled
    profile. Scaffold-only → skip fill; state shells-only.
 4. **Activate** Profile root for absolute `<target>` only if Activate ask was
-   **Yes**. If **No**, skip pointer writes; print next-steps residual for later
-   Activate; STOP after residual. Do **not** run `"<target>/scripts/install.sh"`.
+   **Yes**. If **No**, skip pointer writes (`./activate.md` 1–7); print
+   `./next-steps.md` filled per `./activate.md` step 8 with Activate skipped;
+   STOP. Do **not** run `"<target>/scripts/install.sh"`.
    If **Yes**: obey `./activate.md` end-to-end (dual-home write + mirror
    rollback + next-steps placeholders including KIT_INSTALL resolve). Then STOP.
 
