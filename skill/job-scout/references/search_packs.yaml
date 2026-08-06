@@ -5,7 +5,8 @@
 # Every pack runs every discovery session (YAML order).
 
 max_parallel: 5
-extract_batch_size: 10
+# SSOT for extract batch size — pipeline + worker must name this key, never hard-code
+extract_batch_size: 5
 
 packs:
   - id: li-jobs-product

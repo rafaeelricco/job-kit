@@ -1,6 +1,8 @@
-# Next steps (print after Activate step; inject Gaps + notes + kit install)
+# Next steps (print after Activate or when Activate ask was No; inject Gaps +
 
-# The agent must fill every {{…}} per SKILL.md — never leave placeholders,
+# notes + kit install)
+
+# Fill every {{…}} per activate.md step 8 — never leave placeholders,
 
 # never invent CWD-relative kit `scripts/...` from a profile dir.
 
