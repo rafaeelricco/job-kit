@@ -79,7 +79,7 @@ not a rounding.
 
 | pack      | formulations_run | row_runs | sources_hit |                  usable |                   zero_result_runs | verdict                |
 | --------- | ---------------: | -------: | ----------: | ----------------------: | ---------------------------------: | ---------------------- |
-| {pack_id} |               ≥3 |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
+| {pack_id} |              {n} |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
 
 One row per pack in `./references/search_packs.yaml` (all packs every run).
 Carry `formulations_run` and `row_runs` as the worker printed them; `contract-search.md`

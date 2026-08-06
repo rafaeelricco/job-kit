@@ -31,7 +31,9 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    `data/candidate.yaml` and `data/job_search.yaml` under that root. Probe
    `./references/search_packs.yaml` next to this skill. Any missing → STOP, name the file.
 2. LinkedIn session → identity must equal LinkedIn `username` in
-   `data/profiles.yaml` under Profile root. Fail → STOP. No partial sweep.
+   `data/profiles.yaml` under Profile root. Probe LI identity once; fail → packs
+   surface `linkedin_*` OR pack id `people-ta` return zero + defect `auth_gate`;
+   do NOT STOP run; non-LI packs still run.
 3. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · experience level · job types · positions · keywords · locations ·
@@ -55,21 +57,29 @@ as **SOURCES** in the same brief, verbatim. Packs with a concrete URL `entry` ge
 Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
-Parallelism: respect `max_parallel` in YAML (default 5). Never parallel two
-`linkedin_*` packs at any cap. Goal = finish the full pack list every run.
+Parallelism: `max_parallel` SSOT. Never two LI-session packs concurrent
+(`linkedin_*` or `people-ta`). Launch up to `max_parallel` → join → Phase 2 MERGE.
+Every pack attempted (`auth_gate` is pack defect).
 Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
 
 ## Phase 2 — MERGE (main only)
+
+Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
+verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
+re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run;
+carry actual `formulations_run` (usually 0). Every pack id must have Defect log row
+before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.
 No company-dedupe here — a dead listing must not evict a live one from the same company.
 Contacts side-channel only; never enter extract.
 
-## Phase 3 — EXTRACT (batches ≤5)
+## Phase 3 — EXTRACT
 
-For each unique job URL: run `./references/worker-extract.md` with URL_BATCH + CONTRACT_EXTRACT
-(`./references/contract-extract.md`). People contacts skip. Emit `### Verified` rows.
+Batch size = `extract_batch_size` from `search_packs.yaml` SSOT. For each unique job URL
+batch run `worker-extract`; people skip; independent batches may parallel up to
+`max_parallel`; each batch opens URLs one at a time. Emit `### Verified` rows.
 
 ## Phase 4 — CONTRACT GATE (main)
 
@@ -79,14 +89,8 @@ Never invent a field to pass the gate. Unknown = `—`.
 
 ### Location gate (post-extract, main)
 
-Re-apply search **Location keep** on extract `location` / `work_model` before scoring
-(first match). Uses CONSTRAINTS `locations` + `location_blacklist` from Phase 0.
-
-- extract location hits `location_blacklist` → Dropped (note under Gaps); do not score
-- remote / worldwide / anywhere / global (or hybrid with remote) → keep for scoring
-- onsite or location-restricted → keep only if it matches CONSTRAINTS `locations`
-  (or a clear synonym: EU/Europe for listed EU countries); else Dropped → Gaps
-- location still unknown (`—`) → keep (do not invent; geo factor may be low)
+Re-apply contract-search Location keep on extract-confirmed locations; deferred — becomes
+keep/drop here; do not redefine keep rules in this file.
 
 People contacts skip. Search-time keeps still apply; this gate closes the deferred path.
 
@@ -115,16 +119,8 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 | Salary printed + in band                                     | 0–1    |
 | Recency                                                      | 0–1    |
 
-Salary point: award only when the JD prints pay in USD, EUR, or GBP (or an unambiguous
-symbol $, €, £) and the printed amount **overlaps** the band for that currency. No live
-FX and no invented conversion at runtime — use these fixed bands only:
-
-- USD: `salary_range_usd` exact (from `data/candidate.yaml`)
-- EUR: static parity band for that USD range (calibrate per operator)
-- GBP: static parity band for that USD range (calibrate per operator)
-
-Printed BRL/INR/other → salary factor 0 (do not hard-drop for stack/route strength).
-Unprinted salary → 0. Amounts outside the currency band → 0 for the salary factor.
+Salary point: USD awards 1 only if overlaps `salary_range_usd`; EUR/GBP factor 0 until
+profile defines parity bands; other currencies 0; unprinted 0.
 
 Geo/auth for remote: if work_model is remote and work_auth does not require a
 jurisdiction the candidate lacks, do not zero geo solely because company country is
