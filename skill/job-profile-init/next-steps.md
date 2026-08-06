@@ -1,7 +1,9 @@
 # Next steps (print after Activate or when Activate ask was No; inject Gaps +
+
 # notes + kit install)
 
 # Fill every {{…}} per activate.md step 8 — never leave placeholders,
+
 # never invent CWD-relative kit `scripts/...` from a profile dir.
 
 0. {{ACTIVATE_NOTE}}
