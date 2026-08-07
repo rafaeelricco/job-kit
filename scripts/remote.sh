@@ -402,13 +402,156 @@ agents_ready() {
   [ -d "${HOME}/.claude" ] || [ -d "${HOME}/.agents" ] || [ -d "${HOME}/.grok" ]
 }
 
+# --- profile-root pointer helpers -------------------------------------
+# Byte-identical to the copies in scripts/agents/lib.sh and
+# scripts/aside/lib.sh. remote.sh is downloaded standalone and cannot
+# source them; it needs its own copy for the legacy-cache path below,
+# where the cached uninstallers predate pointer cleanup entirely.
+# resolve_host_home
+# Prints the real user home: inside Aside, HOME is <host>/.aside/runtime/home,
+# and the pointer the skills read lives on the host. When HOME carries no such
+# suffix, an absolute HOST_HOME wins over HOME — same precedence the skills
+# resolve through (skill/job-scout/SKILL.md), so uninstall clears the pointer
+# a scout run would still have found.
+# Side effects: none.
+resolve_host_home() {
+  local suffix="/.aside/runtime/home"
+  case "${HOME}" in
+    *"${suffix}") printf '%s\n' "${HOME%${suffix}}"; return ;;
+  esac
+  case "${HOST_HOME:-}" in
+    /*) printf '%s\n' "${HOST_HOME}" ;;
+    *) printf '%s\n' "${HOME}" ;;
+  esac
+}
+
+# pointer_target FILE
+# Prints the single path line. Exit 1 when FILE could not be read — an
+# unreadable pointer is unknown, never empty: ~/.config/profile-root is a
+# generic name, and a mode-0600 file owned by another user belongs to whatever
+# tool wrote it.
+# Side effects: none.
+pointer_target() {
+  # Subshell: the failed redirect is the shell's own message, which tr's
+  # stderr redirect would not catch, and callers print their own skip line.
+  ( tr -d '\n' < "$1" ) 2>/dev/null
+}
+
+# target_confirmed_gone PATH
+# Exit 0 only when PATH is absent *and* its parent can be searched. A blocked
+# ancestor — the Aside sandbox denying the profile's parent — makes every
+# probe on PATH fail exactly like a deletion, so it means "cannot tell", never
+# "gone".
+# Side effects: none.
+target_confirmed_gone() {
+  local parent
+  parent="$(dirname "$1")"
+  [ -d "${parent}" ] && [ -x "${parent}" ] || return 1
+  [ ! -e "$1" ]
+}
+
+# is_kit_profile_pointer FILE
+# Exit 0 when FILE is empty, names a path confirmed gone (stale registration),
+# or names a profile checkout (data/candidate.yaml — the one file every layout
+# has, legacy included). A resolvable foreign target → 1: ~/.config/profile-root
+# is a generic name and may predate this kit. Two unknowns are 1 as well —
+# a FILE that cannot be read, and a target this process cannot traverse —
+# matching Activate, which treats an unresolvable pointer as a live
+# registration rather than a free slot.
+# Side effects: none.
+is_kit_profile_pointer() {
+  local target
+  target="$(pointer_target "$1")" || return 1
+  [ -n "${target}" ] || return 0
+  if [ -d "${target}" ]; then
+    [ -f "${target}/data/candidate.yaml" ]
+    return
+  fi
+  target_confirmed_gone "${target}"
+}
+
+# pointer_removal_blocked FILE
+# Exit 0 when FILE is a kit pointer this process could not delete — its
+# directory is not writable and searchable. Skippable and removable files
+# both exit 1; this answers "would rm fail", not "is there work".
+# Side effects: none.
+pointer_removal_blocked() {
+  local dir
+  [ -f "$1" ] || return 1
+  is_kit_profile_pointer "$1" || return 1
+  dir="$(dirname "$1")"
+  ! { [ -w "${dir}" ] && [ -x "${dir}" ]; }
+}
+
+# remove_profile_pointers
+# Clears the host pointer and the Aside runtime mirror. Never touches the
+# profile checkout itself — only the registration, which scripts/install.sh
+# under that profile rewrites. Both removals are preflighted before either
+# runs: deleting the host pointer and then failing on a read-only mirror
+# would leave coding agents and Aside resolving different roots, the split
+# state Activate rolls back to avoid.
+# Side effects: may rm two pointer files. Prints status lines.
+remove_profile_pointers() {
+  local host_home file target host mirror
+  host_home="$(resolve_host_home)"
+  host="${host_home}/.config/profile-root"
+  mirror="${host_home}/.aside/runtime/home/.config/profile-root"
+  echo "== profile root pointer =="
+  for file in "${host}" "${mirror}"; do
+    if pointer_removal_blocked "${file}"; then
+      echo "error: cannot remove pointer: ${file}" >&2
+      echo "error: left every registration in place to keep them in sync" >&2
+      return 1
+    fi
+  done
+  for file in "${host}" "${mirror}"; do
+    if [ ! -f "${file}" ]; then
+      echo "skipped (missing): ${file}"
+      continue
+    fi
+    if ! target="$(pointer_target "${file}")"; then
+      echo "skipped (unreadable): ${file}"
+      continue
+    fi
+    if ! is_kit_profile_pointer "${file}"; then
+      echo "skipped (not a profile checkout): ${file} -> ${target}"
+      continue
+    fi
+    rm -f "${file}" || {
+      echo "error: failed to remove: ${file}" >&2
+      return 1
+    }
+    echo "removed pointer: ${file}${target:+ -> ${target}}"
+  done
+}
+# --- end profile-root pointer helpers ---------------------------------
+
+# uninstall_owns_pointer SCRIPT
+# Exit 0 when SCRIPT is a revision that clears the profile-root pointer itself
+# — it names --keep-pointer, which arrived with the cleanup. An existing cache
+# is deliberately not refreshed (see ensure_kit_cache), so SCRIPT may predate
+# both: it would silently skip the cleanup, and reject the flag as an unknown
+# option, aborting the uninstall.
+# Side effects: none.
+uninstall_owns_pointer() {
+  [ -r "$1" ] && grep -q -- '--keep-pointer' "$1"
+}
+
 # run_uninstall SCRIPT [ARGS…]
 # Runs a channel uninstaller, adding --keep-pointer when the caller asked for
-# it. Reads keep_pointer from main's scope (Bash 3.2: no nameref).
+# it. A cached uninstaller that predates the pointer contract is run with the
+# flags it understands, and sets legacy_pointer_cleanup so main clears the
+# pointers here instead. Reads keep_pointer and writes legacy_pointer_cleanup
+# in main's scope (Bash 3.2: no nameref).
 # Side effects: runs the uninstall script.
 run_uninstall() {
   local script="$1"
   shift
+  if ! uninstall_owns_pointer "${script}"; then
+    legacy_pointer_cleanup=1
+    bash "${script}" "$@"
+    return 0
+  fi
   if [ "${keep_pointer}" -eq 1 ]; then
     bash "${script}" --keep-pointer "$@"
   else
@@ -421,6 +564,7 @@ run_uninstall() {
 # Side effects: may write/remove cache; runs install or uninstall scripts.
 main() {
   local channel="all" mode="install" target="all" ran=0 arg purge=0 keep_pointer=0
+  local legacy_pointer_cleanup=0
   # Bash 3.2: plain indexed array for agent uninstall flags (no --purge).
   local -a agent_flags
   agent_flags=()
@@ -442,6 +586,7 @@ main() {
   if [ "${mode}" = "uninstall" ]; then
     purge=0
     keep_pointer=0
+    legacy_pointer_cleanup=0
     agent_flags=()
     for arg in "$@"; do
       case "${arg}" in
@@ -508,6 +653,19 @@ main() {
         run_uninstall "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
         ;;
     esac
+
+    # A cached uninstaller older than the pointer contract left the
+    # registrations behind. Honor the contract here so an existing remote
+    # install gets the same cleanup as a fresh one.
+    if [ "${legacy_pointer_cleanup}" -eq 1 ]; then
+      echo
+      if [ "${keep_pointer}" -eq 1 ]; then
+        echo "Profile root pointer kept (--keep-pointer)."
+      else
+        echo "note: cached uninstaller predates profile-root cleanup; clearing it here"
+        remove_profile_pointers || die "failed to clear the profile root pointer"
+      fi
+    fi
 
     echo
     if [ "${purge}" -eq 1 ]; then
