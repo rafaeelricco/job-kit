@@ -22,6 +22,8 @@ a durable pointer is written so activation outranks that XDG path (requires
 XDG visible, host-default always writes a durable pointer so a later host
 session with a probe-passing XDG profile cannot re-outrank. Any host/Aside
 pointer that still names another profile is removed (requires --yes).
+Plain install also requires --yes when a different profile is already active
+by path convention (host-default and/or this-env XDG) with no pointer file.
 
 Every other path (including $XDG_CONFIG_HOME/job-kit when that differs) writes
 ~/.config/profile-root so coding agents and Aside can still resolve it.
@@ -364,16 +366,25 @@ main() {
     fi
   fi
 
-  # Host-default vs active XDG: require --yes whenever host pointer does not
-  # already select REPO (missing file, empty file, or free after conflict gates).
-  if [ "${xdg_outrank}" -eq 1 ] && paths_equal "${REPO}" "${HOST_DEFAULT}"; then
-    if [ "${assume_yes}" -ne 1 ]; then
-      echo "error: profile root already active via XDG convention: ${CONVENTION_ROOT}" >&2
-      echo "  use --yes to switch to host-default ${REPO} (writes overriding pointer)" >&2
-      exit 2
+  # Free host pointer (absent/empty) and no mirror conflict: still may override
+  # a convention-active profile (XDG and/or host-default). Match resolve order
+  # step 4: XDG JOB_KIT_CONFIG first when it differs and probes, else host-default.
+  if [ -z "${current_canon}" ] && [ -z "${current}" ] && [ -z "${mirror_shadow}" ]; then
+    convention_active=""
+    if ! paths_equal "${CONVENTION_ROOT}" "${HOST_DEFAULT}" && passes_probe "${CONVENTION_ROOT}"; then
+      convention_active="${CONVENTION_ROOT}"
+    elif passes_probe "${HOST_DEFAULT}"; then
+      convention_active="${HOST_DEFAULT}"
     fi
-    if [ "${result}" = "registered: ${REPO}" ]; then
-      result="switched: ${CONVENTION_ROOT} (XDG convention) -> ${REPO}"
+    if [ -n "${convention_active}" ] && ! paths_equal "${REPO}" "${convention_active}"; then
+      if [ "${assume_yes}" -ne 1 ]; then
+        echo "error: profile root already active via path convention: ${convention_active}" >&2
+        echo "  use --yes to switch to ${REPO} (writes overriding pointer)" >&2
+        exit 2
+      fi
+      if [ "${result}" = "registered: ${REPO}" ]; then
+        result="switched: ${convention_active} (path convention) -> ${REPO}"
+      fi
     fi
   fi
 
