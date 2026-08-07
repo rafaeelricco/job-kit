@@ -34,10 +34,13 @@ Anything that would touch a company or the user's account → stop; put it under
    signed in as LinkedIn `username` from `data/profiles.yaml` (Profile root). Fail →
    return zero candidates/contacts and defect `auth_gate`. No retry workaround.
    Other surfaces: no LinkedIn session required.
-3. Interpolate pack tokens before searching: `[role]` from CONSTRAINTS positions;
-   `[skill:<group>]` from CONSTRAINTS keyword groups (e.g. `ai`, `backend`, `frontend`, `mobile`);
-   `[industry]` / `[company]` from PROFILE_CARD. Never leave a bracketed token in a
-   submitted query. Do not repeat a keyword-group term as a literal when the same
+3. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
+   positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
+   `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
+   query. A token whose source list is empty or absent → drop the token and the
+   parentheses that held it alone; a formulation left with no search term is not
+   submitted and is logged as a dry run, never patched with an invented term.
+   Do not repeat a keyword-group term as a literal when the same
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
 4. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
@@ -47,8 +50,15 @@ Anything that would touch a company or the user's account → stop; put it under
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
    the surface file states. Never multiply packs by region.
-   `Anywhere` is a keep-rule token, never a UI location or a query term — cycle the
-   named countries only, and never submit `Anywhere` to a location control.
+   `Anywhere` is a keep-rule token, never a UI location or a query term — never
+   submit it to a location control and never append it to a query.
+   - **Named countries present** (any location that is not `Anywhere`,
+     case-insensitive) → cycle those only; ignore `Anywhere` for geo coverage.
+   - **Worldwide mode** — every entry is `Anywhere`, or the list is empty after
+     dropping `Anywhere`: run each formulation **once** with geography unfiltered.
+     LinkedIn: clear/omit the location filter, or select the UI's worldwide/global
+     option if it offers one; never invent a country. Open-web: leave location
+     controls unset and do not OR-suffix any location into the query.
 6. **Job rows only** — apply CONSTRAINTS filters: work_model, experience_level,
    job_types, date_posted. Blacklists only remove.
    **Location keep (first match):**
