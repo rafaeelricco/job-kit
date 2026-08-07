@@ -75,39 +75,43 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # Prints an error to stderr and exits 1.
 die() { echo "error: $*" >&2; exit 1; }
 
-# Files that, together with `skill/`, make a tree a usable job-kit checkout:
-# the channel installers and uninstallers, plus the SKILL.md of every skill
-# they install. The payload matters as much as the scripts —
-# `require_skill_source` in scripts/{agents,aside}/lib.sh rejects a skill
-# without SKILL.md, and by then the cache has already been replaced. Uninstall
-# scripts are required too: the success banner points at them, so a cache that
-# lacks them strands agent symlinks. Single source of truth for both the
-# filesystem and the git-ref layout probes.
-KIT_REQUIRED_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+# Ownership signature — every shipped kit has had these. Pre-fetch guards
+# (update, purge) use this set so a cache created before a skill was added is
+# still recognized as kit-owned and can be upgraded or removed. A stray
+# `skill/` alone is never enough. Single source of truth for the filesystem
+# ownership probe and (when used) the git-ref ownership probe.
+KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/agents/uninstall.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 scripts/aside/uninstall.sh
 skill/job-profile-init/SKILL.md
-skill/job-profile-config/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
 
-# kit_checkout_missing DIR
-# Prints the first required job-kit path missing from DIR; prints nothing when
-# DIR is a complete checkout. Gates destructive replacement, so a stray `skill/`
-# alone must never be enough to mark a directory as kit-owned. Rejects a
-# symlink at any path component (parent directory or leaf) because Bash
+# Full layout expected after fetch / before install: ownership files plus every
+# skill this revision ships. Post-fetch validation uses this set so a wrong-ref
+# download cannot replace the cache with a tree missing a new skill.
+# `require_skill_source` in scripts/{agents,aside}/lib.sh rejects a skill
+# without SKILL.md, and by then the cache has already been replaced — so the
+# payload is checked here, not only the installer scripts.
+KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
+skill/job-profile-config/SKILL.md"
+
+# kit_paths_missing DIR FILE_LIST
+# Prints the first path from FILE_LIST missing from DIR (or present as a
+# symlink); prints nothing when every path is a regular file under a real
+# `skill/` directory. Rejects a symlink at any path component because Bash
 # `test -f`/`-d` follow intermediate links, which would accept a tarball where
 # e.g. `skill/job-scout` is mode-`120000` while the leaf `SKILL.md` is a
 # regular file — a shape the git-ref probe rejects.
 # Side effects: none.
-kit_checkout_missing() {
-  local dir="$1" rel cur part rest
+kit_paths_missing() {
+  local dir="$1" files="$2" rel cur part rest
   if [ -L "${dir}/skill" ] || [ ! -d "${dir}/skill" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
-  for rel in ${KIT_REQUIRED_FILES}; do
+  for rel in ${files}; do
     cur="${dir}"
     rest="${rel}"
     while [ -n "${rest}" ]; do
@@ -135,22 +139,27 @@ kit_checkout_missing() {
   done
 }
 
-# git_ref_missing DIR REF
-# Prints the first required job-kit path that REF does not carry with the right
-# object type in the repository at DIR; prints nothing when REF is a complete
-# checkout. Probes the object store, so an update can be rejected before it
-# reaches the working tree. Matches on tree-entry mode, not mere existence, to
-# mirror kit_checkout_missing: a blob named `skill` is not a skills directory,
-# and only regular-file modes (`100644`/`100755`) are accepted for required
-# files so a mode-`120000` symlink cannot pass the probe.
+# kit_owned_missing DIR — pre-fetch / purge ownership (legacy caches pass).
+kit_owned_missing() { kit_paths_missing "$1" "${KIT_OWNERSHIP_FILES}"; }
+
+# kit_checkout_missing DIR — full post-fetch / pre-install layout.
+kit_checkout_missing() { kit_paths_missing "$1" "${KIT_REQUIRED_FILES}"; }
+
+# git_ref_paths_missing DIR REF FILE_LIST
+# Prints the first path from FILE_LIST that REF does not carry with the right
+# object type; prints nothing when REF is complete for FILE_LIST. Probes the
+# object store so an update can be rejected before it reaches the working tree.
+# Matches on tree-entry mode, not mere existence: a blob named `skill` is not a
+# skills directory, and only regular-file modes (`100644`/`100755`) are accepted
+# so a mode-`120000` symlink cannot pass the probe.
 # Side effects: none.
-git_ref_missing() {
-  local dir="$1" ref="$2" rel mode
+git_ref_paths_missing() {
+  local dir="$1" ref="$2" files="$3" rel mode
   if [ "$(git -C "${dir}" cat-file -t "${ref}:skill" 2>/dev/null)" != "tree" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
-  for rel in ${KIT_REQUIRED_FILES}; do
+  for rel in ${files}; do
     mode="$(git -C "${dir}" ls-tree "${ref}" -- "${rel}" 2>/dev/null | awk '{print $1}')"
     case "${mode}" in
       100644|100755) ;;
@@ -161,6 +170,9 @@ git_ref_missing() {
     esac
   done
 }
+
+# git_ref_missing DIR REF — full layout on a fetched/cloned ref.
+git_ref_missing() { git_ref_paths_missing "$1" "$2" "${KIT_REQUIRED_FILES}"; }
 
 # resolve_cache_path PATH
 # Prints PATH after stripping trailing slashes. When PATH is an existing
@@ -191,7 +203,8 @@ fetch_tarball() {
   local dest url stage parent missing
   dest="$(resolve_cache_path "$1")"
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    missing="$(kit_checkout_missing "${dest}")"
+    # Ownership only: a pre-this-skill cache must still be replaceable.
+    missing="$(kit_owned_missing "${dest}")"
     [ -z "${missing}" ] \
       || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
   fi
@@ -212,6 +225,7 @@ fetch_tarball() {
     rm -rf "${stage}"
     die "need curl or wget to fetch job-kit"
   fi
+  # Full layout: the download must carry every skill this revision installs.
   missing="$(kit_checkout_missing "${stage}")"
   if [ -n "${missing}" ]; then
     rm -rf "${stage}"
@@ -276,10 +290,12 @@ fetch_git_clone() {
 
 # fetch_kit DEST
 # Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
-# that is not already a complete job-kit checkout is never fetched into, checked
+# that is not kit-owned (ownership signature) is never fetched into, checked
 # out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path. DEST is slash-normalized and symlink-resolved first so a cache behind a
-# link is refreshed at its physical path (matching agent `pwd -P` markers).
+# path. Legacy caches that lack skills added in later revisions still pass the
+# ownership probe so they can upgrade. DEST is slash-normalized and
+# symlink-resolved first so a cache behind a link is refreshed at its physical
+# path (matching agent `pwd -P` markers).
 # Side effects: creates or updates DEST.
 fetch_kit() {
   local dest missing raw
@@ -295,7 +311,7 @@ fetch_kit() {
   fi
 
   dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_checkout_missing "${dest}")"
+  missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
 
@@ -311,7 +327,9 @@ fetch_kit() {
 }
 
 # require_checkout DIR
-# Fails unless DIR has the layout the channel installers expect.
+# Fails unless DIR has the full layout the channel installers expect for this
+# revision (KIT_REQUIRED_FILES). Use after fetch, not as a pre-fetch ownership
+# gate — legacy caches may lack skills added later.
 # Side effects: none.
 require_checkout() {
   local dir="$1" missing
@@ -320,10 +338,10 @@ require_checkout() {
 }
 
 # ensure_kit_cache DEST
-# Ensures DEST is a complete job-kit checkout. If DEST is absent, fetches it.
-# If DEST exists but is incomplete, dies (same ownership guard as install).
-# Does not refresh an already-complete cache (uninstall ownership strings
-# match install's pwd -P path; avoid needless network).
+# Ensures DEST is kit-owned and usable for uninstall (or freshly fetched).
+# Absent → fetch_kit + full require_checkout. Present → ownership signature only
+# (legacy caches without newer skills still pass; do not force a refresh — agent
+# symlink ownership strings match install's pwd -P path).
 # Side effects: may create DEST via fetch_kit.
 ensure_kit_cache() {
   local dest raw missing
@@ -334,13 +352,14 @@ ensure_kit_cache() {
     return 0
   fi
   dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_checkout_missing "${dest}")"
+  missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
 }
 
 # purge_kit_cache DEST
-# Removes DEST only when it is a complete job-kit checkout (never foreign trees).
+# Removes DEST only when it is kit-owned (ownership signature — never foreign
+# trees). Legacy kits missing later skills still purge.
 # Side effects: may rm -rf DEST (and a symlink at DEST when DEST is a link).
 purge_kit_cache() {
   local dest raw missing
@@ -350,7 +369,7 @@ purge_kit_cache() {
     return 0
   fi
   dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_checkout_missing "${dest}")"
+  missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
   rm -rf "${dest}" || die "failed to remove cache: ${dest}"
@@ -450,8 +469,9 @@ main() {
         || die "refusing --purge while ASIDE_SKILLS_USER narrows the Aside uninstall to ${ASIDE_SKILLS_USER} (unset it, or omit --purge)"
     fi
 
+    # Ownership only — uninstall scripts live in the ownership set; do not
+    # require skills added after the cache was created (would block uninstall).
     ensure_kit_cache "${JOB_KIT_HOME}"
-    require_checkout "${JOB_KIT_HOME}"
 
     case "${target}" in
       aside)
