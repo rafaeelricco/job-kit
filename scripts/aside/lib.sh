@@ -330,18 +330,36 @@ pointer_target() {
   tr -d '\n' < "$1" 2>/dev/null || true
 }
 
+# target_confirmed_gone PATH
+# Exit 0 only when PATH is absent *and* its parent can be searched. A blocked
+# ancestor — the Aside sandbox denying the profile's parent — makes every
+# probe on PATH fail exactly like a deletion, so it means "cannot tell", never
+# "gone".
+# Side effects: none.
+target_confirmed_gone() {
+  local parent
+  parent="$(dirname "$1")"
+  [ -d "${parent}" ] && [ -x "${parent}" ] || return 1
+  [ ! -e "$1" ]
+}
+
 # is_kit_profile_pointer FILE
-# Exit 0 when FILE is empty, names a path that no longer exists (stale
-# registration), or names a profile checkout (data/candidate.yaml — the one
-# file every layout has, legacy included). A resolvable foreign target → 1:
-# ~/.config/profile-root is a generic name and may predate this kit.
+# Exit 0 when FILE is empty, names a path confirmed gone (stale registration),
+# or names a profile checkout (data/candidate.yaml — the one file every layout
+# has, legacy included). A resolvable foreign target → 1: ~/.config/profile-root
+# is a generic name and may predate this kit. A target this process cannot
+# traverse → 1 as well, matching Activate, which treats an unresolvable pointer
+# as a live registration rather than a free slot.
 # Side effects: none.
 is_kit_profile_pointer() {
   local target
   target="$(pointer_target "$1")"
   [ -n "${target}" ] || return 0
-  [ -d "${target}" ] || return 0
-  [ -f "${target}/data/candidate.yaml" ]
+  if [ -d "${target}" ]; then
+    [ -f "${target}/data/candidate.yaml" ]
+    return
+  fi
+  target_confirmed_gone "${target}"
 }
 
 # remove_profile_pointers
