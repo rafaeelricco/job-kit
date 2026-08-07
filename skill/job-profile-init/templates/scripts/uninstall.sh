@@ -24,6 +24,16 @@ resolve_host_home() {
   esac
 }
 
+job_kit_config() {
+  local host_home
+  host_home="$(resolve_host_home)"
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
+  else
+    printf '%s/.config/job-kit\n' "${host_home}"
+  fi
+}
+
 resolve_repo() {
   local script source_dir repo
   script="${BASH_SOURCE[0]}"
@@ -85,11 +95,23 @@ main() {
   HOST_HOME="$(resolve_host_home)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
+  DEFAULT_ROOT="$(job_kit_config)"
+  is_default=0
+  if [ "${REPO}" = "${DEFAULT_ROOT}" ] || {
+    [ -d "${DEFAULT_ROOT}" ] && [ "$(cd "${DEFAULT_ROOT}" && pwd -P)" = "${REPO}" ]
+  }; then
+    is_default=1
+  fi
   if [ ! -f "${pointer}" ]; then
     if mirror_matches "${mirror}"; then
       confirm_unregister "${mirror}"
       rm -f "${mirror}"
       echo "removed ${mirror}"
+      echo "Profile checkout preserved at ${REPO}"
+      exit 0
+    fi
+    if [ "${is_default}" -eq 1 ]; then
+      echo "already unregistered: default location has no pointer (${REPO})"
       echo "Profile checkout preserved at ${REPO}"
       exit 0
     fi
@@ -103,6 +125,11 @@ main() {
     current_canon=""
   fi
   if [ "${current_canon}" != "${REPO}" ]; then
+    if [ "${is_default}" -eq 1 ]; then
+      echo "already unregistered: default location; pointer points elsewhere: ${current}"
+      echo "Profile checkout preserved at ${REPO}"
+      exit 0
+    fi
     echo "error: profile-root points elsewhere: ${current}" >&2
     echo "  this checkout: ${REPO}" >&2
     exit 1
