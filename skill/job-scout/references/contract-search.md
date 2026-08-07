@@ -47,12 +47,17 @@ Anything that would touch a company or the user's account → stop; put it under
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
    the surface file states. Never multiply packs by region.
+   `Anywhere` is a keep-rule token, never a UI location or a query term — cycle the
+   named countries only, and never submit `Anywhere` to a location control.
 6. **Job rows only** — apply CONSTRAINTS filters: work_model, experience_level,
    job_types, date_posted. Blacklists only remove.
    **Location keep (first match):**
+   - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep,
+     unless every location it names is in `location_blacklist` (company or poster
+     country does not matter at search; a blacklisted country listed as one of
+     several hire-from regions does not drop a global remote card)
    - card location hits `location_blacklist` → drop
-   - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep
-     (company or poster country does not matter at search)
+   - CONSTRAINTS `locations` contains `Anywhere` → keep
    - card is onsite or location-restricted → keep only if it matches CONSTRAINTS
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)

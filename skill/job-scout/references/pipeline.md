@@ -40,8 +40,10 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      blacklists · date_posted · salary_range_usd · work auth · employment_routes · relocation
    - Markets intent (prose in Constraints): listed locations are strong-pay markets
      (employers that pay USD, EUR, or GBP). Remote roles paid in those currencies are
-     in scope regardless of company country. Home-market countries in `location_blacklist`
-     are job-location only; hire-from routes use `home_market`.
+     in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
+     not a market: it keeps every location the blacklist does not drop. Home-market
+     countries in `location_blacklist` are job-location only; hire-from routes use
+     `home_market`.
 4. Run **every** pack listed in `./references/search_packs.yaml` (file order). No subset.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
