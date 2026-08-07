@@ -278,55 +278,102 @@ main() {
   fi
 
   result="registered: ${REPO}"
+  current=""
+  current_canon=""
   if [ -f "${pointer}" ]; then
     current="$(tr -d '\n' < "${pointer}")"
     if [ -n "${current}" ] && [ -d "${current}" ]; then
       current_canon="$(cd "${current}" && pwd -P)"
-    else
-      current_canon=""
     fi
-    if [ "${current_canon}" = "${REPO}" ]; then
-      # Normalize symlink / .. forms so uninstall's path match succeeds.
-      if [ "${current}" != "${REPO}" ]; then
-        activate_pointers "${pointer}"
+  fi
+
+  # Aside mirror conflict: job-scout reads mirror before host pointer. Gate any
+  # overwrite of a mirror that names another profile (including host-default
+  # durable-pointer fallthrough from Aside when the host pointer is free).
+  mirror_shadow=""
+  if [ -f "${mirror}" ]; then
+    mirror_line="$(tr -d '\n' < "${mirror}")"
+    if [ -n "${mirror_line}" ]; then
+      if [ -d "${mirror_line}" ]; then
+        mirror_canon="$(cd "${mirror_line}" && pwd -P)"
       else
-        mirror_aside_runtime || {
-          echo "error: Aside runtime mirror write failed under ${HOST_HOME}" >&2
-          exit 1
-        }
+        mirror_canon=""
       fi
+      if [ "${mirror_line}" != "${REPO}" ] && [ "${mirror_canon}" != "${REPO}" ]; then
+        if [ -n "${mirror_canon}" ]; then
+          mirror_shadow="${mirror_canon}"
+        else
+          mirror_shadow="${mirror_line}"
+        fi
+      fi
+    fi
+  fi
+
+  if [ "${current_canon}" = "${REPO}" ]; then
+    if [ -n "${mirror_shadow}" ]; then
+      if [ "${assume_yes}" -ne 1 ]; then
+        echo "error: Aside runtime mirror already registered: ${mirror_shadow}" >&2
+        echo "  use --yes to switch to ${REPO}" >&2
+        exit 2
+      fi
+      result="switched: ${mirror_shadow} (Aside mirror) -> ${REPO}"
+    fi
+    # Normalize symlink / .. forms so uninstall's path match succeeds.
+    if [ "${current}" != "${REPO}" ] || [ -n "${mirror_shadow}" ]; then
+      activate_pointers "${pointer}"
+    else
+      mirror_aside_runtime || {
+        echo "error: Aside runtime mirror write failed under ${HOST_HOME}" >&2
+        exit 1
+      }
+    fi
+    if [ -n "${mirror_shadow}" ]; then
+      echo "${result}"
+    else
       echo "already registered: ${REPO}"
-      exit 0
     fi
-    if [ -n "${current_canon}" ]; then
-      if [ "${assume_yes}" -eq 1 ]; then
-        result="switched: ${current_canon} -> ${REPO}"
-      else
-        echo "error: profile root already registered: ${current_canon}" >&2
-        echo "  use --yes to switch to ${REPO}" >&2
-        exit 2
-      fi
-    elif [ -n "${current}" ]; then
-      # Non-empty but unresolvable: it may name a live profile this process
-      # cannot traverse (Aside FS sandbox). Not a free slot — gate it too.
-      if [ "${assume_yes}" -eq 1 ]; then
-        result="switched: ${current} (unresolvable) -> ${REPO}"
-      else
-        echo "error: profile root already registered but not resolvable: ${current}" >&2
-        echo "  it may be a live profile this process cannot traverse" >&2
-        echo "  use --yes to switch to ${REPO}" >&2
-        exit 2
-      fi
-    fi
-  elif [ "${xdg_outrank}" -eq 1 ] && paths_equal "${REPO}" "${HOST_DEFAULT}"; then
-    # No host pointer, but resolvers currently select probe-passing XDG before
-    # host-default. Writing the override is an active-profile switch.
+    exit 0
+  fi
+
+  if [ -n "${current_canon}" ]; then
     if [ "${assume_yes}" -eq 1 ]; then
-      result="switched: ${CONVENTION_ROOT} (XDG convention) -> ${REPO}"
+      result="switched: ${current_canon} -> ${REPO}"
     else
+      echo "error: profile root already registered: ${current_canon}" >&2
+      echo "  use --yes to switch to ${REPO}" >&2
+      exit 2
+    fi
+  elif [ -n "${current}" ]; then
+    # Non-empty but unresolvable: it may name a live profile this process
+    # cannot traverse (Aside FS sandbox). Not a free slot — gate it too.
+    if [ "${assume_yes}" -eq 1 ]; then
+      result="switched: ${current} (unresolvable) -> ${REPO}"
+    else
+      echo "error: profile root already registered but not resolvable: ${current}" >&2
+      echo "  it may be a live profile this process cannot traverse" >&2
+      echo "  use --yes to switch to ${REPO}" >&2
+      exit 2
+    fi
+  elif [ -n "${mirror_shadow}" ]; then
+    if [ "${assume_yes}" -eq 1 ]; then
+      result="switched: ${mirror_shadow} (Aside mirror) -> ${REPO}"
+    else
+      echo "error: Aside runtime mirror already registered: ${mirror_shadow}" >&2
+      echo "  use --yes to switch to ${REPO}" >&2
+      exit 2
+    fi
+  fi
+
+  # Host-default vs active XDG: require --yes whenever host pointer does not
+  # already select REPO (missing file, empty file, or free after conflict gates).
+  if [ "${xdg_outrank}" -eq 1 ] && paths_equal "${REPO}" "${HOST_DEFAULT}"; then
+    if [ "${assume_yes}" -ne 1 ]; then
       echo "error: profile root already active via XDG convention: ${CONVENTION_ROOT}" >&2
       echo "  use --yes to switch to host-default ${REPO} (writes overriding pointer)" >&2
       exit 2
+    fi
+    if [ "${result}" = "registered: ${REPO}" ]; then
+      result="switched: ${CONVENTION_ROOT} (XDG convention) -> ${REPO}"
     fi
   fi
 
