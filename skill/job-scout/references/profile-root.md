@@ -1,7 +1,7 @@
 # Profile root — recovery (Aside / dual-home)
 
 Ordered probe steps live only in `../SKILL.md`. This file does not redefine order.
-Load when resolve STOPs or steps 2–3 fail.
+Load when resolve STOPs or steps 2–4 fail.
 
 ## Why dual-home
 
@@ -11,9 +11,16 @@ for **this** process.
 
 ## Who writes pointers
 
-`/job-profile-init` Activate (or profile `scripts/install.sh`) writes host
-`$HOST_HOME/.config/profile-root` and mirrors into Aside runtime home when present.
-Runtime mirror is why sandboxed `$HOME` often hits step 2.
+Host-default path-convention root is `$HOST_HOME/.config/job-kit`. Skills always
+probe that path in step 4 (after any XDG `JOB_KIT_CONFIG` candidate) — no
+pointer required there, including when a coding agent has `XDG_CONFIG_HOME` set
+elsewhere while Aside does not.
+
+Activate / profile `scripts/install.sh` write host
+`$HOST_HOME/.config/profile-root` and mirror into Aside runtime home when
+present for every other location (non-default checkout **or**
+`$XDG_CONFIG_HOME/job-kit` when that differs from the host default). Pointers
+are checked before default dirs so an activated non-default profile wins.
 
 ## HOST_HOME
 
@@ -25,11 +32,13 @@ env when set and absolute.
 1. Set `PROFILE_ROOT=/absolute/path/to/profile` for this Aside session (must pass probe
    **and** be readable inside Aside's FS sandbox).
 2. Grant Aside filesystem access to that profile directory (macOS sandbox).
-3. Re-run `/job-profile-init` with Activate **Yes** (or profile `scripts/install.sh`)
-   so host + Aside-runtime pointer files match the live profile.
+3. Prefer moving/creating the profile at `$HOST_HOME/.config/job-kit` so step 4
+   resolves without pointers. Else re-run `/job-profile-init` with Activate **Yes**
+   (or profile `scripts/install.sh`) so host + Aside-runtime pointer files
+   match the live profile (required for XDG-only or non-default paths).
 4. Do **not** tell operators that bare `bash scripts/install.sh` from Aside CWD alone
    fixes a missing host pointer without a real profile path.
 
 ## On STOP
 
-Name each attempt: env, each pointer file + line, walk start.
+Name each attempt: env, each pointer file + line, default `JOB_KIT_CONFIG`, walk start.

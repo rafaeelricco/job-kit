@@ -25,7 +25,8 @@ Environment:
   ASIDE_ACCOUNT      Account id under ~/.aside/u/ (default: 0)
 
 Removes only kit-owned trees (marked copies or legacy kit symlinks).
-Leaves other Aside skills, profile checkouts, and ~/.config/profile-root alone.
+Leaves other Aside skills, profile checkouts (~/.config/job-kit by default),
+and ~/.config/profile-root alone.
 EOF
 }
 

@@ -3,17 +3,18 @@
 Four agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, draft applications from profile
 facts. Procedure lives here. Facts — salary band, work authorization,
-experience — live in a profile directory you control and never enter this repo.
+experience — live in a profile directory you control (default
+`${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
 Two install channels: scout and apply run in [Aside Browser](https://aside.com),
 profile init and config run in coding agents (Claude Code, Codex, Grok).
 
-| Skill                | Role                                                                                           | Channel                 | Installed under                     |
-| -------------------- | ---------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
+| Skill                | Role                                                                                                | Channel                 | Installed under                     |
+| -------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
 | `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-application`    | Draft letter and form fields for one posting; stage only                                       | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
@@ -35,14 +36,14 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------- |
+| Argument       | Installs                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------- |
 | `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
-| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                               |
-| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                |
-| `fetch`        | Nothing — refresh the cached checkout only                                                        |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                       |
-| `-h`, `--help` | Nothing — print usage                                                                             |
+| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                                |
+| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                 |
+| `fetch`        | Nothing — refresh the cached checkout only                                                         |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                        |
+| `-h`, `--help` | Nothing — print usage                                                                              |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -130,19 +131,27 @@ Skills resolve the active profile in this order:
 
 1. `$PROFILE_ROOT`, if that directory has `data/candidate.yaml` and
    `data/job_search.yaml`
-2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
-3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
-   home's `~/.config/profile-root`
-4. Walk the session CWD upward until both probe files exist
-5. Otherwise stop and name what was tried
+2. `$HOME/.config/profile-root` (one absolute path line), same probe — explicit
+   Activate/install wins over path convention
+3. **Aside:** host home's `~/.config/profile-root` when dual-home applies
+4. Default config dirs (same probe, each not already tried):
+   - `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit`
+   - Host-default fallback `$HOST_HOME/.config/job-kit` when that differs
+     (Aside dual-home uses host home; always probed so host-default profiles
+     resolve across XDG and non-XDG environments without a pointer)
+5. Walk the session CWD upward until both probe files exist
+6. Otherwise stop and name what was tried
 
-`/job-profile-init` **Activate** is how the durable pointers get set. Without
-the skill: run the **profile** checkout's `bash scripts/install.sh` (emitted
-under that profile — not a job-kit script).
+`/job-profile-init` **Activate** sets durable pointers for non-host-default
+paths (including XDG-only defaults). Host-default `$HOST_HOME/.config/job-kit`
+is path convention. Without the skill: create/move the tree there, or run the
+**profile** checkout's `bash scripts/install.sh` for a non-default path
+(emitted under that profile — not a job-kit script).
 
 | File                                                  | Who reads it                                     |
 | ----------------------------------------------------- | ------------------------------------------------ |
-| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step              |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit`           | Default profile root (direct probe)              |
+| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step (legacy)     |
 | `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is the runtime home |
 
 `PROFILE_ROOT` is a **session override** only — Aside does not inherit env from
@@ -162,7 +171,8 @@ Remote install: re-run the same one-liner — it refreshes the cached checkout a
 re-runs the installers. Local checkout: `git pull`, then re-run the installers
 you use. Channels are independent.
 
-Update never modifies profile checkouts or `~/.config/profile-root`. Installs
+Update never modifies profile checkouts, the default config dir contents, or
+`~/.config/profile-root`. Installs
 also clear kit-owned copies of legacy skill names (`job-discovery`, `job-apply`,
 `profile-scaffold`, `application-stage`, `profile-init`) and leftover kit trees
 under Aside's `skills/user/`.

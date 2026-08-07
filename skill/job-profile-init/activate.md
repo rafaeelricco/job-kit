@@ -6,48 +6,97 @@
    emit (and fill unless scaffold-only) so probes exist.
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
-4. Host pointer conflict on `$HOST_HOME/.config/profile-root`:
-   - Read one-line `current` if file exists.
+4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
+   `JOB_KIT_CONFIG` (non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
+   else `HOST_DEFAULT`). Path-convention branch when `REPO` equals
+   `HOST_DEFAULT` **and** pure convention applies: this process is **not**
+   inside Aside runtime (`$HOME` does not end with `/.aside/runtime/home`)
+   **and** `JOB_KIT_CONFIG` either equals `HOST_DEFAULT` or fails the two-file
+   probe (after `pwd -P` when dirs exist). Skills always probe host-default
+   after any XDG candidate; pure convention needs no pointer only when no
+   valid XDG profile would outrank it and host XDG is observable.
+   - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
+     case.
+   - **Do clear** shadowing registrations: read host
+     `$HOST_HOME/.config/profile-root` and, when the runtime home exists,
+     `$HOST_HOME/.aside/runtime/home/.config/profile-root`. Delete both
+     together; if mirror removal fails after host delete, **restore** the host
+     pointer (same atomicity as install.sh).
+   - Host or mirror line non-empty and resolves to a path other than `REPO`
+     (or is unresolvable non-empty) → show that path; ask whether to switch to
+     host-default `REPO`. Yes → delete host pointer and mirror; state switched;
+     go to (8). No → leave inactive; print later Activate hint; go to (9).
+   - No shadowing line (absent/empty, or already `REPO`) → remove any redundant
+     pointer/mirror that names `REPO` itself; state host-default-location
+     active; go to (8).
+     **Fall through to (5)** (write pointers) when:
+   - `REPO` is `$XDG_CONFIG_HOME/job-kit` and that path differs from
+     `HOST_DEFAULT` (Aside often lacks XDG), or
+   - `REPO` is `HOST_DEFAULT` but `JOB_KIT_CONFIG` differs **and** passes the
+     two-file probe — a durable pointer is required so claimed activation
+     outranks the valid XDG convention path (Activate already confirmed Yes;
+     treat as intentional switch from that XDG profile), or
+   - `REPO` is `HOST_DEFAULT` and this process is inside Aside runtime —
+     host `$XDG_CONFIG_HOME` is not visible here; keep a durable pointer so a
+     later host session with a probe-passing XDG profile does not re-outrank.
+5. Host / Aside registration conflicts (when writing pointers — includes
+   host-default fallthrough from (4)):
+   - Read one-line `current` from host `$HOST_HOME/.config/profile-root` if
+     the file exists.
    - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
      else `current_canon=""`.
-   - `current_canon` equals `REPO` → if stored `current` differs from `REPO`,
-     rewrite host to canonical `REPO`. Then run (6) **unconditionally** — the
-     runtime home may have appeared after the host write, or hold a stale line,
-     and `job-scout` reads the mirror before the host pointer. State already
-     active; go to (8).
+   - Also read Aside runtime mirror when that file exists. If its line is
+     non-empty and does not resolve to `REPO`, treat it as a conflict even
+     when the host pointer is absent, empty, or already `REPO` — `job-scout`
+     reads the mirror first; overwriting it is a switch.
+   - `current_canon` equals `REPO` and no mirror conflict → if stored `current`
+     differs from `REPO`, rewrite host to canonical `REPO`. Then run (7)
+     **unconditionally** when the runtime home exists (mirror may be missing
+     or stale). State already active; go to (9).
+   - `current_canon` equals `REPO` but mirror names another path → show the
+     mirror path; ask whether to switch. Yes → continue to (6)/(7). No → leave
+     inactive; go to (9).
    - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
-     whether to switch to `REPO`. Yes → continue to (5). No → leave inactive;
-     print later Activate hint; go to (8).
+     whether to switch to `REPO`. Yes → continue to (6). No → leave inactive;
+     print later Activate hint; go to (9).
    - `current_canon` empty but `current` non-empty → the pointer names a path
      this process cannot traverse (e.g. a live profile under an Aside-blocked
      parent). Treat it as a conflict, **not** a free slot: show `current`, say
      it could not be resolved, ask the same switch question, same Yes/No
-     handling. Only an absent or empty pointer line skips the ask.
-5. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
+     handling.
+   - Host pointer absent or empty, no mirror conflict, but `REPO` is
+     host-default and this-env `JOB_KIT_CONFIG` differs and passes the probe →
+     active XDG convention is a conflict; ask to switch (Activate Yes already
+     covers the skill path; manual `install.sh` requires `--yes`).
+   - Only an absent/empty host pointer **and** no mirror conflict **and** no
+     XDG-convention conflict skips the switch ask.
+6. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
    `REPO` into `$HOST_HOME/.config/profile-root`.
-6. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
+7. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
    `.config` and write the same one-line `REPO` into
    `$HOST_HOME/.aside/runtime/home/.config/profile-root`. If runtime home
    missing, skip mirror; state skip. This is how Aside sandbox `$HOME` sees
    the pointer without inheriting coding-agent env.
-   If the mirror write fails (read-only, full disk), **roll (5) back** —
+   If the mirror write fails (read-only, full disk), **roll (6) back** —
    restore the host pointer's previous contents, or remove it when it did not
    exist — then STOP with the error. Never leave agents on the new profile
    while Aside still resolves the old one through a stale mirror.
-7. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
+8. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
    equivalent). State whether export ran. **Aside will not see this export** —
-   host pointer + dual-home read + runtime mirror cover Aside.
-8. Print `./next-steps.md` with placeholders filled, then STOP:
+   host-default path-convention probe + dual-home read + (otherwise) host
+   pointer and runtime mirror cover Aside.
+9. Print `./next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, including
      skipped **scout-critical** blockers (not optional/screening shells).
      **Scaffold-only: print the `./emit-tree.md` unfilled inventory, never
      `none`** — that inventory is scout-critical only; a scout run against
      placeholders would search for `TODO-skill`. `none` is correct only for
      register-existing, where this flow wrote no tree.
-   - `{{ACTIVATE_NOTE}}` — if Activate ran: host path written, mirror yes/no,
-     session export yes/no. If skipped: how to Activate later (register-existing
-     with Yes, or `bash "<target>/scripts/install.sh"` — mirrors Aside when
-     runtime home exists).
+   - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
+     host path written + mirror yes/no (including XDG-only defaults); session
+     export yes/no. If skipped: how to Activate later (register-existing with
+     Yes, or `bash "<target>/scripts/install.sh"` for non-host-default paths —
+     mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
      Never print bare `bash scripts/agents/install.sh` or
      `bash scripts/aside/install.sh` without an absolute kit root or the
@@ -107,5 +156,6 @@ agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
    > profile directory.
 
 Profile `scripts/install.sh` remains for **manual** Activate/switch outside
-this skill; the skill never shells it. Manual install also mirrors Aside
-runtime home when present.
+this skill; the skill never shells it. Manual install mirrors Aside runtime
+home when present (always for non-host-default paths; also for host-default
+when a durable pointer is required — XDG outrank or Aside without host XDG).

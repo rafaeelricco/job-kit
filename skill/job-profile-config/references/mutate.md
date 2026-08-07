@@ -21,15 +21,15 @@ Print `Profile root: /abs/path` before the first diff of the session.
 
 ## `job_search.yaml` — writable keys
 
-| Key | Shape |
-| --- | --- |
-| `positions` | list of strings |
-| `keywords.<group>` | list of strings; create a group only when the user names it |
-| `locations` | list of strings |
-| `company_blacklist` / `title_blacklist` / `location_blacklist` | list of strings |
-| `work_model.*` / `experience_level.*` / `job_types.*` / `date_posted.*` | bool, only when explicit |
-| `apply_once_at_company` | bool, only when explicit |
-| `distance_km` | int, only when explicit |
+| Key                                                                     | Shape                                                       |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `positions`                                                             | list of strings                                             |
+| `keywords.<group>`                                                      | list of strings; create a group only when the user names it |
+| `locations`                                                             | list of strings                                             |
+| `company_blacklist` / `title_blacklist` / `location_blacklist`          | list of strings                                             |
+| `work_model.*` / `experience_level.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
+| `apply_once_at_company`                                                 | bool, only when explicit                                    |
+| `distance_km`                                                           | int, only when explicit                                     |
 
 Nothing else in this file.
 
@@ -75,11 +75,11 @@ those packs with no rows — warn alongside the diff, then let the user decide.
 
 ## Refuse (redirect, never write)
 
-| Ask | Answer |
-| --- | --- |
+| Ask                                                                                    | Answer                                                                                                       |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*` | Print what is on disk. Editing is `job-profile-init` blocker fill, or a human editing `data/candidate.yaml`. |
-| experiences, skills, languages, projects, basics, profiles | Read-only here. |
-| identity (`home_market`, LinkedIn username) | Read-only here. |
-| "look up better keywords" / "find me boards" | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes. |
+| experiences, skills, languages, projects, basics, profiles                             | Read-only here.                                                                                              |
+| identity (`home_market`, LinkedIn username)                                            | Read-only here.                                                                                              |
+| "look up better keywords" / "find me boards"                                           | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.
