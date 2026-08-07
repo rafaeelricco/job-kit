@@ -9,12 +9,12 @@ experience — live in a profile directory you control (default
 Two install channels: scout and apply run in [Aside Browser](https://aside.com),
 profile init and config run in coding agents (Claude Code, Codex, Grok).
 
-| Skill                | Role                                                                                           | Channel                 | Installed under                     |
-| -------------------- | ---------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
+| Skill                | Role                                                                                                | Channel                 | Installed under                     |
+| -------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
 | `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-application`    | Draft letter and form fields for one posting; stage only                                       | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
@@ -36,14 +36,14 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                          |
-| -------------- | ------------------------------------------------------------------------------------------------- |
+| Argument       | Installs                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------- |
 | `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
-| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                               |
-| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                |
-| `fetch`        | Nothing — refresh the cached checkout only                                                        |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                       |
-| `-h`, `--help` | Nothing — print usage                                                                             |
+| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                                |
+| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                 |
+| `fetch`        | Nothing — refresh the cached checkout only                                                         |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                        |
+| `-h`, `--help` | Nothing — print usage                                                                              |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:

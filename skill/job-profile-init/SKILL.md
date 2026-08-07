@@ -48,9 +48,9 @@ Yes).
      auto-activates after an explicit refusal.
    - Else skip pointer writes (`./activate.md` 1–7); print `./next-steps.md`
      filled per `./activate.md` step 9 with Activate skipped; STOP.
-   Do **not** run `"<target>/scripts/install.sh"`.
-   If **Yes**: obey `./activate.md` end-to-end (dual-home write + mirror
-   rollback + next-steps placeholders including KIT_INSTALL resolve). Then STOP.
+     Do **not** run `"<target>/scripts/install.sh"`.
+     If **Yes**: obey `./activate.md` end-to-end (dual-home write + mirror
+     rollback + next-steps placeholders including KIT_INSTALL resolve). Then STOP.
 
 ## References
 

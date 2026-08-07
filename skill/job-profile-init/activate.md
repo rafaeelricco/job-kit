@@ -29,7 +29,7 @@
    - No shadowing line (absent/empty, or already `REPO`) → remove any redundant
      pointer/mirror that names `REPO` itself; state host-default-location
      active; go to (8).
-   **Fall through to (5)** (write pointers) when:
+     **Fall through to (5)** (write pointers) when:
    - `REPO` is `$XDG_CONFIG_HOME/job-kit` and that path differs from
      `HOST_DEFAULT` (Aside often lacks XDG), or
    - `REPO` is `HOST_DEFAULT` but `JOB_KIT_CONFIG` differs **and** passes the
