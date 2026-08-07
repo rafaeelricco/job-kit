@@ -327,10 +327,15 @@ resolve_host_home() {
 }
 
 # pointer_target FILE
-# Prints the single path line, empty when unreadable.
+# Prints the single path line. Exit 1 when FILE could not be read — an
+# unreadable pointer is unknown, never empty: ~/.config/profile-root is a
+# generic name, and a mode-0600 file owned by another user belongs to whatever
+# tool wrote it.
 # Side effects: none.
 pointer_target() {
-  tr -d '\n' < "$1" 2>/dev/null || true
+  # Subshell: the failed redirect is the shell's own message, which tr's
+  # stderr redirect would not catch, and callers print their own skip line.
+  ( tr -d '\n' < "$1" ) 2>/dev/null
 }
 
 # target_confirmed_gone PATH
@@ -350,13 +355,14 @@ target_confirmed_gone() {
 # Exit 0 when FILE is empty, names a path confirmed gone (stale registration),
 # or names a profile checkout (data/candidate.yaml — the one file every layout
 # has, legacy included). A resolvable foreign target → 1: ~/.config/profile-root
-# is a generic name and may predate this kit. A target this process cannot
-# traverse → 1 as well, matching Activate, which treats an unresolvable pointer
-# as a live registration rather than a free slot.
+# is a generic name and may predate this kit. Two unknowns are 1 as well —
+# a FILE that cannot be read, and a target this process cannot traverse —
+# matching Activate, which treats an unresolvable pointer as a live
+# registration rather than a free slot.
 # Side effects: none.
 is_kit_profile_pointer() {
   local target
-  target="$(pointer_target "$1")"
+  target="$(pointer_target "$1")" || return 1
   [ -n "${target}" ] || return 0
   if [ -d "${target}" ]; then
     [ -f "${target}/data/candidate.yaml" ]
@@ -404,7 +410,10 @@ remove_profile_pointers() {
       echo "skipped (missing): ${file}"
       continue
     fi
-    target="$(pointer_target "${file}")"
+    if ! target="$(pointer_target "${file}")"; then
+      echo "skipped (unreadable): ${file}"
+      continue
+    fi
     if ! is_kit_profile_pointer "${file}"; then
       echo "skipped (not a profile checkout): ${file} -> ${target}"
       continue
