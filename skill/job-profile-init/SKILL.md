@@ -29,7 +29,7 @@ Yes).
 2. On Approve: obey `./emit-tree.md` end-to-end (write → tokens → leak gate).
 3. Unless **scaffold-only**: obey `./fill.md` end-to-end (reuse Identity SoT
    buffer when Source key unchanged; else read SoT once → Fact fan-out →
-   blocker fill → Suggestions → CV → post-fill leak+yaml gate → gap report).
+   blocker fill → Suggestions → Packs → CV → post-fill leak+yaml gate → gap report).
    Missing or unreadable SoT → STOP; do not invent; do not claim a filled
    profile. Scaffold-only → skip fill; state shells-only.
 4. **Activate** Profile root for absolute `<target>` only if Activate ask was

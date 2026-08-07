@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install job-profile-init into Claude / Codex / Grok user skills (symlink).
+# Install job-profile-init + job-profile-config into Claude / Codex / Grok
+# user skills (symlink).
 # Compatible with macOS Bash 3.2. Local checkout only; no clone.
 set -euo pipefail
 
@@ -12,7 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Install job-kit job-profile-init into coding agents (Claude, Codex, Grok).
+Install job-kit job-profile-init + job-profile-config into coding agents
+(Claude, Codex, Grok).
 
 Usage: install.sh [options]
 
