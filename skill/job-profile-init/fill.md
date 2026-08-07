@@ -40,8 +40,8 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 
 Order free after Source gate (one buffer; reuse or one fresh read); invent matrix binds.
 **Not in this step:** `job_search` positions / keywords / locations / blacklists —
-sole writer is Suggestions; `work_model` / `levels` / `job_types` only when SoT
-contradicts defaults.
+sole writer is Suggestions; `data/search_packs.yaml` — sole writer is Packs;
+`work_model` / `levels` / `job_types` only when SoT contradicts defaults.
 
 - `data/candidate.yaml` — salary_range_usd, notice_period, legal_authorization*,
   `employment_routes.employer_of_record` when evidenced; other routes / relocation /
@@ -87,6 +87,18 @@ grow per session and it does not shrink because the turn is long.
 4. Skip → write empty arrays `[]`, clearing placeholders (`Software Engineer`,
    `TODO-skill`, `Remote`). Gaps allowlist still lists empties.
 
+## Packs (after Suggestions confirm)
+
+1. Print `### Packs` — one line per pack in the emitted `data/search_packs.yaml`:
+   `id · surface · tokens it needs`. Ask which to disable.
+2. Wait for confirm. Skip or silence → leave every pack `enabled: true`; that is a
+   valid deck, not a gap.
+3. On confirm, write only `enabled:` on the named packs. Never edit `formulations`,
+   never add a pack, never write a search term the operator did not type — a pack
+   needing a keyword group that does not exist is disabled, not rewritten.
+4. A pack whose `[skill:<group>]` group is missing from the confirmed
+   `job_search.yaml` → name it in the same message; the operator decides.
+
 ## CV
 
 1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf` by path
@@ -110,7 +122,8 @@ Both must pass before gap report / next-steps:
 ### Filled
 - <file>: <one-line what was written>
 ### Packs
-- selected: <ids or all>
+- enabled: <ids or all>
+- disabled: <ids or none>
 ### CV
 - placed: yes path | no — operator must add cv/en-us-resume.pdf
 ```

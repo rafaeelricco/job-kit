@@ -33,8 +33,8 @@ Writes `~/.config/profile-root` to this directory so scout and apply resolve
    (never invents salary/visa/stack).
 2. Review Gaps in the fill report; fix any empty fields scout needs.
 3. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
-4. Search packs live in the installed job-scout skill (`references/search_packs.yaml`),
-   not under this profile.
+4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
+   there or via `/job-profile-config packs`.
 
 ## Rules
 

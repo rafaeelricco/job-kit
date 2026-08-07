@@ -7,7 +7,7 @@ Source = `./templates/` only. Destination = intake target path.
 ```
 <target>/
   README.md
-  data/                 # Fact-law shells only
+  data/                 # Fact-law shells + search deck
   scripts/install.sh
   scripts/uninstall.sh
   cv/README.md
@@ -69,3 +69,6 @@ SKILL step 4.8 prints **only the scout-critical lines below** as Gaps — never
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
 empties, `cv/en-us-resume.pdf`.
+
+`data/search_packs.yaml` ships every pack `enabled: true` and is runnable as
+emitted — never a Gap, including on scaffold-only.

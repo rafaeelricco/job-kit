@@ -20,7 +20,7 @@ Finds and reports jobs. Never acts on them. Done when the Report ships → **STO
 | `data/candidate.yaml`                                                            | salary, work auth, employment_routes, relocation                |
 | `data/job_search.yaml`                                                           | positions, keywords, filters, blacklists, apply_once_at_company |
 | `data/sources.yaml`                                                              | tiers, access, channels                                         |
-| `./references/search_packs.yaml`                                                 | every pack, YAML order (skill-local)                            |
+| `data/search_packs.yaml`, else `./references/search_packs.yaml`                  | every enabled pack, YAML order; whichever file wins, wins whole  |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`, `skills-by-company.yml` | card                                                            |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
@@ -29,7 +29,10 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
 
 1. Resolve Profile root per SKILL.md; print `Profile root: /abs/path`. Probe
    `data/candidate.yaml` and `data/job_search.yaml` under that root. Probe
-   `./references/search_packs.yaml` next to this skill. Any missing → STOP, name the file.
+   the deck: `data/search_packs.yaml` under Profile root, else
+   `./references/search_packs.yaml` next to this skill. Print `Deck: <abs path>`.
+   Neither readable, or the winner fails to parse → STOP, name the file.
+   Never merge the two files and never read the fallback when the profile deck exists.
 2. LinkedIn session → identity must equal LinkedIn `username` in
    `data/profiles.yaml` under Profile root. Probe LI identity once; fail → packs
    surface `linkedin_*` OR pack id `people-ta` return zero + defect `auth_gate`;
@@ -44,10 +47,12 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      not a market: it keeps every location the blacklist does not drop. Home-market
      countries in `location_blacklist` are job-location only; hire-from routes use
      `home_market`.
-4. Run **every** pack listed in `./references/search_packs.yaml` (file order). No subset.
+4. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
+   order). No other subset. Each `enabled: false` pack still gets a Query log row with
+   verdict `skipped: disabled` — a pack is never silently absent from the report.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
-they are the workers' only source for filters and for `[industry]` / `[company]`.
+they are the workers' only source for filters and for `[industry]`.
 
 ## Phase 1 — SEARCH (all packs)
 
@@ -79,7 +84,7 @@ Contacts side-channel only; never enter extract.
 
 ## Phase 3 — EXTRACT
 
-Batch size = `extract_batch_size` from `search_packs.yaml` SSOT. For each unique job URL
+Batch size = `extract_batch_size` from the resolved deck (SSOT). For each unique job URL
 batch run `worker-extract`; people skip; independent batches may parallel up to
 `max_parallel`; each batch opens URLs one at a time. Emit `### Verified` rows.
 

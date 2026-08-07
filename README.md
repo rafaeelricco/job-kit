@@ -10,7 +10,7 @@ profile init and config run in coding agents (Claude Code, Codex, Grok).
 
 | Skill                | Role                                                                                           | Channel                 | Installed under                     |
 | -------------------- | ---------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
-| `job-scout`          | Run every pack in `references/search_packs.yaml` (file order, no subset) and rank the job rows  | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
+| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
 | `job-application`    | Draft letter and form fields for one posting; stage only                                       | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
 | `job-profile-init`   | Create a data-only profile, or register/activate an existing one                               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
@@ -101,8 +101,8 @@ Aside Browser:
 /job-application
 ```
 
-Scout runs every pack in `search_packs.yaml`, in file order — no subset — and
-ranks the job rows it extracts. Application drafts and stages one posting at a
+Scout runs every enabled pack in your profile's `data/search_packs.yaml`, in file
+order, and ranks the job rows it extracts. Application drafts and stages one posting at a
 time; it may open an Apply control that only reveals the form, then stops at
 review and waits for an explicit yes.
 
@@ -245,10 +245,12 @@ multi-target install also removes legacy kit links there, which the
 | `scripts/agents/`           | Coding-agent install / uninstall (init + config) |
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
 
-Search packs live in the installed job-scout skill
-(`references/search_packs.yaml`); `impl` stems must match surface reference
-basenames (`surface-linkedin-jobs`, `surface-open-web`, …). Profile
-`data/search_packs.yaml` is unused — remove it if an older setup left one.
+Search packs live in your profile at `data/search_packs.yaml`, emitted by
+`/job-profile-init` and edited by `/job-profile-config packs`. `impl` stems must
+match surface reference basenames (`surface-linkedin-jobs`, `surface-open-web`, …).
+`skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
+created before the deck moved; it must stay byte-identical to
+`skill/job-profile-init/templates/data/search_packs.yaml`.
 
 ## License
 

@@ -10,7 +10,7 @@ No preamble. No apply / message / connect / open-form language.
 
 ### Header
 
-`# Job Scout · {YYYY-MM-DD} · LI={publicIdentifier|FAIL}`
+`# Job Scout · {YYYY-MM-DD} · LI={publicIdentifier|FAIL} · Deck={profile|kit fallback}`
 
 ### Snapshot
 
@@ -81,7 +81,8 @@ not a rounding.
 | --------- | ---------------: | -------: | ----------: | ----------------------: | ---------------------------------: | ---------------------- |
 | {pack_id} |              {n} |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
 
-One row per pack in `./references/search_packs.yaml` (all packs every run).
+One row per pack in the resolved deck (all packs every run, disabled ones included
+with verdict `skipped: disabled`). Which deck won is named in the Header.
 Carry `formulations_run` and `row_runs` as the worker printed them; `contract-search.md`
 owns both. NEVER print one without the other.
 Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry packs stay visible).
@@ -109,4 +110,4 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 - `bucket` full: `{home_market}-friendly (direct)` | `{home_market}-friendly (EOR)` | `EU/US-only` | `unbucketed`
   (derivation table in `pipeline.md`, under `## Bucket`)
 - `channel`: `direct_email` | `dm_request` | `founder` | `ats`
-- `verdict`: `pass` or `defect: {name}`
+- `verdict`: `pass`, `skipped: disabled`, or `defect: {name}`
