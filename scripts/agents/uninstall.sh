@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Remove job-profile-init skill symlink from Claude / Codex / Grok skills only.
+# Remove job-profile-init + job-profile-config symlinks from Claude / Codex /
+# Grok skills only.
 # Compatible with macOS Bash 3.2.
 set -euo pipefail
 
@@ -12,7 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Uninstall job-kit job-profile-init from coding agents (Claude, Codex, Grok).
+Uninstall job-kit job-profile-init + job-profile-config from coding agents
+(Claude, Codex, Grok).
 
 Usage: uninstall.sh [options]
 
@@ -26,9 +28,9 @@ Environment:
   CLAUDE_SKILLS  Absolute skills directory — single dest only (escape hatch).
                  When set, skip flags are ignored.
 
-Removes only kit-owned symlinks for skill/job-profile-init and legacy
-name profile-init. Never touches Aside skills,
-profile checkouts, or ~/.config/profile-root.
+Removes only kit-owned symlinks for skill/job-profile-init,
+skill/job-profile-config, and legacy name profile-init. Never touches Aside
+skills, profile checkouts, or ~/.config/profile-root.
 EOF
 }
 
