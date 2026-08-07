@@ -304,3 +304,64 @@ remove_legacy_user_skills() {
     unlink_skill "${dest}" "${repo}" "${name}" || return 1
   done
 }
+
+# resolve_host_home
+# Prints the real user home: inside Aside, HOME is <host>/.aside/runtime/home,
+# and the pointer the skills read lives on the host.
+# Side effects: none.
+resolve_host_home() {
+  local suffix="/.aside/runtime/home"
+  case "${HOME}" in
+    *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
+    *) printf '%s\n' "${HOME}" ;;
+  esac
+}
+
+# pointer_target FILE
+# Prints the single path line, empty when unreadable.
+# Side effects: none.
+pointer_target() {
+  tr -d '\n' < "$1" 2>/dev/null || true
+}
+
+# is_kit_profile_pointer FILE
+# Exit 0 when FILE is empty, names a path that no longer exists (stale
+# registration), or names a profile checkout (data/candidate.yaml — the one
+# file every layout has, legacy included). A resolvable foreign target → 1:
+# ~/.config/profile-root is a generic name and may predate this kit.
+# Side effects: none.
+is_kit_profile_pointer() {
+  local target
+  target="$(pointer_target "$1")"
+  [ -n "${target}" ] || return 0
+  [ -d "${target}" ] || return 0
+  [ -f "${target}/data/candidate.yaml" ]
+}
+
+# remove_profile_pointers
+# Clears the host pointer and the Aside runtime mirror. Never touches the
+# profile checkout itself — only the registration, which scripts/install.sh
+# under that profile rewrites.
+# Side effects: may rm two pointer files. Prints status lines.
+remove_profile_pointers() {
+  local host_home file target
+  host_home="$(resolve_host_home)"
+  echo "== profile root pointer =="
+  for file in "${host_home}/.config/profile-root" \
+              "${host_home}/.aside/runtime/home/.config/profile-root"; do
+    if [ ! -f "${file}" ]; then
+      echo "skipped (missing): ${file}"
+      continue
+    fi
+    target="$(pointer_target "${file}")"
+    if ! is_kit_profile_pointer "${file}"; then
+      echo "skipped (not a profile checkout): ${file} -> ${target}"
+      continue
+    fi
+    rm -f "${file}" || {
+      echo "error: failed to remove: ${file}" >&2
+      return 1
+    }
+    echo "removed pointer: ${file}${target:+ -> ${target}}"
+  done
+}

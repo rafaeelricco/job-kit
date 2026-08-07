@@ -53,6 +53,9 @@ Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused with `uninstall aside` or `uninstall agents`,
                       and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
+  --keep-pointer      Keep ~/.config/profile-root and the Aside runtime mirror
+                      (uninstall clears both by default; the profile checkout
+                      is never touched)
   --skip-claude|codex|grok  Forwarded only with `uninstall agents`
 
 Environment:
@@ -399,11 +402,25 @@ agents_ready() {
   [ -d "${HOME}/.claude" ] || [ -d "${HOME}/.agents" ] || [ -d "${HOME}/.grok" ]
 }
 
+# run_uninstall SCRIPT [ARGS…]
+# Runs a channel uninstaller, adding --keep-pointer when the caller asked for
+# it. Reads keep_pointer from main's scope (Bash 3.2: no nameref).
+# Side effects: runs the uninstall script.
+run_uninstall() {
+  local script="$1"
+  shift
+  if [ "${keep_pointer}" -eq 1 ]; then
+    bash "${script}" --keep-pointer "$@"
+  else
+    bash "${script}" "$@"
+  fi
+}
+
 # main
 # Parses install channel or `uninstall [target]`, ensures cache, delegates.
 # Side effects: may write/remove cache; runs install or uninstall scripts.
 main() {
-  local channel="all" mode="install" target="all" ran=0 arg purge=0
+  local channel="all" mode="install" target="all" ran=0 arg purge=0 keep_pointer=0
   # Bash 3.2: plain indexed array for agent uninstall flags (no --purge).
   local -a agent_flags
   agent_flags=()
@@ -424,18 +441,20 @@ main() {
 
   if [ "${mode}" = "uninstall" ]; then
     purge=0
+    keep_pointer=0
     agent_flags=()
     for arg in "$@"; do
       case "${arg}" in
         --purge) purge=1; continue ;;
+        --keep-pointer) keep_pointer=1; continue ;;
         -h|--help) usage; exit 0 ;;
       esac
       case "${target}" in
         all)
-          die "uninstall all accepts only --purge (got: ${arg}); use 'uninstall agents' for --skip-*"
+          die "uninstall all accepts only --purge or --keep-pointer (got: ${arg}); use 'uninstall agents' for --skip-*"
           ;;
         aside)
-          die "uninstall aside accepts only --purge (got: ${arg})"
+          die "uninstall aside accepts only --purge or --keep-pointer (got: ${arg})"
           ;;
         agents)
           case "${arg}" in
@@ -443,7 +462,7 @@ main() {
               agent_flags[${#agent_flags[@]}]="${arg}"
               ;;
             *)
-              die "unknown uninstall agents option: ${arg} (expected --skip-* or --purge)"
+              die "unknown uninstall agents option: ${arg} (expected --skip-*, --purge, or --keep-pointer)"
               ;;
           esac
           ;;
@@ -475,18 +494,18 @@ main() {
 
     case "${target}" in
       aside)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        run_uninstall "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
         ;;
       agents)
         if [ "${#agent_flags[@]}" -eq 0 ]; then
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+          run_uninstall "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
         else
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh" "${agent_flags[@]}"
+          run_uninstall "${JOB_KIT_HOME}/scripts/agents/uninstall.sh" "${agent_flags[@]}"
         fi
         ;;
       all)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
-        bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+        run_uninstall "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        run_uninstall "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
         ;;
     esac
 
