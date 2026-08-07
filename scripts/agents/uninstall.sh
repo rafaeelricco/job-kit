@@ -30,7 +30,8 @@ Environment:
 
 Removes only kit-owned symlinks for skill/job-profile-init,
 skill/job-profile-config, and legacy name profile-init. Never touches Aside
-skills, profile checkouts, or ~/.config/profile-root.
+skills, profile checkouts (~/.config/job-kit by default), or
+~/.config/profile-root.
 EOF
 }
 
