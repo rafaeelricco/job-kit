@@ -3,7 +3,8 @@
 Four agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, draft applications from profile
 facts. Procedure lives here. Facts — salary band, work authorization,
-experience — live in a profile directory you control and never enter this repo.
+experience — live in a profile directory you control (default
+`${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
 Two install channels: scout and apply run in [Aside Browser](https://aside.com),
 profile init and config run in coding agents (Claude Code, Codex, Grok).
@@ -130,19 +131,23 @@ Skills resolve the active profile in this order:
 
 1. `$PROFILE_ROOT`, if that directory has `data/candidate.yaml` and
    `data/job_search.yaml`
-2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
-3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
-   home's `~/.config/profile-root`
-4. Walk the session CWD upward until both probe files exist
-5. Otherwise stop and name what was tried
+2. Default config dir: `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit` (same probe).
+   **Aside:** if `$HOME` is `…/.aside/runtime/home`, also probe the **host**
+   home's same path under `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`
+3. Legacy `$HOME/.config/profile-root` (one absolute path line), same probe
+4. **Aside:** host home's legacy `~/.config/profile-root` when dual-home applies
+5. Walk the session CWD upward until both probe files exist
+6. Otherwise stop and name what was tried
 
-`/job-profile-init` **Activate** is how the durable pointers get set. Without
-the skill: run the **profile** checkout's `bash scripts/install.sh` (emitted
+`/job-profile-init` **Activate** is how non-default durable pointers get set.
+Without the skill: create/move the tree to the default config dir, or run the
+**profile** checkout's `bash scripts/install.sh` for a non-default path (emitted
 under that profile — not a job-kit script).
 
 | File                                                  | Who reads it                                     |
 | ----------------------------------------------------- | ------------------------------------------------ |
-| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step              |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit`           | Default profile root (direct probe)              |
+| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step (legacy)     |
 | `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is the runtime home |
 
 `PROFILE_ROOT` is a **session override** only — Aside does not inherit env from
@@ -162,7 +167,8 @@ Remote install: re-run the same one-liner — it refreshes the cached checkout a
 re-runs the installers. Local checkout: `git pull`, then re-run the installers
 you use. Channels are independent.
 
-Update never modifies profile checkouts or `~/.config/profile-root`. Installs
+Update never modifies profile checkouts, the default config dir contents, or
+`~/.config/profile-root`. Installs
 also clear kit-owned copies of legacy skill names (`job-discovery`, `job-apply`,
 `profile-scaffold`, `application-stage`, `profile-init`) and leftover kit trees
 under Aside's `skills/user/`.
