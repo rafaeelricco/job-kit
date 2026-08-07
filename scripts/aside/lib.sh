@@ -362,17 +362,41 @@ is_kit_profile_pointer() {
   target_confirmed_gone "${target}"
 }
 
+# pointer_removal_blocked FILE
+# Exit 0 when FILE is a kit pointer this process could not delete — its
+# directory is not writable and searchable. Skippable and removable files
+# both exit 1; this answers "would rm fail", not "is there work".
+# Side effects: none.
+pointer_removal_blocked() {
+  local dir
+  [ -f "$1" ] || return 1
+  is_kit_profile_pointer "$1" || return 1
+  dir="$(dirname "$1")"
+  ! { [ -w "${dir}" ] && [ -x "${dir}" ]; }
+}
+
 # remove_profile_pointers
 # Clears the host pointer and the Aside runtime mirror. Never touches the
 # profile checkout itself — only the registration, which scripts/install.sh
-# under that profile rewrites.
+# under that profile rewrites. Both removals are preflighted before either
+# runs: deleting the host pointer and then failing on a read-only mirror
+# would leave coding agents and Aside resolving different roots, the split
+# state Activate rolls back to avoid.
 # Side effects: may rm two pointer files. Prints status lines.
 remove_profile_pointers() {
-  local host_home file target
+  local host_home file target host mirror
   host_home="$(resolve_host_home)"
+  host="${host_home}/.config/profile-root"
+  mirror="${host_home}/.aside/runtime/home/.config/profile-root"
   echo "== profile root pointer =="
-  for file in "${host_home}/.config/profile-root" \
-              "${host_home}/.aside/runtime/home/.config/profile-root"; do
+  for file in "${host}" "${mirror}"; do
+    if pointer_removal_blocked "${file}"; then
+      echo "error: cannot remove pointer: ${file}" >&2
+      echo "error: left every registration in place to keep them in sync" >&2
+      return 1
+    fi
+  done
+  for file in "${host}" "${mirror}"; do
     if [ ! -f "${file}" ]; then
       echo "skipped (missing): ${file}"
       continue
