@@ -6,12 +6,10 @@
    emit (and fill unless scaffold-only) so probes exist.
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
-4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
-   `JOB_KIT_CONFIG` (non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
-   else `HOST_DEFAULT`). Path-convention branch only when `REPO` equals
-   **both** `HOST_DEFAULT` and `JOB_KIT_CONFIG` (after `pwd -P` when dirs
-   exist). That means XDG is unset or already names the host-default path —
-   skills probe `REPO` without a pointer.
+4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit`. Path-convention branch
+   when `REPO` equals `HOST_DEFAULT` (after `pwd -P` when the dir exists).
+   Skills always probe host-default in resolve step 4, so no pointer is required
+   even when a coding agent sets `XDG_CONFIG_HOME` elsewhere.
    - **Do not write** a host/Aside pointer naming `REPO`.
    - **Do clear** shadowing registrations: read host
      `$HOST_HOME/.config/profile-root` and, when the runtime home exists,
@@ -25,12 +23,10 @@
    - No shadowing line (absent/empty, or already `REPO`) → remove any redundant
      pointer/mirror that names `REPO` itself; state host-default-location
      active; go to (8).
-   **Fall through to (5)** (write pointers) when:
-   - `REPO` is `$XDG_CONFIG_HOME/job-kit` and that differs from `HOST_DEFAULT`
-     (Aside often lacks XDG), or
-   - `REPO` is `HOST_DEFAULT` but `JOB_KIT_CONFIG` differs (XDG hides
-     host-default for coding agents — durable pointer required).
-5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-convention
+   **Fall through to (5)** (write pointers) when `REPO` is only
+   `$XDG_CONFIG_HOME/job-kit` and that path differs from `HOST_DEFAULT` — Aside
+   often lacks XDG and needs a durable pointer/mirror.
+5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-host-default
    REPO only):
    - Read one-line `current` if file exists.
    - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;

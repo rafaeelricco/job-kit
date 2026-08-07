@@ -20,14 +20,17 @@ candidate; try the next step. Do not invent a profile path.
    probe when not already tried. Explicit Activate/install wins over path
    convention so a non-default active profile is not shadowed by residual
    files under the default config dir.
-4. **Default config dir:** `JOB_KIT_CONFIG` =
-   non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`, else
-   `$HOME/.config/job-kit`; probe. **Aside dual-home:** with same `HOST_HOME`
-   as step 3, also probe `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`
-   when that path differs.
+4. **Default config dirs** (probe each not already tried):
+   - `JOB_KIT_CONFIG`: non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
+     else `$HOME/.config/job-kit`.
+   - **Host-default fallback:** `$HOST_HOME/.config/job-kit` where `HOST_HOME`
+     is from step 3 when dual-home, else strip `/.aside/runtime/home` from
+     `$HOME` or use `$HOME`. Probe when that path differs from `JOB_KIT_CONFIG`.
+     Always probe host-default so a profile there stays resolvable across Aside
+     (often no XDG) and coding agents (may set XDG elsewhere) without a pointer.
 5. Walk session CWD upward until probe passes.
-6. else STOP. Name each attempt (env, each pointer file + line, default config
-   path, walk start).
+6. else STOP. Name each attempt (env, each pointer file + line, each default
+   config path, walk start).
    Recovery detail: `./references/profile-root.md` (load on STOP or step 2–4 fail).
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).

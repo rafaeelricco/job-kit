@@ -13,15 +13,15 @@ Options:
   -y, --yes   Overwrite a registration pointing at a different profile.
   -h, --help  Show this help.
 
-Path-convention registration (no pointer file) applies only when this
-checkout is $HOST_HOME/.config/job-kit and that is also this environment's
-JOB_KIT_CONFIG (XDG unset, or XDG pointing at the same place). Any host/Aside
-pointer that still names another profile is removed (requires --yes) so resolve
-does not keep selecting the old root.
+When this checkout is the host-default path-convention dir
+($HOST_HOME/.config/job-kit), registration is path convention only — no
+pointer file. Skills always probe that path, so Aside (no XDG) and coding
+agents (may set XDG) both find it. Any host/Aside pointer that still names
+another profile is removed (requires --yes) so resolve does not keep selecting
+the old root.
 
-When XDG_CONFIG_HOME hides $HOST_HOME/.config/job-kit, or the checkout is any
-other path (including $XDG_CONFIG_HOME/job-kit when that differs), this script
-writes ~/.config/profile-root so coding agents and Aside can still resolve it.
+Every other path (including $XDG_CONFIG_HOME/job-kit when that differs) writes
+~/.config/profile-root so coding agents and Aside can still resolve it.
 Resolves the HOST home first: run inside Aside (HOME ending in
 /.aside/runtime/home) the pointer still lands on the real user home.
 Non-convention paths also mirror into
@@ -176,7 +176,7 @@ resolve_repo() {
 
 main() {
   local assume_yes=0 current current_canon result pointer mirror
-  local shadow shadow_label mirror_line HOST_DEFAULT CONVENTION_ROOT
+  local shadow shadow_label mirror_line HOST_DEFAULT
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -194,14 +194,12 @@ main() {
   fi
 
   HOST_DEFAULT="$(host_default_root)"
-  CONVENTION_ROOT="$(job_kit_config)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
 
-  # Path-convention only when this checkout is host-default AND that path is
-  # what this environment probes without a pointer. If XDG_CONFIG_HOME points
-  # elsewhere, keep durable pointers so coding agents still resolve REPO.
-  if paths_equal "${REPO}" "${HOST_DEFAULT}" && paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
+  # Path-convention: host-default is always probed by skills (after any XDG
+  # candidate). Safe from Aside or host even when the other env sets XDG.
+  if paths_equal "${REPO}" "${HOST_DEFAULT}"; then
     shadow=""
     shadow_label=""
     if [ -f "${pointer}" ]; then

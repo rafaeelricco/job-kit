@@ -13,11 +13,11 @@ Options:
   -h, --help  Show this help.
 
 Convention-probed checkouts stay active while probe files remain:
-  - $HOST_HOME/.config/job-kit when that is this env's JOB_KIT_CONFIG
-  - $XDG_CONFIG_HOME/job-kit when XDG_CONFIG_HOME is set
-This script only clears pointer files; it cannot deactivate a convention
-path and exits non-zero in that case. Move or remove the tree, or activate
-another profile with that checkout's install.sh --yes.
+  - $HOST_HOME/.config/job-kit (always probed; Aside often has no XDG)
+  - $XDG_CONFIG_HOME/job-kit when XDG_CONFIG_HOME is set in this shell
+This script only clears pointer files; it cannot deactivate those paths and
+exits non-zero. Move or remove the tree, or activate another profile with that
+checkout's install.sh --yes.
 EOF
 }
 
@@ -106,7 +106,8 @@ confirm_unregister() {
 }
 
 main() {
-  local current current_canon pointer mirror CONVENTION_ROOT
+  local current current_canon pointer mirror CONVENTION_ROOT HOST_DEFAULT
+  local is_convention=0
   assume_yes=0
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -121,11 +122,15 @@ main() {
   HOST_HOME="$(resolve_host_home)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
+  HOST_DEFAULT="$(host_default_root)"
   CONVENTION_ROOT="$(job_kit_config)"
 
-  # Convention path stays active while probe files remain. Only treat as
-  # inactive when another pointer target actually passes the skill probe.
-  if paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
+  # Host-default is always skill-probed (Aside without XDG included). This-env
+  # JOB_KIT_CONFIG is also convention-probed. Refuse when either matches.
+  if paths_equal "${REPO}" "${HOST_DEFAULT}" || paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
+    is_convention=1
+  fi
+  if [ "${is_convention}" -eq 1 ]; then
     if [ -f "${pointer}" ]; then
       current="$(tr -d '\n' < "${pointer}")"
       if [ -n "${current}" ] && [ -d "${current}" ]; then
@@ -141,6 +146,7 @@ main() {
     fi
     echo "error: profile is active by path convention at ${REPO}" >&2
     echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
+    echo "  (host-default is always probed; XDG JOB_KIT_CONFIG is probed in this env)" >&2
     echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
     exit 1
   fi
