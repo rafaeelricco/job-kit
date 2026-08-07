@@ -88,6 +88,7 @@ scripts/agents/uninstall.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 scripts/aside/uninstall.sh
 skill/job-profile-init/SKILL.md
+skill/job-profile-config/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
 
