@@ -15,9 +15,12 @@ Options:
 
 When this checkout is the host-default path-convention dir
 ($HOST_HOME/.config/job-kit), registration is path convention only — no
-pointer file. XDG-only defaults ($XDG_CONFIG_HOME/job-kit when that differs)
-and every other path write ~/.config/profile-root so Aside (often without
-XDG_CONFIG_HOME) still finds the profile.
+pointer file. Any host/Aside pointer that still names another profile is
+removed (requires --yes when a different profile is registered) so resolve
+does not keep selecting the old root. XDG-only defaults
+($XDG_CONFIG_HOME/job-kit when that differs) and every other path write
+~/.config/profile-root so Aside (often without XDG_CONFIG_HOME) still finds
+the profile.
 Resolves the HOST home first: run inside Aside (HOME ending in
 /.aside/runtime/home) the pointer still lands on the real user home.
 Non-host-default: also mirrors into
@@ -108,7 +111,8 @@ resolve_repo() {
 }
 
 main() {
-  local assume_yes=0 current current_canon result pointer
+  local assume_yes=0 current current_canon result pointer mirror
+  local shadow shadow_label mirror_line
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -126,15 +130,74 @@ main() {
   fi
 
   HOST_DEFAULT="$(host_default_root)"
+  pointer="${HOST_HOME}/.config/profile-root"
+  mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
   if [ "${REPO}" = "${HOST_DEFAULT}" ] || {
     [ -d "${HOST_DEFAULT}" ] && [ "$(cd "${HOST_DEFAULT}" && pwd -P)" = "${REPO}" ]
   }; then
+    # Path convention only — but clear any pointer/mirror that still names
+    # another profile, else resolve prefers that pointer over HOST_DEFAULT.
+    shadow=""
+    shadow_label=""
+    if [ -f "${pointer}" ]; then
+      current="$(tr -d '\n' < "${pointer}")"
+      if [ -n "${current}" ] && [ -d "${current}" ]; then
+        current_canon="$(cd "${current}" && pwd -P)"
+      else
+        current_canon=""
+      fi
+      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ]; then
+        if [ -n "${current_canon}" ]; then
+          shadow="${current_canon}"
+        else
+          shadow="${current}"
+        fi
+        shadow_label="host pointer"
+      fi
+    fi
+    if [ -z "${shadow}" ] && [ -f "${mirror}" ]; then
+      mirror_line="$(tr -d '\n' < "${mirror}")"
+      if [ -n "${mirror_line}" ] && [ "${mirror_line}" != "${REPO}" ]; then
+        if [ -d "${mirror_line}" ]; then
+          shadow="$(cd "${mirror_line}" && pwd -P)"
+        else
+          shadow="${mirror_line}"
+        fi
+        shadow_label="Aside runtime mirror"
+      fi
+    fi
+    if [ -n "${shadow}" ]; then
+      if [ "${assume_yes}" -ne 1 ]; then
+        echo "error: profile root already registered: ${shadow} (${shadow_label})" >&2
+        echo "  use --yes to switch to host-default ${REPO} (clears shadowing pointers)" >&2
+        exit 2
+      fi
+      rm -f "${pointer}"
+      echo "removed ${pointer}"
+      if [ -f "${mirror}" ]; then
+        rm -f "${mirror}"
+        echo "removed ${mirror}"
+      fi
+      echo "switched: ${shadow} -> host-default ${REPO}"
+      exit 0
+    fi
+    # Optional cleanup: pointer/mirror naming this same host-default is redundant.
+    if [ -f "${pointer}" ]; then
+      current="$(tr -d '\n' < "${pointer}")"
+      if [ -n "${current}" ] && [ -d "${current}" ] && [ "$(cd "${current}" && pwd -P)" = "${REPO}" ]; then
+        rm -f "${pointer}"
+        echo "removed redundant ${pointer}"
+      fi
+    fi
+    if [ -f "${mirror}" ] && [ "$(tr -d '\n' < "${mirror}")" = "${REPO}" ]; then
+      rm -f "${mirror}"
+      echo "removed redundant ${mirror}"
+    fi
     echo "registered (host-default location): ${REPO}"
     exit 0
   fi
 
   result="registered: ${REPO}"
-  pointer="${HOST_HOME}/.config/profile-root"
   if [ -f "${pointer}" ]; then
     current="$(tr -d '\n' < "${pointer}")"
     if [ -n "${current}" ] && [ -d "${current}" ]; then
