@@ -39,16 +39,23 @@
    - `REPO` is `HOST_DEFAULT` and this process is inside Aside runtime —
      host `$XDG_CONFIG_HOME` is not visible here; keep a durable pointer so a
      later host session with a probe-passing XDG profile does not re-outrank.
-5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (when writing
-   pointers — includes host-default fallthrough from (4)):
-   - Read one-line `current` if file exists.
+5. Host / Aside registration conflicts (when writing pointers — includes
+   host-default fallthrough from (4)):
+   - Read one-line `current` from host `$HOST_HOME/.config/profile-root` if
+     the file exists.
    - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
      else `current_canon=""`.
-   - `current_canon` equals `REPO` → if stored `current` differs from `REPO`,
-     rewrite host to canonical `REPO`. Then run (7) **unconditionally** — the
-     runtime home may have appeared after the host write, or hold a stale line,
-     and `job-scout` reads the mirror before the host pointer. State already
-     active; go to (9).
+   - Also read Aside runtime mirror when that file exists. If its line is
+     non-empty and does not resolve to `REPO`, treat it as a conflict even
+     when the host pointer is absent, empty, or already `REPO` — `job-scout`
+     reads the mirror first; overwriting it is a switch.
+   - `current_canon` equals `REPO` and no mirror conflict → if stored `current`
+     differs from `REPO`, rewrite host to canonical `REPO`. Then run (7)
+     **unconditionally** when the runtime home exists (mirror may be missing
+     or stale). State already active; go to (9).
+   - `current_canon` equals `REPO` but mirror names another path → show the
+     mirror path; ask whether to switch. Yes → continue to (6)/(7). No → leave
+     inactive; go to (9).
    - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
      whether to switch to `REPO`. Yes → continue to (6). No → leave inactive;
      print later Activate hint; go to (9).
@@ -56,7 +63,13 @@
      this process cannot traverse (e.g. a live profile under an Aside-blocked
      parent). Treat it as a conflict, **not** a free slot: show `current`, say
      it could not be resolved, ask the same switch question, same Yes/No
-     handling. Only an absent or empty pointer line skips the ask.
+     handling.
+   - Host pointer absent or empty, no mirror conflict, but `REPO` is
+     host-default and this-env `JOB_KIT_CONFIG` differs and passes the probe →
+     active XDG convention is a conflict; ask to switch (Activate Yes already
+     covers the skill path; manual `install.sh` requires `--yes`).
+   - Only an absent/empty host pointer **and** no mirror conflict **and** no
+     XDG-convention conflict skips the switch ask.
 6. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
    `REPO` into `$HOST_HOME/.config/profile-root`.
 7. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
