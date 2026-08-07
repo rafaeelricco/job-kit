@@ -24,14 +24,13 @@ bash scripts/install.sh          # register (fails if another profile is active)
 bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
-When this checkout is `~/.config/job-kit` and that is also this environment's
-`JOB_KIT_CONFIG` (no XDG override), skills find it by path convention.
-`install.sh` there clears any host/Aside pointer that still names another
-profile (use `--yes` to switch). If `XDG_CONFIG_HOME` hides that path, or the
-checkout is any other location (including `$XDG_CONFIG_HOME/job-kit`),
-`install.sh` writes `~/.config/profile-root` (and the Aside runtime mirror when
-present). `uninstall.sh` cannot deactivate a convention-probed path while probe
-files remain; move the tree or activate another profile instead.
+Host-default `~/.config/job-kit` is always skill-probed (path convention across
+Aside and XDG coding agents). `install.sh` there clears any host/Aside pointer
+that still names another profile (use `--yes` to switch). Other locations
+(including `$XDG_CONFIG_HOME/job-kit` when that differs) write
+`~/.config/profile-root` and the Aside runtime mirror when present.
+`uninstall.sh` cannot deactivate host-default or this-env XDG convention paths
+while probe files remain; move the tree or activate another profile instead.
 
 ## Fill before a useful run
 

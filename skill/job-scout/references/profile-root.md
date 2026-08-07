@@ -11,14 +11,16 @@ for **this** process.
 
 ## Who writes pointers
 
-Host-default path-convention root is `$HOST_HOME/.config/job-kit`. Skills probe
-that path after any pointer (step 4) — no pointer required there.
+Host-default path-convention root is `$HOST_HOME/.config/job-kit`. Skills always
+probe that path in step 4 (after any XDG `JOB_KIT_CONFIG` candidate) — no
+pointer required there, including when a coding agent has `XDG_CONFIG_HOME` set
+elsewhere while Aside does not.
 
 Activate / profile `scripts/install.sh` write host
 `$HOST_HOME/.config/profile-root` and mirror into Aside runtime home when
 present for every other location (non-default checkout **or**
 `$XDG_CONFIG_HOME/job-kit` when that differs from the host default). Pointers
-are checked before the default dir so an activated non-default profile wins.
+are checked before default dirs so an activated non-default profile wins.
 
 ## HOST_HOME
 
