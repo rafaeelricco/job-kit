@@ -24,7 +24,8 @@ candidate; try the next step. Do not invent a profile path.
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required Fact file under a resolved root → stop and say so.
 Skill-local files: `./references/*` only.
-Pack list: `./references/search_packs.yaml` (skill-local; not under Profile root).
+Pack list: `data/search_packs.yaml` under Profile root; absent → fall back to
+`./references/search_packs.yaml` (kit deck). Never merge the two.
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
@@ -40,5 +41,6 @@ Pack list: `./references/search_packs.yaml` (skill-local; not under Profile root
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
 - Search surfaces: `./references/surface-{linkedin-jobs,open-web,social,people}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
-- Search packs: `./references/search_packs.yaml` (every pack, YAML order)
+- Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`
+  (every enabled pack, YAML order)
 - Profile root recovery: `./references/profile-root.md` (Aside dual-home; not step SSOT)

@@ -2,7 +2,7 @@
 
 Obey CONTRACT_EXTRACT (list-only, evidence, status, schemas live there).
 Caller pastes URL_BATCH + CONTRACT_EXTRACT. Batch size ≤ `extract_batch_size`
-from `search_packs.yaml` (SSOT).
+from the deck the caller resolved (SSOT); the caller states the number.
 
 ## Deltas
 

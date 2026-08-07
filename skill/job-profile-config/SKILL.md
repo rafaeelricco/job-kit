@@ -28,7 +28,8 @@ candidate; try the next step. Do not invent a profile path.
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
-Writable here: `data/job_search.yaml`, `data/sources.yaml`, `data/profile_card.yaml`.
+Writable here: `data/job_search.yaml`, `data/sources.yaml`, `data/profile_card.yaml`,
+`data/search_packs.yaml`.
 Every other path under Profile root is read-only in this skill.
 
 1. Read `./references/show.md` now; obey it for `show` and `gaps`.
@@ -46,6 +47,7 @@ Every other path under Profile root is read-only in this skill.
 | change keywords / set positions / add location / blacklist | `set`                             | `data/job_search.yaml`   |
 | add board / remove Wellfound                               | `sources add` / `sources remove`  | `data/sources.yaml`      |
 | refresh profile card from data                             | `refresh-card`                    | `data/profile_card.yaml` |
+| list my packs / disable a pack / edit a formulation        | `packs`                           | `data/search_packs.yaml` |
 | create a profile / set one up from my CV                   | hand off `job-profile-init`, STOP | —                        |
 | find jobs / scout openings                                 | hand off `job-scout`, STOP        | —                        |
 
@@ -61,5 +63,6 @@ Every other path under Profile root is read-only in this skill.
 - Write `data/candidate.yaml` or any Fact file (experiences, skills, languages, basics)
 - Write anything before printing the diff and receiving an explicit yes
 - Network: no board lookup, no keyword research, no scrape, no sign-up
-- Run job-scout or job-application; edit skill-local `references/search_packs.yaml`
+- Run job-scout or job-application; edit the kit fallback deck inside the job-scout
+  skill (that copy is overwritten on reinstall — edit the profile deck instead)
 - Copy another profile's data
