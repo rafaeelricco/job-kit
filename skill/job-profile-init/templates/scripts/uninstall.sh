@@ -12,11 +12,12 @@ Options:
   -y, --yes   Skip confirmation.
   -h, --help  Show this help.
 
-Host-default checkouts ($HOST_HOME/.config/job-kit) stay active by path
-convention while probe files remain. This script only clears pointer files; it
-cannot deactivate a host-default profile and exits non-zero in that case.
-Move or remove the tree, or activate another profile with that checkout's
-install.sh --yes.
+Convention-probed checkouts stay active while probe files remain:
+  - $HOST_HOME/.config/job-kit when that is this env's JOB_KIT_CONFIG
+  - $XDG_CONFIG_HOME/job-kit when XDG_CONFIG_HOME is set
+This script only clears pointer files; it cannot deactivate a convention
+path and exits non-zero in that case. Move or remove the tree, or activate
+another profile with that checkout's install.sh --yes.
 EOF
 }
 
@@ -32,6 +33,31 @@ resolve_host_home() {
 
 host_default_root() {
   printf '%s/.config/job-kit\n' "$(resolve_host_home)"
+}
+
+job_kit_config() {
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
+  else
+    host_default_root
+  fi
+}
+
+paths_equal() {
+  local a="$1" b="$2"
+  [ "${a}" = "${b}" ] && return 0
+  if [ -d "${a}" ] && [ -d "${b}" ]; then
+    [ "$(cd "${a}" && pwd -P)" = "$(cd "${b}" && pwd -P)" ]
+    return $?
+  fi
+  return 1
+}
+
+# Two-file probe used by skill resolvers.
+passes_probe() {
+  local root="$1"
+  [ -d "${root}" ] || return 1
+  [ -f "${root}/data/candidate.yaml" ] && [ -f "${root}/data/job_search.yaml" ]
 }
 
 resolve_repo() {
@@ -80,7 +106,7 @@ confirm_unregister() {
 }
 
 main() {
-  local current current_canon pointer mirror
+  local current current_canon pointer mirror CONVENTION_ROOT
   assume_yes=0
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -95,16 +121,11 @@ main() {
   HOST_HOME="$(resolve_host_home)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
-  HOST_DEFAULT="$(host_default_root)"
-  is_host_default=0
-  if [ "${REPO}" = "${HOST_DEFAULT}" ] || {
-    [ -d "${HOST_DEFAULT}" ] && [ "$(cd "${HOST_DEFAULT}" && pwd -P)" = "${REPO}" ]
-  }; then
-    is_host_default=1
-  fi
-  # Host-default stays active by path convention while probe files remain.
-  # Pointer clears alone never unregister it — refuse rather than claim success.
-  if [ "${is_host_default}" -eq 1 ]; then
+  CONVENTION_ROOT="$(job_kit_config)"
+
+  # Convention path stays active while probe files remain. Only treat as
+  # inactive when another pointer target actually passes the skill probe.
+  if paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
     if [ -f "${pointer}" ]; then
       current="$(tr -d '\n' < "${pointer}")"
       if [ -n "${current}" ] && [ -d "${current}" ]; then
@@ -112,13 +133,13 @@ main() {
       else
         current_canon=""
       fi
-      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ]; then
-        echo "not active: host-default ${REPO}; pointer points elsewhere: ${current}"
+      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ] && passes_probe "${current}"; then
+        echo "not active: convention path ${REPO}; active pointer profile: ${current}"
         echo "Profile checkout preserved at ${REPO}"
         exit 0
       fi
     fi
-    echo "error: host-default profile is active by path convention at ${REPO}" >&2
+    echo "error: profile is active by path convention at ${REPO}" >&2
     echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
     echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
     exit 1
