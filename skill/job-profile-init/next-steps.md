@@ -2,7 +2,7 @@
 
 # notes + kit install)
 
-# Fill every {{…}} per activate.md step 8 — never leave placeholders,
+# Fill every {{…}} per activate.md step 9 — never leave placeholders,
 
 # never invent CWD-relative kit `scripts/...` from a profile dir.
 
