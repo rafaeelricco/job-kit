@@ -11,14 +11,17 @@ Do not copy job-scout or job-application skill trees into the profile.
 Outside `<target>`, this flow may write only Profile-root **pointer files**
 (host `~/.config/profile-root` and, when that tree already exists, Aside
 `$HOST_HOME/.aside/runtime/home/.config/profile-root`), and only via **Activate**
-after the operator's Yes — and only when `<target>` is **not** host-default
-`$HOST_HOME/.config/job-kit`. That path needs no pointer (skills always probe
-it). XDG-only and other non-default targets still get pointers so Aside without
-`XDG_CONFIG_HOME` can resolve them. Never run the profile's
-`scripts/install.sh` (may be missing or legacy). Session `export PROFILE_ROOT`
-is optional and not durable for Aside. Activating an existing profile is a
-valid outcome: pointer writes only (or host-default-location confirm), skip
-emit and fill. It is not an edit of that profile.
+after the operator's Yes. Host-default `$HOST_HOME/.config/job-kit` skips
+pointer writes only in the pure path-convention case (no valid XDG profile
+would outrank it). Write a durable pointer when Activate targets host-default
+but `$XDG_CONFIG_HOME/job-kit` already passes the probe, or when Activate runs
+inside Aside without host XDG visible — so claimed activation wins over a
+higher-priority XDG convention path. XDG-only and other non-default targets
+always get pointers. Never run the profile's `scripts/install.sh` (may be
+missing or legacy). Session `export PROFILE_ROOT` is optional and not durable
+for Aside. Activating an existing profile is a valid outcome: pointer writes
+only (or host-default-location confirm), skip emit and fill. It is not an edit
+of that profile.
 
 Prefer harness plan/approval when present; else normal messages. Nothing is
 written until **Approve** (create path) or until Activate (register-only with

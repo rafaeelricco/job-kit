@@ -9,10 +9,12 @@
 4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
    `JOB_KIT_CONFIG` (non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
    else `HOST_DEFAULT`). Path-convention branch when `REPO` equals
-   `HOST_DEFAULT` **and** `JOB_KIT_CONFIG` either equals `HOST_DEFAULT` or fails
-   the two-file probe (after `pwd -P` when dirs exist). Skills always probe
-   host-default after any XDG candidate; pure convention needs no pointer only
-   when no valid XDG profile would outrank it.
+   `HOST_DEFAULT` **and** pure convention applies: this process is **not**
+   inside Aside runtime (`$HOME` does not end with `/.aside/runtime/home`)
+   **and** `JOB_KIT_CONFIG` either equals `HOST_DEFAULT` or fails the two-file
+   probe (after `pwd -P` when dirs exist). Skills always probe host-default
+   after any XDG candidate; pure convention needs no pointer only when no
+   valid XDG profile would outrank it and host XDG is observable.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.
    - **Do clear** shadowing registrations: read host
@@ -32,9 +34,13 @@
      `HOST_DEFAULT` (Aside often lacks XDG), or
    - `REPO` is `HOST_DEFAULT` but `JOB_KIT_CONFIG` differs **and** passes the
      two-file probe — a durable pointer is required so claimed activation
-     outranks the valid XDG convention path.
-5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-host-default
-   REPO only):
+     outranks the valid XDG convention path (Activate already confirmed Yes;
+     treat as intentional switch from that XDG profile), or
+   - `REPO` is `HOST_DEFAULT` and this process is inside Aside runtime —
+     host `$XDG_CONFIG_HOME` is not visible here; keep a durable pointer so a
+     later host session with a probe-passing XDG profile does not re-outrank.
+5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (when writing
+   pointers — includes host-default fallthrough from (4)):
    - Read one-line `current` if file exists.
    - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
      else `current_canon=""`.
@@ -137,5 +143,6 @@ agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
    > profile directory.
 
 Profile `scripts/install.sh` remains for **manual** Activate/switch outside
-this skill; the skill never shells it. Manual install also mirrors Aside
-runtime home when present (non-host-default paths only).
+this skill; the skill never shells it. Manual install mirrors Aside runtime
+home when present (always for non-host-default paths; also for host-default
+when a durable pointer is required — XDG outrank or Aside without host XDG).
