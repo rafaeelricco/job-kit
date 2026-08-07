@@ -11,6 +11,7 @@ Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
 | `data/sources.yaml` | groups → rows (name, url, access) |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`, `skills-by-company.yml` | card |
 | `data/profile_card.yaml` | card, when present — else derive in memory |
+| `data/search_packs.yaml` | deck: pack ids, `enabled`, tokens each pack needs |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
 An unreadable file → stop and name it.
@@ -27,9 +28,22 @@ job-scout Phase 0, so the two never disagree:
 `### Sources` third when `data/sources.yaml` is readable: one line per group in
 file order, then `name — url (access)` rows.
 
-Unknown value = `—`, never invented. `data/profile_card.yaml` present → its
-non-empty fields win; derive only what it leaves empty. Say which:
-`card: profile_card.yaml` or `card: derived`.
+`### Packs` fourth when `data/search_packs.yaml` is readable: `id · surface ·
+enabled|disabled · tokens`. Absent → one line saying job-scout will use the kit
+fallback deck; never print the fallback's contents as if they were the profile's.
+
+Unknown value = `—`, never invented. Card field rules:
+
+- **Always derive from current `job_search.yaml`** (never prefer the cache):
+  `primary_role` ← `positions[0]`; `seniority` ← `experience_level` true-keys
+  joined; `target_stack` ← `keywords.*` values, groups in file order. These change
+  via `set` without touching `profile_card.yaml`, so a cached value is stale.
+- **Other card fields** (`top_skills`, `industries`, `languages`, `summary`):
+  `data/profile_card.yaml` present → its non-empty fields win; derive only what
+  it leaves empty.
+
+Say which: `card: profile_card.yaml`, `card: derived`, or `card: hybrid`
+(cache present but at least one always-derived field came from facts).
 
 ## Gaps
 

@@ -37,6 +37,28 @@ A `keywords` group name becomes a `[skill:<group>]` token job-scout packs expand
 Renaming or deleting a group a pack names leaves an un-expandable token — say so in
 the same message as the diff; the user decides.
 
+After a yes that writes `positions`, any `keywords.*`, or `experience_level.*`: if
+`data/profile_card.yaml` exists, also clear `primary_role`, `seniority`, and
+`target_stack` in that file in the **same** confirm cycle (show them empty in the
+diff). `show` already re-derives those three from `job_search.yaml`; clearing
+keeps the cache from advertising stale values if read raw. Do not rewrite other
+card fields; do not invent a full refresh — that is `refresh-card`.
+
+## `search_packs.yaml` — writable
+
+- `list` — read-only. File order: `id · surface · enabled|disabled · tokens`.
+- `enable` / `disable` — flip `enabled` on a named `id`. No id match → say so.
+- `formulations` — replace the list on one pack with strings the user typed. Never
+  compose a formulation, never widen one, never look a term up. `< 3` formulations
+  → warn (contract-search requires ≥3), then let the user decide.
+- `add` / `remove` a pack — require `id`, `impl`, `surface`, `entry`, and ≥3
+  formulations from the user. `impl` must match a `surface-*.md` basename in the
+  installed job-scout skill; unknown stem → refuse, name the valid stems.
+- `max_parallel` / `extract_batch_size` — int, only when explicit.
+
+A `[skill:<group>]` token in a formulation whose group is absent from
+`job_search.yaml` is dropped at search time — say so alongside the diff.
+
 ## `sources.yaml` — writable
 
 - `list` — read-only. Groups in file order, then `name — url (access)`.
