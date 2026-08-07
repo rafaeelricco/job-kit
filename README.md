@@ -131,18 +131,21 @@ Skills resolve the active profile in this order:
 
 1. `$PROFILE_ROOT`, if that directory has `data/candidate.yaml` and
    `data/job_search.yaml`
-2. Default config dir: `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit` (same probe).
+2. `$HOME/.config/profile-root` (one absolute path line), same probe — explicit
+   Activate/install wins over path convention
+3. **Aside:** host home's `~/.config/profile-root` when dual-home applies
+4. Default config dir: `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit` (same probe).
    **Aside:** if `$HOME` is `…/.aside/runtime/home`, also probe the **host**
    home's same path under `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`
-3. Legacy `$HOME/.config/profile-root` (one absolute path line), same probe
-4. **Aside:** host home's legacy `~/.config/profile-root` when dual-home applies
 5. Walk the session CWD upward until both probe files exist
 6. Otherwise stop and name what was tried
 
-`/job-profile-init` **Activate** is how non-default durable pointers get set.
-Without the skill: create/move the tree to the default config dir, or run the
-**profile** checkout's `bash scripts/install.sh` for a non-default path (emitted
-under that profile — not a job-kit script).
+`/job-profile-init` **Activate** is how durable pointers get set (always for
+non-default paths; also when `XDG_CONFIG_HOME` makes the config dir differ from
+`$HOST_HOME/.config/job-kit`). Without the skill: create/move the tree to
+`$HOME/.config/job-kit`, or run the **profile** checkout's
+`bash scripts/install.sh` for a non-default path (emitted under that profile —
+not a job-kit script).
 
 | File                                                  | Who reads it                                     |
 | ----------------------------------------------------- | ------------------------------------------------ |

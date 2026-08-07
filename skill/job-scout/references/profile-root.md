@@ -11,13 +11,14 @@ for **this** process.
 
 ## Who writes pointers
 
-Default profile root is `JOB_KIT_CONFIG`
-(`${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`). Skills probe that path
-directly (step 2) — no pointer required.
+Host-default path-convention root is `$HOST_HOME/.config/job-kit`. Skills probe
+that path after any pointer (step 4) — no pointer required there.
 
-Non-default Activate / profile `scripts/install.sh` still write host
+Activate / profile `scripts/install.sh` write host
 `$HOST_HOME/.config/profile-root` and mirror into Aside runtime home when
-present (legacy steps 3–4).
+present for every other location (non-default checkout **or**
+`$XDG_CONFIG_HOME/job-kit` when that differs from the host default). Pointers
+are checked before the default dir so an activated non-default profile wins.
 
 ## HOST_HOME
 
@@ -29,13 +30,13 @@ env when set and absolute.
 1. Set `PROFILE_ROOT=/absolute/path/to/profile` for this Aside session (must pass probe
    **and** be readable inside Aside's FS sandbox).
 2. Grant Aside filesystem access to that profile directory (macOS sandbox).
-3. Prefer moving/creating the profile at `JOB_KIT_CONFIG` so step 2 resolves
-   without pointers. Else re-run `/job-profile-init` with Activate **Yes**
+3. Prefer moving/creating the profile at `$HOST_HOME/.config/job-kit` so step 4
+   resolves without pointers. Else re-run `/job-profile-init` with Activate **Yes**
    (or profile `scripts/install.sh`) so host + Aside-runtime pointer files
-   match the live non-default profile.
+   match the live profile (required for XDG-only or non-default paths).
 4. Do **not** tell operators that bare `bash scripts/install.sh` from Aside CWD alone
    fixes a missing host pointer without a real profile path.
 
 ## On STOP
 
-Name each attempt: env, default `JOB_KIT_CONFIG`, each pointer file + line, walk start.
+Name each attempt: env, each pointer file + line, default `JOB_KIT_CONFIG`, walk start.
