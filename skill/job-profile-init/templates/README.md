@@ -24,8 +24,18 @@ bash scripts/install.sh          # register (fails if another profile is active)
 bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
-Writes `~/.config/profile-root` to this directory so scout and apply resolve
-`data/*` correctly.
+Host-default `~/.config/job-kit` is always skill-probed. When no valid XDG
+`job-kit` would outrank it, `install.sh` registers by path convention and
+clears shadowing host/Aside pointers (use `--yes` to switch). If
+`$XDG_CONFIG_HOME/job-kit` already passes the probe, host-default install
+writes an overriding pointer (`--yes` required). Inside Aside without host
+XDG visible, host-default also writes a durable pointer. Installing any path
+while a different convention-active profile exists (host-default or XDG)
+requires `--yes`. From Aside without host XDG, free-slot installs always need
+`--yes`. Other locations write `~/.config/profile-root` and the Aside runtime
+mirror when present. `uninstall.sh` cannot deactivate host-default, this-env
+XDG, or (from Aside without XDG) logical `.../job-kit` paths (symlink-aware)
+while probe files remain; move the tree or activate another profile.
 
 ## Fill before a useful run
 

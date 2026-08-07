@@ -11,6 +11,16 @@ Usage: uninstall.sh [options]
 Options:
   -y, --yes   Skip confirmation.
   -h, --help  Show this help.
+
+Convention-probed checkouts stay active while probe files remain:
+  - $HOST_HOME/.config/job-kit (always probed; Aside often has no XDG)
+  - $XDG_CONFIG_HOME/job-kit when XDG_CONFIG_HOME is set in this shell
+  - when run inside Aside without XDG: any checkout reached via a logical
+    .../job-kit path (including symlinks whose canonical basename differs),
+    because host sessions may still select it via XDG after pointers clear
+This script only clears pointer files; it cannot deactivate those paths and
+exits non-zero. Move or remove the tree, or activate another profile with that
+checkout's install.sh --yes.
 EOF
 }
 
@@ -22,6 +32,35 @@ resolve_host_home() {
     *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
     *) printf '%s\n' "${HOME}" ;;
   esac
+}
+
+host_default_root() {
+  printf '%s/.config/job-kit\n' "$(resolve_host_home)"
+}
+
+job_kit_config() {
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
+  else
+    host_default_root
+  fi
+}
+
+paths_equal() {
+  local a="$1" b="$2"
+  [ "${a}" = "${b}" ] && return 0
+  if [ -d "${a}" ] && [ -d "${b}" ]; then
+    [ "$(cd "${a}" && pwd -P)" = "$(cd "${b}" && pwd -P)" ]
+    return $?
+  fi
+  return 1
+}
+
+# Two-file probe used by skill resolvers.
+passes_probe() {
+  local root="$1"
+  [ -d "${root}" ] || return 1
+  [ -f "${root}/data/candidate.yaml" ] && [ -f "${root}/data/job_search.yaml" ]
 }
 
 resolve_repo() {
@@ -40,6 +79,23 @@ resolve_repo() {
     exit 1
   }
   printf '%s\n' "${repo}"
+}
+
+# Logical (symlink-preserving) profile root from BASH_SOURCE. Used when Aside
+# cannot see host XDG: $XDG_CONFIG_HOME/job-kit may be a symlink whose
+# canonical basename is not job-kit after resolve_repo's pwd -P.
+resolve_repo_logical() {
+  local script source_dir repo
+  script="${BASH_SOURCE[0]}"
+  case "${script}" in /*) ;; *) script="$(pwd)/${script}" ;; esac
+  if ! source_dir="$(cd "$(dirname "${script}")" && pwd -L 2>/dev/null)"; then
+    source_dir="$(cd "$(dirname "${script}")" && pwd -P)"
+  fi
+  if repo="$(cd "${source_dir}/.." && pwd -L 2>/dev/null)"; then
+    printf '%s\n' "${repo}"
+  else
+    (cd "${source_dir}/.." && pwd -P)
+  fi
 }
 
 mirror_matches() {
@@ -70,7 +126,8 @@ confirm_unregister() {
 }
 
 main() {
-  local current current_canon pointer mirror
+  local current current_canon pointer mirror CONVENTION_ROOT HOST_DEFAULT
+  local is_convention=0 other_host
   assume_yes=0
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -82,9 +139,70 @@ main() {
   done
 
   REPO="$(resolve_repo)"
+  REPO_LOGICAL="$(resolve_repo_logical)"
   HOST_HOME="$(resolve_host_home)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
+  HOST_DEFAULT="$(host_default_root)"
+  CONVENTION_ROOT="$(job_kit_config)"
+
+  # Host-default is always skill-probed (Aside without XDG included). This-env
+  # JOB_KIT_CONFIG is also convention-probed. From Aside without host XDG visible,
+  # a logical .../job-kit path (including symlinks whose canonical basename
+  # differs after pwd -P) may still be host XDG convention.
+  if paths_equal "${REPO}" "${HOST_DEFAULT}" || paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
+    is_convention=1
+  fi
+  case "${HOME}" in
+    */.aside/runtime/home)
+      if [ -z "${XDG_CONFIG_HOME:-}" ] && [ "${is_convention}" -eq 0 ] && passes_probe "${REPO}"; then
+        if [ "$(basename "${REPO_LOGICAL}")" = "job-kit" ] || [ "$(basename "${REPO}")" = "job-kit" ]; then
+          is_convention=1
+        fi
+      fi
+      ;;
+  esac
+  if [ "${is_convention}" -eq 1 ]; then
+    other_host=0
+    if [ -f "${pointer}" ]; then
+      current="$(tr -d '\n' < "${pointer}")"
+      if [ -n "${current}" ] && [ -d "${current}" ]; then
+        current_canon="$(cd "${current}" && pwd -P)"
+      else
+        current_canon=""
+      fi
+      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ] && passes_probe "${current}"; then
+        other_host=1
+      fi
+    fi
+    # Aside reads runtime mirror ($HOME/.config/profile-root) before host pointer.
+    if mirror_matches "${mirror}"; then
+      if [ "${other_host}" -eq 1 ]; then
+        confirm_unregister "${mirror}"
+        rm -f "${mirror}"
+        echo "removed ${mirror}"
+        echo "not active: convention path ${REPO}; active host pointer profile: ${current}"
+        echo "Profile checkout preserved at ${REPO}"
+        exit 0
+      fi
+      echo "error: profile is active via Aside runtime mirror at ${REPO}" >&2
+      echo "  host pointer does not select another probe-passing profile" >&2
+      echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
+      exit 1
+    fi
+    if [ "${other_host}" -eq 1 ]; then
+      echo "not active: convention path ${REPO}; active pointer profile: ${current}"
+      echo "Profile checkout preserved at ${REPO}"
+      exit 0
+    fi
+    echo "error: profile is active by path convention at ${REPO}" >&2
+    echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
+    echo "  (host-default always; this-env XDG JOB_KIT_CONFIG; Aside without XDG also" >&2
+    echo "   treats logical/physical basename job-kit as potential host XDG convention)" >&2
+    echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
+    exit 1
+  fi
+
   if [ ! -f "${pointer}" ]; then
     if mirror_matches "${mirror}"; then
       confirm_unregister "${mirror}"

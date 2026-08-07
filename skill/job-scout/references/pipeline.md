@@ -20,7 +20,7 @@ Finds and reports jobs. Never acts on them. Done when the Report ships → **STO
 | `data/candidate.yaml`                                                            | salary, work auth, employment_routes, relocation                |
 | `data/job_search.yaml`                                                           | positions, keywords, filters, blacklists, apply_once_at_company |
 | `data/sources.yaml`                                                              | tiers, access, channels                                         |
-| `data/search_packs.yaml`, else `./references/search_packs.yaml`                  | every enabled pack, YAML order; whichever file wins, wins whole  |
+| `data/search_packs.yaml`, else `./references/search_packs.yaml`                  | every enabled pack, YAML order; whichever file wins, wins whole |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`, `skills-by-company.yml` | card                                                            |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
