@@ -107,7 +107,7 @@ confirm_unregister() {
 
 main() {
   local current current_canon pointer mirror CONVENTION_ROOT HOST_DEFAULT
-  local is_convention=0
+  local is_convention=0 other_host
   assume_yes=0
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -131,6 +131,7 @@ main() {
     is_convention=1
   fi
   if [ "${is_convention}" -eq 1 ]; then
+    other_host=0
     if [ -f "${pointer}" ]; then
       current="$(tr -d '\n' < "${pointer}")"
       if [ -n "${current}" ] && [ -d "${current}" ]; then
@@ -139,10 +140,28 @@ main() {
         current_canon=""
       fi
       if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ] && passes_probe "${current}"; then
-        echo "not active: convention path ${REPO}; active pointer profile: ${current}"
+        other_host=1
+      fi
+    fi
+    # Aside reads runtime mirror ($HOME/.config/profile-root) before host pointer.
+    if mirror_matches "${mirror}"; then
+      if [ "${other_host}" -eq 1 ]; then
+        confirm_unregister "${mirror}"
+        rm -f "${mirror}"
+        echo "removed ${mirror}"
+        echo "not active: convention path ${REPO}; active host pointer profile: ${current}"
         echo "Profile checkout preserved at ${REPO}"
         exit 0
       fi
+      echo "error: profile is active via Aside runtime mirror at ${REPO}" >&2
+      echo "  host pointer does not select another probe-passing profile" >&2
+      echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
+      exit 1
+    fi
+    if [ "${other_host}" -eq 1 ]; then
+      echo "not active: convention path ${REPO}; active pointer profile: ${current}"
+      echo "Profile checkout preserved at ${REPO}"
+      exit 0
     fi
     echo "error: profile is active by path convention at ${REPO}" >&2
     echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
