@@ -17,18 +17,21 @@ contains `data/candidate.yaml` and `data/job_search.yaml`. Unreadable dir
 candidate; try the next step. Do not invent a profile path.
 
 1. `$PROFILE_ROOT` if set and probe passes.
-2. **Default config dir:** `JOB_KIT_CONFIG` =
+2. File `$HOME/.config/profile-root` (one absolute path line); probe if non-empty.
+3. **Aside dual-home pointer:** if `$HOME` is exactly or ends with
+   `/.aside/runtime/home`, compute host `HOST_HOME` (strip suffix, else
+   `$HOST_HOME` env if absolute) and read `$HOST_HOME/.config/profile-root`;
+   probe when not already tried. Explicit Activate/install wins over path
+   convention so a non-default active profile is not shadowed by residual
+   files under the default config dir.
+4. **Default config dir:** `JOB_KIT_CONFIG` =
    non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`, else
-   `$HOME/.config/job-kit`; probe. **Aside dual-home:** if `$HOME` is exactly or
-   ends with `/.aside/runtime/home`, also compute host `HOST_HOME` (strip suffix,
-   else `$HOST_HOME` env if absolute) and probe
-   `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit` when that path differs.
-3. File `$HOME/.config/profile-root` (one absolute path line); probe if non-empty.
-4. **Aside dual-home legacy pointer:** with same `HOST_HOME` as step 2, read
-   `$HOST_HOME/.config/profile-root` and probe when not already tried.
+   `$HOME/.config/job-kit`; probe. **Aside dual-home:** with same `HOST_HOME`
+   as step 3, also probe `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`
+   when that path differs.
 5. Walk session CWD upward until probe passes.
-6. else STOP. Name each attempt (env, default config path, each pointer file +
-   line, walk start), then
+6. else STOP. Name each attempt (env, each pointer file + line, default config
+   path, walk start), then
    point at `job-profile-init` (**create new**, or **register existing** with
    Activate = Yes). Never scaffold a profile from here.
 

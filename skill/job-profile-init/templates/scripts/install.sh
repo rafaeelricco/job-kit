@@ -13,14 +13,16 @@ Options:
   -y, --yes   Overwrite a registration pointing at a different profile.
   -h, --help  Show this help.
 
-When this checkout is the default job-kit config dir
-(${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit), registration is path
-convention only — no pointer file. Otherwise writes ~/.config/profile-root
-with this checkout's absolute path.
+When this checkout is the host-default path-convention dir
+($HOST_HOME/.config/job-kit), registration is path convention only — no
+pointer file. XDG-only defaults ($XDG_CONFIG_HOME/job-kit when that differs)
+and every other path write ~/.config/profile-root so Aside (often without
+XDG_CONFIG_HOME) still finds the profile.
 Resolves the HOST home first: run inside Aside (HOME ending in
 /.aside/runtime/home) the pointer still lands on the real user home.
-Non-default: also mirrors into <host>/.aside/runtime/home/.config/profile-root
-when that Aside runtime home directory already exists.
+Non-host-default: also mirrors into
+<host>/.aside/runtime/home/.config/profile-root when that Aside runtime home
+directory already exists.
 EOF
 }
 
@@ -34,14 +36,10 @@ resolve_host_home() {
   esac
 }
 
-job_kit_config() {
-  local host_home
-  host_home="$(resolve_host_home)"
-  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
-    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
-  else
-    printf '%s/.config/job-kit\n' "${host_home}"
-  fi
+host_default_root() {
+  # Path-convention default shared with Aside when XDG is unset. XDG-only
+  # locations still need a pointer so Aside without XDG_CONFIG_HOME can resolve.
+  printf '%s/.config/job-kit\n' "$(resolve_host_home)"
 }
 
 write_pointer() {
@@ -127,11 +125,11 @@ main() {
     exit 1
   fi
 
-  DEFAULT_ROOT="$(job_kit_config)"
-  if [ "${REPO}" = "${DEFAULT_ROOT}" ] || {
-    [ -d "${DEFAULT_ROOT}" ] && [ "$(cd "${DEFAULT_ROOT}" && pwd -P)" = "${REPO}" ]
+  HOST_DEFAULT="$(host_default_root)"
+  if [ "${REPO}" = "${HOST_DEFAULT}" ] || {
+    [ -d "${HOST_DEFAULT}" ] && [ "$(cd "${HOST_DEFAULT}" && pwd -P)" = "${REPO}" ]
   }; then
-    echo "registered (default location): ${REPO}"
+    echo "registered (host-default location): ${REPO}"
     exit 0
   fi
 

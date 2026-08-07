@@ -13,21 +13,24 @@ Before offering the Route outcomes, read the machine pointer once. Reads are not
 writes; nothing is registered here.
 
 1. `HOST_HOME`: `$HOME` ending in `/.aside/runtime/home` → strip that suffix; else
-   `HOST_HOME=$HOME`.
-2. Compute `JOB_KIT_CONFIG`: non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`;
-   else `$HOST_HOME/.config/job-kit`. If that directory passes the two-file probe,
-   treat it as the already-active candidate (recommended).
-3. Else read the one line of `$HOST_HOME/.config/profile-root` when readable. Absent or
-   unreadable (sandbox `Operation not permitted`) → no existing root; continue
-   silently. An optional discovery never blocks Route.
+   `HOST_HOME=$HOME`. Compute `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and
+   `JOB_KIT_CONFIG`: non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`;
+   else `$HOST_DEFAULT`.
+2. Read the one line of `$HOST_HOME/.config/profile-root` when readable. Absent or
+   unreadable (sandbox `Operation not permitted`) → no pointer; continue.
+   An optional discovery never blocks Route.
    Line resolves to a directory passing the two-file probe → offer that path as the
-   **register existing** candidate, labelled already-active.
-4. Line resolves but fails the probe → say the pointer is **stale** and name it. Do
-   not offer it as a register-existing candidate; carry the fact into the Activate
-   ask, so the operator knows Yes replaces a stale pointer.
+   **register existing** candidate, labelled already-active (pointer wins over
+   path convention).
+3. Else if `JOB_KIT_CONFIG` passes the two-file probe, treat it as the
+   already-active candidate (recommended).
+4. Pointer line resolves but fails the probe → say the pointer is **stale** and
+   name it. Do not offer it as a register-existing candidate; carry the fact into
+   the Activate ask, so the operator knows Yes replaces a stale pointer.
 
 The discovered path is a recommendation, never a selection. No pointer file is
-written before SKILL step 4. Do not sweep the filesystem — this is one file read.
+written before SKILL step 4. Do not sweep the filesystem — pointer + default
+probes only.
 
 ## Route
 
@@ -66,20 +69,27 @@ is not yes.
 Example prompt:
 
 > Set `<target>` as the active Profile root on this machine? Scout/apply need
-> that so they find your facts. When `<target>` is the default `JOB_KIT_CONFIG`,
-> skills resolve it by path convention — no pointer file. Non-default paths write
-> host `~/.config/profile-root` and, if Aside is installed, a mirror under Aside's
+> that so they find your facts. When `<target>` is host-default
+> `$HOST_HOME/.config/job-kit`, skills resolve it by path convention — no
+> pointer file. XDG-only defaults and other paths write host
+> `~/.config/profile-root` and, if Aside is installed, a mirror under Aside's
 > runtime home. Optional session `PROFILE_ROOT` export for this coding agent only
 > (Aside does not inherit env).
 
-- **Yes (Recommended)** → step 4 will **Activate** (default-location confirm, or
-  host pointer + Aside mirror if non-default + session `PROFILE_ROOT` export when
-  possible).
-- **No** → step 4 skips Activate; residual explains how to Activate later.
+- **Yes (Recommended)** → step 4 will **Activate** (host-default confirm, or host
+  pointer + Aside mirror for every other path + session `PROFILE_ROOT` export
+  when possible).
+- **No** → step 4 skips Activate **only** when `<target>` is **not** a path that
+  skills probe by convention without a pointer. If `<target>` equals
+  `JOB_KIT_CONFIG` (or canonical-equals `HOST_DEFAULT`), **No is not allowed**:
+  presence of the two probe files would make the profile active immediately.
+  Re-offer: **Yes (Recommended)**, or pick a different absolute non-default
+  `<target>` and re-run Activate ask. Never emit under `JOB_KIT_CONFIG` after
+  an Activate refusal.
 
 Do not market this as “set env for Aside.” Aside does not inherit coding-agent
-env; durable effect is the default config path and/or pointer files (host +
-optional runtime mirror) for non-default roots.
+env; durable effect is host-default path convention and/or pointer files (host +
+optional runtime mirror).
 
 ## Source (create only)
 

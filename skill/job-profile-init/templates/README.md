@@ -24,9 +24,10 @@ bash scripts/install.sh          # register (fails if another profile is active)
 bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
-Default location is `${XDG_CONFIG_HOME:-~/.config}/job-kit` — skills find it
-by convention. This `install.sh` is a no-op register there. Non-default
-checkouts write `~/.config/profile-root` so scout/apply still resolve `data/*`.
+Host-default location is `~/.config/job-kit` — skills find it by path
+convention; `install.sh` is a no-op register there. XDG-only defaults and
+every other checkout write `~/.config/profile-root` (and the Aside runtime
+mirror when present) so scout/apply still resolve `data/*`.
 
 ## Fill before a useful run
 

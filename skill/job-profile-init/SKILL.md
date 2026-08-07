@@ -11,13 +11,14 @@ Do not copy job-scout or job-application skill trees into the profile.
 Outside `<target>`, this flow may write only Profile-root **pointer files**
 (host `~/.config/profile-root` and, when that tree already exists, Aside
 `$HOST_HOME/.aside/runtime/home/.config/profile-root`), and only via **Activate**
-after the operator's Yes — and only when `<target>` is **not** the default
-`JOB_KIT_CONFIG` (`${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`). Default
-location needs no pointer. Never run the profile's `scripts/install.sh` (may be
-missing or legacy). Session `export PROFILE_ROOT` is optional and not durable
-for Aside. Activating an existing profile is a valid outcome: pointer writes
-only (or default-location confirm), skip emit and fill. It is not an edit of
-that profile.
+after the operator's Yes — and only when `<target>` is **not** the host-default
+path-convention dir `$HOST_HOME/.config/job-kit`. That host default needs no
+pointer. An XDG-only `JOB_KIT_CONFIG` that differs still gets pointers so Aside
+without `XDG_CONFIG_HOME` can resolve it. Never run the profile's
+`scripts/install.sh` (may be missing or legacy). Session `export PROFILE_ROOT`
+is optional and not durable for Aside. Activating an existing profile is a
+valid outcome: pointer writes only (or host-default-location confirm), skip
+emit and fill. It is not an edit of that profile.
 
 Prefer harness plan/approval when present; else normal messages. Nothing is
 written until **Approve** (create path) or until Activate (register-only with
@@ -36,9 +37,15 @@ Yes).
    Missing or unreadable SoT → STOP; do not invent; do not claim a filled
    profile. Scaffold-only → skip fill; state shells-only.
 4. **Activate** Profile root for absolute `<target>` only if Activate ask was
-   **Yes**. If **No**, skip pointer writes (`./activate.md` 1–7); print
-   `./next-steps.md` filled per `./activate.md` step 8 with Activate skipped;
-   STOP. Do **not** run `"<target>/scripts/install.sh"`.
+   **Yes**. If **No**:
+   - If `<target>` equals `JOB_KIT_CONFIG` / host-default (path-convention
+     probe without pointer) → **do not emit and do not stop as success**. Intake
+     already forbids this; if reached here, STOP and re-run Activate ask or
+     choose a non-default target. Never leave probe files under a path that
+     auto-activates after an explicit refusal.
+   - Else skip pointer writes (`./activate.md` 1–7); print `./next-steps.md`
+     filled per `./activate.md` step 9 with Activate skipped; STOP.
+   Do **not** run `"<target>/scripts/install.sh"`.
    If **Yes**: obey `./activate.md` end-to-end (dual-home write + mirror
    rollback + next-steps placeholders including KIT_INSTALL resolve). Then STOP.
 
