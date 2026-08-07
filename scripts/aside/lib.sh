@@ -307,12 +307,18 @@ remove_legacy_user_skills() {
 
 # resolve_host_home
 # Prints the real user home: inside Aside, HOME is <host>/.aside/runtime/home,
-# and the pointer the skills read lives on the host.
+# and the pointer the skills read lives on the host. When HOME carries no such
+# suffix, an absolute HOST_HOME wins over HOME — same precedence the skills
+# resolve through (skill/job-scout/SKILL.md), so uninstall clears the pointer
+# a scout run would still have found.
 # Side effects: none.
 resolve_host_home() {
   local suffix="/.aside/runtime/home"
   case "${HOME}" in
-    *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
+    *"${suffix}") printf '%s\n' "${HOME%${suffix}}"; return ;;
+  esac
+  case "${HOST_HOME:-}" in
+    /*) printf '%s\n' "${HOST_HOME}" ;;
     *) printf '%s\n' "${HOME}" ;;
   esac
 }
