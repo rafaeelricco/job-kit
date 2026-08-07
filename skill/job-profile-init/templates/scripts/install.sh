@@ -13,17 +13,18 @@ Options:
   -y, --yes   Overwrite a registration pointing at a different profile.
   -h, --help  Show this help.
 
-When this checkout is the host-default path-convention dir
-($HOST_HOME/.config/job-kit), registration is path convention only — no
-pointer file. Any host/Aside pointer that still names another profile is
-removed (requires --yes when a different profile is registered) so resolve
-does not keep selecting the old root. XDG-only defaults
-($XDG_CONFIG_HOME/job-kit when that differs) and every other path write
-~/.config/profile-root so Aside (often without XDG_CONFIG_HOME) still finds
-the profile.
+Path-convention registration (no pointer file) applies only when this
+checkout is $HOST_HOME/.config/job-kit and that is also this environment's
+JOB_KIT_CONFIG (XDG unset, or XDG pointing at the same place). Any host/Aside
+pointer that still names another profile is removed (requires --yes) so resolve
+does not keep selecting the old root.
+
+When XDG_CONFIG_HOME hides $HOST_HOME/.config/job-kit, or the checkout is any
+other path (including $XDG_CONFIG_HOME/job-kit when that differs), this script
+writes ~/.config/profile-root so coding agents and Aside can still resolve it.
 Resolves the HOST home first: run inside Aside (HOME ending in
 /.aside/runtime/home) the pointer still lands on the real user home.
-Non-host-default: also mirrors into
+Non-convention paths also mirror into
 <host>/.aside/runtime/home/.config/profile-root when that Aside runtime home
 directory already exists.
 EOF
@@ -40,9 +41,28 @@ resolve_host_home() {
 }
 
 host_default_root() {
-  # Path-convention default shared with Aside when XDG is unset. XDG-only
-  # locations still need a pointer so Aside without XDG_CONFIG_HOME can resolve.
+  # Aside-visible default when XDG is unset.
   printf '%s/.config/job-kit\n' "$(resolve_host_home)"
+}
+
+job_kit_config() {
+  # Same path skills probe by convention in this process (step 4).
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
+  else
+    host_default_root
+  fi
+}
+
+paths_equal() {
+  # $1 and $2 — true when same path (string or pwd -P when both exist).
+  local a="$1" b="$2"
+  [ "${a}" = "${b}" ] && return 0
+  if [ -d "${a}" ] && [ -d "${b}" ]; then
+    [ "$(cd "${a}" && pwd -P)" = "$(cd "${b}" && pwd -P)" ]
+    return $?
+  fi
+  return 1
 }
 
 write_pointer() {
@@ -92,6 +112,50 @@ activate_pointers() {
   exit 1
 }
 
+# Remove host pointer + mirror together. On partial failure restore both.
+clear_pointers_atomic() {
+  local pointer="$1" mirror="$2"
+  local ptr_backup="" mir_backup="" had_pointer=0 had_mirror=0
+  if [ -f "${pointer}" ]; then
+    had_pointer=1
+    ptr_backup="$(mktemp)"
+    cp "${pointer}" "${ptr_backup}"
+  fi
+  if [ -f "${mirror}" ]; then
+    had_mirror=1
+    mir_backup="$(mktemp)"
+    cp "${mirror}" "${mir_backup}"
+  fi
+  if [ "${had_pointer}" -eq 1 ]; then
+    if ! rm -f "${pointer}"; then
+      [ -n "${ptr_backup}" ] && rm -f "${ptr_backup}"
+      [ -n "${mir_backup}" ] && rm -f "${mir_backup}"
+      echo "error: failed to remove ${pointer}" >&2
+      return 1
+    fi
+  fi
+  if [ "${had_mirror}" -eq 1 ]; then
+    if ! rm -f "${mirror}"; then
+      if [ "${had_pointer}" -eq 1 ] && [ -n "${ptr_backup}" ]; then
+        cp "${ptr_backup}" "${pointer}"
+      fi
+      [ -n "${ptr_backup}" ] && rm -f "${ptr_backup}"
+      [ -n "${mir_backup}" ] && rm -f "${mir_backup}"
+      echo "error: failed to remove ${mirror}; restored previous host pointer" >&2
+      return 1
+    fi
+  fi
+  [ -n "${ptr_backup}" ] && rm -f "${ptr_backup}"
+  [ -n "${mir_backup}" ] && rm -f "${mir_backup}"
+  if [ "${had_pointer}" -eq 1 ]; then
+    echo "removed ${pointer}"
+  fi
+  if [ "${had_mirror}" -eq 1 ]; then
+    echo "removed ${mirror}"
+  fi
+  return 0
+}
+
 resolve_repo() {
   local script source_dir repo
   script="${BASH_SOURCE[0]}"
@@ -112,7 +176,7 @@ resolve_repo() {
 
 main() {
   local assume_yes=0 current current_canon result pointer mirror
-  local shadow shadow_label mirror_line
+  local shadow shadow_label mirror_line HOST_DEFAULT CONVENTION_ROOT
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -130,13 +194,14 @@ main() {
   fi
 
   HOST_DEFAULT="$(host_default_root)"
+  CONVENTION_ROOT="$(job_kit_config)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
-  if [ "${REPO}" = "${HOST_DEFAULT}" ] || {
-    [ -d "${HOST_DEFAULT}" ] && [ "$(cd "${HOST_DEFAULT}" && pwd -P)" = "${REPO}" ]
-  }; then
-    # Path convention only — but clear any pointer/mirror that still names
-    # another profile, else resolve prefers that pointer over HOST_DEFAULT.
+
+  # Path-convention only when this checkout is host-default AND that path is
+  # what this environment probes without a pointer. If XDG_CONFIG_HOME points
+  # elsewhere, keep durable pointers so coding agents still resolve REPO.
+  if paths_equal "${REPO}" "${HOST_DEFAULT}" && paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
     shadow=""
     shadow_label=""
     if [ -f "${pointer}" ]; then
@@ -172,26 +237,21 @@ main() {
         echo "  use --yes to switch to host-default ${REPO} (clears shadowing pointers)" >&2
         exit 2
       fi
-      rm -f "${pointer}"
-      echo "removed ${pointer}"
-      if [ -f "${mirror}" ]; then
-        rm -f "${mirror}"
-        echo "removed ${mirror}"
-      fi
+      clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
       echo "switched: ${shadow} -> host-default ${REPO}"
       exit 0
     fi
-    # Optional cleanup: pointer/mirror naming this same host-default is redundant.
+    # Redundant pointer/mirror naming this same host-default.
     if [ -f "${pointer}" ]; then
       current="$(tr -d '\n' < "${pointer}")"
       if [ -n "${current}" ] && [ -d "${current}" ] && [ "$(cd "${current}" && pwd -P)" = "${REPO}" ]; then
-        rm -f "${pointer}"
-        echo "removed redundant ${pointer}"
+        clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
+        echo "registered (host-default location): ${REPO}"
+        exit 0
       fi
     fi
     if [ -f "${mirror}" ] && [ "$(tr -d '\n' < "${mirror}")" = "${REPO}" ]; then
-      rm -f "${mirror}"
-      echo "removed redundant ${mirror}"
+      clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
     fi
     echo "registered (host-default location): ${REPO}"
     exit 0
