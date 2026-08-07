@@ -179,6 +179,13 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 | `uninstall aside`     | `job-scout` + `job-application`                                               |
 | `uninstall agents`    | `job-profile-init` + `job-profile-config` kit links (+ legacy `profile-init`) |
 
+Every uninstall target also clears the Profile root pointer —
+`$HOST_HOME/.config/profile-root` and the Aside runtime mirror — when it names a
+profile checkout or a path that no longer exists. A pointer resolving to a
+directory without `data/candidate.yaml` is left alone. The profile checkout
+itself is never touched; re-register with its `bash scripts/install.sh`. Pass
+`--keep-pointer` to skip this step.
+
 Only kit-owned paths are removed (exact cache path match) — foreign skills stay.
 `uninstall agents` accepts the same `--skip-*` flags as install.
 
