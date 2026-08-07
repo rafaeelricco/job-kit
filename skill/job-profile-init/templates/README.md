@@ -24,8 +24,9 @@ bash scripts/install.sh          # register (fails if another profile is active)
 bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
-Writes `~/.config/profile-root` to this directory so scout and apply resolve
-`data/*` correctly.
+Default location is `${XDG_CONFIG_HOME:-~/.config}/job-kit` — skills find it
+by convention. This `install.sh` is a no-op register there. Non-default
+checkouts write `~/.config/profile-root` so scout/apply still resolve `data/*`.
 
 ## Fill before a useful run
 

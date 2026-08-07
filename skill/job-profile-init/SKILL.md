@@ -11,10 +11,13 @@ Do not copy job-scout or job-application skill trees into the profile.
 Outside `<target>`, this flow may write only Profile-root **pointer files**
 (host `~/.config/profile-root` and, when that tree already exists, Aside
 `$HOST_HOME/.aside/runtime/home/.config/profile-root`), and only via **Activate**
-after the operator's Yes. Never run the profile's `scripts/install.sh` (may be
+after the operator's Yes — and only when `<target>` is **not** the default
+`JOB_KIT_CONFIG` (`${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`). Default
+location needs no pointer. Never run the profile's `scripts/install.sh` (may be
 missing or legacy). Session `export PROFILE_ROOT` is optional and not durable
 for Aside. Activating an existing profile is a valid outcome: pointer writes
-only, skip emit and fill. It is not an edit of that profile.
+only (or default-location confirm), skip emit and fill. It is not an edit of
+that profile.
 
 Prefer harness plan/approval when present; else normal messages. Nothing is
 written until **Approve** (create path) or until Activate (register-only with

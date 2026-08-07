@@ -14,10 +14,13 @@ writes; nothing is registered here.
 
 1. `HOST_HOME`: `$HOME` ending in `/.aside/runtime/home` → strip that suffix; else
    `HOST_HOME=$HOME`.
-2. Read the one line of `$HOST_HOME/.config/profile-root` when readable. Absent or
+2. Compute `JOB_KIT_CONFIG`: non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`;
+   else `$HOST_HOME/.config/job-kit`. If that directory passes the two-file probe,
+   treat it as the already-active candidate (recommended).
+3. Else read the one line of `$HOST_HOME/.config/profile-root` when readable. Absent or
    unreadable (sandbox `Operation not permitted`) → no existing root; continue
    silently. An optional discovery never blocks Route.
-3. Line resolves to a directory passing the two-file probe → offer that path as the
+   Line resolves to a directory passing the two-file probe → offer that path as the
    **register existing** candidate, labelled already-active.
 4. Line resolves but fails the probe → say the pointer is **stale** and name it. Do
    not offer it as a register-existing candidate; carry the fact into the Activate
@@ -41,14 +44,15 @@ Two outcomes; offer both.
 
 ## Folder (create only)
 
-Parent directory + profile folder name → absolute `<target>`.
+Absolute `<target>` for the profile tree.
 
-- Recommend parent from session working directory, its parent, and the parent of
-  any existing profile already found this session. Assume no layout convention.
-- Propose a folder slug matching sibling naming in that parent; operator may
-  rename. Do not treat the slug as display name (identity comes later).
+- **Default (Recommended):** `JOB_KIT_CONFIG` from pre-discovery
+  (`${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`). Single-profile layout:
+  `data/`, `cv/`, `scripts/` live directly under that path.
+- Operator may override with another absolute path (migration / advanced).
 - `<target>` must be absolute and must not exist or be an empty directory. Test
   before offering — never offer a path this law would refuse. Else STOP.
+- Do not treat the directory basename as display name (identity comes later).
 
 After `<target>` is accepted: run **Activate ask** (below). Answer is stored for
 SKILL step 4 after emit/fill — do not write pointer files before Approve/emit.
@@ -62,16 +66,20 @@ is not yes.
 Example prompt:
 
 > Set `<target>` as the active Profile root on this machine? Scout/apply need
-> that so they find your facts. Durable: host `~/.config/profile-root` and, if
-> Aside is installed, a mirror under Aside's runtime home. Optional session
-> `PROFILE_ROOT` export for this coding agent only (Aside does not inherit env).
+> that so they find your facts. When `<target>` is the default `JOB_KIT_CONFIG`,
+> skills resolve it by path convention — no pointer file. Non-default paths write
+> host `~/.config/profile-root` and, if Aside is installed, a mirror under Aside's
+> runtime home. Optional session `PROFILE_ROOT` export for this coding agent only
+> (Aside does not inherit env).
 
-- **Yes (Recommended)** → step 4 will **Activate** (host pointer + Aside mirror
-  if present + session `PROFILE_ROOT` export when possible).
+- **Yes (Recommended)** → step 4 will **Activate** (default-location confirm, or
+  host pointer + Aside mirror if non-default + session `PROFILE_ROOT` export when
+  possible).
 - **No** → step 4 skips Activate; residual explains how to Activate later.
 
 Do not market this as “set env for Aside.” Aside does not inherit coding-agent
-env; Activate's durable effect is pointer files (host + optional runtime mirror).
+env; durable effect is the default config path and/or pointer files (host +
+optional runtime mirror) for non-default roots.
 
 ## Source (create only)
 

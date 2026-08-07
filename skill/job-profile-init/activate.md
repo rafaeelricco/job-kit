@@ -6,48 +6,55 @@
    emit (and fill unless scaffold-only) so probes exist.
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
-4. Host pointer conflict on `$HOST_HOME/.config/profile-root`:
+4. Resolve `JOB_KIT_CONFIG`: non-empty `$XDG_CONFIG_HOME` →
+   `$XDG_CONFIG_HOME/job-kit`; else `$HOST_HOME/.config/job-kit`.
+   If `REPO` equals `JOB_KIT_CONFIG` (after `pwd -P` on both when the config
+   dir exists, else string-equal on canonical `REPO` vs computed path):
+   skip pointer writes (6–7); state default-location active; go to (8).
+5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-default REPO
+   only):
    - Read one-line `current` if file exists.
    - If `current` is a directory, `current_canon="$(cd "$current" && pwd -P)"`;
      else `current_canon=""`.
    - `current_canon` equals `REPO` → if stored `current` differs from `REPO`,
-     rewrite host to canonical `REPO`. Then run (6) **unconditionally** — the
+     rewrite host to canonical `REPO`. Then run (7) **unconditionally** — the
      runtime home may have appeared after the host write, or hold a stale line,
      and `job-scout` reads the mirror before the host pointer. State already
-     active; go to (8).
+     active; go to (9).
    - `current_canon` non-empty and not `REPO` → show `current_canon`; ask
-     whether to switch to `REPO`. Yes → continue to (5). No → leave inactive;
-     print later Activate hint; go to (8).
+     whether to switch to `REPO`. Yes → continue to (6). No → leave inactive;
+     print later Activate hint; go to (9).
    - `current_canon` empty but `current` non-empty → the pointer names a path
      this process cannot traverse (e.g. a live profile under an Aside-blocked
      parent). Treat it as a conflict, **not** a free slot: show `current`, say
      it could not be resolved, ask the same switch question, same Yes/No
      handling. Only an absent or empty pointer line skips the ask.
-5. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
+6. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
    `REPO` into `$HOST_HOME/.config/profile-root`.
-6. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
+7. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
    `.config` and write the same one-line `REPO` into
    `$HOST_HOME/.aside/runtime/home/.config/profile-root`. If runtime home
    missing, skip mirror; state skip. This is how Aside sandbox `$HOME` sees
    the pointer without inheriting coding-agent env.
-   If the mirror write fails (read-only, full disk), **roll (5) back** —
+   If the mirror write fails (read-only, full disk), **roll (6) back** —
    restore the host pointer's previous contents, or remove it when it did not
    exist — then STOP with the error. Never leave agents on the new profile
    while Aside still resolves the old one through a stale mirror.
-7. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
+8. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
    equivalent). State whether export ran. **Aside will not see this export** —
-   host pointer + dual-home read + runtime mirror cover Aside.
-8. Print `./next-steps.md` with placeholders filled, then STOP:
+   default config-path probe + dual-home read + (for non-default) host pointer
+   and runtime mirror cover Aside.
+9. Print `./next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, including
      skipped **scout-critical** blockers (not optional/screening shells).
      **Scaffold-only: print the `./emit-tree.md` unfilled inventory, never
      `none`** — that inventory is scout-critical only; a scout run against
      placeholders would search for `TODO-skill`. `none` is correct only for
      register-existing, where this flow wrote no tree.
-   - `{{ACTIVATE_NOTE}}` — if Activate ran: host path written, mirror yes/no,
-     session export yes/no. If skipped: how to Activate later (register-existing
-     with Yes, or `bash "<target>/scripts/install.sh"` — mirrors Aside when
-     runtime home exists).
+   - `{{ACTIVATE_NOTE}}` — if Activate ran: default-location active, **or** host
+     path written + mirror yes/no; session export yes/no. If skipped: how to
+     Activate later (register-existing with Yes, or `bash "<target>/scripts/install.sh"`
+     for non-default paths — mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
      Never print bare `bash scripts/agents/install.sh` or
      `bash scripts/aside/install.sh` without an absolute kit root or the
@@ -108,4 +115,4 @@ agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
 
 Profile `scripts/install.sh` remains for **manual** Activate/switch outside
 this skill; the skill never shells it. Manual install also mirrors Aside
-runtime home when present.
+runtime home when present (non-default paths only).
