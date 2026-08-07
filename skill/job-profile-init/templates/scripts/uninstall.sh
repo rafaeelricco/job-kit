@@ -15,6 +15,8 @@ Options:
 Convention-probed checkouts stay active while probe files remain:
   - $HOST_HOME/.config/job-kit (always probed; Aside often has no XDG)
   - $XDG_CONFIG_HOME/job-kit when XDG_CONFIG_HOME is set in this shell
+  - any .../job-kit checkout when run inside Aside without XDG (host may still
+    select it via host XDG_CONFIG_HOME/job-kit after pointers are cleared)
 This script only clears pointer files; it cannot deactivate those paths and
 exits non-zero. Move or remove the tree, or activate another profile with that
 checkout's install.sh --yes.
@@ -126,10 +128,21 @@ main() {
   CONVENTION_ROOT="$(job_kit_config)"
 
   # Host-default is always skill-probed (Aside without XDG included). This-env
-  # JOB_KIT_CONFIG is also convention-probed. Refuse when either matches.
+  # JOB_KIT_CONFIG is also convention-probed. From Aside without host XDG visible,
+  # a checkout whose basename is job-kit may still be host XDG convention
+  # ($XDG_CONFIG_HOME/job-kit) even though CONVENTION_ROOT collapsed to host-default.
   if paths_equal "${REPO}" "${HOST_DEFAULT}" || paths_equal "${REPO}" "${CONVENTION_ROOT}"; then
     is_convention=1
   fi
+  case "${HOME}" in
+    */.aside/runtime/home)
+      if [ -z "${XDG_CONFIG_HOME:-}" ] && [ "${is_convention}" -eq 0 ]; then
+        if [ "$(basename "${REPO}")" = "job-kit" ] && passes_probe "${REPO}"; then
+          is_convention=1
+        fi
+      fi
+      ;;
+  esac
   if [ "${is_convention}" -eq 1 ]; then
     other_host=0
     if [ -f "${pointer}" ]; then
@@ -165,7 +178,8 @@ main() {
     fi
     echo "error: profile is active by path convention at ${REPO}" >&2
     echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
-    echo "  (host-default is always probed; XDG JOB_KIT_CONFIG is probed in this env)" >&2
+    echo "  (host-default always; this-env XDG JOB_KIT_CONFIG; Aside without XDG also" >&2
+    echo "   treats basename job-kit as potential host XDG convention)" >&2
     echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
     exit 1
   fi
