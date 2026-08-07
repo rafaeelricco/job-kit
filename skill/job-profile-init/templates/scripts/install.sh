@@ -24,6 +24,8 @@ session with a probe-passing XDG profile cannot re-outrank. Any host/Aside
 pointer that still names another profile is removed (requires --yes).
 Plain install also requires --yes when a different profile is already active
 by path convention (host-default and/or this-env XDG) with no pointer file.
+From Aside without host XDG visible, free-slot pointer writes always require
+--yes (host XDG may be active but unobservable here).
 
 Every other path (including $XDG_CONFIG_HOME/job-kit when that differs) writes
 ~/.config/profile-root so coding agents and Aside can still resolve it.
@@ -369,6 +371,8 @@ main() {
   # Free host pointer (absent/empty) and no mirror conflict: still may override
   # a convention-active profile (XDG and/or host-default). Match resolve order
   # step 4: XDG JOB_KIT_CONFIG first when it differs and probes, else host-default.
+  # From Aside without XDG, host XDG is unobservable — require --yes before any
+  # free-slot durable pointer write (may silently switch the next host session).
   if [ -z "${current_canon}" ] && [ -z "${current}" ] && [ -z "${mirror_shadow}" ]; then
     convention_active=""
     if ! paths_equal "${CONVENTION_ROOT}" "${HOST_DEFAULT}" && passes_probe "${CONVENTION_ROOT}"; then
@@ -376,7 +380,20 @@ main() {
     elif passes_probe "${HOST_DEFAULT}"; then
       convention_active="${HOST_DEFAULT}"
     fi
-    if [ -n "${convention_active}" ] && ! paths_equal "${REPO}" "${convention_active}"; then
+    if [ "${aside_unknown_xdg}" -eq 1 ]; then
+      if [ "${assume_yes}" -ne 1 ]; then
+        echo "error: host XDG cannot be observed from Aside; free-slot install may switch a host XDG profile" >&2
+        echo "  use --yes to write pointer for ${REPO}" >&2
+        exit 2
+      fi
+      if [ "${result}" = "registered: ${REPO}" ]; then
+        if [ -n "${convention_active}" ] && ! paths_equal "${REPO}" "${convention_active}"; then
+          result="switched: ${convention_active} (path convention) -> ${REPO}"
+        else
+          result="registered: ${REPO} (--yes; host XDG unknown from Aside)"
+        fi
+      fi
+    elif [ -n "${convention_active}" ] && ! paths_equal "${REPO}" "${convention_active}"; then
       if [ "${assume_yes}" -ne 1 ]; then
         echo "error: profile root already active via path convention: ${convention_active}" >&2
         echo "  use --yes to switch to ${REPO} (writes overriding pointer)" >&2

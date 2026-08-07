@@ -31,10 +31,11 @@ clears shadowing host/Aside pointers (use `--yes` to switch). If
 writes an overriding pointer (`--yes` required). Inside Aside without host
 XDG visible, host-default also writes a durable pointer. Installing any path
 while a different convention-active profile exists (host-default or XDG)
-requires `--yes`. Other locations write `~/.config/profile-root` and the Aside
-runtime mirror when present. `uninstall.sh` cannot deactivate host-default,
-this-env XDG, or (from Aside without XDG) basename-`job-kit` potential host
-XDG paths while probe files remain; move the tree or activate another profile.
+requires `--yes`. From Aside without host XDG, free-slot installs always need
+`--yes`. Other locations write `~/.config/profile-root` and the Aside runtime
+mirror when present. `uninstall.sh` cannot deactivate host-default, this-env
+XDG, or (from Aside without XDG) logical `.../job-kit` paths (symlink-aware)
+while probe files remain; move the tree or activate another profile.
 
 ## Fill before a useful run
 
