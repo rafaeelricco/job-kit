@@ -13,11 +13,14 @@ Options:
   -y, --yes   Overwrite a registration pointing at a different profile.
   -h, --help  Show this help.
 
-Writes ~/.config/profile-root with this checkout's absolute path.
+When this checkout is the default job-kit config dir
+(${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit), registration is path
+convention only — no pointer file. Otherwise writes ~/.config/profile-root
+with this checkout's absolute path.
 Resolves the HOST home first: run inside Aside (HOME ending in
 /.aside/runtime/home) the pointer still lands on the real user home.
-Also mirrors into <host>/.aside/runtime/home/.config/profile-root when that
-Aside runtime home directory already exists.
+Non-default: also mirrors into <host>/.aside/runtime/home/.config/profile-root
+when that Aside runtime home directory already exists.
 EOF
 }
 
@@ -29,6 +32,16 @@ resolve_host_home() {
     *"${suffix}") printf '%s\n' "${HOME%${suffix}}" ;;
     *) printf '%s\n' "${HOME}" ;;
   esac
+}
+
+job_kit_config() {
+  local host_home
+  host_home="$(resolve_host_home)"
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
+  else
+    printf '%s/.config/job-kit\n' "${host_home}"
+  fi
 }
 
 write_pointer() {
@@ -112,6 +125,14 @@ main() {
   if [ ! -f "${REPO}/data/candidate.yaml" ] || [ ! -f "${REPO}/data/job_search.yaml" ]; then
     echo "error: missing data/candidate.yaml or data/job_search.yaml under ${REPO}" >&2
     exit 1
+  fi
+
+  DEFAULT_ROOT="$(job_kit_config)"
+  if [ "${REPO}" = "${DEFAULT_ROOT}" ] || {
+    [ -d "${DEFAULT_ROOT}" ] && [ "$(cd "${DEFAULT_ROOT}" && pwd -P)" = "${REPO}" ]
+  }; then
+    echo "registered (default location): ${REPO}"
+    exit 0
   fi
 
   result="registered: ${REPO}"
