@@ -11,6 +11,12 @@ Usage: uninstall.sh [options]
 Options:
   -y, --yes   Skip confirmation.
   -h, --help  Show this help.
+
+Host-default checkouts ($HOST_HOME/.config/job-kit) stay active by path
+convention while probe files remain. This script only clears pointer files; it
+cannot deactivate a host-default profile and exits non-zero in that case.
+Move or remove the tree, or activate another profile with that checkout's
+install.sh --yes.
 EOF
 }
 
@@ -96,16 +102,33 @@ main() {
   }; then
     is_host_default=1
   fi
+  # Host-default stays active by path convention while probe files remain.
+  # Pointer clears alone never unregister it — refuse rather than claim success.
+  if [ "${is_host_default}" -eq 1 ]; then
+    if [ -f "${pointer}" ]; then
+      current="$(tr -d '\n' < "${pointer}")"
+      if [ -n "${current}" ] && [ -d "${current}" ]; then
+        current_canon="$(cd "${current}" && pwd -P)"
+      else
+        current_canon=""
+      fi
+      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ]; then
+        echo "not active: host-default ${REPO}; pointer points elsewhere: ${current}"
+        echo "Profile checkout preserved at ${REPO}"
+        exit 0
+      fi
+    fi
+    echo "error: host-default profile is active by path convention at ${REPO}" >&2
+    echo "  uninstall only clears pointer files; probe files still resolve as Profile root" >&2
+    echo "  move or remove the tree, or activate another profile with that checkout's install.sh --yes" >&2
+    exit 1
+  fi
+
   if [ ! -f "${pointer}" ]; then
     if mirror_matches "${mirror}"; then
       confirm_unregister "${mirror}"
       rm -f "${mirror}"
       echo "removed ${mirror}"
-      echo "Profile checkout preserved at ${REPO}"
-      exit 0
-    fi
-    if [ "${is_host_default}" -eq 1 ]; then
-      echo "already unregistered: host-default location has no pointer (${REPO})"
       echo "Profile checkout preserved at ${REPO}"
       exit 0
     fi
@@ -119,11 +142,6 @@ main() {
     current_canon=""
   fi
   if [ "${current_canon}" != "${REPO}" ]; then
-    if [ "${is_host_default}" -eq 1 ]; then
-      echo "already unregistered: host-default location; pointer points elsewhere: ${current}"
-      echo "Profile checkout preserved at ${REPO}"
-      exit 0
-    fi
     echo "error: profile-root points elsewhere: ${current}" >&2
     echo "  this checkout: ${REPO}" >&2
     exit 1

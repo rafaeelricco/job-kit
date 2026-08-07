@@ -9,11 +9,23 @@
 4. Resolve host-default path-convention root `HOST_DEFAULT` =
    `$HOST_HOME/.config/job-kit` (always — not XDG). If `REPO` equals
    `HOST_DEFAULT` (after `pwd -P` on both when the dir exists, else
-   string-equal on canonical `REPO` vs computed path): skip pointer writes
-   (6–7); state host-default-location active; go to (8).
-   **Do not** skip when `REPO` is only `$XDG_CONFIG_HOME/job-kit` and that
-   path differs from `HOST_DEFAULT` — Aside often lacks `XDG_CONFIG_HOME` and
-   would miss the profile without a durable pointer/mirror.
+   string-equal on canonical `REPO` vs computed path):
+   - **Do not write** a host/Aside pointer naming `REPO` (path convention).
+   - **Do clear** any shadowing registration so resolve cannot keep selecting
+     another root: read `$HOST_HOME/.config/profile-root` and, when the runtime
+     home exists, `$HOST_HOME/.aside/runtime/home/.config/profile-root`.
+   - Host or mirror line non-empty and resolves to a path other than `REPO`
+     (or is unresolvable non-empty) → show that path; ask whether to switch to
+     host-default `REPO`. Yes → **delete** host pointer and mirror (do not
+     rewrite them to `REPO`); state switched to host-default; go to (8). No →
+     leave inactive; print later Activate hint; go to (9).
+   - No shadowing line (absent/empty, or already `REPO`) → remove any redundant
+     pointer/mirror that names `REPO` itself; state host-default-location
+     active; go to (8).
+   **Do not** take this branch when `REPO` is only `$XDG_CONFIG_HOME/job-kit`
+   and that path differs from `HOST_DEFAULT` — Aside often lacks
+   `XDG_CONFIG_HOME` and would miss the profile without a durable
+   pointer/mirror; continue at (5).
 5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-host-default
    REPO only):
    - Read one-line `current` if file exists.
