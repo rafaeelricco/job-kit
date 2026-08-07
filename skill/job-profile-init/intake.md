@@ -69,16 +69,17 @@ is not yes.
 Example prompt:
 
 > Set `<target>` as the active Profile root on this machine? Scout/apply need
-> that so they find your facts. When `<target>` is host-default
-> `$HOST_HOME/.config/job-kit`, skills resolve it by path convention — no
-> pointer file. XDG-only defaults and other paths write host
+> that so they find your facts. Host-default `$HOST_HOME/.config/job-kit` is
+> path-convention only when no valid XDG profile would outrank it; otherwise
+> Activate writes a durable pointer (also from Aside when host XDG is not
+> visible). XDG-only defaults and other paths always write host
 > `~/.config/profile-root` and, if Aside is installed, a mirror under Aside's
 > runtime home. Optional session `PROFILE_ROOT` export for this coding agent only
 > (Aside does not inherit env).
 
-- **Yes (Recommended)** → step 4 will **Activate** (host-default confirm, or host
-  pointer + Aside mirror for every other path + session `PROFILE_ROOT` export
-  when possible).
+- **Yes (Recommended)** → step 4 will **Activate** (host-default pure-convention
+  confirm, or host pointer + Aside mirror when required + session `PROFILE_ROOT`
+  export when possible).
 - **No** → step 4 skips Activate **only** when `<target>` is **not** a path that
   skills probe by convention without a pointer. If `<target>` equals
   `JOB_KIT_CONFIG` (or canonical-equals `HOST_DEFAULT`), **No is not allowed**:

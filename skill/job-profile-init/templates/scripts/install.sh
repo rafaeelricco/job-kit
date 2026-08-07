@@ -15,10 +15,13 @@ Options:
 
 When this checkout is the host-default path-convention dir
 ($HOST_HOME/.config/job-kit) and no valid XDG job-kit profile would outrank
-it, registration is path convention only — no pointer file. If
-$XDG_CONFIG_HOME/job-kit already passes the probe, a durable pointer is
-written so activation outranks that XDG path. Any host/Aside pointer that
-still names another profile is removed (requires --yes).
+it (and this process can observe host XDG), registration is path convention
+only — no pointer file. If $XDG_CONFIG_HOME/job-kit already passes the probe,
+a durable pointer is written so activation outranks that XDG path (requires
+--yes; it is an active-profile switch). When run inside Aside without host
+XDG visible, host-default always writes a durable pointer so a later host
+session with a probe-passing XDG profile cannot re-outrank. Any host/Aside
+pointer that still names another profile is removed (requires --yes).
 
 Every other path (including $XDG_CONFIG_HOME/job-kit when that differs) writes
 ~/.config/profile-root so coding agents and Aside can still resolve it.
@@ -204,13 +207,19 @@ main() {
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
 
-  # Path-convention for host-default only when no valid XDG convention profile
-  # would outrank it (resolve probes XDG JOB_KIT_CONFIG before host-default).
-  # If XDG job-kit already passes the probe, write a pointer so activation wins.
+  # Host-default: pure path-convention only when (a) this process can observe
+  # host XDG and (b) no valid XDG convention profile would outrank it.
+  # Otherwise write a durable pointer (XDG outrank and/or Aside without host XDG).
+  local xdg_outrank=0 aside_unknown_xdg=0
+  case "${HOME}" in
+    */.aside/runtime/home) aside_unknown_xdg=1 ;;
+  esac
+  if ! paths_equal "${CONVENTION_ROOT}" "${HOST_DEFAULT}" && passes_probe "${CONVENTION_ROOT}"; then
+    xdg_outrank=1
+  fi
+
   if paths_equal "${REPO}" "${HOST_DEFAULT}"; then
-    if ! paths_equal "${CONVENTION_ROOT}" "${HOST_DEFAULT}" && passes_probe "${CONVENTION_ROOT}"; then
-      : # fall through to pointer write so host-default outranks XDG
-    else
+    if [ "${xdg_outrank}" -eq 0 ] && [ "${aside_unknown_xdg}" -eq 0 ]; then
       shadow=""
       shadow_label=""
       if [ -f "${pointer}" ]; then
@@ -265,6 +274,7 @@ main() {
       echo "registered (host-default location): ${REPO}"
       exit 0
     fi
+    # Fall through: durable pointer required (XDG outrank and/or Aside).
   fi
 
   result="registered: ${REPO}"
@@ -307,6 +317,16 @@ main() {
         echo "  use --yes to switch to ${REPO}" >&2
         exit 2
       fi
+    fi
+  elif [ "${xdg_outrank}" -eq 1 ] && paths_equal "${REPO}" "${HOST_DEFAULT}"; then
+    # No host pointer, but resolvers currently select probe-passing XDG before
+    # host-default. Writing the override is an active-profile switch.
+    if [ "${assume_yes}" -eq 1 ]; then
+      result="switched: ${CONVENTION_ROOT} (XDG convention) -> ${REPO}"
+    else
+      echo "error: profile root already active via XDG convention: ${CONVENTION_ROOT}" >&2
+      echo "  use --yes to switch to host-default ${REPO} (writes overriding pointer)" >&2
+      exit 2
     fi
   fi
 
