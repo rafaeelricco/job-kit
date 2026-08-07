@@ -14,11 +14,11 @@ Options:
   -h, --help  Show this help.
 
 When this checkout is the host-default path-convention dir
-($HOST_HOME/.config/job-kit), registration is path convention only — no
-pointer file. Skills always probe that path, so Aside (no XDG) and coding
-agents (may set XDG) both find it. Any host/Aside pointer that still names
-another profile is removed (requires --yes) so resolve does not keep selecting
-the old root.
+($HOST_HOME/.config/job-kit) and no valid XDG job-kit profile would outrank
+it, registration is path convention only — no pointer file. If
+$XDG_CONFIG_HOME/job-kit already passes the probe, a durable pointer is
+written so activation outranks that XDG path. Any host/Aside pointer that
+still names another profile is removed (requires --yes).
 
 Every other path (including $XDG_CONFIG_HOME/job-kit when that differs) writes
 ~/.config/profile-root so coding agents and Aside can still resolve it.
@@ -63,6 +63,12 @@ paths_equal() {
     return $?
   fi
   return 1
+}
+
+passes_probe() {
+  local root="$1"
+  [ -d "${root}" ] || return 1
+  [ -f "${root}/data/candidate.yaml" ] && [ -f "${root}/data/job_search.yaml" ]
 }
 
 write_pointer() {
@@ -176,7 +182,7 @@ resolve_repo() {
 
 main() {
   local assume_yes=0 current current_canon result pointer mirror
-  local shadow shadow_label mirror_line HOST_DEFAULT
+  local shadow shadow_label mirror_line HOST_DEFAULT CONVENTION_ROOT
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -y|--yes) assume_yes=1 ;;
@@ -194,65 +200,71 @@ main() {
   fi
 
   HOST_DEFAULT="$(host_default_root)"
+  CONVENTION_ROOT="$(job_kit_config)"
   pointer="${HOST_HOME}/.config/profile-root"
   mirror="${HOST_HOME}/.aside/runtime/home/.config/profile-root"
 
-  # Path-convention: host-default is always probed by skills (after any XDG
-  # candidate). Safe from Aside or host even when the other env sets XDG.
+  # Path-convention for host-default only when no valid XDG convention profile
+  # would outrank it (resolve probes XDG JOB_KIT_CONFIG before host-default).
+  # If XDG job-kit already passes the probe, write a pointer so activation wins.
   if paths_equal "${REPO}" "${HOST_DEFAULT}"; then
-    shadow=""
-    shadow_label=""
-    if [ -f "${pointer}" ]; then
-      current="$(tr -d '\n' < "${pointer}")"
-      if [ -n "${current}" ] && [ -d "${current}" ]; then
-        current_canon="$(cd "${current}" && pwd -P)"
-      else
-        current_canon=""
-      fi
-      if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ]; then
-        if [ -n "${current_canon}" ]; then
-          shadow="${current_canon}"
+    if ! paths_equal "${CONVENTION_ROOT}" "${HOST_DEFAULT}" && passes_probe "${CONVENTION_ROOT}"; then
+      : # fall through to pointer write so host-default outranks XDG
+    else
+      shadow=""
+      shadow_label=""
+      if [ -f "${pointer}" ]; then
+        current="$(tr -d '\n' < "${pointer}")"
+        if [ -n "${current}" ] && [ -d "${current}" ]; then
+          current_canon="$(cd "${current}" && pwd -P)"
         else
-          shadow="${current}"
+          current_canon=""
         fi
-        shadow_label="host pointer"
-      fi
-    fi
-    if [ -z "${shadow}" ] && [ -f "${mirror}" ]; then
-      mirror_line="$(tr -d '\n' < "${mirror}")"
-      if [ -n "${mirror_line}" ] && [ "${mirror_line}" != "${REPO}" ]; then
-        if [ -d "${mirror_line}" ]; then
-          shadow="$(cd "${mirror_line}" && pwd -P)"
-        else
-          shadow="${mirror_line}"
+        if [ -n "${current}" ] && [ "${current_canon}" != "${REPO}" ]; then
+          if [ -n "${current_canon}" ]; then
+            shadow="${current_canon}"
+          else
+            shadow="${current}"
+          fi
+          shadow_label="host pointer"
         fi
-        shadow_label="Aside runtime mirror"
       fi
-    fi
-    if [ -n "${shadow}" ]; then
-      if [ "${assume_yes}" -ne 1 ]; then
-        echo "error: profile root already registered: ${shadow} (${shadow_label})" >&2
-        echo "  use --yes to switch to host-default ${REPO} (clears shadowing pointers)" >&2
-        exit 2
+      if [ -z "${shadow}" ] && [ -f "${mirror}" ]; then
+        mirror_line="$(tr -d '\n' < "${mirror}")"
+        if [ -n "${mirror_line}" ] && [ "${mirror_line}" != "${REPO}" ]; then
+          if [ -d "${mirror_line}" ]; then
+            shadow="$(cd "${mirror_line}" && pwd -P)"
+          else
+            shadow="${mirror_line}"
+          fi
+          shadow_label="Aside runtime mirror"
+        fi
       fi
-      clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
-      echo "switched: ${shadow} -> host-default ${REPO}"
-      exit 0
-    fi
-    # Redundant pointer/mirror naming this same host-default.
-    if [ -f "${pointer}" ]; then
-      current="$(tr -d '\n' < "${pointer}")"
-      if [ -n "${current}" ] && [ -d "${current}" ] && [ "$(cd "${current}" && pwd -P)" = "${REPO}" ]; then
+      if [ -n "${shadow}" ]; then
+        if [ "${assume_yes}" -ne 1 ]; then
+          echo "error: profile root already registered: ${shadow} (${shadow_label})" >&2
+          echo "  use --yes to switch to host-default ${REPO} (clears shadowing pointers)" >&2
+          exit 2
+        fi
         clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
-        echo "registered (host-default location): ${REPO}"
+        echo "switched: ${shadow} -> host-default ${REPO}"
         exit 0
       fi
+      # Redundant pointer/mirror naming this same host-default.
+      if [ -f "${pointer}" ]; then
+        current="$(tr -d '\n' < "${pointer}")"
+        if [ -n "${current}" ] && [ -d "${current}" ] && [ "$(cd "${current}" && pwd -P)" = "${REPO}" ]; then
+          clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
+          echo "registered (host-default location): ${REPO}"
+          exit 0
+        fi
+      fi
+      if [ -f "${mirror}" ] && [ "$(tr -d '\n' < "${mirror}")" = "${REPO}" ]; then
+        clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
+      fi
+      echo "registered (host-default location): ${REPO}"
+      exit 0
     fi
-    if [ -f "${mirror}" ] && [ "$(tr -d '\n' < "${mirror}")" = "${REPO}" ]; then
-      clear_pointers_atomic "${pointer}" "${mirror}" || exit 1
-    fi
-    echo "registered (host-default location): ${REPO}"
-    exit 0
   fi
 
   result="registered: ${REPO}"

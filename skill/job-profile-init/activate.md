@@ -6,11 +6,15 @@
    emit (and fill unless scaffold-only) so probes exist.
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
-4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit`. Path-convention branch
-   when `REPO` equals `HOST_DEFAULT` (after `pwd -P` when the dir exists).
-   Skills always probe host-default in resolve step 4, so no pointer is required
-   even when a coding agent sets `XDG_CONFIG_HOME` elsewhere.
-   - **Do not write** a host/Aside pointer naming `REPO`.
+4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
+   `JOB_KIT_CONFIG` (non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
+   else `HOST_DEFAULT`). Path-convention branch when `REPO` equals
+   `HOST_DEFAULT` **and** `JOB_KIT_CONFIG` either equals `HOST_DEFAULT` or fails
+   the two-file probe (after `pwd -P` when dirs exist). Skills always probe
+   host-default after any XDG candidate; pure convention needs no pointer only
+   when no valid XDG profile would outrank it.
+   - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
+     case.
    - **Do clear** shadowing registrations: read host
      `$HOST_HOME/.config/profile-root` and, when the runtime home exists,
      `$HOST_HOME/.aside/runtime/home/.config/profile-root`. Delete both
@@ -23,9 +27,12 @@
    - No shadowing line (absent/empty, or already `REPO`) → remove any redundant
      pointer/mirror that names `REPO` itself; state host-default-location
      active; go to (8).
-   **Fall through to (5)** (write pointers) when `REPO` is only
-   `$XDG_CONFIG_HOME/job-kit` and that path differs from `HOST_DEFAULT` — Aside
-   often lacks XDG and needs a durable pointer/mirror.
+   **Fall through to (5)** (write pointers) when:
+   - `REPO` is `$XDG_CONFIG_HOME/job-kit` and that path differs from
+     `HOST_DEFAULT` (Aside often lacks XDG), or
+   - `REPO` is `HOST_DEFAULT` but `JOB_KIT_CONFIG` differs **and** passes the
+     two-file probe — a durable pointer is required so claimed activation
+     outranks the valid XDG convention path.
 5. Host pointer conflict on `$HOST_HOME/.config/profile-root` (non-host-default
    REPO only):
    - Read one-line `current` if file exists.
