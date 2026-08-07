@@ -25,9 +25,12 @@ bash scripts/install.sh --yes    # switch from another profile to this one
 ```
 
 Host-default location is `~/.config/job-kit` — skills find it by path
-convention; `install.sh` is a no-op register there. XDG-only defaults and
-every other checkout write `~/.config/profile-root` (and the Aside runtime
-mirror when present) so scout/apply still resolve `data/*`.
+convention. `install.sh` there clears any host/Aside pointer that still names
+another profile (use `--yes` to switch). XDG-only defaults and every other
+checkout write `~/.config/profile-root` (and the Aside runtime mirror when
+present) so scout/apply still resolve `data/*`. `uninstall.sh` cannot
+deactivate host-default while probe files remain; move the tree or activate
+another profile instead.
 
 ## Fill before a useful run
 
