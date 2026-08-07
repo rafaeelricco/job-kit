@@ -13,13 +13,19 @@ contains `data/candidate.yaml` and `data/job_search.yaml`. Unreadable dir
 candidate; try the next step. Do not invent a profile path.
 
 1. `$PROFILE_ROOT` if set and probe passes.
-2. File `$HOME/.config/profile-root` (one absolute path line); probe if non-empty.
-3. **Aside dual-home:** if `$HOME` is exactly or ends with `/.aside/runtime/home`,
-   also try host pointer: `HOST_HOME` = strip that suffix (else `$HOST_HOME` env if
-   absolute); read `$HOST_HOME/.config/profile-root` and probe.
-4. Walk session CWD upward until probe passes.
-5. else STOP. Name each attempt (env, each pointer file + line, walk start).
-   Recovery detail: `./references/profile-root.md` (load on STOP or step 2–3 fail).
+2. **Default config dir:** `JOB_KIT_CONFIG` =
+   non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`, else
+   `$HOME/.config/job-kit`; probe. **Aside dual-home:** if `$HOME` is exactly or
+   ends with `/.aside/runtime/home`, also compute host `HOST_HOME` (strip suffix,
+   else `$HOST_HOME` env if absolute) and probe
+   `${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit` when that path differs.
+3. File `$HOME/.config/profile-root` (one absolute path line); probe if non-empty.
+4. **Aside dual-home legacy pointer:** with same `HOST_HOME` as step 2, read
+   `$HOST_HOME/.config/profile-root` and probe when not already tried.
+5. Walk session CWD upward until probe passes.
+6. else STOP. Name each attempt (env, default config path, each pointer file +
+   line, walk start).
+   Recovery detail: `./references/profile-root.md` (load on STOP or step 2–4 fail).
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required Fact file under a resolved root → stop and say so.
