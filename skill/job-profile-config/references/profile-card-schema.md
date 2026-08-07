@@ -3,6 +3,9 @@
 Optional cache of the card `show` otherwise derives. Written only by `refresh-card`,
 only after diff → yes. job-scout does not read it today — it derives the card from
 globbed `data/*.{yaml,yml}`, so writing this file changes nothing scout does.
+`show` never prefers this cache for `primary_role`, `seniority`, or `target_stack`
+(always re-derived from `job_search.yaml`); a `set` that touches those sources also
+clears the three fields here so a raw read cannot advertise stale values.
 
 ## Schema
 
