@@ -9,7 +9,10 @@
 0. {{ACTIVATE_NOTE}}
 1. {{KIT_INSTALL}}
 2. Resolve remaining Gaps from the fill report (if any): {{GAPS_OR_NONE}}.
-3. Scout packs live in the installed job-scout skill (`references/search_packs.yaml`);
-   edit there if formulations need stack tuning — not under profile `data/`.
-4. If CV not placed: add `cv/en-us-resume.pdf` before job-application attachments.
-5. LinkedIn browser session must match `data/profiles.yaml` LinkedIn username.
+3. Day-2 edits: `/job-profile-config` — show your profile, change keywords,
+   positions, locations, or boards without hand-editing YAML.
+4. Scout packs live in your profile (`data/search_packs.yaml`); tune formulations
+   there or via `/job-profile-config packs`. The copy inside the job-scout skill is
+   only a fallback and is overwritten on every kit reinstall.
+5. If CV not placed: add `cv/en-us-resume.pdf` before job-application attachments.
+6. LinkedIn browser session must match `data/profiles.yaml` LinkedIn username.

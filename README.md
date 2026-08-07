@@ -1,217 +1,202 @@
 # job-kit
 
-Finding a job by hand does not scale. At volume you hit the same two
-bottlenecks every time: **where to look**, and **whether an opening
-actually fits** your stack, seniority, geo, and work authorization. Miss
-either and you burn time on dead listings or applications that never
-clear the form filters.
+Four agent skills for running a job search at volume: sweep the surfaces you
+care about, score fit against a real profile, draft applications from profile
+facts. Procedure lives here. Facts — salary band, work authorization,
+experience — live in a profile directory you control and never enter this repo.
 
-Agents can run that loop: sweep the surfaces you care about, score fit
-against a real profile, and draft applications from profile facts (apply may
-stage a labeled form invent only when the ad requires a value no file prints).
-That only works when **procedure** (what the agent may do) stays separate
-from **facts** (who you are, what you want, what you can prove).
+Two install channels: scout and apply run in [Aside Browser](https://aside.com),
+profile init and config run in coding agents (Claude Code, Codex, Grok).
 
-This repo is the procedure: three agent skills on two install channels.
-Scout and apply install into [Aside Browser](https://aside.com); profile
-init installs into coding agents (Claude Code, Codex, Grok). Salary band, work
-authorization, experience, and other facts stay in a profile
-directory you control, never in this tree.
+| Skill                | Role                                                                                           | Channel                 | Installed under                     |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
+| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
+| `job-application`    | Draft letter and form fields for one posting; stage only                                       | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write               | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 
-- **Agents channel:** installers symlink `job-profile-init` into coding-agent skills.
-- **Aside channel:** installers **copy** scout/apply into `~/.aside/u/0/skills/builtin`.
-- **No manual clone:** one `remote.sh` command caches the kit and installs both channels;
-  the same script uninstalls with `bash -s -- uninstall`.
-- **Safe re-runs:** kit-owned destinations re-sync; foreign conflicts fail unless
-  you pass `--force`.
-- **Facts stay local:** profile `data/` is not part of this repository.
-
-## Which skill goes where
-
-| Skill              | Channel                               | Install            |
-| ------------------ | ------------------------------------- | ------------------ |
-| `job-scout`        | Aside                                 | `remote.sh aside`  |
-| `job-application`  | Aside                                 | `remote.sh aside`  |
-| `job-profile-init` | Coding agents (Claude / Codex / Grok) | `remote.sh agents` |
-
-Local-clone equivalents are in [Work locally](#work-locally).
+Each lands under its own name — coding-agent skills at
+`<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
+Neither Aside skill transmits Submit / Send / final Confirm.
 
 ## Install
 
-No clone needed. One command fetches job-kit into a cached checkout
-(`~/.local/share/job-kit` by default) and runs the channel installers from
-there:
+One command, no clone. It caches the kit at `~/.local/share/job-kit` and runs
+the channel installers from there:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- all
 ```
 
-`all` installs both channels and skips whichever target is absent — no Aside
-profile, or no agent home, is a skip, not an error. Read the script first if
-you prefer:
+Read it first if you prefer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh -o remote.sh
 bash remote.sh all
 ```
 
-| Channel  | Installs                                            |
-| -------- | --------------------------------------------------- |
-| `all`    | Both, skipping absent targets (default)             |
-| `aside`  | `job-scout` + `job-application` (fails if no Aside) |
-| `agents` | `job-profile-init` (fails if no agent home)         |
-| `fetch`  | Nothing — refresh the cached checkout only          |
+| Argument       | Installs                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
+| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                               |
+| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                |
+| `fetch`        | Nothing — refresh the cached checkout only                                                        |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                       |
+| `-h`, `--help` | Nothing — print usage                                                                             |
 
-Options after the channel are forwarded to the installer. `all` forwards only
-`--force`; use an explicit channel for `--skip-claude` / `--skip-codex` /
-`--skip-grok`:
+Options after the argument are forwarded to the installer. `all` forwards only
+`--force`; use an explicit channel for the skip flags:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents --skip-codex
 ```
 
-| Variable       | Default                  | Role                |
-| -------------- | ------------------------ | ------------------- |
-| `JOB_KIT_HOME` | `$XDG_DATA_HOME/job-kit` | Cached checkout     |
-| `JOB_KIT_REF`  | `main`                   | Branch or tag       |
-| `JOB_KIT_SLUG` | `rafaeelricco/job-kit`   | GitHub `owner/repo` |
+| Knob                                             | Default                  | Role                                                              |
+| ------------------------------------------------ | ------------------------ | ----------------------------------------------------------------- |
+| `--force`                                        | off                      | Replace a foreign (non-kit) destination                           |
+| `--skip-claude` / `--skip-codex` / `--skip-grok` | off                      | Skip one agent target                                             |
+| `JOB_KIT_HOME`                                   | `$XDG_DATA_HOME/job-kit` | Cached checkout                                                   |
+| `JOB_KIT_REF`                                    | `main`                   | Branch or tag                                                     |
+| `JOB_KIT_SLUG`                                   | `rafaeelricco/job-kit`   | GitHub `owner/repo`                                               |
+| `ASIDE_ACCOUNT`                                  | `0`                      | Aside account profile                                             |
+| `ASIDE_SKILLS`                                   | —                        | Custom Aside builtin root, absolute (legacy: `ASIDE_SKILLS_USER`) |
+| `CLAUDE_SKILLS`                                  | —                        | Single absolute agent dest; skip flags ignored                    |
 
-Uses `git` when present (shallow clone, shallow fetch on re-run), otherwise
-`curl`/`wget` + `tar`. **Keep the cached checkout in place** — coding-agent
-skills symlink into it, and Aside re-installs read it to prove kit ownership.
-Windows needs Git Bash. Installs no profile, no salary or work-auth data, and
-logs into nothing.
+Re-runs are safe: kit-owned destinations re-sync, foreign ones fail unless you
+pass `--force`. Uses `git` when present (shallow clone, shallow fetch on
+re-run), otherwise `curl`/`wget` + `tar`. Windows needs Git Bash. Run as your
+normal user, not with `sudo`.
 
-## Work locally
+**Keep the cached checkout in place** — coding-agent skills symlink into it, and
+Aside re-installs read it to prove kit ownership.
 
-Clone when you want to edit skills and see the change without reinstalling —
-the agents channel symlinks, so edits in the checkout are live:
+These scripts install skill trees and nothing else: no profile, no salary or
+work-auth data, no login to any service.
 
-```bash
-git clone https://github.com/rafaeelricco/job-kit.git
-cd job-kit
+## Getting started
+
+**1. Create or register a profile.** Install the agents channel, then run the
+skill in Claude Code, Codex, or Grok:
+
+```text
+/job-profile-init
 ```
 
-Private clone: use whatever auth your host requires (`gh repo clone
-rafaeelricco/job-kit`, HTTPS token, or SSH remote). Run the channel installers
-from **this** checkout, or pass absolute paths to them. They never clone for
-you and never run from a profile directory. Update with `git pull` here, then
-re-run the installers you use.
+It routes between creating a new profile and registering an existing one, asks
+for a source of truth (CV, or a LinkedIn export path or paste — or scaffold-only
+to skip it), and writes nothing before you approve. Facts are never invented.
+What it cannot source is left empty, and the subset that would block a useful
+scout — salary band, notice period, work authorization, EOR, positions and
+primary keywords — comes back as Gaps for you to fill by hand. Letter depth
+comes from `data/experiences.yml` and `data/projects.yml`.
 
-### Coding agents (Claude, Codex, Grok)
+No demographic or EEO self-identification is stored — those questions are
+voluntary and per-employer, so you answer them in the ATS form.
 
-**Prerequisites:** Bash; at least one agent home already present
-(`~/.claude`, `~/.agents`, or `~/.grok` — open that agent once if missing).
+**2. Scout and apply.** Install the Aside channel, then run either skill in
+Aside Browser:
 
-```bash
-bash scripts/agents/install.sh
+```text
+/job-scout
+/job-application
 ```
 
-Links `skill/job-profile-init` into each eligible target (parent dir must
-exist). Destinations match the personal multi-agent layout:
+Scout runs every enabled pack in your profile's `data/search_packs.yaml`, in file
+order, and ranks the job rows it extracts. Application drafts and stages one posting at a
+time; it may open an Apply control that only reveals the form, then stops at
+review and waits for an explicit yes.
 
-| Target      | Skills root                         |
-| ----------- | ----------------------------------- |
-| Claude Code | `~/.claude/skills/job-profile-init` |
-| Codex       | `~/.agents/skills/job-profile-init` |
-| Grok        | `~/.grok/skills/job-profile-init`   |
+Applying needs exactly one CV PDF that opens: a tailored one compiled for that
+application, or `cv/en-us-resume.pdf` as the fallback. With neither,
+job-application stops and asks you to build it.
 
-Idempotent when a link already matches. Foreign conflicts fail; pass
-`--force` to replace. Skip a target with `--skip-claude`, `--skip-codex`,
-or `--skip-grok`. Single custom dest: absolute `CLAUDE_SKILLS` (escape hatch;
-skip flags ignored).
+**3. Tune the search.** Day-2 edits on a profile that already exists, back in a
+coding agent:
 
-```bash
-bash scripts/agents/install.sh --skip-codex
-CLAUDE_SKILLS=/path/to/skills bash scripts/agents/install.sh
-bash scripts/agents/install.sh --force
+```text
+/job-profile-config
 ```
 
-Does **not** install scout/apply into coding agents. Does not create agent
-home dirs, a profile, or salary / work-auth data. Codex skills live under
-`~/.agents/skills`, not `~/.codex/skills`. Default multi-target install also
-removes legacy kit links under `~/.codex/skills` when present; the
-`CLAUDE_SKILLS` single-dest escape hatch skips that cleanup.
+`show` prints the profile, `gaps` names what still blocks a useful scout, and
+`set` / `sources add` / `sources remove` change keywords, positions, locations,
+and boards. It writes only `data/job_search.yaml`, `data/sources.yaml`, and
+`data/profile_card.yaml` — everything else under the profile is read-only here,
+nothing is written before it prints a diff and you say yes, and it makes no
+network calls.
 
-### Aside
+## Profile root
 
-**Prerequisites:** Bash; Aside Browser with an account profile
-(default `~/.aside/u/0`, including a `skills` parent for the builtin root).
+Skills resolve the active profile in this order:
+
+1. `$PROFILE_ROOT`, if that directory has `data/candidate.yaml` and
+   `data/job_search.yaml`
+2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
+3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
+   home's `~/.config/profile-root`
+4. Walk the session CWD upward until both probe files exist
+5. Otherwise stop and name what was tried
+
+`/job-profile-init` **Activate** is how the durable pointers get set. Without
+the skill: run the **profile** checkout's `bash scripts/install.sh` (emitted
+under that profile — not a job-kit script).
+
+| File                                                  | Who reads it                                     |
+| ----------------------------------------------------- | ------------------------------------------------ |
+| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step              |
+| `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is the runtime home |
+
+`PROFILE_ROOT` is a **session override** only — Aside does not inherit env from
+the init session:
 
 ```bash
-bash scripts/aside/install.sh
+PROFILE_ROOT=/path/to/other-profile
 ```
 
-Copies `skill/{job-scout,job-application}` into
-`~/.aside/u/0/skills/builtin/` as real directories (not symlinks). Re-install
-re-syncs kit-owned trees. Foreign conflicts fail; pass `--force` to replace them.
-Also removes leftover kit-owned trees under `skills/user/` from older installs
-(symlinks or marked copies of current or legacy skill basenames).
-
-```bash
-ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
-ASIDE_SKILLS=/path/to/skills/builtin bash scripts/aside/install.sh
-bash scripts/aside/install.sh --force
-```
-
-Does **not** install `job-profile-init` into Aside. These scripts only
-install skill trees. They do not create a profile, write salary or
-work-auth data, or log into any service.
+Aside must be allowed to **read** that directory. A correct pointer to a
+sandbox-blocked path still fails — grant FS access or move the profile to an
+allowed location.
 
 ## Update
 
-Remote install: re-run the same one-liner — it refreshes the cached checkout at
-`$JOB_KIT_HOME` and re-runs the installers.
+Remote install: re-run the same one-liner — it refreshes the cached checkout and
+re-runs the installers. Local checkout: `git pull`, then re-run the installers
+you use. Channels are independent.
 
-Local checkout: `git pull`, then re-run **both** installers you use
-(agents: re-link; Aside: re-copy). Channels are independent.
-
-Update never modifies profile checkouts or `~/.config/profile-root`.
-
-Aside install removes legacy kit names (`job-discovery`, `job-apply`,
-`profile-scaffold`, `application-stage`, `profile-init`) when they are still
-kit-owned for this checkout. Agents install removes legacy `profile-init` the
-same way. Search packs live in the installed job-scout skill
-(`references/search_packs.yaml`); `impl` stems must match surface reference
-basenames (`surface-linkedin-jobs`, `surface-open-web`, …). Profile
-`data/search_packs.yaml` is not used — remove if present from older setups.
+Update never modifies profile checkouts or `~/.config/profile-root`. Installs
+also clear kit-owned copies of legacy skill names (`job-discovery`, `job-apply`,
+`profile-scaffold`, `application-stage`, `profile-init`) and leftover kit trees
+under Aside's `skills/user/`.
 
 ## Uninstall
-
-No clone needed (same entrypoint as install):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
 ```
 
-| Target                | Removes                                                |
-| --------------------- | ------------------------------------------------------ |
-| `uninstall` / `… all` | Aside kit copies + agent kit links (default)           |
-| `uninstall aside`     | `job-scout` + `job-application` (kit-owned only)       |
-| `uninstall agents`    | `job-profile-init` kit links (+ legacy `profile-init`) |
+| Target                | Removes                                                                       |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `uninstall` / `… all` | Aside kit copies + agent kit links (default)                                  |
+| `uninstall aside`     | `job-scout` + `job-application`                                               |
+| `uninstall agents`    | `job-profile-init` + `job-profile-config` kit links (+ legacy `profile-init`) |
 
-Add `--purge` after a **full** uninstall (`uninstall` / `uninstall all`) to
-delete the cached checkout. Partial targets refuse it — agent skills symlink
-into the cache, so purging after `uninstall aside` or `uninstall agents` would
-leave dangling links. `--purge` is refused for the same reason while
-`CLAUDE_SKILLS`, `ASIDE_SKILLS`, or `ASIDE_SKILLS_USER` narrows a channel to one
-destination — unset it so the default homes are uninstalled too:
+Only kit-owned paths are removed (exact cache path match) — foreign skills stay.
+`uninstall agents` accepts the same `--skip-*` flags as install.
+
+Add `--purge` to a **full** uninstall to delete the cached checkout too. It is
+refused after a partial uninstall, and while `CLAUDE_SKILLS`, `ASIDE_SKILLS`, or
+`ASIDE_SKILLS_USER` narrows a channel to one destination — in both cases agent
+symlinks would be left dangling into a deleted cache.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
 ```
 
-`uninstall agents` accepts the same `--skip-*` flags as install. Uninstall
-only removes kit-owned paths (exact cache path match). Foreign skills stay.
-
-Local checkout:
+From a local checkout — or from the cache after a remote install:
 
 ```bash
 bash scripts/agents/uninstall.sh
 bash scripts/aside/uninstall.sh
 ```
-
-After a remote install, channel scripts also live in the cache:
 
 ```bash
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}"
@@ -219,155 +204,53 @@ bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
 bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
 ```
 
-Delete the cache only after a full uninstall (or use `uninstall --purge`).
-Removing the cache first strands coding-agent symlinks that still point into it.
+## Work locally
 
-Each uninstall only touches its channel. Agents uninstall supports the same
-`--skip-*` / `CLAUDE_SKILLS` shape as install. Aside never removes coding-agent
-links; agents never removes Aside links. Leaves profile checkouts and
-`~/.config/profile-root` alone.
-
-## Installed Paths
-
-| Source                   | Destination                                   |
-| ------------------------ | --------------------------------------------- |
-| `skill/job-scout`        | `~/.aside/u/0/skills/builtin/job-scout`       |
-| `skill/job-application`  | `~/.aside/u/0/skills/builtin/job-application` |
-| `skill/job-profile-init` | `~/.claude/skills/job-profile-init`           |
-| `skill/job-profile-init` | `~/.agents/skills/job-profile-init`           |
-| `skill/job-profile-init` | `~/.grok/skills/job-profile-init`             |
-
-Override Aside root with `ASIDE_SKILLS` (or legacy `ASIDE_SKILLS_USER`) or
-`ASIDE_ACCOUNT`; single agent dest with `CLAUDE_SKILLS`. Run the installer as
-your normal user, not with `sudo`.
-
-## Getting Started
-
-### 1. Install profile init into coding agents
+Clone when you want to edit skills and see the change without reinstalling — the
+agents channel symlinks, so edits in the checkout are live:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents
+git clone https://github.com/rafaeelricco/job-kit.git
+cd job-kit
+bash scripts/agents/install.sh
+bash scripts/aside/install.sh
 ```
 
-From a clone instead: `bash scripts/agents/install.sh`.
+Prerequisites: Bash, plus the target for whichever channel you install — at
+least one agent home (`~/.claude`, `~/.agents`, or `~/.grok`; open that agent
+once if missing), and an Aside account profile (`~/.aside/u/0`, including a
+`skills` parent). Private clone: use whatever auth your host requires (`gh repo
+clone rafaeelricco/job-kit`, HTTPS token, or SSH remote).
 
-### 2. Create or register a profile
-
-With an agent that loaded `job-profile-init`:
-
-```text
-/job-profile-init
-```
-
-**Register existing:** Route picks an already-valid profile → **Activate ask**
-only → skill step 4 pointer work if Yes. No Folder / Source / Identity /
-Approve / emit / fill.
-
-**Create:** Route → Folder → **Activate ask** (stores Yes/No; does **not**
-write yet) → Source (CV / LinkedIn export path or paste, or scaffold-only) →
-Identity (draft from SoT; ask only empties/conflicts) → **Approve** (first
-tree write). Then emit → fill (unless scaffold-only) → **Activate** only if
-ask was Yes: host `~/.config/profile-root` plus Aside runtime mirror when
-that tree exists; optional session `export PROFILE_ROOT` for the coding agent
-only (Aside does **not** inherit process env). Fact fill is no-invent; Gaps
-listed. Skills stay in job-kit, not in the profile.
-
-Later Activate/switch without the skill: run the **profile** checkout’s
-`bash scripts/install.sh` (emitted under that profile; not a kit-root script).
-
-### 3. Fill facts
-
-On create (not scaffold-only / not register-only), after SoT gate the skill:
-writes Fact shells from SoT → asks once, in one message, for blockers left
-empty (salary band, notice period, home-market work authorization, EOR
-Yes/No; `skip` always valid → **Gaps**) → confirms Suggestions
-(positions / keywords / blacklists) before write →
-CV place → Gaps report. Blockers are never invented or defaulted. Template
-defaults for `work_model` / levels / `job_types` stay unless SoT contradicts.
-Gaps name only what still blocks a useful scout (those blockers plus empty
-positions / primary keywords / locations after suggestions). Screening
-binaries and other optional Fact shells stay empty until you hand-edit or
-answer them in the ATS at apply time. Ensure `cv/en-us-resume.pdf` exists
-before apply. Letter depth comes from `data/experiences.yml` and
-`data/projects.yml`.
-
-No demographic or EEO self-identification is stored in the profile — those
-questions are voluntary and per-employer, so you answer them in the ATS form.
-
-### 4. Run scout and apply (Aside)
-
-Install the Aside channel first if not already:
+Run the installers from **this** checkout, or pass absolute paths to them. They
+never clone for you and never run from a profile directory.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- aside
+bash scripts/agents/install.sh --skip-codex
+CLAUDE_SKILLS=/path/to/skills bash scripts/agents/install.sh
+ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
 ```
 
-From a clone instead: `bash scripts/aside/install.sh`.
+Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
+multi-target install also removes legacy kit links there, which the
+`CLAUDE_SKILLS` single-dest escape hatch skips.
 
-```text
-/job-scout
-/job-application
-```
+| Path                        | Role                                             |
+| --------------------------- | ------------------------------------------------ |
+| `skill/job-scout/`          | Scout law, contracts, surfaces                   |
+| `skill/job-application/`    | Apply law, draft contract                        |
+| `skill/job-profile-init/`   | Intake + templates for empty profiles            |
+| `skill/job-profile-config/` | Show + edit search intent and boards             |
+| `scripts/aside/`            | Aside install / uninstall (scout+apply)          |
+| `scripts/agents/`           | Coding-agent install / uninstall (init + config) |
+| `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
 
-**job-scout** lists and ranks openings across every pack in
-`skill/job-scout/references/search_packs.yaml` (every pack, YAML order); it never applies, messages, or connects.
-**job-application** drafts and stages one application at a time; it may open
-an Apply control that only reveals the form, stops at review, and waits for
-an explicit yes. Neither skill transmits Submit / Send / final Confirm.
-
-## Profile root
-
-`/job-profile-init` **Activate** (skill step 4 after intake, only if Activate
-ask was Yes) is how the durable machine pointer is set. Manual path without
-the skill: the **profile** checkout’s `scripts/install.sh` (not job-kit’s
-`scripts/agents` or `scripts/aside`). Durable writes:
-
-| File                                                  | Who reads it                                                                                      |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `$HOST_HOME/.config/profile-root`                     | Coding agents; Aside dual-home step                                                               |
-| `$HOST_HOME/.aside/runtime/home/.config/profile-root` | Aside when sandboxed `$HOME` is runtime home (mirror on Activate or profile `scripts/install.sh`) |
-
-`PROFILE_ROOT` is a **session override** only (coding agent or shell). Aside
-does not inherit env from the init session.
-
-Skills resolve the active profile in this order:
-
-1. `$PROFILE_ROOT` if that directory has `data/candidate.yaml` and
-   `data/job_search.yaml`
-2. `$HOME/.config/profile-root` (one absolute path line) with the same probe
-3. **Aside:** if `$HOME` is `…/.aside/runtime/home`, also read the **host**
-   home’s `~/.config/profile-root` (same one-line absolute path)
-4. Walk the session CWD upward until both probe files exist
-5. Otherwise stop and name what was tried
-
-Override for one session without rewriting pointer files:
-
-```bash
-PROFILE_ROOT=/path/to/other-profile
-```
-
-Aside must be allowed to **read** that directory (sandbox). A correct pointer
-to a blocked path still fails — grant FS access or move the profile to an
-allowed location.
-
-## Skills
-
-| Skill              | Role                                                                                        |
-| ------------------ | ------------------------------------------------------------------------------------------- |
-| `job-scout`        | List-only job scout across every pack in skill-local `references/search_packs.yaml` (Aside) |
-| `job-application`  | Draft letter and form fields for one posting; stage only, never submit (Aside)              |
-| `job-profile-init` | Create a data-only profile, or register/activate an existing one (coding agents)            |
-
-## Layout
-
-| Path                      | Role                                             |
-| ------------------------- | ------------------------------------------------ |
-| `skill/job-scout/`        | Scout law, contracts, surfaces                   |
-| `skill/job-application/`  | Apply law, draft contract                        |
-| `skill/job-profile-init/` | Intake + templates for empty profiles            |
-| `scripts/aside/`          | Aside install / uninstall (scout+apply)          |
-| `scripts/agents/`         | Coding-agent install / uninstall (profile init)  |
-| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone) |
+Search packs live in your profile at `data/search_packs.yaml`, emitted by
+`/job-profile-init` and edited by `/job-profile-config packs`. `impl` stems must
+match surface reference basenames (`surface-linkedin-jobs`, `surface-open-web`, …).
+`skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
+created before the deck moved; it must stay byte-identical to
+`skill/job-profile-init/templates/data/search_packs.yaml`.
 
 ## License
 
