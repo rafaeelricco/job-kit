@@ -561,21 +561,31 @@ purge_env_guards() {
 # means nothing will be unlinked first, so every live link blocks.
 # A cache this checkout does not own is always scanned in full — the unlink phase
 # skips those links as non-kit whatever it walks.
-# cache_unremovable DIR — why `rm -rf DIR` would fail, or nothing.
+# tree_unremovable DIR — why `rm -rf DIR` would fail, or nothing.
 # Removal needs three things the fixed-path ownership probes never test: the tree
 # must enumerate, every directory in it must be writable (entries are unlinked
 # from their parent), and DIR's own parent must be writable to drop DIR itself.
+# Writability is tested with `-w`, which asks whether *this* process may write.
+# A mode-bit test (`find -perm -u+w`) answers for the owner instead, and passes a
+# root-owned 0755 tree that an unprivileged caller cannot touch.
 # Side effects: none.
-cache_unremovable() {
-  local dir="$1" errs parent
+tree_unremovable() {
+  local dir="$1" errs parent d unwritable=""
+  [ -e "${dir}" ] || return 0
   errs="$(find "${dir}" -print 2>&1 >/dev/null)" || true
   if [ -n "${errs}" ]; then
     printf '%s' "${errs}"
     return 0
   fi
-  errs="$(find "${dir}" -type d ! -perm -u+w -print 2>/dev/null)" || true
-  if [ -n "${errs}" ]; then
-    printf 'not writable, so their contents cannot be unlinked:\n%s' "${errs}"
+  while IFS= read -r d; do
+    [ -n "${d}" ] || continue
+    [ -w "${d}" ] || unwritable="${unwritable}${d}
+"
+  done <<EOF
+$(find "${dir}" -type d -print 2>/dev/null)
+EOF
+  if [ -n "${unwritable}" ]; then
+    printf 'not writable by this user, so their contents cannot be unlinked:\n%s' "${unwritable}"
     return 0
   fi
   parent="$(dirname "${dir}")"
@@ -598,7 +608,7 @@ purge_preflight() {
   # The ownership probe reads fixed paths, which a searchable-but-unreadable
   # tree still answers; `rm -rf` has to enumerate it. Prove that now, or an
   # earlier irreversible target runs and the purge fails afterwards.
-  unwalkable="$(cache_unremovable "${dest}")"
+  unwalkable="$(tree_unremovable "${dest}")"
   [ -z "${unwalkable}" ] \
     || die "refusing to start: the cache at ${dest} cannot be removed, so the purge would fail partway:
 ${unwalkable}"
@@ -684,6 +694,7 @@ preflight_targets() {
           printf '%s\n' "${HOME}/.aside/u/${ASIDE_ACCOUNT_ID}/skills/user"
         )"
         unwritable_roots "${roots}" aside
+        unremovable_copies "${roots}"
         ;;
     esac
   done
@@ -700,6 +711,34 @@ unwritable_roots() {
     [ -d "${root}" ] || continue
     [ -w "${root}" ] \
       || die "refusing to start: the ${target} target cannot unlink from ${root} (not writable)"
+  done <<EOF
+${roots}
+EOF
+}
+
+# unremovable_copies ROOTS — die when a kit-owned Aside copy cannot be deleted.
+# Aside installs marked copies as well as symlinks, and `remove_owned_path`
+# removes a copy recursively — so one unwritable directory nested inside it
+# aborts the uninstall, after `profile` has already run.
+unremovable_copies() {
+  local roots="$1" root name dest blocker
+  while IFS= read -r root; do
+    [ -n "${root}" ] || continue
+    [ -d "${root}" ] || continue
+    for name in $(
+      # shellcheck source=aside/lib.sh
+      . "${REPO_ROOT}/scripts/aside/lib.sh"
+      printf '%s %s\n' "${SKILL_NAMES}" "${LEGACY_SKILL_NAMES}"
+    ); do
+      dest="${root}/${name}"
+      [ -d "${dest}" ] || continue
+      [ ! -L "${dest}" ] || continue
+      [ -f "${dest}/.job-kit" ] || continue
+      blocker="$(tree_unremovable "${dest}")"
+      [ -z "${blocker}" ] \
+        || die "refusing to start: the aside target cannot remove ${dest}:
+${blocker}"
+    done
   done <<EOF
 ${roots}
 EOF
