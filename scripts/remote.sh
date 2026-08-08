@@ -39,10 +39,14 @@ Install channels:
   fetch     Refresh the cached checkout, install nothing
 
 Uninstall:
-  uninstall           Both channels (default target: all)
+  uninstall           Aside + agent skills (default target: all)
   uninstall all       Same
   uninstall aside     Aside only
   uninstall agents    Coding agents only
+
+  Interactive (profile data + menu): bash scripts/uninstall.sh
+  from a local or cached checkout. Remote uninstall never deletes
+  ~/.config/job-kit.
 
   -h, --help  Show this help
 
@@ -81,9 +85,8 @@ die() { echo "error: $*" >&2; exit 1; }
 # `skill/` alone is never enough. Single source of truth for the filesystem
 # ownership probe and (when used) the git-ref ownership probe.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
-scripts/agents/uninstall.sh
 scripts/aside/install.sh scripts/aside/lib.sh
-scripts/aside/uninstall.sh
+scripts/uninstall.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
@@ -353,8 +356,16 @@ ensure_kit_cache() {
   fi
   dest="$(resolve_cache_path "${raw}")"
   missing="$(kit_owned_missing "${dest}")"
-  [ -z "${missing}" ] \
-    || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+  if [ -n "${missing}" ]; then
+    # Pre-single-uninstall caches still have channel uninstall.sh; refresh once.
+    if [ -f "${dest}/scripts/aside/uninstall.sh" ] || [ -f "${dest}/scripts/agents/uninstall.sh" ]; then
+      echo "refreshing kit cache (uninstall layout changed): ${dest}"
+      fetch_kit "${raw}"
+      require_checkout "${raw}"
+      return 0
+    fi
+    die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+  fi
 }
 
 # purge_kit_cache DEST
@@ -475,18 +486,18 @@ main() {
 
     case "${target}" in
       aside)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside
         ;;
       agents)
         if [ "${#agent_flags[@]}" -eq 0 ]; then
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents
         else
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh" "${agent_flags[@]}"
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents "${agent_flags[@]}"
         fi
         ;;
       all)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
-        bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+        # Skills only over curl — never deletes profile data (~/.config/job-kit).
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents
         ;;
     esac
 
@@ -541,9 +552,8 @@ main() {
   echo
   echo "job-kit cached at: ${JOB_KIT_HOME}"
   echo "  keep it: agent skills symlink into it, Aside re-runs prove ownership by it"
-  echo "  uninstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
-  echo "         or: bash ${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
-  echo "             bash ${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+  echo "  uninstall (interactive / profile): bash ${JOB_KIT_HOME}/scripts/uninstall.sh"
+  echo "  uninstall (skills only): curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
 }
 
 main "$@"
