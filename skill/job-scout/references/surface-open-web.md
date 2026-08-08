@@ -15,5 +15,4 @@ Surface: open-web packs. Obey CONTRACT_SEARCH. No LinkedIn session required.
      location into the query. One run per formulation.
    - **Otherwise:** if UI control exists, set/cycle named CONSTRAINTS locations
      (incl. Remote when listed; skip `Anywhere`). If no control, OR-suffix the
-     named locations in the query. Never invent locations. Location blacklist
-     still drops at Location keep (contract).
+     named locations in the query. Never invent locations.

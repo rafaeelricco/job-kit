@@ -1,6 +1,6 @@
 ---
 name: job-scout
-description: "Read this when you need a list-only job scout across every search pack. Never apply, message, connect, or edit the repo. Use when the user asks to find jobs, scout openings, run job scout, or produce a job scout report; stop after the report."
+description: "Read this when you need a list-only job scout across every search pack. Never apply, message, connect, or edit the kit repo; writes only the profile's scout/ dossier tree. Use when the user asks to find jobs, scout openings, run job scout, or produce a job scout report; stop after the report and its dossier."
 ---
 
 # Job scout
@@ -39,16 +39,22 @@ Skill-local files: `./references/*` only.
 Pack list: `data/search_packs.yaml` under Profile root; absent → fall back to
 `./references/search_packs.yaml` (kit deck). Never merge the two.
 
+Writable here: `scout/runs/*.md` and `scout/jobs/*.md` under Profile root, main
+thread only, Phase 6 only. Every other path under Profile root — all of `data/`
+and `cv/` — is read-only in this skill. Workers never write.
+
 1. Read `./references/pipeline.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
 4. Pack list, parallelism, gates, score: pipeline only. Contracts own list-only + evidence.
-5. Deliver report per `scout-report.md`, then STOP.
+5. Deliver report per `scout-report.md`.
+6. Persist the run and one dossier per live job per `dossier.md`, then STOP.
 
 ## References
 
 - Pipeline: `./references/pipeline.md` (phases, score, bucket, gate)
 - Scout report: `./references/scout-report.md` (sections, columns, vocab; main-only)
+- Dossier: `./references/dossier.md` (scout/ layout, file format, re-run rules; main-only)
 - Search contract: `./references/contract-search.md` (paste card; never inherited)
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
 - Search surfaces: `./references/surface-{linkedin-jobs,open-web,social,people}.md` (surface deltas)

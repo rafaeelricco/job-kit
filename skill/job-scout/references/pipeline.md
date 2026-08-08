@@ -11,17 +11,18 @@ rule a worker needs.
 
 ## Mode: list only
 
-Finds and reports jobs. Never acts on them. Done when the Report ships → **STOP**.
+Finds and reports jobs. Never acts on them. Done when the Report ships and Phase 6
+has written the dossier → **STOP**.
 
 ## Inputs (read-only)
 
-| Path                                                                             | Supplies                                                        |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `data/candidate.yaml`                                                            | salary, work auth, employment_routes, relocation                |
-| `data/job_search.yaml`                                                           | positions, keywords, filters, blacklists, apply_once_at_company |
-| `data/sources.yaml`                                                              | tiers, access, channels                                         |
-| `data/search_packs.yaml`, else `./references/search_packs.yaml`                  | every enabled pack, YAML order; whichever file wins, wins whole |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml`, `skills-by-company.yml` | card                                                            |
+| Path                                                            | Supplies                                                        |
+| --------------------------------------------------------------- | --------------------------------------------------------------- |
+| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                |
+| `data/job_search.yaml`                                          | positions, keywords, filters, apply_once_at_company             |
+| `data/sources.yaml`                                             | tiers, access, channels                                         |
+| `data/search_packs.yaml`, else `./references/search_packs.yaml` | every enabled pack, YAML order; whichever file wins, wins whole |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
 
@@ -39,14 +40,13 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    do NOT STOP run; non-LI packs still run.
 3. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
-   - Constraints: work model · experience level · job types · positions · keywords · locations ·
-     blacklists · date_posted · salary_range_usd · work auth · employment_routes · relocation
+   - Constraints: work model · seniority level · job types · positions · keywords · locations ·
+     date_posted · salary_range_usd · work auth · employment_routes · relocation
    - Markets intent (prose in Constraints): listed locations are strong-pay markets
      (employers that pay USD, EUR, or GBP). Remote roles paid in those currencies are
      in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
-     not a market: it keeps every location the blacklist does not drop. Home-market
-     countries in `location_blacklist` are job-location only; hire-from routes use
-     `home_market`.
+     not a market: it keeps every location. Hire-from routes use `home_market`, never
+     the job's own location.
 4. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
    order). No other subset. Each `enabled: false` pack still gets a Query log row with
    verdict `skipped: disabled` — a pack is never silently absent from the report.
@@ -101,7 +101,7 @@ keep/drop here; do not redefine keep rules in this file.
 
 People contacts skip. Search-time keeps still apply; this gate closes the deferred path.
 
-## Phase 5 — RANK + REPORT (main) → STOP
+## Phase 5 — RANK + REPORT (main)
 
 Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / home-market tables.
@@ -114,7 +114,23 @@ highest score). Company losers → Dropped. Bucket per `## Bucket`.
 Print the per-factor breakdown in `### Score audit`. A row whose factors do not sum to its
 printed score is a defect: fix the row, do not adjust the sum.
 
-Emit final markdown **exactly** per `./references/scout-report.md`. Named headings only. Then **STOP**.
+Emit final markdown **exactly** per `./references/scout-report.md`. Named headings only. Then Phase 6.
+
+## Phase 6 — PERSIST (main only) → STOP
+
+Main writes; a worker never does. Only two path shapes are writable, both under
+Profile root: `scout/runs/*.md` and `scout/jobs/*.md`. `mkdir -p` both on first run.
+
+1. Write the Phase 5 markdown verbatim to `scout/runs/{YYYY-MM-DD}-scout.md`.
+   Name taken → append `-2`, `-3`. Never overwrite an existing run file.
+2. One dossier per row with `status=live` that passed the Phase 4 gate — including
+   `score<7` and `apply_once_at_company` losers. `dead` and `uncertain` rows stay in
+   the run report only.
+3. Shape, slug, and the re-run rules are owned by `./references/dossier.md`.
+4. Unwritable path (permission, read-only FS) → print the error and the path under
+   Gaps and STOP. Never fall back to another directory. A failed write is never silent.
+
+Then **STOP**.
 
 ## Score (0–10; keep ≥ 7)
 
@@ -148,7 +164,7 @@ Derived here from extract output. NEVER set by a worker. First match wins.
 country. `{home_market}-EOR` is reachable only when `candidate.yaml`
 `employment_routes.employer_of_record` is Yes.
 
-Note: `location_blacklist` = job _location_; `{home_market}-friendly` = hire-from-home-market _route_. `home_market` from `data/candidate.yaml` (default `BR` if empty).
+Note: `{home_market}-friendly` = hire-from-home-market _route_, not the job's location. `home_market` from `data/candidate.yaml` (default `BR` if empty).
 
 ## Channel sort (report tables)
 
@@ -161,5 +177,8 @@ Note: `location_blacklist` = job _location_; `{home_market}-friendly` = hire-fro
 - Invent postings or fields
 - Rank before merge+extract+gate
 - Summarize CONSTRAINTS into a field list for workers
-- Apply / message / connect / edit repo
+- Apply / message / connect / edit the kit repo
+- Write any Profile-root path outside `scout/` — `data/` and `cv/` are read-only
+- Let a worker write anything; Phase 6 is main-only
+- Overwrite a dossier's `status:` or `## Application log` on a re-run
 - Silent dry packs

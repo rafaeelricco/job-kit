@@ -19,6 +19,7 @@ No preamble. No apply / message / connect / open-form language.
 - Direct-email hits: {n}
 - Dead on extract: {n}
 - Packs dry: {none|comma list}
+- Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{YYYY-MM-DD}-scout.md`
 
 ### Do this first
 
