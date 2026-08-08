@@ -88,9 +88,12 @@
 9. Print `./next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, including
      skipped **scout-critical** blockers (not optional/preference shells).
-     **Scaffold-only: print the `./emit-tree.md` unfilled inventory, never
-     `none`** — that inventory is scout-critical only; a scout run against
-     placeholders would search for `TODO-skill`. `none` is correct only for
+     **Scaffold-only: report the gaps the completed fill actually left**, and
+     fall back to the `./emit-tree.md` unfilled inventory only for values still
+     holding their placeholder. The questionnaire now confirms positions,
+     keywords, locations, and blockers during the same run, so printing the
+     whole inventory would claim resolved fields still read `TODO-skill`.
+     `none` is correct when the fill left no scout-critical gap, and for
      register-existing, where this flow wrote no tree.
    - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
      host path written + mirror yes/no (including XDG-only defaults); session
