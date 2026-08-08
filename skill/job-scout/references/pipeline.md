@@ -121,11 +121,15 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 Main writes; a worker never does. Only two path shapes are writable, both under
 Profile root: `scout/runs/*.md` and `scout/jobs/*.md`. `mkdir -p` both on first run.
 
-1. Write the Phase 5 markdown verbatim to `scout/runs/{YYYY-MM-DD}-scout.md`.
-   Name taken → append `-2`, `-3`. Never overwrite an existing run file.
+1. Resolve the run filename first: `scout/runs/{YYYY-MM-DD}-scout.md`, or `-2` / `-3`
+   when that name is taken. Never overwrite an existing run file. Phase 5 already
+   rendered that resolved name into its Snapshot `run` line, so write the Phase 5
+   markdown verbatim to it.
 2. One dossier per row with `status=live` that passed the Phase 4 gate — including
-   `score<7` and `apply_once_at_company` losers. `dead` and `uncertain` rows stay in
-   the run report only.
+   `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
+   dossier goes through the `dossier.md` re-run handler so its closure log is
+   appended; `uncertain` rows, and `dead` rows never seen live, stay in the run
+   report only and create no dossier.
 3. Shape, slug, and the re-run rules are owned by `./references/dossier.md`.
 4. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
