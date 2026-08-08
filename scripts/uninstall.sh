@@ -316,33 +316,43 @@ resolve_cache_path() {
   printf '%s\n' "${raw}"
 }
 
-# owned_by_root PATH ROOT NAME
+# owned_by_root PATH NAME ROOT…
 # Prints PATH when it is a skill symlink, or a marked copy, whose source is
-# ROOT/skill/NAME. Always returns 0 so callers survive `set -e`.
+# ROOT/skill/NAME for any ROOT given. Always returns 0 so callers survive
+# `set -e`.
 owned_by_root() {
-  local path="$1" root="$2" name="$3" expected marker
-  expected="${root}/skill/${name}"
+  local path="$1" name="$2" current root
+  shift 2
   if [ -L "${path}" ]; then
-    if [ "$(readlink "${path}")" = "${expected}" ]; then
-      printf '%s\n' "${path}"
-    fi
+    current="$(readlink "${path}")"
+  elif [ -d "${path}" ] && [ -f "${path}/.job-kit" ]; then
+    current="$(cat "${path}/.job-kit")"
+  else
     return 0
   fi
-  marker="${path}/.job-kit"
-  if [ -d "${path}" ] && [ -f "${marker}" ] && [ "$(cat "${marker}")" = "${expected}" ]; then
-    printf '%s\n' "${path}"
-  fi
+  for root in "$@"; do
+    if [ "${current}" = "${root}/skill/${name}" ]; then
+      printf '%s\n' "${path}"
+      return 0
+    fi
+  done
   return 0
 }
 
-# links_owned_by DEST — installed skill paths still owned by the checkout at DEST.
+# links_owned_by DEST — installed skill paths whose source is the checkout at DEST.
 # The channel libs decide ownership as `readlink == <repo>/skill/<name>` against
 # this script's REPO_ROOT, so an install made from a different checkout is
 # skipped as "not kit-owned". Purging DEST would then strand those links behind
 # a report claiming the uninstall completed.
+# Installers record the source as `pwd -P`, which differs from DEST whenever an
+# ancestor is a symlink (`/var` → `/private/var`), so both forms are matched.
 # Side effects: none.
 links_owned_by() {
-  local dest="$1"
+  local dest="$1" phys
+  phys="${dest}"
+  if [ -d "${dest}" ]; then
+    phys="$(cd "${dest}" && pwd -P)" || phys="${dest}"
+  fi
   (
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
@@ -350,7 +360,7 @@ links_owned_by() {
     for target in ${AGENT_TARGETS}; do
       root="$(agent_skills_root "${target}")"
       for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-        owned_by_root "$(skill_dest "${root}" "${name}")" "${dest}" "${name}"
+        owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
       done
     done
   )
@@ -360,7 +370,7 @@ links_owned_by() {
     local root name
     root="$(resolve_aside_skills_root 2>/dev/null)" || exit 0
     for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-      owned_by_root "$(skill_dest "${root}" "${name}")" "${dest}" "${name}"
+      owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
     done
   )
 }
@@ -387,15 +397,14 @@ purge_cache() {
   [ -z "${missing}" ] \
     || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
 
-  # Links installed from the cache checkout are invisible to uninstall_aside /
-  # uninstall_agents when this script runs from a different root; deleting the
-  # cache under them would leave dangling symlinks.
-  if ! paths_equal "${dest}" "${REPO_ROOT}"; then
-    outstanding="$(links_owned_by "${dest}")"
-    [ -z "${outstanding}" ] || die "refusing to purge ${dest}: installed skills still point at it and this checkout (${REPO_ROOT}) does not own them:
+  # Any live link into the cache would dangle once it is gone. Checked whatever
+  # root this script runs from: `all` reaches here with the links already
+  # unlinked, while the standalone `cache` target — and a run from another
+  # checkout, which skips them as non-kit — would otherwise strand them.
+  outstanding="$(links_owned_by "${dest}")"
+  [ -z "${outstanding}" ] || die "refusing to purge ${dest}: installed skills still point at it:
 ${outstanding}
-run the uninstaller from ${dest}, or remove those links first"
-  fi
+uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 
   confirm_yes "Remove kit cache at ${dest} (type yes): " || return 1
   rm -rf "${dest}" || die "failed to remove cache: ${dest}"
