@@ -347,6 +347,16 @@ owned_by_root() {
 # Installers record the source as `pwd -P`, which differs from DEST whenever an
 # ancestor is a symlink (`/var` → `/private/var`), so both forms are matched.
 # Side effects: none.
+# home_bases — `$HOME`, plus the resolved host home when it differs.
+# Inside Aside, HOME is <host>/.aside/runtime/home while the links were
+# installed under the host home, so every scan visits both.
+home_bases() {
+  local host_home
+  printf '%s\n' "${HOME}"
+  host_home="$(resolve_host_home)"
+  [ "${host_home}" = "${HOME}" ] || printf '%s\n' "${host_home}"
+}
+
 links_owned_by() {
   local dest="$1" phys
   phys="${dest}"
@@ -356,42 +366,58 @@ links_owned_by() {
   (
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
-    local target root name
-    for target in ${AGENT_TARGETS}; do
-      root="$(agent_skills_root "${target}")"
-      for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-        owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
+    local target root rel base
+    # scan_root ROOT — report kit-owned skill paths under ROOT.
+    scan_root() {
+      local r="$1" n
+      for n in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+        owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
-    done
-    # Older docs pointed Codex at ~/.codex/skills, and
-    # `remove_legacy_codex_skills_dir` still unlinks there.
-    for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-      owned_by_root "$(skill_dest "${HOME}/.codex/skills" "${name}")" "${name}" "${dest}" "${phys}"
-    done
+    }
+    while IFS= read -r base; do
+      for target in ${AGENT_TARGETS}; do
+        # agent_skills_root is $HOME-relative; re-anchor its suffix per base.
+        root="$(agent_skills_root "${target}")"
+        rel="${root#"${HOME}/"}"
+        if [ "${rel}" = "${root}" ]; then
+          scan_root "${root}"
+        else
+          scan_root "${base}/${rel}"
+        fi
+      done
+      # Older docs pointed Codex at ~/.codex/skills, and
+      # `remove_legacy_codex_skills_dir` still unlinks there.
+      scan_root "${base}/.codex/skills"
+    done <<EOF
+$(home_bases)
+EOF
   )
   (
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
-    local account name base root host_home
-    local -a bases
-    account="${ASIDE_ACCOUNT:-0}"
+    local base account_dir
+    scan_root() {
+      local r="$1" n
+      for n in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+        owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
+      done
+    }
     # Roots are constructed rather than read from resolve_aside_skills_root:
     # purge_cache refuses to run while ASIDE_SKILLS / ASIDE_SKILLS_USER narrow
     # the channel, so the default shape is the only one reachable here.
-    # Inside Aside, HOME is <host>/.aside/runtime/home while the links were
-    # installed under the host home, so scan both bases. `builtin` is the
-    # current root; `user` is the legacy one remove_legacy_user_skills clears.
-    bases=("${HOME}")
-    host_home="$(resolve_host_home)"
-    [ "${host_home}" = "${HOME}" ] || bases[${#bases[@]}]="${host_home}"
-    for base in "${bases[@]}"; do
-      for root in "${base}/.aside/u/${account}/skills/builtin" \
-        "${base}/.aside/u/${account}/skills/user"; do
-        for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-          owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
-        done
+    # Every existing u/<account> is walked, not just ASIDE_ACCOUNT: skills
+    # installed under another account outlive a purge run without it set.
+    # `builtin` is the current root; `user` is the legacy one
+    # remove_legacy_user_skills clears.
+    while IFS= read -r base; do
+      for account_dir in "${base}"/.aside/u/*/; do
+        [ -d "${account_dir}" ] || continue
+        scan_root "${account_dir}skills/builtin"
+        scan_root "${account_dir}skills/user"
       done
-    done
+    done <<EOF
+$(home_bases)
+EOF
   )
 }
 
