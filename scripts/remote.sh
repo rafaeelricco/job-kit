@@ -494,17 +494,19 @@ main() {
         ;;
       all)
         # Skills only over curl — never deletes profile data (~/.config/job-kit).
-        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents
+        # With --purge, `cache` joins the same invocation so the composite
+        # preflight runs before anything is unlinked: a survivor found after the
+        # unlink pass would otherwise leave a failed, half-finished uninstall.
+        if [ "${purge}" -eq 1 ]; then
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents cache
+        else
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents
+        fi
         ;;
     esac
 
     echo
     if [ "${purge}" -eq 1 ]; then
-      # Route through the unified cache target: it runs the preflight and the
-      # outstanding-link scan across both home bases, every Aside account, and
-      # the legacy roots. An ownership-only purge here left links the preceding
-      # `aside agents` pass could not reach dangling.
-      bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes cache
       echo "job-kit uninstall finished (cache purged)"
     else
       echo "job-kit uninstall finished"
