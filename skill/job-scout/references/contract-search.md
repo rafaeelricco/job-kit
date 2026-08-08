@@ -59,14 +59,10 @@ Anything that would touch a company or the user's account → stop; put it under
      LinkedIn: clear/omit the location filter, or select the UI's worldwide/global
      option if it offers one; never invent a country. Open-web: leave location
      controls unset and do not OR-suffix any location into the query.
-6. **Job rows only** — apply CONSTRAINTS filters: work_model, experience_level,
-   job_types, date_posted. Blacklists only remove.
+6. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
+   job_types, date_posted.
    **Location keep (first match):**
-   - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep,
-     unless every location it names is in `location_blacklist` (company or poster
-     country does not matter at search; a blacklisted country listed as one of
-     several hire-from regions does not drop a global remote card)
-   - card location hits `location_blacklist` → drop
+   - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep
    - CONSTRAINTS `locations` contains `Anywhere` → keep
    - card is onsite or location-restricted → keep only if it matches CONSTRAINTS
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
