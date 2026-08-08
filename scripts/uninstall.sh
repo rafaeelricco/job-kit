@@ -6,6 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/job-kit}"
+ASIDE_ACCOUNT_ID="${ASIDE_ACCOUNT:-0}"
 
 # Ownership probe for cache purge (must match remote.sh KIT_OWNERSHIP_FILES intent).
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
@@ -35,6 +36,23 @@ strip_trailing_slashes() {
 }
 
 JOB_KIT_HOME="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+
+# Every path this script deletes is built from these, so each is required to be
+# absolute and free of traversal before it can reach `rm -rf`. Relative to the
+# caller's CWD they name whatever happens to sit there — `JOB_KIT_HOME=job-kit`
+# purged a checkout in the working directory, `HOME=.` deleted `./.config/job-kit`.
+case "${JOB_KIT_HOME}" in
+  /*) ;;
+  *) die "JOB_KIT_HOME must be an absolute path (got: ${JOB_KIT_HOME})" ;;
+esac
+case "${HOME}" in
+  /*) ;;
+  *) die "HOME must be an absolute path (got: ${HOME})" ;;
+esac
+case "${ASIDE_ACCOUNT_ID}" in
+  */* | . | .. | "") die "ASIDE_ACCOUNT must be one path component, without separators or dot traversal (got: ${ASIDE_ACCOUNT_ID})" ;;
+  *) ;;
+esac
 
 # resolve_host_home
 # Inside Aside, HOME is <host>/.aside/runtime/home. Strip that suffix so host
@@ -508,8 +526,12 @@ EOF
         [ -d "${account_dir}" ] || continue
         # scope=survivors: uninstall_aside only reaches ASIDE_ACCOUNT under the
         # raw $HOME, so every other account — and every other base — survives it.
+        # Exempt it only when both of its roots are inspectable: an unsearchable
+        # one hides its links from uninstall_aside too, exactly as for agents.
         if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
-          && [ "${account_dir}" = "${base}/.aside/u/${ASIDE_ACCOUNT:-0}/" ]; then
+          && [ "${account_dir}" = "${base}/.aside/u/${ASIDE_ACCOUNT_ID}/" ] \
+          && [ -z "$(first_uninspectable "${account_dir}skills/builtin")" ] \
+          && [ -z "$(first_uninspectable "${account_dir}skills/user")" ]; then
           continue
         fi
         scan_root "${account_dir}skills/builtin"
@@ -539,15 +561,27 @@ purge_env_guards() {
 # means nothing will be unlinked first, so every live link blocks.
 # A cache this checkout does not own is always scanned in full — the unlink phase
 # skips those links as non-kit whatever it walks.
-# cache_unwalkable DIR — the traversal errors `rm -rf DIR` would hit, or nothing.
-# Walks the tree the way the removal will: a directory that is searchable but
-# not readable answers the fixed-path ownership probes and still cannot be
-# enumerated, so the purge fails partway.
+# cache_unremovable DIR — why `rm -rf DIR` would fail, or nothing.
+# Removal needs three things the fixed-path ownership probes never test: the tree
+# must enumerate, every directory in it must be writable (entries are unlinked
+# from their parent), and DIR's own parent must be writable to drop DIR itself.
 # Side effects: none.
-cache_unwalkable() {
-  local dir="$1" errs
+cache_unremovable() {
+  local dir="$1" errs parent
   errs="$(find "${dir}" -print 2>&1 >/dev/null)" || true
-  printf '%s' "${errs}"
+  if [ -n "${errs}" ]; then
+    printf '%s' "${errs}"
+    return 0
+  fi
+  errs="$(find "${dir}" -type d ! -perm -u+w -print 2>/dev/null)" || true
+  if [ -n "${errs}" ]; then
+    printf 'not writable, so their contents cannot be unlinked:\n%s' "${errs}"
+    return 0
+  fi
+  parent="$(dirname "${dir}")"
+  if [ ! -w "${parent}" ]; then
+    printf '%s is not writable, so %s itself cannot be removed' "${parent}" "${dir}"
+  fi
 }
 
 purge_preflight() {
@@ -564,9 +598,9 @@ purge_preflight() {
   # The ownership probe reads fixed paths, which a searchable-but-unreadable
   # tree still answers; `rm -rf` has to enumerate it. Prove that now, or an
   # earlier irreversible target runs and the purge fails afterwards.
-  unwalkable="$(cache_unwalkable "${dest}")"
+  unwalkable="$(cache_unremovable "${dest}")"
   [ -z "${unwalkable}" ] \
-    || die "refusing to start: the cache at ${dest} cannot be fully traversed, so the purge would fail partway:
+    || die "refusing to start: the cache at ${dest} cannot be removed, so the purge would fail partway:
 ${unwalkable}"
   if ! paths_equal "${dest}" "${REPO_ROOT}"; then
     scope=all
@@ -615,15 +649,27 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 # `remove_profile` and `purge_cache` cannot be undone, so a channel that would
 # refuse to resolve its skills root has to say so before the first removal.
 preflight_targets() {
-  local t
+  local t roots
   for t in "$@"; do
     case "${t}" in
       agents)
+        # The resolve check stays its own subshell: `set -e` does not abort a
+        # command substitution that sits in a `||` list, so folding it into the
+        # roots capture below would silently drop it.
         (
           # shellcheck source=agents/lib.sh
           . "${REPO_ROOT}/scripts/agents/lib.sh"
           resolve_override_skills >/dev/null
         ) || die "refusing to start: the agents target cannot resolve its skills root"
+        roots="$(
+          # shellcheck source=agents/lib.sh
+          . "${REPO_ROOT}/scripts/agents/lib.sh"
+          for target in ${AGENT_TARGETS}; do
+            agent_skills_root "${target}"
+          done
+          printf '%s\n' "${HOME}/.codex/skills"
+        )"
+        unwritable_roots "${roots}" agents
         ;;
       aside)
         (
@@ -631,9 +677,32 @@ preflight_targets() {
           . "${REPO_ROOT}/scripts/aside/lib.sh"
           resolve_aside_skills_root >/dev/null
         ) || die "refusing to start: the aside target cannot resolve its skills root"
+        roots="$(
+          # shellcheck source=aside/lib.sh
+          . "${REPO_ROOT}/scripts/aside/lib.sh"
+          resolve_aside_skills_root
+          printf '%s\n' "${HOME}/.aside/u/${ASIDE_ACCOUNT_ID}/skills/user"
+        )"
+        unwritable_roots "${roots}" aside
         ;;
     esac
   done
+}
+
+# unwritable_roots ROOTS TARGET — die when an existing skills root cannot be
+# written. Unlinking a skill removes an entry from its directory, so a readable
+# but unwritable root fails at removal time — after `profile` has already run and
+# while the channel still reports "Uninstall completed".
+unwritable_roots() {
+  local roots="$1" target="$2" root
+  while IFS= read -r root; do
+    [ -n "${root}" ] || continue
+    [ -d "${root}" ] || continue
+    [ -w "${root}" ] \
+      || die "refusing to start: the ${target} target cannot unlink from ${root} (not writable)"
+  done <<EOF
+${roots}
+EOF
 }
 
 do_all() {
