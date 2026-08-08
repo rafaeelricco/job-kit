@@ -204,20 +204,24 @@ resolve_cache_path() {
   printf '%s' "${p}"
 }
 
-# fetch_tarball DEST
+# fetch_tarball DEST [OWNERSHIP_FILES]
 # Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
 # required. DEST is removed only once the download proves to be a complete
 # job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
-# DEST is slash-normalized and symlink-resolved so a cache behind a link is
-# refreshed in place (agent links/`pwd -P` markers stay valid) rather than
-# replacing the link itself.
+# OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES and must carry whatever list
+# the caller already probed with: a non-git legacy cache reaches its refresh
+# through here, so re-probing the default signature would reject it for the very
+# file the refresh installs. DEST is slash-normalized and symlink-resolved so a
+# cache behind a link is refreshed in place (agent links/`pwd -P` markers stay
+# valid) rather than replacing the link itself.
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
-  local dest url stage parent missing
+  local dest url stage parent missing files
   dest="$(resolve_cache_path "$1")"
+  files="${2:-${KIT_OWNERSHIP_FILES}}"
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     # Ownership only: a pre-this-skill cache must still be replaceable.
-    missing="$(kit_owned_missing "${dest}")"
+    missing="$(kit_paths_missing "${dest}" "${files}")"
     [ -z "${missing}" ] \
       || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
   fi
@@ -320,7 +324,7 @@ fetch_kit() {
     if have git; then
       fetch_git_clone "${dest}"
     else
-      fetch_tarball "${dest}"
+      fetch_tarball "${dest}" "${files}"
     fi
     return 0
   fi
@@ -338,7 +342,7 @@ fetch_kit() {
     return 0
   fi
 
-  fetch_tarball "${dest}"
+  fetch_tarball "${dest}" "${files}"
 }
 
 # require_checkout DIR
