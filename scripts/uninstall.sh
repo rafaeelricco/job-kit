@@ -226,13 +226,19 @@ remove_profile() {
 
   for path in "${config}" "${host_default}"; do
     [ -e "${path}" ] || [ -L "${path}" ] || continue
-    # Deduplicate when XDG unset (same path twice).
-    local seen=0 e
+    # Deduplicate when XDG unset, or when one root is a symlink to the other.
+    local seen=0 e i=0
     for e in "${existing[@]+"${existing[@]}"}"; do
       if paths_equal "${e}" "${path}"; then
         seen=1
+        # Keep the real directory as the deletion target: `rm -rf` on a symlink
+        # alias removes the link and leaves every profile fact in place.
+        if [ -L "${e}" ] && [ ! -L "${path}" ]; then
+          existing[${i}]="${path}"
+        fi
         break
       fi
+      i=$((i + 1))
     done
     [ "${seen}" -eq 0 ] || continue
     existing[${#existing[@]}]="${path}"
@@ -253,6 +259,13 @@ remove_profile() {
     for path in "${existing[@]}"; do
       rm -rf "${path}" || die "failed to remove profile: ${path}"
       echo "removed profile: ${path}"
+    done
+    # An alias that pointed at a deleted tree is now dangling; drop it too.
+    for path in "${config}" "${host_default}"; do
+      if [ -L "${path}" ] && [ ! -e "${path}" ]; then
+        rm -f "${path}" || die "failed to remove profile alias: ${path}"
+        echo "removed profile alias: ${path}"
+      fi
     done
   fi
 
@@ -421,17 +434,47 @@ EOF
   )
 }
 
-# purge_cache — remove kit-owned JOB_KIT_HOME only.
-purge_cache() {
-  local raw dest missing outstanding
-  raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
-
+# purge_env_guards — refuse a cache purge while an override narrows a channel.
+purge_env_guards() {
   [ -z "${CLAUDE_SKILLS:-}" ] \
     || die "refusing cache purge while CLAUDE_SKILLS narrows agents to ${CLAUDE_SKILLS} (unset it, or omit cache)"
   [ -z "${ASIDE_SKILLS:-}" ] \
     || die "refusing cache purge while ASIDE_SKILLS narrows Aside to ${ASIDE_SKILLS} (unset it, or omit cache)"
   [ -z "${ASIDE_SKILLS_USER:-}" ] \
     || die "refusing cache purge while ASIDE_SKILLS_USER narrows Aside to ${ASIDE_SKILLS_USER} (unset it, or omit cache)"
+}
+
+# purge_preflight — prove `all` can finish its cache purge before it deletes.
+# `remove_profile` is irreversible, so every purge guard that does not depend on
+# the unlink phase runs first. Links this run unlinks itself are not blockers;
+# links owned by another checkout survive uninstall_aside / uninstall_agents and
+# would otherwise stop the purge with the profile already gone.
+purge_preflight() {
+  local raw dest missing outstanding
+  purge_env_guards
+  raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
+    return 0
+  fi
+  dest="$(resolve_cache_path "${raw}")"
+  missing="$(kit_owned_missing "${dest}")"
+  [ -z "${missing}" ] \
+    || die "refusing to start: the cache purge would fail on a non-kit path (missing ${missing}): ${dest}"
+  if paths_equal "${dest}" "${REPO_ROOT}"; then
+    return 0
+  fi
+  outstanding="$(links_owned_by "${dest}")"
+  [ -z "${outstanding}" ] || die "refusing to start: installed skills point at ${dest}, which this checkout (${REPO_ROOT}) does not own:
+${outstanding}
+run the uninstaller from ${dest}, or remove those links first"
+}
+
+# purge_cache — remove kit-owned JOB_KIT_HOME only.
+purge_cache() {
+  local raw dest missing outstanding
+  raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+
+  purge_env_guards
 
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
     echo "cache already absent: ${raw}"
@@ -463,6 +506,7 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 do_all() {
   confirm_yes "Uninstall ALL (Aside + agents + profile + kit cache). Type yes: " || return 1
   YES=1
+  purge_preflight
   uninstall_aside
   uninstall_agents
   remove_profile
