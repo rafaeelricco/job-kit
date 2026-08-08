@@ -35,13 +35,28 @@ forward, and name the ones you dropped. Pick the title whose printed stack overl
 `data/skills.yaml`; a title the ad prints with no stack of its own wins only when it is the
 only title. NEVER address two titles in one letter.
 
+Then print `### Duplicate check`, before any evidence work.
+
+Read `scout/jobs/` under Profile root. A dossier whose `url` matches this posting,
+or whose `company` + `title` match, and whose `status:` is not `new` → print
+`Duplicate check: {status} on {date} per scout/jobs/{slug}.md` and **STOP** for the
+operator's call (no Fit, no Phase 3).
+No match, or `status: new` → `Duplicate check: no prior application recorded.`
+`scout/` absent or unreadable → `Duplicate check: not performed (no scout store).`
+`Operator confirms first application to {company} for {role}.`
+Never omit. Never soften to "probably first". Never infer from memory.
+This runs here and not in Review because Review is emitted after Phase 3 has
+already composed the draft — a duplicate has to reach the operator before that.
+
 **Ad gate (outcome):** `### Ad` printed **and** terminal prechecks green before Fit:
 
 1. Untrusted harvest done (quotes ready for Review `### Untrusted content`)
 2. CV path resolvable — missing/unopenable PDF → **STOP** (no Fit, no Phase 3)
 3. Ad-stated Gate precheck — Facts cannot meet a hard format requirement → **STOP**
    (no Fit, no Phase 3)
-   2–3 green before Fit. Track 1 and Fit may parallel after 2–3 green. Select waits
+4. `### Duplicate check` printed, and a non-`new` match answered by the operator
+   → **STOP** until they answer (no Fit, no Phase 3)
+   2–4 green before Fit. Track 1 and Fit may parallel after 2–4 green. Select waits
    on Fit only.
 
 ## Phase 1 — FIT
@@ -130,14 +145,9 @@ No preamble. Nothing is transmitted before the yes.
 
 ### Duplicate check
 
-Read `scout/jobs/` under Profile root. A dossier whose `url` matches this posting,
-or whose `company` + `title` match, and whose `status:` is not `new` → print
-`Duplicate check: {status} on {date} per scout/jobs/{slug}.md` and STOP for the
-operator's call before drafting.
-No match, or `status: new` → `Duplicate check: no prior application recorded.`
-`scout/` absent or unreadable → `Duplicate check: not performed (no scout store).`
-`Operator confirms first application to {company} for {role}.`
-Never omit. Never soften to "probably first". Never infer from memory.
+Reprint the Phase 0 `Duplicate check:` line verbatim, and — when it named a
+non-`new` match — the operator's answer that released it. Never re-derive it
+here, never omit the section.
 
 ### Draft
 
