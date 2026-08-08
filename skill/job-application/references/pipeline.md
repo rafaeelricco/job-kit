@@ -130,9 +130,14 @@ No preamble. Nothing is transmitted before the yes.
 
 ### Duplicate check
 
-`Duplicate check: not performed (this pack keeps no tracker).`
+Read `scout/jobs/` under Profile root. A dossier whose `url` matches this posting,
+or whose `company` + `title` match, and whose `status:` is not `new` → print
+`Duplicate check: {status} on {date} per scout/jobs/{slug}.md` and STOP for the
+operator's call before drafting.
+No match, or `status: new` → `Duplicate check: no prior application recorded.`
+`scout/` absent or unreadable → `Duplicate check: not performed (no scout store).`
 `Operator confirms first application to {company} for {role}.`
-Never omit. Never soften to "probably first".
+Never omit. Never soften to "probably first". Never infer from memory.
 
 ### Draft
 
