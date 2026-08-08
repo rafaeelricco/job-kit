@@ -106,3 +106,11 @@ operator and `job-application`.
 | No file yet                  | Create with `status: new`                                     |
 
 Unknown = `—`, never invented — same law as the report.
+
+Replace an existing dossier atomically: render the complete updated file to a
+sibling temporary path under the same `scout/jobs/` directory, then rename it
+over the original once the write has succeeded. Never rewrite one in place. The
+operator owns `status:` and `## Application log`, and an in-place write that dies
+partway — a full disk is enough — truncates exactly those lines. The pre-write
+readability and parse checks cannot help once the write has begun; a rename is
+the only step that either happens or does not.
