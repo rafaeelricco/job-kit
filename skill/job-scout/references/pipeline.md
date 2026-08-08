@@ -141,7 +141,14 @@ Profile root: `scout/runs/*.md` and `scout/jobs/*.md`. `mkdir -p` both on first 
    appended; `uncertain` rows, and `dead` rows never seen live, stay in the run
    report only and create no dossier.
 3. Shape, slug, and the re-run rules are owned by `./references/dossier.md`.
-4. Unwritable path (permission, read-only FS) → print the error and the path under
+4. Write nothing until `scout/runs/` and `scout/jobs/` can be **listed**, and any
+   existing file for a slug can be **read and parsed**. A store that is writable
+   but not listable (or a dossier that will not parse) cannot answer whether the
+   slug is taken, which suffix it owns, or what `status:` and `## Application log`
+   it already holds — writing there overwrites the operator's application history
+   with a fresh `status: new`. Unreadable or unparseable → print the path under
+   Gaps and STOP, same as a failed write.
+5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
 
 Then **STOP**.
