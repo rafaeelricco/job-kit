@@ -265,14 +265,39 @@ remove_profile() {
 }
 
 # kit_owned_missing DIR — first missing ownership file, or empty if kit-owned.
+# Walks every path component and rejects a symlink at any of them: Bash
+# `test -f`/`-d` follow intermediate links, so a foreign directory that keeps a
+# real `skill/` but links `scripts` and each skill dir into a genuine checkout
+# would pass a leaf-only probe and be handed to `rm -rf`. Same walk as
+# `kit_paths_missing` in remote.sh, which guards the same decision.
 kit_owned_missing() {
-  local dir="$1" rel
+  local dir="$1" rel cur part rest
   if [ -L "${dir}/skill" ] || [ ! -d "${dir}/skill" ]; then
     printf '%s\n' "skill/"
     return 0
   fi
   for rel in ${KIT_OWNERSHIP_FILES}; do
-    if [ -L "${dir}/${rel}" ] || [ ! -f "${dir}/${rel}" ]; then
+    cur="${dir}"
+    rest="${rel}"
+    while [ -n "${rest}" ]; do
+      case "${rest}" in
+        */*)
+          part="${rest%%/*}"
+          rest="${rest#*/}"
+          ;;
+        *)
+          part="${rest}"
+          rest=""
+          ;;
+      esac
+      [ -n "${part}" ] || continue
+      cur="${cur}/${part}"
+      if [ -L "${cur}" ]; then
+        printf '%s\n' "${rel}"
+        return 0
+      fi
+    done
+    if [ ! -f "${dir}/${rel}" ]; then
       printf '%s\n' "${rel}"
       return 0
     fi
@@ -291,9 +316,58 @@ resolve_cache_path() {
   printf '%s\n' "${raw}"
 }
 
+# owned_by_root PATH ROOT NAME
+# Prints PATH when it is a skill symlink, or a marked copy, whose source is
+# ROOT/skill/NAME. Always returns 0 so callers survive `set -e`.
+owned_by_root() {
+  local path="$1" root="$2" name="$3" expected marker
+  expected="${root}/skill/${name}"
+  if [ -L "${path}" ]; then
+    if [ "$(readlink "${path}")" = "${expected}" ]; then
+      printf '%s\n' "${path}"
+    fi
+    return 0
+  fi
+  marker="${path}/.job-kit"
+  if [ -d "${path}" ] && [ -f "${marker}" ] && [ "$(cat "${marker}")" = "${expected}" ]; then
+    printf '%s\n' "${path}"
+  fi
+  return 0
+}
+
+# links_owned_by DEST — installed skill paths still owned by the checkout at DEST.
+# The channel libs decide ownership as `readlink == <repo>/skill/<name>` against
+# this script's REPO_ROOT, so an install made from a different checkout is
+# skipped as "not kit-owned". Purging DEST would then strand those links behind
+# a report claiming the uninstall completed.
+# Side effects: none.
+links_owned_by() {
+  local dest="$1"
+  (
+    # shellcheck source=agents/lib.sh
+    . "${REPO_ROOT}/scripts/agents/lib.sh"
+    local target root name
+    for target in ${AGENT_TARGETS}; do
+      root="$(agent_skills_root "${target}")"
+      for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+        owned_by_root "$(skill_dest "${root}" "${name}")" "${dest}" "${name}"
+      done
+    done
+  )
+  (
+    # shellcheck source=aside/lib.sh
+    . "${REPO_ROOT}/scripts/aside/lib.sh"
+    local root name
+    root="$(resolve_aside_skills_root 2>/dev/null)" || exit 0
+    for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+      owned_by_root "$(skill_dest "${root}" "${name}")" "${dest}" "${name}"
+    done
+  )
+}
+
 # purge_cache — remove kit-owned JOB_KIT_HOME only.
 purge_cache() {
-  local raw dest missing
+  local raw dest missing outstanding
   raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
 
   [ -z "${CLAUDE_SKILLS:-}" ] \
@@ -312,6 +386,16 @@ purge_cache() {
   missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
+
+  # Links installed from the cache checkout are invisible to uninstall_aside /
+  # uninstall_agents when this script runs from a different root; deleting the
+  # cache under them would leave dangling symlinks.
+  if ! paths_equal "${dest}" "${REPO_ROOT}"; then
+    outstanding="$(links_owned_by "${dest}")"
+    [ -z "${outstanding}" ] || die "refusing to purge ${dest}: installed skills still point at it and this checkout (${REPO_ROOT}) does not own them:
+${outstanding}
+run the uninstaller from ${dest}, or remove those links first"
+  fi
 
   confirm_yes "Remove kit cache at ${dest} (type yes): " || return 1
   rm -rf "${dest}" || die "failed to remove cache: ${dest}"
