@@ -83,13 +83,12 @@ skill in Claude Code, Codex, or Grok:
 /job-profile-init
 ```
 
-It routes between creating a new profile and registering an existing one, asks
-for a source of truth (CV, or a LinkedIn export path or paste — or scaffold-only
-to skip it), and writes nothing before you approve. Facts are never invented.
-What it cannot source is left empty, and the subset that would block a useful
-scout — salary band, notice period, work authorization, EOR, positions and
-primary keywords — comes back as Gaps for you to fill by hand. Letter depth
-comes from `data/experiences.yml` and `data/projects.yml`.
+It enters PLAN mode, routes between creating a new profile and registering an
+existing one, and asks every user-owned profile field. Source values and
+template defaults require explicit confirmation, edits, or skips. Facts are
+never invented; the profile stores one confirmed `seniority_level` string and
+final extra observations in `data/observations.yaml`. Letter depth comes from
+`data/experiences.yml` and `data/projects.yml`.
 
 No demographic or EEO self-identification is stored — those questions are
 voluntary and per-employer, so you answer them in the ATS form.
@@ -106,6 +105,11 @@ Scout runs every enabled pack in your profile's `data/search_packs.yaml`, in fil
 order, and ranks the job rows it extracts. Application drafts and stages one posting at a
 time; it may open an Apply control that only reveals the form, then stops at
 review and waits for an explicit yes.
+
+Scout also writes each run to `scout/runs/{YYYY-MM-DD}-scout.md` under your profile
+and one dossier per live job to `scout/jobs/`. Those files are the only thing scout
+writes; `data/` and `cv/` stay read-only to it. Set `status:` in a dossier's
+frontmatter as you apply — re-running scout never overwrites it.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
 application, or `cv/en-us-resume.pdf` as the fallback. With neither,
@@ -144,9 +148,8 @@ Skills resolve the active profile in this order:
 
 `/job-profile-init` **Activate** sets durable pointers for non-host-default
 paths (including XDG-only defaults). Host-default `$HOST_HOME/.config/job-kit`
-is path convention. Without the skill: create/move the tree there, or run the
-**profile** checkout's `bash scripts/install.sh` for a non-default path
-(emitted under that profile — not a job-kit script).
+is path convention. Without the skill: create/move the tree there, or write the
+absolute profile path as the single line of `~/.config/profile-root`.
 
 | File                                                  | Who reads it                                     |
 | ----------------------------------------------------- | ------------------------------------------------ |
@@ -179,40 +182,36 @@ under Aside's `skills/user/`.
 
 ## Uninstall
 
+One script — interactive pick, or pass targets:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
+bash scripts/uninstall.sh
+# from cache after a remote install:
+bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Target                | Removes                                                                       |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `uninstall` / `… all` | Aside kit copies + agent kit links (default)                                  |
-| `uninstall aside`     | `job-scout` + `job-application`                                               |
-| `uninstall agents`    | `job-profile-init` + `job-profile-config` kit links (+ legacy `profile-init`) |
+| Choice / target | Removes                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| Aside           | `job-scout` + `job-application` kit copies                                                       |
+| Agents          | `job-profile-init` + `job-profile-config` kit links (+ legacy `profile-init`)                    |
+| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files |
+| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                |
+| **All**         | Aside + agents + **profile** + cache                                                             |
 
-Only kit-owned paths are removed (exact cache path match) — foreign skills stay.
-`uninstall agents` accepts the same `--skip-*` flags as install.
+Only kit-owned skill paths are removed. **All** / **Profile** permanently delete
+profile facts (type `yes` unless `--yes`). Foreign skills stay.
 
-Add `--purge` to a **full** uninstall to delete the cached checkout too. It is
-refused after a partial uninstall, and while `CLAUDE_SKILLS`, `ASIDE_SKILLS`, or
-`ASIDE_SKILLS_USER` narrows a channel to one destination — in both cases agent
-symlinks would be left dangling into a deleted cache.
+Curl / non-interactive skills-only (does **not** delete profile data):
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
+# skills + kit cache:
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
 ```
 
-From a local checkout — or from the cache after a remote install:
-
-```bash
-bash scripts/agents/uninstall.sh
-bash scripts/aside/uninstall.sh
-```
-
-```bash
-JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}"
-bash "$JOB_KIT_HOME/scripts/agents/uninstall.sh"
-bash "$JOB_KIT_HOME/scripts/aside/uninstall.sh"
-```
+`uninstall agents` via remote still accepts `--skip-claude` / `--skip-codex` /
+`--skip-grok`. `--purge` is full-skills uninstall only (refused on partial
+targets or while `CLAUDE_SKILLS` / `ASIDE_SKILLS` narrow a channel).
 
 ## Work locally
 
@@ -251,8 +250,9 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-application/`    | Apply law, draft contract                        |
 | `skill/job-profile-init/`   | Intake + templates for empty profiles            |
 | `skill/job-profile-config/` | Show + edit search intent and boards             |
-| `scripts/aside/`            | Aside install / uninstall (scout+apply)          |
-| `scripts/agents/`           | Coding-agent install / uninstall (init + config) |
+| `scripts/aside/`            | Aside install (scout+apply)                      |
+| `scripts/agents/`           | Coding-agent install (init + config)             |
+| `scripts/uninstall.sh`      | Single interactive / flagged uninstall           |
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
