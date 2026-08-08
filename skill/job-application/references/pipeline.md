@@ -37,7 +37,10 @@ only title. NEVER address two titles in one letter.
 
 Then print `### Duplicate check`, before any evidence work.
 
-Read `scout/jobs/` under Profile root. A dossier whose `url` matches this posting,
+Read `scout/jobs/` under Profile root. Normalize this posting's URL first, per
+`job-scout/references/contract-search.md` "URL normalize" — the stored `url` is
+already normalized, so a tracked link (`?utm_source=…`, `#fragment`) matches
+nothing until you do. A dossier whose normalized `url` matches this posting,
 or whose `company` + `title` match, and whose `status:` is not `new` → print
 `Duplicate check: {status} on {date} per scout/jobs/{slug}.md` and **STOP** for the
 operator's call (no Fit, no Phase 3).
