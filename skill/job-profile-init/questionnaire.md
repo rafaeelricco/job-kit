@@ -9,7 +9,7 @@ language/skill row, and every `job_search.yaml` key:
 
 - work model, `seniority_level`, job types, date filters
 - positions, keyword groups, locations
-- apply-once and distance settings
+- apply-once setting
 
 Ask each `search_packs.yaml` `packs[].enabled` flag.
 

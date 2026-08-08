@@ -35,5 +35,3 @@ locations:
   - "Remote" # TODO strong-pay markets as needed
 
 apply_once_at_company: true
-
-distance_km: 100000
