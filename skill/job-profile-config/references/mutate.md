@@ -30,7 +30,14 @@ Print `Profile root: /abs/path` before the first diff of the session.
 | `seniority_level`                                | string, only when explicit                                  |
 | `apply_once_at_company`                          | bool, only when explicit                                    |
 
-Nothing else in this file.
+Nothing else in this file, with one delete-only exception: the keys this
+revision dropped — `experience_level`, `company_blacklist`, `title_blacklist`,
+`location_blacklist` — may be **removed**, never written or edited. Scout Phase 0
+stops on a profile still carrying them, and this is the migration it names, so
+refusing to touch them would leave the operator with no supported way to scout.
+Removing `experience_level` does not supply `seniority_level`: ask for that value
+and write it per the row above. Show every removal in the same diff and confirm
+it like any other write.
 
 A `keywords` group name becomes a `[skill:<group>]` token job-scout packs expand.
 Renaming or deleting a group a pack names leaves an un-expandable token — say so in
