@@ -352,6 +352,37 @@ owned_by_root() {
   return 0
 }
 
+# first_uninspectable PATH — the first existing component of PATH that cannot be
+# read and searched, or nothing when the whole chain is inspectable (an absent
+# component ends the walk: absent is a real answer).
+# A directory that cannot be searched hides its children from `test`, so every
+# probe below it returns "not there" — indistinguishable from "nothing to find".
+# This scan stands in front of `rm -rf`, so it must tell those apart.
+# Side effects: none.
+first_uninspectable() {
+  local path="$1" cur="" part rest
+  rest="${path#/}"
+  while [ -n "${rest}" ]; do
+    case "${rest}" in
+      */*)
+        part="${rest%%/*}"
+        rest="${rest#*/}"
+        ;;
+      *)
+        part="${rest}"
+        rest=""
+        ;;
+    esac
+    [ -n "${part}" ] || continue
+    cur="${cur}/${part}"
+    [ -e "${cur}" ] || return 0
+    if [ ! -r "${cur}" ] || [ ! -x "${cur}" ]; then
+      printf '%s\n' "${cur}"
+      return 0
+    fi
+  done
+}
+
 # links_owned_by DEST — installed skill paths whose source is the checkout at DEST.
 # The channel libs decide ownership as `readlink == <repo>/skill/<name>` against
 # this script's REPO_ROOT, so an install made from a different checkout is
@@ -382,7 +413,12 @@ links_owned_by() {
     local target root rel base
     # scan_root ROOT — report kit-owned skill paths under ROOT.
     scan_root() {
-      local r="$1" n
+      local r="$1" n blocker
+      blocker="$(first_uninspectable "${r}")"
+      if [ -n "${blocker}" ]; then
+        printf '%s\n' "${blocker} (exists but cannot be inspected)"
+        return 0
+      fi
       for n in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
@@ -429,7 +465,12 @@ EOF
     . "${REPO_ROOT}/scripts/aside/lib.sh"
     local base account_dir
     scan_root() {
-      local r="$1" n
+      local r="$1" n blocker
+      blocker="$(first_uninspectable "${r}")"
+      if [ -n "${blocker}" ]; then
+        printf '%s\n' "${blocker} (exists but cannot be inspected)"
+        return 0
+      fi
       for n in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
@@ -452,10 +493,6 @@ EOF
       fi
       for account_dir in "${base}"/.aside/u/*/; do
         [ -d "${account_dir}" ] || continue
-        if [ ! -r "${account_dir}" ] || [ ! -x "${account_dir}" ]; then
-          printf '%s\n' "${account_dir} (exists but cannot be inspected)"
-          continue
-        fi
         # scope=survivors: uninstall_aside only reaches ASIDE_ACCOUNT under the
         # raw $HOME, so every other account — and every other base — survives it.
         if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
