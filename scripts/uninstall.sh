@@ -363,14 +363,27 @@ links_owned_by() {
         owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
       done
     done
+    # Older docs pointed Codex at ~/.codex/skills, and
+    # `remove_legacy_codex_skills_dir` still unlinks there.
+    for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+      owned_by_root "$(skill_dest "${HOME}/.codex/skills" "${name}")" "${name}" "${dest}" "${phys}"
+    done
   )
   (
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
-    local root name
-    root="$(resolve_aside_skills_root 2>/dev/null)" || exit 0
+    local root name user_root
+    root="$(resolve_aside_skills_root 2>/dev/null)" || root=""
+    if [ -n "${root}" ]; then
+      for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+        owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
+      done
+    fi
+    # `remove_legacy_user_skills` also clears skills/user, so a kit link left
+    # there dangles just the same.
+    user_root="${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/user"
     for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-      owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
+      owned_by_root "$(skill_dest "${user_root}" "${name}")" "${name}" "${dest}" "${phys}"
     done
   )
 }
