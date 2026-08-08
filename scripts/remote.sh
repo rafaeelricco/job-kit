@@ -91,6 +91,16 @@ skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
 
+# Ownership signature for caches predating the unified uninstaller: the same
+# set minus `scripts/uninstall.sh`, which those revisions never shipped. Only
+# the migration refresh in `ensure_kit_cache` may use it, and only after a
+# channel `uninstall.sh` has already proved the tree is an older job-kit.
+KIT_LEGACY_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+scripts/aside/install.sh scripts/aside/lib.sh
+skill/job-profile-init/SKILL.md
+skill/job-scout/SKILL.md
+skill/job-application/SKILL.md"
+
 # Full layout expected after fetch / before install: ownership files plus every
 # skill this revision ships. Post-fetch validation uses this set so a wrong-ref
 # download cannot replace the cache with a tree missing a new skill.
@@ -291,18 +301,20 @@ fetch_git_clone() {
   echo "cloned: ${dest} @ ${JOB_KIT_REF}"
 }
 
-# fetch_kit DEST
+# fetch_kit DEST [OWNERSHIP_FILES]
 # Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
 # that is not kit-owned (ownership signature) is never fetched into, checked
 # out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path. Legacy caches that lack skills added in later revisions still pass the
-# ownership probe so they can upgrade. DEST is slash-normalized and
-# symlink-resolved first so a cache behind a link is refreshed at its physical
-# path (matching agent `pwd -P` markers).
+# path. OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES; the migration path
+# passes KIT_LEGACY_OWNERSHIP_FILES so a cache from before the unified
+# uninstaller is not rejected by the very signature it is being refreshed to
+# gain. DEST is slash-normalized and symlink-resolved first so a cache behind a
+# link is refreshed at its physical path (matching agent `pwd -P` markers).
 # Side effects: creates or updates DEST.
 fetch_kit() {
-  local dest missing raw
+  local dest missing raw files
   raw="$(strip_trailing_slashes "$1")"
+  files="${2:-${KIT_OWNERSHIP_FILES}}"
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
     dest="${raw}"
     if have git; then
@@ -314,7 +326,7 @@ fetch_kit() {
   fi
 
   dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_owned_missing "${dest}")"
+  missing="$(kit_paths_missing "${dest}" "${files}")"
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
 
@@ -357,10 +369,13 @@ ensure_kit_cache() {
   dest="$(resolve_cache_path "${raw}")"
   missing="$(kit_owned_missing "${dest}")"
   if [ -n "${missing}" ]; then
-    # Pre-single-uninstall caches still have channel uninstall.sh; refresh once.
-    if [ -f "${dest}/scripts/aside/uninstall.sh" ] || [ -f "${dest}/scripts/agents/uninstall.sh" ]; then
+    # Pre-single-uninstall caches still have channel uninstall.sh; refresh once,
+    # probing with the legacy signature so the refresh is not rejected for the
+    # very file it exists to install.
+    if [ -z "$(kit_paths_missing "${dest}" "${KIT_LEGACY_OWNERSHIP_FILES}")" ] \
+      && { [ -f "${dest}/scripts/aside/uninstall.sh" ] || [ -f "${dest}/scripts/agents/uninstall.sh" ]; }; then
       echo "refreshing kit cache (uninstall layout changed): ${dest}"
-      fetch_kit "${raw}"
+      fetch_kit "${raw}" "${KIT_LEGACY_OWNERSHIP_FILES}"
       require_checkout "${raw}"
       return 0
     fi
