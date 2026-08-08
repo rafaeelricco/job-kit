@@ -51,8 +51,16 @@ host_default_root() {
   printf '%s/.config/job-kit\n' "$(resolve_host_home)"
 }
 
+# job_kit_config — the XDG profile root, or the host default.
+# A relative XDG_CONFIG_HOME is refused rather than resolved: this path is handed
+# to `rm -rf`, and relative to the caller's CWD it names whatever happens to sit
+# there — `XDG_CONFIG_HOME=.` turns `profile` into "delete ./job-kit".
 job_kit_config() {
   if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    case "${XDG_CONFIG_HOME}" in
+      /*) ;;
+      *) die "XDG_CONFIG_HOME must be an absolute path (got: ${XDG_CONFIG_HOME}); unset it to use the host default" ;;
+    esac
     printf '%s/job-kit\n' "${XDG_CONFIG_HOME}"
   else
     host_default_root
@@ -434,21 +442,25 @@ links_owned_by() {
     }
     while IFS= read -r base; do
       for target in ${AGENT_TARGETS}; do
-        # scope=survivors lists only what the unlink phase will NOT reach.
-        # uninstall_agents walks the raw $HOME roots — except the ones a
-        # --skip-<target> flag excludes, which do survive it.
-        if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
-          && ! target_skipped "${target}"; then
-          continue
-        fi
         # agent_skills_root is $HOME-relative; re-anchor its suffix per base.
         root="$(agent_skills_root "${target}")"
         rel="${root#"${HOME}/"}"
         if [ "${rel}" = "${root}" ]; then
-          scan_root "${root}"
+          rel=""
         else
-          scan_root "${base}/${rel}"
+          root="${base}/${rel}"
         fi
+        # scope=survivors lists only what the unlink phase will NOT reach.
+        # uninstall_agents walks the raw $HOME roots — except the ones a
+        # --skip-<target> flag excludes, which do survive it. Exempt a root only
+        # when it can actually be inspected: an unsearchable one hides its links
+        # from uninstall_agents too, so the scheduled unlink cannot clear it.
+        if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
+          && ! target_skipped "${target}" \
+          && [ -z "$(first_uninspectable "${root}")" ]; then
+          continue
+        fi
+        scan_root "${root}"
       done
       # Older docs pointed Codex at ~/.codex/skills, and
       # `remove_legacy_codex_skills_dir` still unlinks there — unconditionally,
@@ -463,7 +475,7 @@ EOF
   (
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
-    local base account_dir
+    local base account_dir blocker
     scan_root() {
       local r="$1" n blocker
       blocker="$(first_uninspectable "${r}")"
@@ -483,12 +495,13 @@ EOF
     # `builtin` is the current root; `user` is the legacy one
     # remove_legacy_user_skills clears.
     while IFS= read -r base; do
-      # An account tree that exists but cannot be traversed is not an absent
-      # one: the glob silently yields nothing and the scan would report all
-      # clear. Report it as a blocker instead of purging on a blind scan.
-      if [ -e "${base}/.aside/u" ] \
-        && { [ ! -r "${base}/.aside/u" ] || [ ! -x "${base}/.aside/u" ]; }; then
-        printf '%s\n' "${base}/.aside/u (exists but cannot be inspected)"
+      # An account tree that cannot be traversed is not an absent one: the glob
+      # silently yields nothing and the scan would report all clear. Walk the
+      # whole enumeration path first — `-e` on `.aside/u` is itself false when
+      # an ancestor like `.aside` is unsearchable, which would skip this guard.
+      blocker="$(first_uninspectable "${base}/.aside/u")"
+      if [ -n "${blocker}" ]; then
+        printf '%s\n' "${blocker} (exists but cannot be inspected)"
         continue
       fi
       for account_dir in "${base}"/.aside/u/*/; do
@@ -526,8 +539,19 @@ purge_env_guards() {
 # means nothing will be unlinked first, so every live link blocks.
 # A cache this checkout does not own is always scanned in full — the unlink phase
 # skips those links as non-kit whatever it walks.
+# cache_unwalkable DIR — the traversal errors `rm -rf DIR` would hit, or nothing.
+# Walks the tree the way the removal will: a directory that is searchable but
+# not readable answers the fixed-path ownership probes and still cannot be
+# enumerated, so the purge fails partway.
+# Side effects: none.
+cache_unwalkable() {
+  local dir="$1" errs
+  errs="$(find "${dir}" -print 2>&1 >/dev/null)" || true
+  printf '%s' "${errs}"
+}
+
 purge_preflight() {
-  local scope="${1:-all}" raw dest missing outstanding
+  local scope="${1:-all}" raw dest missing outstanding unwalkable
   purge_env_guards
   raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
@@ -537,6 +561,13 @@ purge_preflight() {
   missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "refusing to start: the cache purge would fail on a non-kit path (missing ${missing}): ${dest}"
+  # The ownership probe reads fixed paths, which a searchable-but-unreadable
+  # tree still answers; `rm -rf` has to enumerate it. Prove that now, or an
+  # earlier irreversible target runs and the purge fails afterwards.
+  unwalkable="$(cache_unwalkable "${dest}")"
+  [ -z "${unwalkable}" ] \
+    || die "refusing to start: the cache at ${dest} cannot be fully traversed, so the purge would fail partway:
+${unwalkable}"
   if ! paths_equal "${dest}" "${REPO_ROOT}"; then
     scope=all
   fi
