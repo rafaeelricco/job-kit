@@ -21,15 +21,15 @@ Print `Profile root: /abs/path` before the first diff of the session.
 
 ## `job_search.yaml` — writable keys
 
-| Key                                                                     | Shape                                                       |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `positions`                                                             | list of strings                                             |
-| `keywords.<group>`                                                      | list of strings; create a group only when the user names it |
-| `locations`                                                             | list of strings                                             |
-| `company_blacklist` / `title_blacklist` / `location_blacklist`          | list of strings                                             |
-| `work_model.*` / `experience_level.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
-| `apply_once_at_company`                                                 | bool, only when explicit                                    |
-| `distance_km`                                                           | int, only when explicit                                     |
+| Key                                              | Shape                                                       |
+| ------------------------------------------------ | ----------------------------------------------------------- |
+| `positions`                                      | list of strings                                             |
+| `keywords.<group>`                               | list of strings; create a group only when the user names it |
+| `locations`                                      | list of strings                                             |
+| `work_model.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
+| `seniority_level`                                | string, only when explicit                                  |
+| `apply_once_at_company`                          | bool, only when explicit                                    |
+| `distance_km`                                    | int, only when explicit                                     |
 
 Nothing else in this file.
 
@@ -37,7 +37,7 @@ A `keywords` group name becomes a `[skill:<group>]` token job-scout packs expand
 Renaming or deleting a group a pack names leaves an un-expandable token — say so in
 the same message as the diff; the user decides.
 
-After a yes that writes `positions`, any `keywords.*`, or `experience_level.*`: if
+After a yes that writes `positions`, any `keywords.*`, or `seniority_level`: if
 `data/profile_card.yaml` exists, also clear `primary_role`, `seniority`, and
 `target_stack` in that file in the **same** confirm cycle (show them empty in the
 diff). `show` already re-derives those three from `job_search.yaml`; clearing

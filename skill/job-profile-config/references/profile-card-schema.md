@@ -25,7 +25,7 @@ updated_at: "" # ISO date this file was written
 | Field          | Source                                                                                    |
 | -------------- | ----------------------------------------------------------------------------------------- |
 | `primary_role` | `job_search.yaml` `positions[0]`, else most recent `experiences.yml` `position`           |
-| `seniority`    | `job_search.yaml` `experience_level` — the `true` keys, joined                            |
+| `seniority`    | `job_search.yaml` `seniority_level`, verbatim                                             |
 | `top_skills`   | `skills.yaml` `skills[].items`, categories in file order; never re-ranked by judgement    |
 | `industries`   | `experiences.yml` `company` / `summary` only where the summary names one; else `[]`       |
 | `languages`    | `languages.yaml` `languages[].name` + `description` verbatim; never infer a cert or level |
