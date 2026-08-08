@@ -387,13 +387,24 @@ links_owned_by() {
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
     }
+    # target_skipped TARGET — 0 when --skip-<target> keeps uninstall_agents away.
+    target_skipped() {
+      case "$1" in
+        claude) [ "${SKIP_CLAUDE}" -eq 1 ] ;;
+        codex) [ "${SKIP_CODEX}" -eq 1 ] ;;
+        grok) [ "${SKIP_GROK}" -eq 1 ] ;;
+        *) return 1 ;;
+      esac
+    }
     while IFS= read -r base; do
-      # scope=survivors lists only what the unlink phase will NOT reach.
-      # uninstall_agents walks the raw $HOME roots, so those are not survivors.
-      if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ]; then
-        continue
-      fi
       for target in ${AGENT_TARGETS}; do
+        # scope=survivors lists only what the unlink phase will NOT reach.
+        # uninstall_agents walks the raw $HOME roots — except the ones a
+        # --skip-<target> flag excludes, which do survive it.
+        if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
+          && ! target_skipped "${target}"; then
+          continue
+        fi
         # agent_skills_root is $HOME-relative; re-anchor its suffix per base.
         root="$(agent_skills_root "${target}")"
         rel="${root#"${HOME}/"}"
@@ -404,8 +415,11 @@ links_owned_by() {
         fi
       done
       # Older docs pointed Codex at ~/.codex/skills, and
-      # `remove_legacy_codex_skills_dir` still unlinks there.
-      scan_root "${base}/.codex/skills"
+      # `remove_legacy_codex_skills_dir` still unlinks there — unconditionally,
+      # so it is never a survivor under the raw $HOME.
+      if [ "${scope}" != survivors ] || [ "${base}" != "${HOME}" ]; then
+        scan_root "${base}/.codex/skills"
+      fi
     done <<EOF
 $(home_bases)
 EOF
