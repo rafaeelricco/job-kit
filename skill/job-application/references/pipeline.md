@@ -47,7 +47,11 @@ operator's call (no Fit, no Phase 3). No date: the dossier stores `first_seen`
 and `last_seen`, neither of which records when `status:` changed, and a scout
 date printed as the application date would be a fabrication.
 No match, or `status: new` → `Duplicate check: no prior application recorded.`
-`scout/` absent or unreadable → `Duplicate check: not performed (no scout store).`
+`scout/` absent → `Duplicate check: not performed (no scout store).`
+`scout/` present but unreadable (permissions, sandbox) → **STOP**, naming the
+path. Absence means there is nothing to check; a read failure means prior
+applications cannot be ruled out, and reporting "no scout store" there would
+disable the guard exactly when it is needed.
 `Operator confirms first application to {company} for {role}.`
 Never omit. Never soften to "probably first". Never infer from memory.
 This runs here and not in Review because Review is emitted after Phase 3 has
