@@ -12,7 +12,7 @@ No preamble. No apply / message / connect / open-form language.
 
 ### Header
 
-`# Job Scout · {YYYY-MM-DD} · LI={publicIdentifier|FAIL} · Deck={profile|kit fallback}`
+`# Job Scout · {YYYY-MM-DD} · Deck={profile|kit fallback}`
 
 ### Snapshot
 

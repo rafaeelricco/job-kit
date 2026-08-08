@@ -1,6 +1,6 @@
 # surface-open-web
 
-Surface: open-web packs. Obey CONTRACT_SEARCH. No LinkedIn session required.
+Surface: open-web packs. Obey CONTRACT_SEARCH.
 
 ## Deltas
 

@@ -1,7 +1,7 @@
 # surface-people
 
 Surface: `people`. Contacts only (`### Contacts`, never `### Candidates`; never extract).
-Obey CONTRACT_SEARCH (auth for this pack + list-only + schemas live there).
+Obey CONTRACT_SEARCH (gate handling + list-only + schemas live there).
 
 ## Deltas
 

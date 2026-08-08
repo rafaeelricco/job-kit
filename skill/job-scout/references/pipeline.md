@@ -44,11 +44,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      `seniority_level` string is present
    - a non-empty `company_blacklist`, `title_blacklist`, or `location_blacklist`,
      whose exclusions no longer reach CONSTRAINTS or any filter
-2. LinkedIn session → identity must equal LinkedIn `username` in
-   `data/profiles.yaml` under Profile root. Probe LI identity once; fail → packs
-   surface `linkedin_*` OR pack id `people-ta` return zero + defect `auth_gate`;
-   do NOT STOP run; non-LI packs still run.
-3. Read inputs → print `### Profile card` and `### Constraints`.
+2. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · seniority level · job types · positions · keywords · locations ·
      date_posted · salary_range_usd · work auth · employment_routes · relocation
@@ -57,12 +53,16 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
      not a market: it keeps every location. Hire-from routes use `home_market`, never
      the job's own location.
-4. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
+3. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
    order). No other subset. Each `enabled: false` pack still gets a Query log row with
    verdict `skipped: disabled` — a pack is never silently absent from the report.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
 they are the workers' only source for filters and for `[industry]`.
+
+Phase 0 opens no page and signs in to nothing — the run's first network access is
+Phase 1. A surface that answers signed-out is a Phase 1 defect
+(`contract-search.md` step 1), never a preflight.
 
 ## Phase 1 — SEARCH (all packs)
 
@@ -83,9 +83,9 @@ Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
 
 Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
 verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
-re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run;
-carry actual `formulations_run` (usually 0). Every pack id must have Defect log row
-before extract.
+re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
+— the wall is not fixable from inside the run. Carry the actual `formulations_run`.
+Every pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.
