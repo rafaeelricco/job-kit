@@ -442,8 +442,20 @@ EOF
     # `builtin` is the current root; `user` is the legacy one
     # remove_legacy_user_skills clears.
     while IFS= read -r base; do
+      # An account tree that exists but cannot be traversed is not an absent
+      # one: the glob silently yields nothing and the scan would report all
+      # clear. Report it as a blocker instead of purging on a blind scan.
+      if [ -e "${base}/.aside/u" ] \
+        && { [ ! -r "${base}/.aside/u" ] || [ ! -x "${base}/.aside/u" ]; }; then
+        printf '%s\n' "${base}/.aside/u (exists but cannot be inspected)"
+        continue
+      fi
       for account_dir in "${base}"/.aside/u/*/; do
         [ -d "${account_dir}" ] || continue
+        if [ ! -r "${account_dir}" ] || [ ! -x "${account_dir}" ]; then
+          printf '%s\n' "${account_dir} (exists but cannot be inspected)"
+          continue
+        fi
         # scope=survivors: uninstall_aside only reaches ASIDE_ACCOUNT under the
         # raw $HOME, so every other account — and every other base — survives it.
         if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
@@ -519,7 +531,7 @@ purge_cache() {
   # unlinked, while the standalone `cache` target — and a run from another
   # checkout, which skips them as non-kit — would otherwise strand them.
   outstanding="$(links_owned_by "${dest}")"
-  [ -z "${outstanding}" ] || die "refusing to purge ${dest}: installed skills still point at it:
+  [ -z "${outstanding}" ] || die "refusing to purge ${dest}: these still point at it, or could not be inspected:
 ${outstanding}
 uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 
@@ -531,9 +543,35 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
   echo "purged cache: ${dest}"
 }
 
+# preflight_targets TARGET… — prove every target's prerequisites up front.
+# `remove_profile` and `purge_cache` cannot be undone, so a channel that would
+# refuse to resolve its skills root has to say so before the first removal.
+preflight_targets() {
+  local t
+  for t in "$@"; do
+    case "${t}" in
+      agents)
+        (
+          # shellcheck source=agents/lib.sh
+          . "${REPO_ROOT}/scripts/agents/lib.sh"
+          resolve_override_skills >/dev/null
+        ) || die "refusing to start: the agents target cannot resolve its skills root"
+        ;;
+      aside)
+        (
+          # shellcheck source=aside/lib.sh
+          . "${REPO_ROOT}/scripts/aside/lib.sh"
+          resolve_aside_skills_root >/dev/null
+        ) || die "refusing to start: the aside target cannot resolve its skills root"
+        ;;
+    esac
+  done
+}
+
 do_all() {
   confirm_yes "Uninstall ALL (Aside + agents + profile + kit cache). Type yes: " || return 1
   YES=1
+  preflight_targets aside agents
   purge_preflight survivors
   uninstall_aside
   uninstall_agents
@@ -616,27 +654,39 @@ main() {
     return 0
   fi
 
-  # A composite list reaches `cache` through run_target, not do_all, so the
-  # preflight runs here too: `profile cache` must not delete profile facts and
-  # only then discover the purge is refused. Links are exempt only when both
-  # unlink targets actually precede `cache` in this list.
-  local seen_aside=0 seen_agents=0 needs_preflight=0 scope=all
+  # `cache` runs last whatever order was typed: it can delete REPO_ROOT, and the
+  # other targets source their channel libraries from that checkout.
+  local -a ordered
+  ordered=()
+  local seen_aside=0 seen_agents=0 has_cache=0 scope=all
   for t in "${targets[@]}"; do
     case "${t}" in
+      cache)
+        has_cache=1
+        continue
+        ;;
       aside) seen_aside=1 ;;
       agents) seen_agents=1 ;;
-      cache)
-        needs_preflight=1
-        if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
-          scope=survivors
-        fi
-        break
-        ;;
     esac
+    ordered[${#ordered[@]}]="${t}"
   done
-  [ "${needs_preflight}" -eq 0 ] || purge_preflight "${scope}"
+  if [ "${has_cache}" -eq 1 ]; then
+    ordered[${#ordered[@]}]="cache"
+  fi
 
-  for t in "${targets[@]}"; do
+  # Every prerequisite is proved before the first target runs: `profile` and
+  # `cache` are irreversible, so a later target that would refuse must refuse now.
+  preflight_targets "${ordered[@]}"
+  if [ "${has_cache}" -eq 1 ]; then
+    # Links are exempt only when both unlink targets also run — and with `cache`
+    # forced last, they necessarily precede it.
+    if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
+      scope=survivors
+    fi
+    purge_preflight "${scope}"
+  fi
+
+  for t in "${ordered[@]}"; do
     run_target "${t}"
   done
 }
