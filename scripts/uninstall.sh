@@ -372,18 +372,25 @@ links_owned_by() {
   (
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
-    local root name user_root
-    root="$(resolve_aside_skills_root 2>/dev/null)" || root=""
-    if [ -n "${root}" ]; then
-      for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-        owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
+    local account name base root host_home
+    local -a bases
+    account="${ASIDE_ACCOUNT:-0}"
+    # Roots are constructed rather than read from resolve_aside_skills_root:
+    # purge_cache refuses to run while ASIDE_SKILLS / ASIDE_SKILLS_USER narrow
+    # the channel, so the default shape is the only one reachable here.
+    # Inside Aside, HOME is <host>/.aside/runtime/home while the links were
+    # installed under the host home, so scan both bases. `builtin` is the
+    # current root; `user` is the legacy one remove_legacy_user_skills clears.
+    bases=("${HOME}")
+    host_home="$(resolve_host_home)"
+    [ "${host_home}" = "${HOME}" ] || bases[${#bases[@]}]="${host_home}"
+    for base in "${bases[@]}"; do
+      for root in "${base}/.aside/u/${account}/skills/builtin" \
+        "${base}/.aside/u/${account}/skills/user"; do
+        for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+          owned_by_root "$(skill_dest "${root}" "${name}")" "${name}" "${dest}" "${phys}"
+        done
       done
-    fi
-    # `remove_legacy_user_skills` also clears skills/user, so a kit link left
-    # there dangles just the same.
-    user_root="${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills/user"
-    for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
-      owned_by_root "$(skill_dest "${user_root}" "${name}")" "${name}" "${dest}" "${phys}"
     done
   )
 }
