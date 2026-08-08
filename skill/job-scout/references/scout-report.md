@@ -21,7 +21,12 @@ No preamble. No apply / message / connect / open-form language.
 - Direct-email hits: {n}
 - Dead on extract: {n}
 - Packs dry: {none|comma list}
-- Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{YYYY-MM-DD}-scout.md`
+- Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{run_file}`
+
+`{run_file}` is the collision-free name Phase 6 step 1 resolves — `{YYYY-MM-DD}-scout.md`,
+or `-2` / `-3` when that is taken. Resolve it before rendering this line: Phase 6 writes
+this markdown verbatim, so an unsuffixed name here would make the saved report point at
+an earlier run.
 
 ### Do this first
 
