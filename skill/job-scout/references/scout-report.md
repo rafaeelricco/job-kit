@@ -5,7 +5,9 @@ Never paste either into a worker brief.
 
 ## Report format
 
-Emit markdown **exactly** in this section order, then **STOP**.
+Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
+Phase 6 — the run file and the dossiers are written after this report, and the
+**STOP** belongs at the end of that phase, not here.
 No preamble. No apply / message / connect / open-form language.
 
 ### Header
