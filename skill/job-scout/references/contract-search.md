@@ -28,13 +28,12 @@ Anything that would touch a company or the user's account → stop; put it under
 
 ## Search procedure (every search unit)
 
-1. Login wall / paywall / signup / CAPTCHA → log the defect and move on.
-   Never create an account. Never solve a CAPTCHA. Never retry around a gate.
-2. **LinkedIn session (surfaces `linkedin_*` and pack id `people-ta`):** must already be
-   signed in as LinkedIn `username` from `data/profiles.yaml` (Profile root). Fail →
-   return zero candidates/contacts and defect `auth_gate`. No retry workaround.
-   Other surfaces: no LinkedIn session required.
-3. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
+1. Login wall / paywall / signup / CAPTCHA / a surface that answers signed-out →
+   return zero candidates/contacts, verdict `auth_gate`, and move on.
+   Never sign in. Never create an account. Never solve a CAPTCHA. Never retry
+   around a gate. No session is probed before searching — a gate is found here or
+   not at all.
+2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
    positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
    query. A token whose source list is empty or absent → drop the token and the
@@ -43,10 +42,10 @@ Anything that would touch a company or the user's account → stop; put it under
    Do not repeat a keyword-group term as a literal when the same
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
-4. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
-   Already returned `auth_gate` at (2) → skip remaining SEARCH-ONLY steps for this pack;
-   report actual `formulations_run` (usually 0) with that verdict.
-5. **Geo coverage (job packs)** — do not accept the surface default geography.
+3. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
+   Hit `auth_gate` at (1) → skip remaining SEARCH-ONLY steps for this pack;
+   report the actual `formulations_run` with that verdict.
+4. **Geo coverage (job packs)** — do not accept the surface default geography.
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
    the surface file states. Never multiply packs by region.
@@ -59,7 +58,7 @@ Anything that would touch a company or the user's account → stop; put it under
      LinkedIn: clear/omit the location filter, or select the UI's worldwide/global
      option if it offers one; never invent a country. Open-web: leave location
      controls unset and do not OR-suffix any location into the query.
-6. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
+5. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
    job_types, date_posted.
    **Location keep (first match):**
    - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep
@@ -68,8 +67,8 @@ Anything that would touch a company or the user's account → stop; put it under
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)
      Outside other positive filters → not a candidate. People packs skip this step.
-7. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
-8. One call = one surface × one pack. Cards + URLs only. Public contacts only.
+6. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
+7. One call = one surface × one pack. Cards + URLs only. Public contacts only.
 
 ## Search Candidate (fixed columns, pipe table)
 
