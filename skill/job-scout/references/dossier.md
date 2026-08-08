@@ -21,11 +21,19 @@ No date in the name: the same job re-found must land on the same file.
 
 ## File format
 
+`company`, `title`, and `url` are copied from the posting, so they always ship
+double-quoted, with any `"` or `\` inside escaped as `\"` / `\\`. Unquoted they
+break the file for ordinary postings: `Engineer: Platform` makes the frontmatter
+invalid, `Engineer #2` and a `#` URL fragment truncate to a comment. Either way
+the re-run match and the application duplicate check stop finding the dossier.
+The fixed-vocabulary keys (`status`, `bucket`, `channel`), dates, and `score`
+stay bare.
+
 ```markdown
 ---
-company: Ambar
-title: Senior Software Engineer
-url: https://example.com/jobs/123 # normalized, per contract-search.md "URL normalize"
+company: "Ambar"
+title: "Senior Software Engineer"
+url: "https://example.com/jobs/123" # normalized, per contract-search.md "URL normalize"
 status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
