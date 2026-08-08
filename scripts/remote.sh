@@ -387,28 +387,6 @@ ensure_kit_cache() {
   fi
 }
 
-# purge_kit_cache DEST
-# Removes DEST only when it is kit-owned (ownership signature — never foreign
-# trees). Legacy kits missing later skills still purge.
-# Side effects: may rm -rf DEST (and a symlink at DEST when DEST is a link).
-purge_kit_cache() {
-  local dest raw missing
-  raw="$(strip_trailing_slashes "$1")"
-  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
-    echo "cache already absent: ${raw}"
-    return 0
-  fi
-  dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_owned_missing "${dest}")"
-  [ -z "${missing}" ] \
-    || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
-  rm -rf "${dest}" || die "failed to remove cache: ${dest}"
-  if [ -L "${raw}" ]; then
-    rm -f "${raw}" || die "failed to remove cache symlink: ${raw}"
-  fi
-  echo "purged cache: ${dest}"
-}
-
 # aside_ready
 # Exit 0 when Aside's skills parent exists, or ASIDE_SKILLS is set.
 # Side effects: none.
@@ -522,7 +500,11 @@ main() {
 
     echo
     if [ "${purge}" -eq 1 ]; then
-      purge_kit_cache "${JOB_KIT_HOME}"
+      # Route through the unified cache target: it runs the preflight and the
+      # outstanding-link scan across both home bases, every Aside account, and
+      # the legacy roots. An ownership-only purge here left links the preceding
+      # `aside agents` pass could not reach dangling.
+      bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes cache
       echo "job-kit uninstall finished (cache purged)"
     else
       echo "job-kit uninstall finished"
