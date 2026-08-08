@@ -34,6 +34,12 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    `./references/search_packs.yaml` next to this skill. Print `Deck: <abs path>`.
    Neither readable, or the winner fails to parse → STOP, name the file.
    Never merge the two files and never read the fallback when the profile deck exists.
+   `job_search.yaml` carrying the pre-`seniority_level` boolean `experience_level`
+   map, with no `seniority_level` string → **STOP**: an update never rewrites
+   profile data, and this run would otherwise drop the seniority constraint the
+   operator configured. Name the file and say to set `seniority_level` via
+   `/job-profile-config`. Never derive the string from the boolean map — one
+   confirmed value is operator-owned, per `job-profile-init/fill.md`.
 2. LinkedIn session → identity must equal LinkedIn `username` in
    `data/profiles.yaml` under Profile root. Probe LI identity once; fail → packs
    surface `linkedin_*` OR pack id `people-ta` return zero + defect `auth_gate`;
