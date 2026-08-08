@@ -29,7 +29,6 @@ Print `Profile root: /abs/path` before the first diff of the session.
 | `work_model.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
 | `seniority_level`                                | string, only when explicit                                  |
 | `apply_once_at_company`                          | bool, only when explicit                                    |
-| `distance_km`                                    | int, only when explicit                                     |
 
 Nothing else in this file.
 
