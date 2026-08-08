@@ -23,6 +23,7 @@ has written the dossier → **STOP**.
 | `data/sources.yaml`                                             | tiers, access, channels                                         |
 | `data/search_packs.yaml`, else `./references/search_packs.yaml` | every enabled pack, YAML order; whichever file wins, wins whole |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
+| legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                  |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
 
