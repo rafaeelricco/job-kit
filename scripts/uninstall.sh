@@ -371,7 +371,7 @@ home_bases() {
 }
 
 links_owned_by() {
-  local dest="$1" phys
+  local dest="$1" scope="${2:-all}" phys
   phys="${dest}"
   if [ -d "${dest}" ]; then
     phys="$(cd "${dest}" && pwd -P)" || phys="${dest}"
@@ -388,6 +388,11 @@ links_owned_by() {
       done
     }
     while IFS= read -r base; do
+      # scope=survivors lists only what the unlink phase will NOT reach.
+      # uninstall_agents walks the raw $HOME roots, so those are not survivors.
+      if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ]; then
+        continue
+      fi
       for target in ${AGENT_TARGETS}; do
         # agent_skills_root is $HOME-relative; re-anchor its suffix per base.
         root="$(agent_skills_root "${target}")"
@@ -425,6 +430,12 @@ EOF
     while IFS= read -r base; do
       for account_dir in "${base}"/.aside/u/*/; do
         [ -d "${account_dir}" ] || continue
+        # scope=survivors: uninstall_aside only reaches ASIDE_ACCOUNT under the
+        # raw $HOME, so every other account — and every other base — survives it.
+        if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
+          && [ "${account_dir}" = "${base}/.aside/u/${ASIDE_ACCOUNT:-0}/" ]; then
+          continue
+        fi
         scan_root "${account_dir}skills/builtin"
         scan_root "${account_dir}skills/user"
       done
@@ -444,13 +455,16 @@ purge_env_guards() {
     || die "refusing cache purge while ASIDE_SKILLS_USER narrows Aside to ${ASIDE_SKILLS_USER} (unset it, or omit cache)"
 }
 
-# purge_preflight — prove `all` can finish its cache purge before it deletes.
-# `remove_profile` is irreversible, so every purge guard that does not depend on
-# the unlink phase runs first. Links this run unlinks itself are not blockers;
-# links owned by another checkout survive uninstall_aside / uninstall_agents and
-# would otherwise stop the purge with the profile already gone.
+# purge_preflight [SCOPE] — prove the cache purge can finish before anything is
+# deleted. `remove_profile` is irreversible, so every purge guard that does not
+# depend on the unlink phase runs first.
+# SCOPE `survivors` means an aside+agents unlink phase precedes the purge in this
+# run: only links that phase cannot reach are blockers. SCOPE `all` (default)
+# means nothing will be unlinked first, so every live link blocks.
+# A cache this checkout does not own is always scanned in full — the unlink phase
+# skips those links as non-kit whatever it walks.
 purge_preflight() {
-  local raw dest missing outstanding
+  local scope="${1:-all}" raw dest missing outstanding
   purge_env_guards
   raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
@@ -460,13 +474,13 @@ purge_preflight() {
   missing="$(kit_owned_missing "${dest}")"
   [ -z "${missing}" ] \
     || die "refusing to start: the cache purge would fail on a non-kit path (missing ${missing}): ${dest}"
-  if paths_equal "${dest}" "${REPO_ROOT}"; then
-    return 0
+  if ! paths_equal "${dest}" "${REPO_ROOT}"; then
+    scope=all
   fi
-  outstanding="$(links_owned_by "${dest}")"
-  [ -z "${outstanding}" ] || die "refusing to start: installed skills point at ${dest}, which this checkout (${REPO_ROOT}) does not own:
+  outstanding="$(links_owned_by "${dest}" "${scope}")"
+  [ -z "${outstanding}" ] || die "refusing to start: installed skills point at ${dest} and this run will not remove them:
 ${outstanding}
-run the uninstaller from ${dest}, or remove those links first"
+uninstall those skills first, or run the uninstaller from ${dest}"
 }
 
 # purge_cache — remove kit-owned JOB_KIT_HOME only.
@@ -506,7 +520,7 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 do_all() {
   confirm_yes "Uninstall ALL (Aside + agents + profile + kit cache). Type yes: " || return 1
   YES=1
-  purge_preflight
+  purge_preflight survivors
   uninstall_aside
   uninstall_agents
   remove_profile
@@ -587,6 +601,26 @@ main() {
     run_target all
     return 0
   fi
+
+  # A composite list reaches `cache` through run_target, not do_all, so the
+  # preflight runs here too: `profile cache` must not delete profile facts and
+  # only then discover the purge is refused. Links are exempt only when both
+  # unlink targets actually precede `cache` in this list.
+  local seen_aside=0 seen_agents=0 needs_preflight=0 scope=all
+  for t in "${targets[@]}"; do
+    case "${t}" in
+      aside) seen_aside=1 ;;
+      agents) seen_agents=1 ;;
+      cache)
+        needs_preflight=1
+        if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
+          scope=survivors
+        fi
+        break
+        ;;
+    esac
+  done
+  [ "${needs_preflight}" -eq 0 ] || purge_preflight "${scope}"
 
   for t in "${targets[@]}"; do
     run_target "${t}"
