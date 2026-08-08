@@ -34,14 +34,22 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | language level                                           | `data/languages.yaml`                                                             |
 | salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                             |
 | remote / in-person, relocation preference                | `data/candidate.yaml` `work_preferences_from_resume`                              |
+| assessments, drug tests, background checks               | `data/candidate.yaml` `work_preferences_from_resume`, legacy keys still readable  |
 | name, email, phone, site                                 | `data/basics.yaml`                                                                |
 | LinkedIn, GitHub                                         | `data/profiles.yaml`                                                              |
 | roles, employers, dates, public work bullets             | `data/experiences.yml`                                                            |
 | public portfolio projects                                | `data/projects.yml`                                                               |
-| skills / stack inventory                                 | `data/skills.yaml`                                                                |
+| skills / stack inventory                                 | `data/skills.yaml`, then legacy `data/skills-by-company.yml` when present         |
 | project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
+- The two legacy reads above are fallbacks for profiles an update never rewrote:
+  `skills-by-company.yml` still carries which stack was used at which employer —
+  the evidence for saying a skill predates the current role — and the screening
+  answers (`willing_to_complete_assessments`, `willing_to_undergo_drug_tests`,
+  `willing_to_undergo_background_checks`) are already stored. Read them when
+  present; a stored answer is never re-asked and never omitted. Absent is absent,
+  not a reason to guess.
 - Prefer concrete technical cause + plain outcome from those files over bare counts or
   résumé statistics (see Voice law). A count alone is not letter evidence.
 - Language level: use the printed string as printed. It is self-assessed.
