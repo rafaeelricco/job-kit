@@ -20,9 +20,17 @@ Canonical facts for **job-scout** (list-only scout) and **job-application**
 To register manually, or to switch the active profile later, re-run
 `/job-profile-init` against this path and answer **Activate: Yes**.
 
-Host-default `~/.config/job-kit` is always skill-probed and needs no pointer.
+Host-default `~/.config/job-kit` is always skill-probed, and usually needs no
+pointer. Two exceptions where Activate does register it, per `activate.md` — do
+not delete the pointer in either, or this profile stops winning:
+
+- a valid `$XDG_CONFIG_HOME/job-kit` profile also exists, so the pointer is what
+  keeps host-default ahead of it;
+- activation ran inside Aside, where host `$XDG_CONFIG_HOME` is not visible, so
+  a later host session cannot re-outrank this profile.
+
 Any other location — including `$XDG_CONFIG_HOME/job-kit` when it differs —
-gets `~/.config/profile-root` plus the Aside runtime mirror when present. To
+always gets `~/.config/profile-root` plus the Aside runtime mirror when present. To
 remove this profile tree and kit skills, run the kit uninstaller from a job-kit
 checkout: `bash scripts/uninstall.sh` (choose Profile or All). Path-convention
 roots stay active until the tree is deleted.
