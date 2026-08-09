@@ -656,9 +656,13 @@ links_owned_by() {
         scan_root "${root}"
       done
       # Older docs pointed Codex at ~/.codex/skills, and
-      # `remove_legacy_codex_skills_dir` still unlinks there — unconditionally,
-      # so it is never a survivor under the raw $HOME.
-      if [ "${scope}" != survivors ] || [ "${base}" != "${HOME}" ]; then
+      # `remove_legacy_codex_skills_dir` still unlinks there — so under the raw
+      # $HOME it is normally not a survivor. Except with an override set:
+      # uninstall_agents returns right after walking CLAUDE_SKILLS and never
+      # reaches that call, so the legacy root survives the unlink phase and has
+      # to be scanned like any other root the phase cannot reach.
+      if [ "${scope}" != survivors ] || [ "${base}" != "${HOME}" ] \
+        || [ -n "${override:-}" ]; then
         scan_root "${base}/.codex/skills"
       fi
     done <<EOF
