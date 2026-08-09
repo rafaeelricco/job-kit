@@ -1060,6 +1060,12 @@ unremovable_copies() {
       [ -d "${dest}" ] || continue
       [ ! -L "${dest}" ] || continue
       [ -f "${dest}/.job-kit" ] || continue
+      # `is_kit_skill_copy` decides ownership by reading this marker. An
+      # unreadable one makes it call a kit copy foreign and skip it, so the
+      # channel reports "Uninstall completed" with the copy still installed and
+      # `profile` already gone. Unreadable is not absent — refuse instead.
+      [ -r "${dest}/.job-kit" ] \
+        || die "refusing to start: the aside target cannot read the ownership marker ${dest}/.job-kit"
       blocker="$(tree_unremovable "${dest}")"
       [ -z "${blocker}" ] \
         || die "refusing to start: the aside target cannot remove ${dest}:
