@@ -1033,11 +1033,14 @@ interactive_menu() {
     "All of the above" \
     "Quit"
   do
+    # Same preflight the argument path runs before its targets: these branches
+    # reach the destructive functions directly, and `profile` and `cache` cannot
+    # be undone once a partial `rm` has run. `all` preflights inside do_all.
     case "${REPLY}" in
-      1) run_target aside; return 0 ;;
-      2) run_target agents; return 0 ;;
-      3) run_target profile; return 0 ;;
-      4) run_target cache; return 0 ;;
+      1) preflight_targets aside; run_target aside; return 0 ;;
+      2) preflight_targets agents; run_target agents; return 0 ;;
+      3) preflight_targets profile; run_target profile; return 0 ;;
+      4) purge_preflight; run_target cache; return 0 ;;
       5) run_target all; return 0 ;;
       6) echo "quit"; return 0 ;;
       *) echo "invalid choice" >&2 ;;
