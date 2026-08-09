@@ -401,9 +401,10 @@ EOF
 # clear matching profile-root pointers.
 remove_profile() {
   local config host_default path host_home pointer mirror candidate
-  local -a existing clear_args
+  local -a existing clear_args aliases
   existing=()
   clear_args=()
+  aliases=()
 
   validate_profile_inputs
   config="$(job_kit_config)"
@@ -413,20 +414,24 @@ remove_profile() {
     [ -n "${path}" ] || continue
     clear_args[${#clear_args[@]}]="${path}"
     [ -e "${path}" ] || [ -L "${path}" ] || continue
+    # A symlinked root is an alias for the profile, not the profile: `rm -rf` on
+    # it unlinks the alias and leaves every fact at the target, after which this
+    # function still reports success and clears the pointers. Delete the physical
+    # target and drop the alias afterwards. Resolving here rather than during
+    # dedup is what covers a *sole* symlink root — with no second candidate
+    # naming the same tree there is nothing to deduplicate against.
+    if [ -L "${path}" ] && [ -d "${path}" ]; then
+      aliases[${#aliases[@]}]="${path}"
+      path="$(cd "${path}" && pwd -P)"
+    fi
     # Deduplicate when XDG unset, pointer equals convention, or one root is a
-    # symlink to the other.
-    local seen=0 e i=0
+    # symlink to the other — both sides are physical by now.
+    local seen=0 e
     for e in "${existing[@]+"${existing[@]}"}"; do
       if paths_equal "${e}" "${path}"; then
         seen=1
-        # Keep the real directory as the deletion target: `rm -rf` on a symlink
-        # alias removes the link and leaves every profile fact in place.
-        if [ -L "${e}" ] && [ ! -L "${path}" ]; then
-          existing[${i}]="${path}"
-        fi
         break
       fi
-      i=$((i + 1))
     done
     [ "${seen}" -eq 0 ] || continue
     refuse_profile_path "${path}"
@@ -457,7 +462,7 @@ EOF
       echo "removed profile: ${path}"
     done
     # An alias that pointed at a deleted tree is now dangling; drop it too.
-    for path in "${existing[@]}"; do
+    for path in "${aliases[@]+"${aliases[@]}"}"; do
       if [ -L "${path}" ] && [ ! -e "${path}" ]; then
         rm -f "${path}" || die "failed to remove profile alias: ${path}"
         echo "removed profile alias: ${path}"
@@ -940,6 +945,18 @@ EOF
           [ -n "${root}" ] || continue
           refuse_profile_path "${root}"
           [ -e "${root}" ] || [ -L "${root}" ] || continue
+          # Same alias resolution `remove_profile` performs: the tree `rm -rf`
+          # walks is the symlink's target, and the alias itself is unlinked after
+          # it — so both have to be removable, and the target has to clear the
+          # overlap refusal on its own name.
+          if [ -L "${root}" ] && [ -d "${root}" ]; then
+            blocker="$(tree_unremovable "${root}")"
+            [ -z "${blocker}" ] \
+              || die "refusing to start: the profile target cannot remove the alias ${root}:
+${blocker}"
+            root="$(cd "${root}" && pwd -P)"
+            refuse_profile_path "${root}"
+          fi
           blocker="$(first_uninspectable "${root}")"
           [ -z "${blocker}" ] \
             || die "refusing to start: the profile target cannot inspect ${blocker}"
