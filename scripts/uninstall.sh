@@ -122,18 +122,24 @@ $(profile_pointer_files)
 EOF
 }
 
-# refuse_profile_path PATH — die when PATH is the checkout or the kit cache.
+# refuse_profile_path PATH — die when PATH overlaps the checkout or the kit cache.
+# Equality alone is not enough. A checkout nested under the profile root — say
+# `$XDG_CONFIG_HOME/job-kit/src/job-kit` — passes an equality test and is then
+# handed to `rm -rf` with every uncommitted change in it, and each later target
+# loses the libraries it sources from there. The other direction is refused too:
+# a profile root under the checkout is the layout the README already rules out
+# ("never enter this repo"), and deleting it shreds tracked files.
 refuse_profile_path() {
   local path="$1" cache
-  if paths_equal "${path}" "${REPO_ROOT}"; then
-    die "refusing to delete profile root equal to the executing checkout: ${path}"
+  if paths_overlap "${path}" "${REPO_ROOT}"; then
+    die "refusing to delete profile root overlapping the executing checkout: ${path} (checkout: ${REPO_ROOT})"
   fi
   cache="${JOB_KIT_HOME}"
   if [ -d "${JOB_KIT_HOME}" ]; then
     cache="$(cd "${JOB_KIT_HOME}" && pwd -P)" || cache="${JOB_KIT_HOME}"
   fi
-  if paths_equal "${path}" "${JOB_KIT_HOME}" || paths_equal "${path}" "${cache}"; then
-    die "refusing to delete profile root equal to the kit cache: ${path}"
+  if paths_overlap "${path}" "${JOB_KIT_HOME}" || paths_overlap "${path}" "${cache}"; then
+    die "refusing to delete profile root overlapping the kit cache: ${path} (cache: ${cache})"
   fi
 }
 
@@ -159,6 +165,54 @@ paths_equal() {
     [ "$(cd "${a}" && pwd -P)" = "$(cd "${b}" && pwd -P)" ]
     return $?
   fi
+  return 1
+}
+
+# resolve_physical PATH — PATH with its deepest existing ancestor resolved.
+# `refuse_profile_path` runs before the existence test, so a candidate that is
+# not there cannot be `cd`-ed into: resolve the part that does exist and keep the
+# rest lexically, so both sides of an overlap test are comparable the way
+# `paths_equal` compares two existing directories.
+resolve_physical() {
+  local head tail=""
+  head="$(strip_trailing_slashes "$1")"
+  while [ "${head}" != "/" ] && [ ! -d "${head}" ]; do
+    tail="/$(basename "${head}")${tail}"
+    head="$(dirname "${head}")"
+  done
+  if [ -d "${head}" ]; then
+    head="$(cd "${head}" && pwd -P)" || head="${head}"
+  fi
+  case "${head}" in
+    /) printf '%s\n' "${tail:-/}" ;;
+    *) printf '%s%s\n' "${head}" "${tail}" ;;
+  esac
+}
+
+# path_contains ANCESTOR DESCENDANT — 0 when DESCENDANT sits strictly under
+# ANCESTOR. The `/` in the pattern carries the whole check: without it `/a/bc`
+# reads as inside `/a/b`. A `/` ancestor becomes empty so the pattern stays `/*`.
+path_contains() {
+  local a b
+  a="$(strip_trailing_slashes "$1")"
+  b="$(strip_trailing_slashes "$2")"
+  if [ "${a}" = "/" ]; then
+    a=""
+  fi
+  case "${b}" in
+    "${a}"/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# paths_overlap A B — same physical path, or one physically contains the other.
+paths_overlap() {
+  local a b
+  a="$(resolve_physical "$1")"
+  b="$(resolve_physical "$2")"
+  [ "${a}" = "${b}" ] && return 0
+  path_contains "${a}" "${b}" && return 0
+  path_contains "${b}" "${a}" && return 0
   return 1
 }
 
