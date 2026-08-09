@@ -854,9 +854,15 @@ tree_unremovable() {
 }
 
 purge_preflight() {
-  local scope="${1:-all}" raw dest missing outstanding unwalkable
+  local scope="${1:-all}" raw dest missing outstanding unwalkable blocker
   purge_env_guards
   raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+  # An unsearchable ancestor hides the cache from both probes, and the run then
+  # reports "cache already absent" after an earlier irreversible target has
+  # already gone through. Absence is only believable once the path can be walked.
+  blocker="$(first_uninspectable "${raw}")"
+  [ -z "${blocker}" ] \
+    || die "refusing to start: the cache path cannot be inspected at ${blocker}, so its absence cannot be proven: ${raw}"
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
     return 0
   fi
