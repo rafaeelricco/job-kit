@@ -994,6 +994,14 @@ EOF
         while IFS= read -r root; do
           [ -n "${root}" ] || continue
           refuse_profile_path "${root}"
+          # Absence has to be proven, not assumed. An unsearchable ancestor makes
+          # both existence tests false, so a profile that is really there reads as
+          # absent and is skipped — while another root is deleted and the run
+          # exits 0. `first_uninspectable` stays silent for a genuinely absent
+          # path, so this only refuses when the answer is unknowable.
+          blocker="$(first_uninspectable "${root}")"
+          [ -z "${blocker}" ] \
+            || die "refusing to start: the profile target cannot inspect ${blocker}"
           [ -e "${root}" ] || [ -L "${root}" ] || continue
           # Same alias resolution `remove_profile` performs: the tree `rm -rf`
           # walks is the symlink's target, and the alias itself is unlinked after
@@ -1007,9 +1015,6 @@ ${blocker}"
             root="$(cd "${root}" && pwd -P)"
             refuse_profile_path "${root}"
           fi
-          blocker="$(first_uninspectable "${root}")"
-          [ -z "${blocker}" ] \
-            || die "refusing to start: the profile target cannot inspect ${blocker}"
           blocker="$(tree_unremovable "${root}")"
           [ -z "${blocker}" ] \
             || die "refusing to start: the profile target cannot remove ${root}:
