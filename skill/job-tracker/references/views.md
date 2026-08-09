@@ -25,6 +25,7 @@ status with the closure date, never moved to a group of their own.
 
 ## Run diff
 
-Two run files by name. Report URLs new in the later run, URLs gone from it, and
-score changes for URLs in both. Read only the two files named; never infer a run
-that is not on disk.
+Two run files by name, compared on their `### Run manifest` rows. Report URLs new in
+the later run, URLs gone from it, and score changes for URLs in both. Join each URL to
+its dossier for company and title — the manifest carries neither. Read only the two
+files named; never infer a run that is not on disk.

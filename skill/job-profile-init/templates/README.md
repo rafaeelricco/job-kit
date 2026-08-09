@@ -6,11 +6,11 @@ Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder   | What's in it                                                                         |
-| -------- | ------------------------------------------------------------------------------------ |
-| `data/`  | Canonical YAML about you. Edit here first.                                           |
-| `cv/`    | Compiled resume PDF(s) for attachments                                               |
-| `scout/` | Written by job-scout, read by job-tracker: `runs/` reports, `jobs/` per-job dossiers |
+| Folder   | What's in it                                                                                 |
+| -------- | -------------------------------------------------------------------------------------------- |
+| `data/`  | Canonical YAML about you. Edit here first.                                                   |
+| `cv/`    | Compiled resume PDF(s) for attachments                                                       |
+| `scout/` | Written by job-scout, read by job-tracker: `jobs/` per-job dossiers, `runs/` per-run records |
 
 `data/` may mix `.yaml` and `.yml`.
 

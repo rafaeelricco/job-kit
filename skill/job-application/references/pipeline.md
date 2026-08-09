@@ -42,11 +42,16 @@ Read `scout/jobs/` under Profile root. Normalize this posting's URL first, per
 already normalized, so a tracked link (`?utm_source=…`, `#fragment`) matches
 nothing until you do. A dossier whose normalized `url` matches this posting,
 or whose `company` + `title` match, and whose `status:` is not `new` → print
-`Duplicate check: {status} per scout/jobs/{slug}.md` and **STOP** for the
+`Duplicate check: {status} per scout/jobs/{filename}` and **STOP** for the
 operator's call (no Fit, no Phase 3). No date: the dossier stores `first_seen`
 and `last_seen`, neither of which records when `status:` changed, and a scout
 date printed as the application date would be a fabrication.
 No match, or `status: new` → `Duplicate check: no prior application recorded.`
+
+`{filename}` is the dossier's name as listed on disk, date prefix included. Never
+rebuild it from `company` + `title`: the match was made on frontmatter, and the
+prefix is that dossier's `first_seen`, not today.
+
 `scout/` absent → `Duplicate check: not performed (no scout store).`
 `scout/` present but unreadable (permissions, sandbox) → **STOP**, naming the
 path. Absence means there is nothing to check; a read failure means prior

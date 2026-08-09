@@ -7,17 +7,25 @@ Never paste into a worker brief. Workers never write.
 
 ```
 scout/
-  runs/2026-08-08-scout.md              # Phase 5 markdown, verbatim
-  jobs/ambar--senior-software-engineer.md
+  runs/2026-08-08-scout.md              # persisted subset, per scout-report.md
+  jobs/2026-08-08-ambar--senior-software-engineer.md
 ```
 
 `scout/` is created by this phase, never by `job-profile-init`.
 
-## Slug
+## Filename
 
-`{company}--{title}`, lowercased; every run of non-alphanumerics → one `-`; trimmed.
-Slug taken by a file whose `url` differs → append `-2`, `-3`.
-No date in the name: the same job re-found must land on the same file.
+`{first_seen}-{company}--{title}.md`. The date is the ISO day this dossier was
+created and is **never** rewritten — not when `last_seen` moves, not when the body
+is rebuilt, not when `status:` changes.
+
+Slug part: lowercased; every run of non-alphanumerics → one `-`; trimmed.
+Name taken by a file whose `url` differs → append `-2`, `-3`.
+
+The date is a label, never a key. Re-run lookup is by frontmatter `url` across the
+whole directory — the same job re-found lands on the file it already owns, whatever
+date that name carries. Deriving today's date and writing there creates a second file
+for one job and orphans the operator's `status:` and log.
 
 ## File format
 
@@ -97,13 +105,13 @@ Everything from the opening `---` down to `## Application log` is scout-owned an
 rewritten each run. Below that line, and `status:` in frontmatter, belong to the
 operator and `job-application`.
 
-| On re-run                    | Do                                                            |
-| ---------------------------- | ------------------------------------------------------------- |
-| Same normalized `url` exists | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` |
-| `status:` already set        | Never touch it — not even back to `new`                       |
-| `## Application log`         | Append one line; never rewrite or reorder existing lines      |
-| Row now `dead`               | Append a log line; set no status; leave the body              |
-| No file yet                  | Create with `status: new`                                     |
+| On re-run                    | Do                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------- |
+| Same normalized `url` exists | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename** |
+| `status:` already set        | Never touch it — not even back to `new`                                                     |
+| `## Application log`         | Append one line; never rewrite or reorder existing lines                                    |
+| Row now `dead`               | Append a log line; set no status; leave the body                                            |
+| No file yet                  | Create with `status: new`                                                                   |
 
 Unknown = `—`, never invented — same law as the report.
 
