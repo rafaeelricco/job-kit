@@ -39,6 +39,13 @@ what lets two runs be diffed by URL after the dossier has moved on. `company` an
 `title` are frozen at the run, exactly as `### Dropped` already prints them — a re-see
 rewrites both in the dossier, so a manifest that stored neither could only be read
 against whatever the posting says today, and what the run actually found would be gone.
+`company` and `title` are copied from the posting, so escape every `|` inside them as
+`\|` and collapse any newline or run of whitespace to one space before the row is written.
+Ordinary board titles carry both: `Platform Engineer | Remote` splits one row into five
+cells, and a line break opens a second row a reader takes for another job the run found.
+Either way the frozen pair is unrecoverable and that URL stops diffing between runs.
+`url` is already normalized and `score` is a bare integer, so both stay as they are.
+
 Never add a bucket, channel, contact, blocker or why column here — those track the
 posting rather than the run, and copying them back is exactly the drift this split removes.
 
