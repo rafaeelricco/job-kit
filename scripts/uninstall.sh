@@ -1137,6 +1137,7 @@ main() {
   refuse_newline CLAUDE_SKILLS "${CLAUDE_SKILLS:-}"
   refuse_newline ASIDE_SKILLS "${ASIDE_SKILLS:-}"
   refuse_newline ASIDE_SKILLS_USER "${ASIDE_SKILLS_USER:-}"
+  refuse_newline ASIDE_ACCOUNT "${ASIDE_ACCOUNT:-}"
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
