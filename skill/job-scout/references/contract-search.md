@@ -28,11 +28,19 @@ Anything that would touch a company or the user's account → stop; put it under
 
 ## Search procedure (every search unit)
 
-1. Login wall / paywall / signup / CAPTCHA / a surface that answers signed-out →
-   return zero candidates/contacts, verdict `auth_gate`, and move on.
+1. Login wall / paywall / signup / CAPTCHA / a surface that answers signed-out.
    Never sign in. Never create an account. Never solve a CAPTCHA. Never retry
    around a gate. No session is probed before searching — a gate is found here or
    not at all.
+   - **Shared surface** (pack `entry` is one URL/host, or the gate blocks the pack
+     surface before any SOURCES row is usable) → return zero candidates/contacts,
+     verdict `auth_gate`, and move on.
+   - **One SOURCES row** in a multi-row open-web pack → emit no candidates from
+     that row; record the source in `sources_skipped` (reason `auth_gate` or
+     `account_required`); **keep** candidates from other rows; **continue** the
+     sweep. Do **not** set pack verdict `auth_gate` from a single row alone.
+     If every row is skipped for a gate, pack verdict is `auth_gate` with zero
+     candidates.
 2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
    positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
@@ -43,8 +51,10 @@ Anything that would touch a company or the user's account → stop; put it under
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
 3. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
-   Hit `auth_gate` at (1) → skip remaining SEARCH-ONLY steps for this pack;
+   Hit **pack-wide** `auth_gate` at (1) (shared surface only) → skip remaining
+   SEARCH-ONLY steps for this pack;
    report the actual `formulations_run` with that verdict.
+   A per-row skip is not pack-wide `auth_gate` and does not abort the pack.
 4. **Geo coverage (job packs)** — do not accept the surface default geography.
    Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
    cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
