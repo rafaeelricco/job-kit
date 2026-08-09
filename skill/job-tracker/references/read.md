@@ -35,10 +35,12 @@ Quoted dynamic scalars may appear for company/title/url.
 The lifecycle vocab has no `dead` value. When a job dies, scout appends one line under
 `## Application log` and leaves the body — so `## Verdict` still reads `live` and the
 Posting facts `status` row still reads `live`. Scan the Application log **bottom-up**
-for the latest **scout posting-state** line (closure / now-dead evidence written by
-scout). Do **not** treat an operator or job-application line that merely sits last as
-closure. If no scout posting-state line exists, the job is not dead-by-log. When one
-does, report the closure from it and say the body is frozen at `last_seen`.
+for the latest **scout posting-state** line (closure / now-dead evidence, or a reopen
+written by scout when a closed URL is seen live again). Do **not** treat an operator or
+job-application line that merely sits last as closure. If no scout posting-state line
+exists, the job is not dead-by-log. When the latest one is a closure, report it and say
+the body is frozen at `last_seen`. When the latest one is a reopen, the job is not
+dead-by-log — an earlier closure above it has been superseded, and the body is live.
 
 ## Ownership boundary
 
