@@ -40,8 +40,10 @@ not parse as a dossier is not one: skip it, name it under Gaps, never repair it.
 
 ## Joining runs to dossiers
 
-Join on normalized `url` only — the slug is not an id, and a `-2` suffix means two
-dossiers share one `{company}--{title}` base, told apart only by `url`.
+Join on normalized `url` only — the filename is not an id. A dossier is named
+`{first_seen}-{company}--{title}.md`; the date is the day it was created, so it does
+not track `last_seen`, and a `-2` suffix means two dossiers share one base, told
+apart only by `url`.
 
 - In a run file, no dossier: `uncertain` rows, and `dead` rows never seen live.
 - Dossier, in no current run file: everything found by an earlier run.
@@ -50,9 +52,19 @@ dossiers share one `{company}--{title}` base, told apart only by `url`.
 
 ## Run file shape
 
-Section order and columns: `job-scout/references/scout-report.md` "Report format".
-Read it there; it changes when the report changes. The one thing that file will not
-tell a reader: the emitted run file has no H2 at all, so `##` never marks a section.
+Section order and columns: `job-scout/references/scout-report.md` "Persisted subset" —
+the report's other sections are printed in chat and never reach disk, so do not expect
+a ranked table or a Score audit in a run file. Read it there; it changes when the report
+changes. The one thing that file will not tell a reader: the emitted run file has no H2
+at all, so `##` never marks a section.
+
+A run file holds only what is true of the run. Per-job description — title, bucket,
+channel, contact, blocker, why — is dossier-owned and is not in here; `### Run manifest`
+carries `url` and that run's `score`, and nothing else. Answer any descriptive question
+from the dossier the `url` joins to.
+
+Run files written before that split also carry ranked tables and a Score audit. Read them
+if present, but never treat their columns as current — the dossier wins.
 
 ## Known contradiction, do not resolve it
 

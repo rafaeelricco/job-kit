@@ -133,26 +133,29 @@ Profile root: `scout/runs/*.md` and `scout/jobs/*.md`. `mkdir -p` both on first 
 
 1. Resolve the run filename first: `scout/runs/{YYYY-MM-DD}-scout.md`, or `-2` / `-3`
    when that name is taken. Never overwrite an existing run file. Phase 5 already
-   rendered that resolved name into its Snapshot `run` line, so write the Phase 5
-   markdown verbatim to it.
+   rendered that resolved name into its Snapshot `run` line. Write the sections named
+   by `./references/scout-report.md` `## Persisted subset` to it — not the Phase 5
+   markdown verbatim. A ranked table or Score audit row in the run file is a defect:
+   those columns are dossier-owned.
 2. One dossier per row with `status=live` that passed the Phase 4 gate — including
    `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
    dossier goes through the `dossier.md` re-run handler so its closure log is
    appended; `uncertain` rows, and `dead` rows never seen live, stay in the run
    report only and create no dossier.
-3. Shape, slug, and the re-run rules are owned by `./references/dossier.md`.
+3. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
 4. Resolve `scout/runs/`, `scout/jobs/`, and every file you are about to write to
    its physical path first, and **STOP** unless that path is still under the
    canonical Profile root. A store or dossier that is a symlink out of the tree
    passes every listability and parse check while the write lands somewhere else
    — the two writable path shapes above are a containment rule, not a spelling.
-5. Write nothing until `scout/runs/` and `scout/jobs/` can be **listed**, and any
-   existing file for a slug can be **read and parsed**. A store that is writable
-   but not listable (or a dossier that will not parse) cannot answer whether the
-   slug is taken, which suffix it owns, or what `status:` and `## Application log`
-   it already holds — writing there overwrites the operator's application history
-   with a fresh `status: new`. Unreadable or unparseable → print the path under
-   Gaps and STOP, same as a failed write.
+5. Write nothing until `scout/runs/` and `scout/jobs/` can be **listed**, and every
+   existing dossier can be **read and parsed**. A store that is writable but not
+   listable (or a dossier that will not parse) cannot answer which file a `url`
+   already owns, which suffix that name carries, or what `status:` and
+   `## Application log` it already holds — writing there overwrites the operator's
+   application history with a fresh `status: new` under a second filename.
+   Unreadable or unparseable → print the path under Gaps and STOP, same as a failed
+   write.
 6. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
 

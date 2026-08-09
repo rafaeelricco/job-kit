@@ -8,7 +8,36 @@ Never paste either into a worker brief.
 Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
 Phase 6 — the run file and the dossiers are written after this report, and the
 **STOP** belongs at the end of that phase, not here.
+Every section below is the chat deliverable. Only `## Persisted subset` reaches
+disk — a section that repeats a dossier field is never written to the run file.
 No preamble. No apply / message / connect / open-form language.
+
+## Persisted subset
+
+Phase 6 writes these sections to `scout/runs/{run_file}`, in this order, and nothing
+else: **Header**, **Snapshot**, **Run manifest**, **People / TA**, **Dropped**,
+**Query log**, **Gaps**.
+
+Chat-only — never persisted, because every column already lives in a dossier:
+Do this first, Best {home_market}-friendly, {home_market}-friendly (direct),
+{home_market}-friendly (EOR), EU/US-only, Direct contacts, Score audit.
+
+`Direct contacts` is chat-only because each row is the dossier's own `## Provenance`
+contact plus its `channel:`. `People / TA` is persisted because those rows have no
+dossier and exist nowhere else.
+
+### Run manifest
+
+Persisted only; never printed in chat.
+
+| url | score |
+| --- | ----: |
+
+One row per row that reached a ranked table or `### Dropped`, `url` normalized per
+`contract-search.md`. This is the entire per-job payload the run file keeps: it is
+what lets two runs be diffed by URL after the dossier has moved on to a new score.
+Never add a company, title, bucket, contact or why column here — those are dossier-owned,
+and copying them back is exactly the drift this split removes.
 
 ### Header
 
@@ -24,9 +53,9 @@ No preamble. No apply / message / connect / open-form language.
 - Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{run_file}`
 
 `{run_file}` is the collision-free name Phase 6 step 1 resolves — `{YYYY-MM-DD}-scout.md`,
-or `-2` / `-3` when that is taken. Resolve it before rendering this line: Phase 6 writes
-this markdown verbatim, so an unsuffixed name here would make the saved report point at
-an earlier run.
+or `-2` / `-3` when that is taken. Resolve it before rendering this line: Snapshot is a
+persisted section and reaches disk unchanged, so an unsuffixed name here would make the
+saved record point at an earlier run.
 
 ### Do this first
 

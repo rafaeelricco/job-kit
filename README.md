@@ -107,10 +107,13 @@ order, and ranks the job rows it extracts. Application drafts and stages one pos
 time; it may open an Apply control that only reveals the form, then stops at
 review and waits for an explicit yes.
 
-Scout also writes each run to `scout/runs/{YYYY-MM-DD}-scout.md` under your profile
-and one dossier per live job to `scout/jobs/`. Those files are the only thing scout
-writes; `data/` and `cv/` stay read-only to it. Set `status:` in a dossier's
-frontmatter as you apply — re-running scout never overwrites it.
+Scout writes one dossier per live job to `scout/jobs/{first_seen}-{company}--{title}.md`,
+and a per-run record to `scout/runs/{YYYY-MM-DD}-scout.md` holding only what the ranked
+list cannot: recruiters, pack yield, dropped rows, gaps, and a `url|score` manifest. Job
+facts live in the dossier and are never copied into the run file. Those two paths are the
+only thing scout writes; `data/` and `cv/` stay read-only to it. Set `status:` in a
+dossier's frontmatter as you apply — re-running scout never overwrites it, and never
+renames the file.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
 application, or `cv/en-us-resume.pdf` as the fallback. With neither,
