@@ -48,6 +48,11 @@ and `last_seen`, neither of which records when `status:` changed, and a scout
 date printed as the application date would be a fabrication.
 No match, or `status: new` → `Duplicate check: no prior application recorded.`
 
+A dossier under `scout/jobs/` that cannot be read, or whose frontmatter will not
+parse, is a failed check and never a non-match → **STOP**, naming the file. It may
+be the prior application for this posting, and "no prior application recorded"
+would assert what the scan could not verify.
+
 `{filename}` is the dossier's name as listed on disk, date prefix included. Never
 rebuild it from `company` + `title`: the match was made on frontmatter, and the
 prefix is that dossier's `first_seen`, not today.
