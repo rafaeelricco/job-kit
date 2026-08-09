@@ -9,9 +9,13 @@ JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/job-kit}"
 ASIDE_ACCOUNT_ID="${ASIDE_ACCOUNT:-0}"
 
 # Ownership probe for cache purge (must match remote.sh KIT_OWNERSHIP_FILES intent).
+# `scripts/uninstall.sh` is deliberately absent: this uninstaller ships it, so
+# every cache installed before it exists lacks the file. Demanding it would make
+# the new uninstaller refuse to purge exactly the installs it must clean up —
+# remote.sh calls that same set KIT_LEGACY_OWNERSHIP_FILES. The four channel
+# libraries under a real `skill/` directory already identify a job-kit tree.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
-scripts/uninstall.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
