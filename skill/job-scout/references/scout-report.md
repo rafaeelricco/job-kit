@@ -6,8 +6,8 @@ Never paste either into a worker brief.
 ## Report format
 
 Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
-Phase 6 — the run file and the dossiers are written after this report, and the
-**STOP** belongs at the end of that phase, not here.
+Phase 6 — the dossiers are written after this report and the run file after them,
+and the **STOP** belongs at the end of that phase, not here.
 Every section below is the chat deliverable. Only `## Persisted subset` reaches
 disk — a section that repeats a dossier field is never written to the run file.
 No preamble. No apply / message / connect / open-form language.
@@ -58,7 +58,9 @@ posting rather than the run, and copying them back is exactly the drift this spl
 `{run_file}` is the collision-free name Phase 6 step 1 resolves — `{YYYY-MM-DD}-scout.md`,
 or `-2` / `-3` when that is taken. Resolve it before rendering this line: Snapshot is a
 persisted section and reaches disk unchanged, so an unsuffixed name here would make the
-saved record point at an earlier run.
+saved record point at an earlier run. The name is resolved early but the file is written
+last, in Phase 6 step 4, so `Saved: {n} dossiers` only ever reaches disk when all `n`
+landed.
 
 ### Do this first
 
