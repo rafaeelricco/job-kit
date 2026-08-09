@@ -37,6 +37,18 @@ the re-run match and the application duplicate check stop finding the dossier.
 The fixed-vocabulary keys (`status`, `bucket`, `channel`), dates, and `score`
 stay bare.
 
+Body fields that are also posting-controlled (`company` / `title` in the H1,
+`why`, posting-facts table values, `jd_excerpt`, provenance) must not invent
+structure. Collapse every newline or run of whitespace in a single-line field to
+one space before writing it into the body (same rule as the run manifest). Never
+emit a bare `## Application log` line or the ownership marker
+`<!-- scout never writes below this line -->` from any posting-derived value —
+`jd_excerpt` stays line-prefixed with `>` so a forged heading or marker cannot
+become a second ownership boundary. Without that, a title or excerpt that
+carries those bytes can split scout-owned body from the real log, forge a
+closure the tracker reads as posting state, and leave re-run preservation with
+two candidate cut lines.
+
 ```markdown
 ---
 company: "Ambar"
