@@ -123,7 +123,7 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
 
 Targets:
   aside     Aside skills (job-scout, job-application)
-  agents    Coding-agent skills (job-profile-init, job-profile-config)
+  agents    Coding-agent skills (job-profile-init, job-profile-config, job-tracker)
   profile   Delete profile root(s) + matching profile-root pointers
   cache     Remove kit checkout cache (JOB_KIT_HOME), kit-owned only
   all       aside + agents + profile + cache

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Install job-profile-init + job-profile-config into Claude / Codex / Grok
-# user skills (symlink).
+# Install job-profile-init + job-profile-config + job-tracker into Claude /
+# Codex / Grok user skills (symlink).
 # Compatible with macOS Bash 3.2. Local checkout only; no clone.
 set -euo pipefail
 
@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Install job-kit job-profile-init + job-profile-config into coding agents
+Install job-kit job-profile-init + job-profile-config + job-tracker into coding agents
 (Claude, Codex, Grok).
 
 Usage: install.sh [options]
@@ -40,7 +40,7 @@ EOF
 }
 
 # main
-# Parses args, resolves paths, links job-profile-init into agent skills.
+# Parses args, resolves paths, links SKILL_NAMES into agent skills.
 # Side effects: may create skills leaf; may write symlinks.
 main() {
   local force=0 skip_claude=0 skip_codex=0 skip_grok=0

@@ -1,15 +1,16 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout) and **job-application**
-(draft + stage, never submit). Skills live in **job-kit**, not in this tree.
+(draft + stage, never submit), read back by **job-tracker** (read-only).
+Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder   | What's in it                                                    |
-| -------- | --------------------------------------------------------------- |
-| `data/`  | Canonical YAML about you. Edit here first.                      |
-| `cv/`    | Compiled resume PDF(s) for attachments                          |
-| `scout/` | Written by job-scout: `runs/` reports, `jobs/` per-job dossiers |
+| Folder   | What's in it                                                                         |
+| -------- | ------------------------------------------------------------------------------------ |
+| `data/`  | Canonical YAML about you. Edit here first.                                           |
+| `cv/`    | Compiled resume PDF(s) for attachments                                               |
+| `scout/` | Written by job-scout, read by job-tracker: `runs/` reports, `jobs/` per-job dossiers |
 
 `data/` may mix `.yaml` and `.yml`.
 
