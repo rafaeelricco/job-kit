@@ -85,7 +85,9 @@ joins to — which is current state, not run state, and say so when the two disa
 Run files written before that split also carry ranked tables and a Score audit. Read them
 if present, but never treat their columns as current — the dossier wins. An older manifest
 may carry only `url | score`; there, join to the dossier for company and title and label
-them current rather than as-of-run.
+them current rather than as-of-run. A manifest cell may contain `\|` for a literal pipe —
+unescape it on read, and never split a row into more than four cells, or a title with a
+delimiter in it reads as a column count that matches no format.
 
 ## Known contradiction, do not resolve it
 
