@@ -30,14 +30,17 @@ dossier and exist nowhere else.
 
 Persisted only; never printed in chat.
 
-| url | score |
-| --- | ----: |
+| url | company | title | score |
+| --- | ------- | ----- | ----: |
 
 One row per row that reached a ranked table or `### Dropped`, `url` normalized per
 `contract-search.md`. This is the entire per-job payload the run file keeps: it is
-what lets two runs be diffed by URL after the dossier has moved on to a new score.
-Never add a company, title, bucket, contact or why column here — those are dossier-owned,
-and copying them back is exactly the drift this split removes.
+what lets two runs be diffed by URL after the dossier has moved on. `company` and
+`title` are frozen at the run, exactly as `### Dropped` already prints them — a re-see
+rewrites both in the dossier, so a manifest that stored neither could only be read
+against whatever the posting says today, and what the run actually found would be gone.
+Never add a bucket, channel, contact, blocker or why column here — those track the
+posting rather than the run, and copying them back is exactly the drift this split removes.
 
 ### Header
 

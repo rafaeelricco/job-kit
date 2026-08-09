@@ -109,8 +109,9 @@ review and waits for an explicit yes.
 
 Scout writes one dossier per live job to `scout/jobs/{first_seen}-{company}--{title}.md`,
 and a per-run record to `scout/runs/{YYYY-MM-DD}-scout.md` holding only what the ranked
-list cannot: recruiters, pack yield, dropped rows, gaps, and a `url|score` manifest. Job
-facts live in the dossier and are never copied into the run file. Those two paths are the
+list cannot: recruiters, pack yield, dropped rows, gaps, and a `url|company|title|score`
+manifest frozen at that run. Every other job fact lives in the dossier and is never copied
+into the run file. Those two paths are the
 only thing scout writes; `data/` and `cv/` stay read-only to it. Set `status:` in a
 dossier's frontmatter as you apply — re-running scout never overwrites it, and never
 renames the file.

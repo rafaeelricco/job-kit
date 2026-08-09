@@ -58,7 +58,7 @@ apart only by `url`.
 - In a run file, no dossier: `uncertain` rows, and `dead` rows never seen live.
 - Dossier, in no current run file: everything found by an earlier run.
 - `score<7` and company-dedupe losers do have dossiers; the run file lists them only
-  under `### Dropped` (and as `url | score` rows in `### Run manifest`).
+  under `### Dropped` (and as `url | company | title | score` rows in `### Run manifest`).
 
 ## Run file shape
 
@@ -66,13 +66,17 @@ Persisted section order (H3 only — run files have no H2): Header, Snapshot,
 Run manifest, People/TA, Dropped, Query log, Gaps. Chat-only ranked tables and
 Score audit are not on disk — do not expect them.
 
-A run file holds only what is true of the run. Per-job description — title, bucket,
-channel, contact, blocker, why — is dossier-owned and is not in here; `### Run manifest`
-carries `url` and that run's `score`, and nothing else (one row per ranked or Dropped
-URL). Answer any descriptive question from the dossier the `url` joins to.
+A run file holds only what is true of the run. Per-job description — bucket, channel,
+contact, blocker, why — is dossier-owned and is not in here; `### Run manifest` carries
+`url` plus that run's `company`, `title`, and `score`, and nothing else (one row per
+ranked or Dropped URL). Those three are frozen at the run and are the answer for what
+that run found. Every other descriptive question is answered from the dossier the `url`
+joins to — which is current state, not run state, and say so when the two disagree.
 
 Run files written before that split also carry ranked tables and a Score audit. Read them
-if present, but never treat their columns as current — the dossier wins.
+if present, but never treat their columns as current — the dossier wins. An older manifest
+may carry only `url | score`; there, join to the dossier for company and title and label
+them current rather than as-of-run.
 
 ## Known contradiction, do not resolve it
 
