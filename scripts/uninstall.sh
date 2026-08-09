@@ -278,7 +278,7 @@ clear_pointer_if_matches() {
   [ -f "${file}" ] || return 0
   line="$(tr -d '\n' < "${file}")"
   [ -n "${line}" ] || {
-    rm -f "${file}"
+    rm -f "${file}" || die "failed to remove pointer: ${file}"
     echo "removed empty pointer: ${file}"
     return 0
   }
@@ -289,18 +289,18 @@ clear_pointer_if_matches() {
   fi
   for p in "$@"; do
     if [ "${line}" = "${p}" ]; then
-      rm -f "${file}"
+      rm -f "${file}" || die "failed to remove pointer: ${file}"
       echo "removed pointer: ${file}"
       return 0
     fi
     if [ -n "${canon}" ] && [ -d "${p}" ] && [ "${canon}" = "$(cd "${p}" && pwd -P)" ]; then
-      rm -f "${file}"
+      rm -f "${file}" || die "failed to remove pointer: ${file}"
       echo "removed pointer: ${file}"
       return 0
     fi
     # Dangling pointer: content named p but directory is already gone.
     if [ -n "${canon}" ] && [ "${canon}" = "${p}" ]; then
-      rm -f "${file}"
+      rm -f "${file}" || die "failed to remove pointer: ${file}"
       echo "removed pointer: ${file}"
       return 0
     fi
@@ -801,7 +801,7 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 # `remove_profile` and `purge_cache` cannot be undone, so a channel that would
 # refuse to resolve its skills root has to say so before the first removal.
 preflight_targets() {
-  local t roots root blocker
+  local t roots root blocker pointer
   for t in "$@"; do
     case "${t}" in
       agents)
@@ -848,6 +848,21 @@ preflight_targets() {
         # swallowed by $()). Then overlap refuse + removable trees before any
         # channel unlinks — mirrors purge_preflight's irreversible ordering.
         validate_profile_inputs
+        # The pointers are unlinked with `rm -f`, which needs their parent
+        # directory writable, not the file. `remove_profile` clears them only
+        # after `rm -rf` has run, so an unwritable `.config` fails with the
+        # profile already gone, the pointer still naming it, and any later target
+        # never reached. An absent pointer is never touched, so never a blocker.
+        while IFS= read -r pointer; do
+          [ -n "${pointer}" ] || continue
+          [ -f "${pointer}" ] || continue
+          blocker="$(tree_unremovable "${pointer}")"
+          [ -z "${blocker}" ] \
+            || die "refusing to start: the profile target cannot remove the pointer ${pointer}:
+${blocker}"
+        done <<EOF
+$(profile_pointer_files)
+EOF
         while IFS= read -r root; do
           [ -n "${root}" ] || continue
           refuse_profile_path "${root}"
