@@ -200,7 +200,9 @@ resolve_physical() {
     head="$(dirname "${head}")"
   done
   if [ -d "${head}" ]; then
-    head="$(cd "${head}" && pwd -P)" || head="${head}"
+    # The fallback already handles an unsearchable directory; let it do so
+    # quietly, or the shell's `cd` error lands on top of the refusal it precedes.
+    head="$(cd "${head}" 2>/dev/null && pwd -P)" || head="${head}"
   fi
   case "${head}" in
     /) printf '%s\n' "${tail:-/}" ;;
