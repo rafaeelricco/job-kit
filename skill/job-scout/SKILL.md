@@ -48,7 +48,7 @@ and `cv/` — is read-only in this skill. Workers never write.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
 4. Pack list, parallelism, gates, score: pipeline only. Contracts own list-only + evidence.
 5. Deliver report per `scout-report.md`.
-6. Persist the run and one dossier per live job per `dossier.md`, then STOP.
+6. Persist one dossier per live job per `dossier.md`, then the run record, then STOP.
 
 ## References
 
