@@ -1,13 +1,13 @@
 # job-kit
 
-Four agent skills for running a job search at volume: sweep the surfaces you
+Five agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, draft applications from profile
-facts. Procedure lives here. Facts — salary band, work authorization,
-experience — live in a profile directory you control (default
+facts, read back what a run saved. Procedure lives here. Facts — salary band,
+work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
 Two install channels: scout and apply run in [Aside Browser](https://aside.com),
-profile init and config run in coding agents (Claude Code, Codex, Grok).
+profile init, config, and tracker run in coding agents (Claude Code, Codex, Grok).
 
 | Skill                | Role                                                                                                | Channel                 | Installed under                     |
 | -------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
@@ -15,6 +15,7 @@ profile init and config run in coding agents (Claude Code, Codex, Grok).
 | `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
 | `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-tracker`        | Read the profile's `scout/` store: dossiers, run reports, application status                        | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
@@ -40,7 +41,7 @@ bash remote.sh all
 | -------------- | -------------------------------------------------------------------------------------------------- |
 | `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
 | `aside`        | `job-scout` + `job-application` (fails if no Aside)                                                |
-| `agents`       | `job-profile-init` + `job-profile-config` (fails if no agent home)                                 |
+| `agents`       | `job-profile-init` + `job-profile-config` + `job-tracker` (fails if no agent home)                 |
 | `fetch`        | Nothing — refresh the cached checkout only                                                         |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                        |
 | `-h`, `--help` | Nothing — print usage                                                                              |
@@ -129,6 +130,15 @@ and boards. It writes only `data/job_search.yaml`, `data/sources.yaml`, and
 nothing is written before it prints a diff and you say yes, and it makes no
 network calls.
 
+**4. Read back what scout saved.** Any coding-agent session:
+
+```text
+/job-tracker
+```
+
+Resolves your Profile root, prints the `scout/` store paths, and answers from the
+dossiers already on disk. It never writes one.
+
 ## Profile root
 
 Skills resolve the active profile in this order:
@@ -193,7 +203,7 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 | Choice / target | Removes                                                                                          |
 | --------------- | ------------------------------------------------------------------------------------------------ |
 | Aside           | `job-scout` + `job-application` kit copies                                                       |
-| Agents          | `job-profile-init` + `job-profile-config` kit links (+ legacy `profile-init`)                    |
+| Agents          | `job-profile-init` + `job-profile-config` + `job-tracker` kit links (+ legacy `profile-init`)    |
 | Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files |
 | Cache           | Cached checkout at `JOB_KIT_HOME`                                                                |
 | **All**         | Aside + agents + **profile** + cache                                                             |
@@ -250,8 +260,9 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-application/`    | Apply law, draft contract                        |
 | `skill/job-profile-init/`   | Intake + templates for empty profiles            |
 | `skill/job-profile-config/` | Show + edit search intent and boards             |
+| `skill/job-tracker/`        | Read the profile's scout store; never writes     |
 | `scripts/aside/`            | Aside install (scout+apply)                      |
-| `scripts/agents/`           | Coding-agent install (init + config)             |
+| `scripts/agents/`           | Coding-agent install (init + config + tracker)   |
 | `scripts/uninstall.sh`      | Single interactive / flagged uninstall           |
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
 

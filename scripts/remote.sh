@@ -108,7 +108,8 @@ skill/job-application/SKILL.md"
 # without SKILL.md, and by then the cache has already been replaced — so the
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
-skill/job-profile-config/SKILL.md"
+skill/job-profile-config/SKILL.md
+skill/job-tracker/SKILL.md"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a
