@@ -111,7 +111,15 @@ operator and `job-application`.
 | `status:` already set        | Never touch it — not even back to `new`                                                     |
 | `## Application log`         | Append one line; never rewrite or reorder existing lines                                    |
 | Row now `dead`               | Append a log line; set no status; leave the body                                            |
+| Row `live` again after dead  | Append a reopen log line; set no status; rewrite the body as normal                         |
 | No file yet                  | Create with `status: new`                                                                   |
+
+A closure is an event in the log, not a field — so the only thing that can undo
+one is a later event. Rewriting the body back to `live` does not: the tracker
+reads posting state bottom-up from the log, finds the earlier closure sitting
+last, and reports the job dead while the body says otherwise. Append the reopen
+line whenever a URL whose last scout posting-state line was a closure is
+extracted live again.
 
 Unknown = `—`, never invented — same law as the report.
 
