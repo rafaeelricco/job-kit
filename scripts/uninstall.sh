@@ -29,6 +29,21 @@ SKIP_GROK=0
 # Prints an error to stderr and exits 1.
 die() { echo "error: $*" >&2; exit 1; }
 
+# refuse_newline NAME VALUE — die when VALUE carries a line break.
+# Every path list here is newline-delimited (`profile_delete_candidates`,
+# `profile_pointer_files`, `home_bases`, the roots passed to `unwritable_roots`)
+# and every consumer reads it one line at a time. A break inside one value
+# therefore splits into extra roots: `XDG_CONFIG_HOME=$'/victim\n/other'` makes
+# the text before the break its own deletion root, without the `/job-kit`
+# suffix, and `remove_profile` hands it to `rm -rf`.
+refuse_newline() {
+  local name="$1" value="$2"
+  case "${value}" in
+    *"
+"*) die "${name} must not contain a line break" ;;
+  esac
+}
+
 # strip_trailing_slashes PATH
 # Prints PATH with trailing slashes removed (a lone "/" is kept).
 strip_trailing_slashes() {
@@ -1087,6 +1102,15 @@ interactive_menu() {
 main() {
   local -a targets
   targets=()
+
+  # Before any path list is built, and so before any preflight or removal.
+  refuse_newline HOME "${HOME}"
+  refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
+  refuse_newline XDG_DATA_HOME "${XDG_DATA_HOME:-}"
+  refuse_newline JOB_KIT_HOME "${JOB_KIT_HOME}"
+  refuse_newline CLAUDE_SKILLS "${CLAUDE_SKILLS:-}"
+  refuse_newline ASIDE_SKILLS "${ASIDE_SKILLS:-}"
+  refuse_newline ASIDE_SKILLS_USER "${ASIDE_SKILLS_USER:-}"
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
