@@ -1,8 +1,8 @@
 # Job tracker — reading the store
 
 Read-only. Paths relative to the Profile root resolved in `SKILL.md`.
-Format SSOT is `job-scout/references/{dossier,scout-report,contract-extract}.md`;
-this file records only what a reader must not get wrong.
+Writer law for dossiers and run files lives with job-scout; this file is the
+**reader mirror** agents-channel trackers must obey without that skill installed.
 
 ## Two different words spelled `status`
 
@@ -14,12 +14,22 @@ this file records only what a reader must not get wrong.
 Never answer a lifecycle question from the Posting facts row, or a posting question
 from frontmatter.
 
+## Frontmatter (reader)
+
+Required keys on a dossier: `company`, `title`, `url`, `status`, `first_seen`,
+`last_seen`, `score`, `bucket`, `channel`. Lifecycle `status` ∈
+`new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator-owned).
+Quoted dynamic scalars may appear for company/title/url.
+
 ## A dead job never says dead in frontmatter
 
 The lifecycle vocab has no `dead` value. When a job dies, scout appends one line under
 `## Application log` and leaves the body — so `## Verdict` still reads `live` and the
-Posting facts `status` row still reads `live`. The newest log line is the only evidence.
-Report the closure from it and say the body is frozen at `last_seen`.
+Posting facts `status` row still reads `live`. Scan the Application log **bottom-up**
+for the latest **scout posting-state** line (closure / now-dead evidence written by
+scout). Do **not** treat an operator or job-application line that merely sits last as
+closure. If no scout posting-state line exists, the job is not dead-by-log. When one
+does, report the closure from it and say the body is frozen at `last_seen`.
 
 ## Ownership boundary
 
@@ -48,27 +58,24 @@ apart only by `url`.
 - In a run file, no dossier: `uncertain` rows, and `dead` rows never seen live.
 - Dossier, in no current run file: everything found by an earlier run.
 - `score<7` and company-dedupe losers do have dossiers; the run file lists them only
-  under `### Dropped`.
+  under `### Dropped` (and as `url | score` rows in `### Run manifest`).
 
 ## Run file shape
 
-Section order and columns: `job-scout/references/scout-report.md` "Persisted subset" —
-the report's other sections are printed in chat and never reach disk, so do not expect
-a ranked table or a Score audit in a run file. Read it there; it changes when the report
-changes. The one thing that file will not tell a reader: the emitted run file has no H2
-at all, so `##` never marks a section.
+Persisted section order (H3 only — run files have no H2): Header, Snapshot,
+Run manifest, People/TA, Dropped, Query log, Gaps. Chat-only ranked tables and
+Score audit are not on disk — do not expect them.
 
 A run file holds only what is true of the run. Per-job description — title, bucket,
 channel, contact, blocker, why — is dossier-owned and is not in here; `### Run manifest`
-carries `url` and that run's `score`, and nothing else. Answer any descriptive question
-from the dossier the `url` joins to.
+carries `url` and that run's `score`, and nothing else (one row per ranked or Dropped
+URL). Answer any descriptive question from the dossier the `url` joins to.
 
 Run files written before that split also carry ranked tables and a Score audit. Read them
 if present, but never treat their columns as current — the dossier wins.
 
 ## Known contradiction, do not resolve it
 
-`dossier.md` "Re-run rules" bumps `last_seen` when the same `url` is seen again, and
-in the same table says a now-dead row leaves the body. Whether a dead re-run bumps
-`last_seen` is undefined. Report the stored value and the newest log line; never
-reconcile them.
+Scout re-run rules bump `last_seen` on a live re-see and leave the body on dead;
+whether a dead re-run bumps `last_seen` is undefined. Report the stored value and
+the latest scout posting-state log line; never reconcile them.
