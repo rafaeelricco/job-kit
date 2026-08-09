@@ -44,7 +44,11 @@ against whatever the posting says today, and what the run actually found would b
 Ordinary board titles carry both: `Platform Engineer | Remote` splits one row into five
 cells, and a line break opens a second row a reader takes for another job the run found.
 Either way the frozen pair is unrecoverable and that URL stops diffing between runs.
-`url` is already normalized and `score` is a bare integer, so both stay as they are.
+`url` is already normalized, so it stays as it is. `score` is a bare integer for every
+row that entered scoring (ranked tables, `score <7`, company-dedupe). Dead rows that
+reach `### Dropped` never enter scoring — write `—` for them, never invent an integer
+and never omit the URL. A reader that requires an integer for every Dropped URL forces
+one of those two defects on every normal dead extract.
 
 Never add a bucket, channel, contact, blocker or why column here — those track the
 posting rather than the run, and copying them back is exactly the drift this split removes.

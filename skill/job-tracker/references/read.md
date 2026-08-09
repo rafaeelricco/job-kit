@@ -70,6 +70,8 @@ apart only by `url`.
 - Dossier, in no current run file: everything found by an earlier run.
 - `score<7` and company-dedupe losers do have dossiers; the run file lists them only
   under `### Dropped` (and as `url | company | title | score` rows in `### Run manifest`).
+- Dead rows that never entered scoring appear in the same four-column manifest with
+  `score` = `—`; treat that as unscored, never as zero.
 
 ## Run file shape
 
@@ -80,7 +82,8 @@ Score audit are not on disk — do not expect them.
 A run file holds only what is true of the run. Per-job description — bucket, channel,
 contact, blocker, why — is dossier-owned and is not in here; `### Run manifest` carries
 `url` plus that run's `company`, `title`, and `score`, and nothing else (one row per
-ranked or Dropped URL). Those three are frozen at the run and are the answer for what
+ranked or Dropped URL). `score` is a bare integer, or `—` when the row was dropped
+dead before scoring. Those three are frozen at the run and are the answer for what
 that run found. Every other descriptive question is answered from the dossier the `url`
 joins to — which is current state, not run state, and say so when the two disagree.
 
