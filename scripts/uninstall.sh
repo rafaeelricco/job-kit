@@ -85,6 +85,58 @@ job_kit_config() {
   fi
 }
 
+# profile_pointer_files — host + Aside-mirror profile-root paths (may be absent).
+profile_pointer_files() {
+  local host_home
+  host_home="$(resolve_host_home)"
+  printf '%s\n' "${host_home}/.config/profile-root"
+  printf '%s\n' "${host_home}/.aside/runtime/home/.config/profile-root"
+}
+
+# read_profile_pointer FILE — print absolute one-line content, or die on bad line.
+# Empty/missing file → print nothing (not an error).
+read_profile_pointer() {
+  local file="$1" line
+  [ -f "${file}" ] || return 0
+  line="$(tr -d '\n' < "${file}")"
+  [ -n "${line}" ] || return 0
+  case "${line}" in
+    /*) printf '%s\n' "${line}" ;;
+    *) die "profile-root pointer ${file} must be an absolute path (got: ${line})" ;;
+  esac
+}
+
+# profile_delete_candidates — convention roots ∪ absolute pointer targets.
+# Does not filter on existence; callers filter. Order: config, host_default, pointers.
+profile_delete_candidates() {
+  local path file
+  printf '%s\n' "$(job_kit_config)"
+  printf '%s\n' "$(host_default_root)"
+  while IFS= read -r file; do
+    [ -n "${file}" ] || continue
+    path="$(read_profile_pointer "${file}")" || exit 1
+    [ -n "${path}" ] || continue
+    printf '%s\n' "${path}"
+  done <<EOF
+$(profile_pointer_files)
+EOF
+}
+
+# refuse_profile_path PATH — die when PATH is the checkout or the kit cache.
+refuse_profile_path() {
+  local path="$1" cache
+  if paths_equal "${path}" "${REPO_ROOT}"; then
+    die "refusing to delete profile root equal to the executing checkout: ${path}"
+  fi
+  cache="${JOB_KIT_HOME}"
+  if [ -d "${JOB_KIT_HOME}" ]; then
+    cache="$(cd "${JOB_KIT_HOME}" && pwd -P)" || cache="${JOB_KIT_HOME}"
+  fi
+  if paths_equal "${path}" "${JOB_KIT_HOME}" || paths_equal "${path}" "${cache}"; then
+    die "refusing to delete profile root equal to the kit cache: ${path}"
+  fi
+}
+
 # paths_equal A B — same string or same physical directory.
 paths_equal() {
   local a="$1" b="$2"
@@ -241,18 +293,39 @@ clear_pointer_if_matches() {
   done
 }
 
-# remove_profile — delete default profile roots + matching profile-root pointers.
-remove_profile() {
-  local config host_default paths path host_home pointer mirror
-  local -a existing
-  existing=()
+# validate_profile_inputs — prove XDG + pointer lines at this shell (not in $()).
+# `die` inside a command substitution only kills the subshell; multi-target runs
+# must refuse here before any earlier target is allowed to proceed.
+validate_profile_inputs() {
+  local file
+  job_kit_config >/dev/null
+  host_default_root >/dev/null
+  while IFS= read -r file; do
+    [ -n "${file}" ] || continue
+    read_profile_pointer "${file}" >/dev/null
+  done <<EOF
+$(profile_pointer_files)
+EOF
+}
 
+# remove_profile — delete convention + pointer-selected profile roots, then
+# clear matching profile-root pointers.
+remove_profile() {
+  local config host_default path host_home pointer mirror candidate
+  local -a existing clear_args
+  existing=()
+  clear_args=()
+
+  validate_profile_inputs
   config="$(job_kit_config)"
   host_default="$(host_default_root)"
 
-  for path in "${config}" "${host_default}"; do
+  while IFS= read -r path; do
+    [ -n "${path}" ] || continue
+    clear_args[${#clear_args[@]}]="${path}"
     [ -e "${path}" ] || [ -L "${path}" ] || continue
-    # Deduplicate when XDG unset, or when one root is a symlink to the other.
+    # Deduplicate when XDG unset, pointer equals convention, or one root is a
+    # symlink to the other.
     local seen=0 e i=0
     for e in "${existing[@]+"${existing[@]}"}"; do
       if paths_equal "${e}" "${path}"; then
@@ -267,14 +340,22 @@ remove_profile() {
       i=$((i + 1))
     done
     [ "${seen}" -eq 0 ] || continue
+    refuse_profile_path "${path}"
     existing[${#existing[@]}]="${path}"
-  done
+  done <<EOF
+$(profile_delete_candidates)
+EOF
 
   if [ "${#existing[@]}" -eq 0 ]; then
     echo "profile: already absent (${config}"
     if [ "${config}" != "${host_default}" ]; then
       echo "  and ${host_default}"
     fi
+    for candidate in "${clear_args[@]+"${clear_args[@]}"}"; do
+      paths_equal "${candidate}" "${config}" && continue
+      paths_equal "${candidate}" "${host_default}" && continue
+      echo "  (pointer also named ${candidate}, not present)"
+    done
     echo ")"
   else
     echo "profile paths to delete:"
@@ -287,7 +368,7 @@ remove_profile() {
       echo "removed profile: ${path}"
     done
     # An alias that pointed at a deleted tree is now dangling; drop it too.
-    for path in "${config}" "${host_default}"; do
+    for path in "${existing[@]}"; do
       if [ -L "${path}" ] && [ ! -e "${path}" ]; then
         rm -f "${path}" || die "failed to remove profile alias: ${path}"
         echo "removed profile alias: ${path}"
@@ -298,9 +379,11 @@ remove_profile() {
   host_home="$(resolve_host_home)"
   pointer="${host_home}/.config/profile-root"
   mirror="${host_home}/.aside/runtime/home/.config/profile-root"
-  # Match pointers against convention roots (same strings as removed trees).
-  clear_pointer_if_matches "${pointer}" "${config}" "${host_default}"
-  clear_pointer_if_matches "${mirror}" "${config}" "${host_default}"
+  # Match pointers against every candidate (convention + pointer targets).
+  if [ "${#clear_args[@]}" -gt 0 ]; then
+    clear_pointer_if_matches "${pointer}" "${clear_args[@]}"
+    clear_pointer_if_matches "${mirror}" "${clear_args[@]}"
+  fi
 }
 
 # kit_owned_missing DIR — first missing ownership file, or empty if kit-owned.
@@ -458,6 +541,11 @@ links_owned_by() {
         *) return 1 ;;
       esac
     }
+    # Override install root: uninstall_agents only walks CLAUDE_SKILLS when set.
+    override="$(resolve_override_skills)" || true
+    if [ -n "${override:-}" ]; then
+      scan_root "${override}"
+    fi
     while IFS= read -r base; do
       for target in ${AGENT_TARGETS}; do
         # agent_skills_root is $HOME-relative; re-anchor its suffix per base.
@@ -470,10 +558,12 @@ links_owned_by() {
         fi
         # scope=survivors lists only what the unlink phase will NOT reach.
         # uninstall_agents walks the raw $HOME roots — except the ones a
-        # --skip-<target> flag excludes, which do survive it. Exempt a root only
-        # when it can actually be inspected: an unsearchable one hides its links
-        # from uninstall_agents too, so the scheduled unlink cannot clear it.
+        # --skip-<target> flag excludes, which do survive it. When CLAUDE_SKILLS
+        # is set, uninstall_agents never touches the defaults, so they stay in
+        # the survivor set. Exempt a root only when it can actually be inspected:
+        # an unsearchable one hides its links from uninstall_agents too.
         if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
+          && [ -z "${override:-}" ] \
           && ! target_skipped "${target}" \
           && [ -z "$(first_uninspectable "${root}")" ]; then
           continue
@@ -505,13 +595,23 @@ EOF
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
     }
-    # Roots are constructed rather than read from resolve_aside_skills_root:
-    # purge_cache refuses to run while ASIDE_SKILLS / ASIDE_SKILLS_USER narrow
-    # the channel, so the default shape is the only one reachable here.
+    # When ASIDE_SKILLS / ASIDE_SKILLS_USER set, scan those roots too (same as
+    # uninstall_aside). Default u/* walk stays for non-override installs and for
+    # skills under other accounts.
     # Every existing u/<account> is walked, not just ASIDE_ACCOUNT: skills
     # installed under another account outlive a purge run without it set.
     # `builtin` is the current root; `user` is the legacy one
     # remove_legacy_user_skills clears.
+    if [ -n "${ASIDE_SKILLS:-}" ]; then
+      case "${ASIDE_SKILLS}" in
+        /*) scan_root "${ASIDE_SKILLS}" ;;
+      esac
+    fi
+    if [ -n "${ASIDE_SKILLS_USER:-}" ]; then
+      case "${ASIDE_SKILLS_USER}" in
+        /*) scan_root "${ASIDE_SKILLS_USER}" ;;
+      esac
+    fi
     while IFS= read -r base; do
       # An account tree that cannot be traversed is not an absent one: the glob
       # silently yields nothing and the scan would report all clear. Walk the
@@ -543,14 +643,11 @@ EOF
   )
 }
 
-# purge_env_guards — refuse a cache purge while an override narrows a channel.
+# purge_env_guards — no longer refuses overrides; links_owned_by scans them.
+# Kept as a no-op hook so call sites stay stable. Overrides must stay set for
+# the scan to see custom install roots (nothing on disk records dest).
 purge_env_guards() {
-  [ -z "${CLAUDE_SKILLS:-}" ] \
-    || die "refusing cache purge while CLAUDE_SKILLS narrows agents to ${CLAUDE_SKILLS} (unset it, or omit cache)"
-  [ -z "${ASIDE_SKILLS:-}" ] \
-    || die "refusing cache purge while ASIDE_SKILLS narrows Aside to ${ASIDE_SKILLS} (unset it, or omit cache)"
-  [ -z "${ASIDE_SKILLS_USER:-}" ] \
-    || die "refusing cache purge while ASIDE_SKILLS_USER narrows Aside to ${ASIDE_SKILLS_USER} (unset it, or omit cache)"
+  :
 }
 
 # purge_preflight [SCOPE] — prove the cache purge can finish before anything is
@@ -659,7 +756,7 @@ uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 # `remove_profile` and `purge_cache` cannot be undone, so a channel that would
 # refuse to resolve its skills root has to say so before the first removal.
 preflight_targets() {
-  local t roots
+  local t roots root blocker
   for t in "$@"; do
     case "${t}" in
       agents)
@@ -674,10 +771,15 @@ preflight_targets() {
         roots="$(
           # shellcheck source=agents/lib.sh
           . "${REPO_ROOT}/scripts/agents/lib.sh"
-          for target in ${AGENT_TARGETS}; do
-            agent_skills_root "${target}"
-          done
-          printf '%s\n' "${HOME}/.codex/skills"
+          override="$(resolve_override_skills)" || exit 1
+          if [ -n "${override}" ]; then
+            printf '%s\n' "${override}"
+          else
+            for target in ${AGENT_TARGETS}; do
+              agent_skills_root "${target}"
+            done
+            printf '%s\n' "${HOME}/.codex/skills"
+          fi
         )"
         unwritable_roots "${roots}" agents
         ;;
@@ -696,18 +798,42 @@ preflight_targets() {
         unwritable_roots "${roots}" aside
         unremovable_copies "${roots}"
         ;;
+      profile)
+        # Absolute XDG + pointer lines at this shell first (die must not be
+        # swallowed by $()). Then overlap refuse + removable trees before any
+        # channel unlinks — mirrors purge_preflight's irreversible ordering.
+        validate_profile_inputs
+        while IFS= read -r root; do
+          [ -n "${root}" ] || continue
+          refuse_profile_path "${root}"
+          [ -e "${root}" ] || [ -L "${root}" ] || continue
+          blocker="$(first_uninspectable "${root}")"
+          [ -z "${blocker}" ] \
+            || die "refusing to start: the profile target cannot inspect ${blocker}"
+          blocker="$(tree_unremovable "${root}")"
+          [ -z "${blocker}" ] \
+            || die "refusing to start: the profile target cannot remove ${root}:
+${blocker}"
+        done <<EOF
+$(profile_delete_candidates)
+EOF
+        ;;
     esac
   done
 }
 
 # unwritable_roots ROOTS TARGET — die when an existing skills root cannot be
-# written. Unlinking a skill removes an entry from its directory, so a readable
-# but unwritable root fails at removal time — after `profile` has already run and
-# while the channel still reports "Uninstall completed".
+# inspected or written. Unlinking a skill removes an entry from its directory,
+# so a readable but unwritable root fails at removal time — after `profile` has
+# already run and while the channel still reports "Uninstall completed". An
+# unsearchable root hides children as "missing" and must refuse the same way.
 unwritable_roots() {
-  local roots="$1" target="$2" root
+  local roots="$1" target="$2" root blocker
   while IFS= read -r root; do
     [ -n "${root}" ] || continue
+    blocker="$(first_uninspectable "${root}")"
+    [ -z "${blocker}" ] \
+      || die "refusing to start: the ${target} target cannot inspect ${blocker}"
     [ -d "${root}" ] || continue
     [ -w "${root}" ] \
       || die "refusing to start: the ${target} target cannot unlink from ${root} (not writable)"
@@ -747,7 +873,7 @@ EOF
 do_all() {
   confirm_yes "Uninstall ALL (Aside + agents + profile + kit cache). Type yes: " || return 1
   YES=1
-  preflight_targets aside agents
+  preflight_targets aside agents profile
   purge_preflight survivors
   uninstall_aside
   uninstall_agents
