@@ -137,6 +137,20 @@ refuse_profile_path() {
   fi
 }
 
+# profile_probe_missing DIR — first required profile file DIR lacks, or empty.
+# The two-file probe activation runs before it writes a pointer, and every skill
+# re-runs before it trusts one. An unreadable dir reports the same as a missing
+# file: both mean this was not proven to be a profile.
+profile_probe_missing() {
+  local dir="$1" rel
+  for rel in data/candidate.yaml data/job_search.yaml; do
+    if [ ! -f "${dir}/${rel}" ]; then
+      printf '%s\n' "${rel}"
+      return 0
+    fi
+  done
+}
+
 # paths_equal A B — same string or same physical directory.
 paths_equal() {
   local a="$1" b="$2"
@@ -293,16 +307,33 @@ clear_pointer_if_matches() {
   done
 }
 
-# validate_profile_inputs — prove XDG + pointer lines at this shell (not in $()).
+# validate_profile_inputs — prove XDG + pointer lines, and that a present pointer
+# target is a profile, at this shell (not in $()).
 # `die` inside a command substitution only kills the subshell; multi-target runs
 # must refuse here before any earlier target is allowed to proceed.
 validate_profile_inputs() {
-  local file
+  local file path missing
   job_kit_config >/dev/null
   host_default_root >/dev/null
   while IFS= read -r file; do
     [ -n "${file}" ] || continue
     read_profile_pointer "${file}" >/dev/null
+    path="$(read_profile_pointer "${file}")"
+    [ -n "${path}" ] || continue
+    # A pointer is caller state, not kit convention: stale, hand-edited, or left
+    # behind by a moved profile, it names whatever now sits at that path — and
+    # `remove_profile` hands that straight to `rm -rf`. The convention roots are
+    # deliberately not probed; their names are the contract, so a half-written
+    # `~/.config/job-kit` stays removable. An absent target deletes nothing and
+    # still gets its pointer cleared, so only a present one is probed.
+    [ -e "${path}" ] || [ -L "${path}" ] || continue
+    [ -d "${path}" ] \
+      || die "refusing to delete profile root named by ${file}: not a directory: ${path}"
+    missing="$(profile_probe_missing "${path}")"
+    [ -z "${missing}" ] \
+      || die "refusing to delete profile root named by ${file}: ${path}
+missing or unreadable: ${missing} (the probe activation requires before writing that pointer)
+fix or remove the pointer, or delete ${path} yourself"
   done <<EOF
 $(profile_pointer_files)
 EOF
