@@ -807,24 +807,44 @@ purge_env_guards() {
 # Writability is tested with `-w`, which asks whether *this* process may write.
 # A mode-bit test (`find -perm -u+w`) answers for the owner instead, and passes a
 # root-owned 0755 tree that an unprivileged caller cannot touch.
+# A dangling symlink is still a removable thing: `-e` is false for one, so the
+# entry test admits `-L` too, or `rm -f` on it fails after the real tree is gone.
 # Side effects: none.
 tree_unremovable() {
-  local dir="$1" errs parent d unwritable=""
-  [ -e "${dir}" ] || return 0
+  local dir="$1" errs parent d entry euid unwritable="" protected=""
+  [ -e "${dir}" ] || [ -L "${dir}" ] || return 0
   errs="$(find "${dir}" -print 2>&1 >/dev/null)" || true
   if [ -n "${errs}" ]; then
     printf '%s' "${errs}"
     return 0
   fi
-  while IFS= read -r d; do
+  euid="$(id -u)"
+  # NUL-delimited: a directory name may itself contain a newline, and a
+  # line-delimited read splits it into two paths that name something else —
+  # both of which can be writable while the real directory is not.
+  while IFS= read -r -d '' d; do
     [ -n "${d}" ] || continue
-    [ -w "${d}" ] || unwritable="${unwritable}${d}
+    if [ ! -w "${d}" ]; then
+      unwritable="${unwritable}${d}
 "
-  done <<EOF
-$(find "${dir}" -type d -print 2>/dev/null)
-EOF
+      continue
+    fi
+    # A sticky directory this user does not own lets them unlink only their own
+    # entries, whatever `-w` reports — `/tmp` is the familiar case. Root is
+    # exempt from that restriction, so only an unprivileged run is constrained.
+    [ "${euid}" -ne 0 ] && [ -k "${d}" ] && [ ! -O "${d}" ] || continue
+    for entry in "${d}"/* "${d}"/.[!.]* "${d}"/..?*; do
+      [ -e "${entry}" ] || [ -L "${entry}" ] || continue
+      [ -O "${entry}" ] || protected="${protected}${entry}
+"
+    done
+  done < <(find "${dir}" -type d -print0 2>/dev/null)
   if [ -n "${unwritable}" ]; then
     printf 'not writable by this user, so their contents cannot be unlinked:\n%s' "${unwritable}"
+    return 0
+  fi
+  if [ -n "${protected}" ]; then
+    printf 'owned by another user inside a sticky directory, so they cannot be unlinked:\n%s' "${protected}"
     return 0
   fi
   parent="$(dirname "${dir}")"
