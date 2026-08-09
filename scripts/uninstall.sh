@@ -614,7 +614,10 @@ EOF
   (
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
-    local base account_dir blocker
+    local base account_dir blocker aside_override
+    # Override install root: uninstall_aside walks only this when set, exactly as
+    # resolve_aside_skills_root picks it.
+    aside_override="${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-}}"
     scan_root() {
       local r="$1" n blocker
       blocker="$(first_uninspectable "${r}")"
@@ -653,7 +656,13 @@ EOF
         printf '%s\n' "${blocker} (exists but cannot be inspected)"
         continue
       fi
-      for account_dir in "${base}"/.aside/u/*/; do
+      # An account id is one path component but may begin with a dot, which `*`
+      # does not enumerate: a skill under `u/.hidden` would be invisible to both
+      # scans and the cache purged out from under it. `.[!.]*` and `..?*` add the
+      # dot-prefixed forms while skipping `.` and `..`; an unmatched pattern stays
+      # literal and the `-d` test below drops it, as it drops plain dotfiles.
+      for account_dir in "${base}"/.aside/u/*/ "${base}"/.aside/u/.[!.]*/ \
+        "${base}"/.aside/u/..?*/; do
         [ -d "${account_dir}" ] || continue
         # scope=survivors: uninstall_aside only reaches ASIDE_ACCOUNT under the
         # raw $HOME, so every other account — and every other base — survives it.
@@ -663,6 +672,11 @@ EOF
           && [ "${account_dir}" = "${base}/.aside/u/${ASIDE_ACCOUNT_ID}/" ] \
           && [ -z "$(first_uninspectable "${account_dir}skills/builtin")" ] \
           && [ -z "$(first_uninspectable "${account_dir}skills/user")" ]; then
+          # An override sends the unlink phase to that root instead, so
+          # skills/builtin is not covered by the exemption; scan it or an
+          # irreversible remove_profile runs before the purge finds the link.
+          # remove_legacy_user_skills still clears skills/user either way.
+          [ -z "${aside_override}" ] || scan_root "${account_dir}skills/builtin"
           continue
         fi
         scan_root "${account_dir}skills/builtin"
