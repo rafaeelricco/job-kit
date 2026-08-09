@@ -22,16 +22,16 @@ updated_at: "" # ISO date this file was written
 
 ## Derivation — files on disk only
 
-| Field          | Source                                                                                    |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| `primary_role` | `job_search.yaml` `positions[0]`, else most recent `experiences.yml` `position`           |
-| `seniority`    | `job_search.yaml` `seniority_level`, verbatim                                             |
-| `top_skills`   | `skills.yaml` `skills[].items`, categories in file order; never re-ranked by judgement    |
-| `industries`   | `experiences.yml` `company` / `summary` only where the summary names one; else `[]`       |
-| `languages`    | `languages.yaml` `languages[].name` + `description` verbatim; never infer a cert or level |
-| `target_stack` | `job_search.yaml` `keywords.*` values, groups in file order                               |
-| `summary`      | 1-3 sentences built only from the fields above                                            |
-| `updated_at`   | ISO date at write time                                                                    |
+| Field          | Source                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `primary_role` | `job_search.yaml` `positions[0]`, else most recent `experiences.yml` `position`              |
+| `seniority`    | `job_search.yaml` `seniority_level`, verbatim                                                |
+| `top_skills`   | `skills.yaml` `skills[].items`, categories in file order; never re-ranked by judgement       |
+| `industries`   | `experiences.yml` `company` / `summary` only where the summary names one; else `[]`          |
+| `languages`    | `languages.yaml` `languages[].name` + `level` verbatim; never invent a cert or numeric scale |
+| `target_stack` | `job_search.yaml` `keywords.*` values, groups in file order                                  |
+| `summary`      | 1-3 sentences built only from the fields above                                               |
+| `updated_at`   | ISO date at write time                                                                       |
 
 `experiences.yml` is a bare list at the document root and each `summary` is one
 scalar string of `•` bullets joined by `\n` — read it as text, not as a list.
