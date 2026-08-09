@@ -808,6 +808,17 @@ purge_preflight() {
   [ -z "${unwalkable}" ] \
     || die "refusing to start: the cache at ${dest} cannot be removed, so the purge would fail partway:
 ${unwalkable}"
+  # A symlinked JOB_KIT_HOME is removed in two steps: `rm -rf` on the target,
+  # then `rm -f` on the link. The second needs the *link's* parent writable,
+  # which the target's own tree never reports — so a link in an unwritable
+  # directory would delete the cache (and any earlier irreversible target) and
+  # then fail, stranding a dangling path.
+  if [ -L "${raw}" ]; then
+    unwalkable="$(tree_unremovable "${raw}")"
+    [ -z "${unwalkable}" ] \
+      || die "refusing to start: the cache symlink ${raw} cannot be removed, so the purge would fail partway:
+${unwalkable}"
+  fi
   if ! paths_equal "${dest}" "${REPO_ROOT}"; then
     scope=all
   fi
