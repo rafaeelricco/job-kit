@@ -370,9 +370,24 @@ clear_pointer_if_matches() {
 # `die` inside a command substitution only kills the subshell; multi-target runs
 # must refuse here before any earlier target is allowed to proceed.
 validate_profile_inputs() {
-  local file path missing
+  local file path missing root target
   job_kit_config >/dev/null
   host_default_root >/dev/null
+  # A convention root is removable on its name alone — that is the contract, and
+  # it keeps a half-written `~/.config/job-kit` removable. A *symlink* there is
+  # not that name: it is an alias for a tree this kit never chose, and
+  # `remove_profile` resolves it and hands the target to `rm -rf`. Prove the
+  # target is a profile, or refuse rather than delete an unrelated directory.
+  for root in "$(job_kit_config)" "$(host_default_root)"; do
+    [ -L "${root}" ] || continue
+    [ -d "${root}" ] || continue
+    target="$(cd "${root}" && pwd -P)"
+    missing="$(profile_probe_missing "${target}")"
+    [ -z "${missing}" ] \
+      || die "refusing to delete profile root ${root}: it is a symlink to ${target}
+missing or unreadable: ${missing} (a symlinked root is only an alias; its target must be a profile)
+delete ${target} yourself, or remove the link"
+  done
   while IFS= read -r file; do
     [ -n "${file}" ] || continue
     read_profile_pointer "${file}" >/dev/null
