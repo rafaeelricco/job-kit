@@ -31,7 +31,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 
 | Fact                                                     | Read from                                                                         |
 | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| language level                                           | `data/languages.yaml`                                                             |
+| language level                                           | `data/languages.yaml` `languages[].level` (printed string; with `name`)           |
 | salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                             |
 | remote / in-person, relocation preference                | `data/candidate.yaml` `work_preferences_from_resume`                              |
 | assessments, drug tests, background checks               | `data/candidate.yaml` `work_preferences_from_resume`, legacy keys still readable  |
@@ -52,7 +52,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
   not a reason to guess.
 - Prefer concrete technical cause + plain outcome from those files over bare counts or
   résumé statistics (see Voice law). A count alone is not letter evidence.
-- Language level: use the printed string as printed. It is self-assessed.
+- Language level: use `languages[].level` as printed (self-assessed). Pair with `name`.
   NEVER assert a certification, a test score, or a bare single letter grade.
 - NEVER name an employer's client in outbound text (letter, form free-text, subject).
   Name the employer when the Fact file does. If a bullet needs a client, use a domain
