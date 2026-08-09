@@ -957,12 +957,21 @@ preflight_targets() {
             printf '%s\n' "${override}"
           else
             for target in ${AGENT_TARGETS}; do
+              # Match uninstall_agents: a skipped agent is never unlinked, so an
+              # unreadable/unwritable home for that agent must not refuse the run.
+              case "${target}" in
+                claude) [ "${SKIP_CLAUDE}" -eq 1 ] && continue ;;
+                codex)  [ "${SKIP_CODEX}" -eq 1 ] && continue ;;
+                grok)   [ "${SKIP_GROK}" -eq 1 ] && continue ;;
+              esac
               agent_skills_root "${target}"
             done
+            # Legacy Codex root is still walked even with --skip-codex.
             printf '%s\n' "${HOME}/.codex/skills"
           fi
         )"
         unwritable_roots "${roots}" agents
+        unremovable_skill_entries "${roots}" agents
         ;;
       aside)
         (
@@ -978,6 +987,7 @@ preflight_targets() {
         )"
         unwritable_roots "${roots}" aside
         unremovable_copies "${roots}"
+        unremovable_skill_entries "${roots}" aside
         ;;
       profile)
         # Absolute XDG + pointer lines at this shell first (die must not be
@@ -1050,6 +1060,51 @@ unwritable_roots() {
     [ -d "${root}" ] || continue
     [ -w "${root}" ] \
       || die "refusing to start: the ${target} target cannot unlink from ${root} (not writable)"
+  done <<EOF
+${roots}
+EOF
+}
+
+# unremovable_skill_entries ROOTS TARGET — die when a kit skill entry this
+# channel will unlink cannot be removed from a sticky directory this user does
+# not own. `-w` on mode 1777 is true for any user, but sticky only allows
+# unlinking own entries; without this check, `profile agents` can delete the
+# profile and then fail mid-channel while still printing "Uninstall completed".
+unremovable_skill_entries() {
+  local roots="$1" target="$2" root dest name euid names
+  euid="$(id -u)"
+  # Root is not bound by sticky-directory ownership rules.
+  [ "${euid}" -eq 0 ] && return 0
+  names="$(
+    case "${target}" in
+      agents)
+        # shellcheck source=agents/lib.sh
+        . "${REPO_ROOT}/scripts/agents/lib.sh"
+        printf '%s %s\n' "${SKILL_NAMES}" "${LEGACY_SKILL_NAMES}"
+        ;;
+      aside)
+        # shellcheck source=aside/lib.sh
+        . "${REPO_ROOT}/scripts/aside/lib.sh"
+        printf '%s %s\n' "${SKILL_NAMES}" "${LEGACY_SKILL_NAMES}"
+        ;;
+      *)
+        die "internal error: unremovable_skill_entries unknown target: ${target}"
+        ;;
+    esac
+  )"
+  while IFS= read -r root; do
+    [ -n "${root}" ] || continue
+    [ -d "${root}" ] || continue
+    # Only sticky roots this user does not own create the false `-w` pass.
+    [ -k "${root}" ] || continue
+    [ ! -O "${root}" ] || continue
+    for name in ${names}; do
+      dest="${root}/${name}"
+      [ -e "${dest}" ] || [ -L "${dest}" ] || continue
+      # Foreign-owned entry in sticky root: this user cannot unlink it.
+      [ -O "${dest}" ] \
+        || die "refusing to start: the ${target} target cannot unlink ${dest} (owned by another user inside sticky ${root})"
+    done
   done <<EOF
 ${roots}
 EOF
