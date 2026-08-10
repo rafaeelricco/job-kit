@@ -821,23 +821,106 @@ EOF
   printf '%s\n' "${n}"
 }
 
+# path_display PATH — print PATH with $HOME replaced by ~ (display only).
+path_display() {
+  local p="$1"
+  case "${p}" in
+    "${HOME}") printf '~\n' ;;
+    "${HOME}"/*) printf '~%s\n' "${p#"${HOME}"}" ;;
+    *) printf '%s\n' "${p}" ;;
+  esac
+}
+
+# skill_leaf ROOT PATH — print PATH's single child name when PATH is ROOT/name;
+# otherwise print nothing (non-skill / nested / unrelated).
+skill_leaf() {
+  local root="$1" path="$2" rest
+  case "${path}" in
+    "${root}"/*)
+      rest="${path#"${root}"/}"
+      case "${rest}" in
+        ""|*/*) return 0 ;;
+        *) printf '%s\n' "${rest}" ;;
+      esac
+      ;;
+  esac
+}
+
 # render_plan ROWS — print the manifest to stdout.
+# Grouped sections, tilde paths, skill basenames; collapse consecutive same-status
+# skill N-rows into one comma list. Producers still emit absolute paths.
 render_plan() {
   local rows="$1" kind label path
+  local section_root="" section_started=0
+  local pend_label="" pend_names="" leaf action tag rest
+
+  # flush_pend — emit collapsed N skill names, if any.
+  flush_pend() {
+    [ -n "${pend_label}" ] || return 0
+    printf '  %-16s %s\n' "${pend_label}" "${pend_names}"
+    pend_label=""
+    pend_names=""
+  }
+
+  # emit_body KIND LABEL PATH — one non-header row (after skill collapse rules).
+  emit_body() {
+    local k="$1" lab="$2" p="$3"
+    leaf=""
+    [ -n "${section_root}" ] && leaf="$(skill_leaf "${section_root}" "${p}")"
+
+    if [ "${k}" = N ] && [ -n "${leaf}" ]; then
+      if [ "${pend_label}" = "${lab}" ]; then
+        pend_names="${pend_names}, ${leaf}"
+        return 0
+      fi
+      flush_pend
+      pend_label="${lab}"
+      pend_names="${leaf}"
+      return 0
+    fi
+
+    flush_pend
+
+    if [ "${k}" = I ] && [ -n "${leaf}" ]; then
+      # Labels from plan_row: "remove link (current)" / "remove copy (legacy)".
+      case "${lab}" in
+        "remove link ("*")"|"remove copy ("*")")
+          rest="${lab#remove }"
+          action="remove ${rest%% (*}"
+          tag="${rest#* (}"
+          tag="${tag%)}"
+          printf '  %-16s %s (%s)\n' "${action}" "${leaf}" "${tag}"
+          return 0
+          ;;
+      esac
+    fi
+
+    if [ "${k}" = X ]; then
+      printf '  %-16s %s  · irreversible\n' "${lab}" "$(path_display "${p}")"
+    else
+      printf '  %-16s %s\n' "${lab}" "$(path_display "${p}")"
+    fi
+  }
+
   echo "job-kit uninstall · plan"
-  echo "--------------------------------------------------------------"
+  echo
   while IFS="${ROW_FS}" read -r kind label path; do
     [ -n "${kind}" ] || continue
     if [ "${kind}" = H ]; then
-      printf '%-9s %s\n' "${label}" "${path}"
-    elif [ "${kind}" = X ]; then
-      printf '          %-24s %s  · irreversible\n' "${label}" "${path}"
+      flush_pend
+      if [ "${section_started}" -eq 1 ]; then
+        echo
+      fi
+      section_started=1
+      section_root="${path}"
+      printf '%s  ·  %s\n' "${label}" "$(path_display "${path}")"
     else
-      printf '          %-24s %s\n' "${label}" "${path}"
+      emit_body "${kind}" "${label}" "${path}"
     fi
   done <<EOF
 ${rows}
 EOF
+  flush_pend
   echo "--------------------------------------------------------------"
 }
 
