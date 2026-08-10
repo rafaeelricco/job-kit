@@ -172,23 +172,29 @@ readability and parse checks cannot help once the write has begun; a rename is
 the only step that either happens or does not.
 
 **Concurrent writers (job-scout Phase 6 and job-application Phase 4):** atomic
-rename alone does not prevent lost updates when both read the same base, each
-render a full replacement, and the later rename drops the earlier writer's
-`status:` / log or scout body. Every update of an existing dossier is therefore
-optimistic compare-and-retry:
+rename alone does not prevent lost updates — and check-then-rename is still a
+race (both pass equality, both rename; the later rename drops the earlier
+writer). Serialize every update of an existing dossier with an exclusive lock
+held across the full read → edit → tmp write → rename:
 
-1. Read the whole file as `base` (byte-identical snapshot of what you will
-   preserve).
-2. Apply only this writer's allowed edits to that base; render the full result
-   to the sibling `*.md.tmp`.
-3. Re-read the live path. If its bytes still equal `base`, rename the tmp over
-   it. If they differ, discard the tmp, treat the new content as `base`, and
-   retry from step 2 — another writer landed first.
-4. Cap at 3 attempts. Still racing → **STOP**, name the file, tell the operator
-   the write did not land (and for job-application: set `status: applied` by
-   hand). Never force the rename over a changed base.
+1. Acquire lock: create directory `scout/jobs/{dossier-basename}.md.lock` with
+   exclusive create (`mkdir` fails if the path exists — that is the lock). Do
+   not use a plain file create that can clobber. If `mkdir` fails, wait briefly
+   and retry; cap 5 attempts / ~10s. Still locked → **STOP**, name the dossier,
+   tell the operator the write did not land (job-application: set
+   `status: applied` by hand). Never write the dossier while the lock is held
+   by someone else.
+2. Under the lock only: read the whole file, apply only this writer's allowed
+   edits, render the full result to the sibling `*.md.tmp`, rename the tmp over
+   the original.
+3. Release lock: remove the lock directory (`rmdir` / delete) even when the
+   write failed after acquire. A leftover lock blocks every future writer.
 
-Create path: write a new filename only when the re-scan by normalized `url`
-found none. If the create races (name appears, or a URL match appears mid-write),
-abandon create and take the update path above on the winner. Never leave two
-files for one `url`.
+Never rename without holding the lock. Never skip the lock because "only one
+agent is running" — Phase 6 and Phase 4 are independent skills.
+
+Create path: re-scan by normalized `url` first. If none, acquire the intended
+filename's lock the same way (`{new-basename}.md.lock`), re-scan again under
+the lock, then create only if still absent. If a URL match or the name appears,
+release, take the update path on the winner. Never leave two files for one
+`url`.
