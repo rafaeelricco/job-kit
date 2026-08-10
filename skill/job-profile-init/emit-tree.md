@@ -11,7 +11,7 @@ Source = `./templates/` only. Destination = intake target path.
   cv/README.md
 ```
 
-No skill pack trees inside the profile. Skills come from job-kit install (agents: profile init; Aside: scout/apply).
+No skill pack trees inside the profile. Skills come from job-kit install (agents: profile init + config + tracker; Aside: scout + apply + config + tracker).
 
 Copy the entire `./templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
