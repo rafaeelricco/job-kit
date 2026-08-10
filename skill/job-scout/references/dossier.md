@@ -175,30 +175,53 @@ the only step that either happens or does not.
 rename alone does not prevent lost updates — and check-then-rename is still a
 race. Serialize **by normalized `url`**, not by intended filename: two writers
 can pick different basenames for the same URL (midnight straddle, multi-title
-extract) and filename locks would not meet. Lock path:
+extract) and filename locks would not meet.
 
-`scout/jobs/url-{url-slug}.lock`
+**Store directory first.** Before any lock: `mkdir -p scout/jobs` when absent,
+and resolve it under the canonical Profile root. A missing parent makes every
+lock `mkdir` fail permanently and is not contention — first-use must create the
+store before acquire.
 
-where `{url-slug}` is the already-normalized URL run through the same slug
-rules as dossier filenames (lowercased; every run of non-alphanumerics → one
-`-`; trimmed). Same URL → same lock, whatever basename each writer would use.
+Lock path (bounded — long ATS URLs must not hit `ENAMETOOLONG`):
+
+`scout/jobs/url-{url-digest}.lock`
+
+where `{url-digest}` is the first 32 hex characters of the SHA-256 of the
+normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
+(`shasum -a 256`, `sha256sum`, `openssl dgst -sha256`). Same normalized URL →
+same digest → same lock. Do **not** put the raw slug in the path name.
+
 Lock directories are a writable path shape (Phase 6 SSOT / job-application Phase 4
 writable store); create only under `scout/jobs/`, never elsewhere.
 
 Hold the URL lock across the full create-or-update:
 
 1. Acquire: exclusive-create the lock directory via `mkdir` (fails if held —
-   that is the lock). Do not use a plain file create that can clobber. If
-   `mkdir` fails, wait briefly and retry; cap 5 attempts / ~10s. Still locked →
-   **STOP**, name the URL, tell the operator the write did not land
-   (job-application: set `status: applied` by hand).
+   that is the lock). Do not use a plain file create that can clobber.
+   - If `mkdir` fails and the path exists: read its age. Prefer mtime of the
+     directory, or an `acquired_at` file (ISO timestamp) written inside on
+     success. Age **> 15 minutes** → treat as stale (crashed writer): remove the
+     lock directory and retry acquire once. Age ≤ 15 minutes → live lock; wait
+     briefly and retry; cap 5 attempts / ~10s.
+   - Permanent errors (`ENAMETOOLONG` should not occur with the digest path;
+     permission failures) → **STOP**, do not spin.
+   - Still locked after retries → **STOP**, name the URL, tell the operator the
+     write did not land (job-application: set `status: applied` by hand).
+   - On successful acquire: write `acquired_at` (ISO now) inside the lock dir so
+     later reclaim has a clear timestamp.
 2. Under the lock only: re-scan `scout/jobs/` for this normalized `url`.
    - Match → read that file, apply only this writer's allowed edits, render to
      sibling `*.md.tmp`, rename over the original.
-   - No match → create the new dossier (filename rules as usual) under the same
-     lock. A race cannot create a second file for this URL while you hold it.
-3. Release: remove the lock directory even when the write failed after acquire.
-   A leftover lock blocks every future writer for that URL.
+   - No match → create a new dossier under the same lock. **Filename allocation**
+     is exclusive even across different URLs (two postings can share
+     company+title): for candidate names (unsuffixed, then `-2`, `-3`, …) render
+     to a unique sibling tmp, then place it only with an exclusive create of the
+     final path — fail if the path already exists (`mv -n` when it refuses
+     overwrite, open with exclusive-create, or equivalent). Never rename/clobber
+     over an existing dossier. First exclusive success wins; bump suffix and
+     retry on collision.
+3. Release: remove the lock directory (and its contents) even when the write
+   failed after acquire. A leftover live lock blocks writers until stale reclaim.
 
 Never create or rename a dossier for a URL without holding that URL's lock.
 Never skip the lock because "only one agent is running" — Phase 6 and Phase 4
