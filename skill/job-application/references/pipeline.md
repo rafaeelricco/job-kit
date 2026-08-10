@@ -23,12 +23,13 @@ records only what the operator confirms they submitted.
 
 The main agent opens the posting itself. Contract dual-load timing: SKILL step 2.
 
-Writable in Phase 4 only, under Profile root: `scout/jobs/*.md`, sibling
-`*.md.tmp` during atomic rename, exclusive lock directories `scout/jobs/*.lock`,
-lock metadata `scout/jobs/*.lock/acquired_at` and `scout/jobs/*.lock/owner`, and
-short-lived reclaim siblings `scout/jobs/*.lock.reclaim-*` (per
-`job-scout/references/dossier.md`). `data/`, `cv/`, and every other Profile-root
-path stay read-only in every phase.
+Writable in Phase 4 only, under Profile root: `scout/jobs/*.md`, exclusive lock
+directories `scout/jobs/*.lock`, lock metadata `scout/jobs/*.lock/acquired_at`
+and `scout/jobs/*.lock/owner`, lock-internal place staging
+`scout/jobs/*.lock/place-*`, short-lived reclaim siblings
+`scout/jobs/*.lock.reclaim-*`, and release-claim siblings
+`scout/jobs/*.lock.released-*` (per `job-scout/references/dossier.md`). `data/`,
+`cv/`, and every other Profile-root path stay read-only in every phase.
 
 ## Phase 0 — read the ad
 
@@ -177,20 +178,23 @@ Order every write:
 2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
    `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
    (dossier.md). Write `owner`/`acquired_at` immediately. Stale lock (>15 min,
-   including no-metadata abandon) → fingerprint then claim via
-   `*.lock.reclaim-*`, delete only if fingerprint still matches; live lock →
-   retry cap; permanent errors → **STOP**. Lease refresh and every dossier
-   place are fenced: re-read `owner`; if not yours → **STOP** without writing.
-3. Under the lock only (fenced): re-scan by URL; before each create/replace
-   re-check `owner`. Match → read → apply only this phase's edits → sibling
-   `*.md.tmp` → rename over original; no match → create by rendering a complete
-   sibling tmp then **atomic no-replace** placement onto the vacant final path
-   (no clobber; bump `-2`, `-3` on collision per dossier.md). Never write
-   through an exclusively opened final path.
-4. Release: ownership-checked in place only (dossier.md) — re-read `owner`,
-   `rm -rf` the canonical lock only when it is still yours; never rename the
-   lock directory on release. Still locked or write fails after retries →
-   **STOP** and tell the operator to set `status: applied` by hand.
+   including no-metadata abandon) → fingerprint (including device+inode),
+   re-stat before any rename, claim via `*.lock.reclaim-*`, delete only if
+   fingerprint still matches; live lock → retry cap; permanent errors → **STOP**.
+   Lease refresh and every dossier place are fenced: re-read `owner`; if not
+   yours → **STOP** without writing.
+3. Under the lock only (fenced): re-scan by URL; re-check `owner`. Match → read
+   → apply only this phase's edits → render complete file into
+   `*.lock/place-{owner-token}.md` → re-check `owner` → rename place file over
+   the original; no match → stage the complete create into the same place path
+   then **atomic no-replace** onto the vacant final path (no clobber; bump
+   `-2`, `-3` on collision per dossier.md). Never stage place outside the lock
+   directory. Never write through an exclusively opened final path.
+4. Release: ownership-checked claim rename (dossier.md) — fingerprint inode,
+   rename to `*.lock.released-{owner-token}` only when `owner` still matches,
+   delete only the claimed path after re-validation; never `rm -rf` the
+   canonical lock. Still locked or write fails after retries → **STOP** and
+   tell the operator to set `status: applied` by hand.
 
 Never create or rename without that URL's lock. Never exclusive-create a lock
 before `scout/jobs/` exists.
@@ -242,11 +246,12 @@ normalized `url`:
   joins on.
 - Still no URL match under the lock → create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
-  rules; render complete to sibling tmp, then atomic no-replace onto vacant
-  final path (no clobber); base name taken → try `-2`, `-3` until no-replace
-  succeeds. That suffix is for two jobs sharing a name, never for one job twice.
-  Create only while holding the URL lock and the re-scan under it still found
-  none.
+  rules; render complete into `*.lock/place-{owner-token}.md`, then atomic
+  no-replace onto vacant final path (no clobber); base name taken → try `-2`,
+  `-3` until no-replace succeeds. That suffix is for two jobs sharing a name,
+  never for one job twice. Create only while holding the URL lock, staging
+  through the lock place path (dossier.md), and the re-scan under the lock still
+  found none.
 - All nine frontmatter keys. `company` / `title` / `url` double-quoted and escaped
   per dossier quoting law, `url` the normalized identity URL from the gate above
   (never `—`);
