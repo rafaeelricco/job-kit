@@ -12,26 +12,25 @@ batch — still one diff, one yes.
    `<file>:<line>`, showing only the lines that change.
 4. Wait for an explicit **yes**. Silence, a question, or edits are not a yes. Edits →
    back to step 3 with the revision.
-5. On yes: hold the exact pre-edit contents of every file this cycle will touch
-   — the target and, when the card-clear below fires, `data/profile_card.yaml`.
-   Hold them in memory: the write fence in `../SKILL.md` allows no `.bak` or
-   temp path.
-6. Edit surgically. Never re-serialize the document, never drop comments or
-   keys outside the diff.
-7. Confirm **every** write in this cycle landed, then re-parse **every** file it
-   wrote. All writes landed and all parse → print `wrote <abs path>` per file
-   and re-print only the affected `### Constraints` (or `### Sources`) slice.
-8. Any write that fails, or any file that fails to parse → restore **every**
-   file in the cycle from the step-5 contents, print the failing path and its
-   error, and say the cycle was rolled back. Never print `wrote`. Never leave a
-   cycle half-applied: the card-clear and its `job_search.yaml` edit stand or
-   fall together — a write that never landed still fails the cycle, even though
-   the file it did not touch still parses clean. Restoring bytes this protocol
-   just wrote is not the step-2 case — step 2 refuses to overwrite a file that
-   was **already** broken when read. A restore that itself fails → name every
-   file and whether it holds pre-edit or post-edit content; never report a
-   rollback that did not happen.
-9. On no (step 4): abort; say nothing was written.
+5. On yes: hold the exact pre-edit contents of every file this cycle touches —
+   the target and, when the card-clear below fires, `data/profile_card.yaml`.
+6. Render each file's edited content to a sibling `*.yaml.tmp` staging path.
+   Edit surgically: never re-serialize the document, never drop comments or
+   keys outside the diff. A live file is never edited in place.
+7. Re-parse **every** staged file. Any staging write or parse that fails →
+   delete the staged files and say nothing was written, naming the failing path
+   and its error. No live file was touched, so there is nothing to undo — a full
+   disk or a truncated write lands here, before the profile changes.
+8. All staged files parse → rename each over its original. Rename is the only
+   step that mutates a live file, and it allocates nothing, so the conditions
+   that break a write cannot half-apply a cycle.
+9. A rename that fails after an earlier one succeeded → restore those originals
+   from the step-5 contents and report the cycle rolled back. Never print
+   `wrote` for a cycle that did not complete: the card-clear and its
+   `job_search.yaml` edit stand or fall together.
+10. All renames done → print `wrote <abs path>` per file and re-print only the
+    affected `### Constraints` (or `### Sources`) slice.
+11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
 
