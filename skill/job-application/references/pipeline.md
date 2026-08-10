@@ -176,18 +176,20 @@ Order every write:
    lock contention — and never `mkdir` through an out-of-tree symlink.
 2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
    `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
-   (dossier.md). Stale lock (>15 min) → claim by rename to a claimant-unique
-   `*.lock.reclaim-*` sibling, remove only that claimed path, then retry once;
-   live lock → retry cap; permanent errors → **STOP**.
+   (dossier.md). Stale lock (>15 min) → fingerprint `owner`/`acquired_at`, claim
+   by rename to `*.lock.reclaim-*`, delete only if fingerprint still matches
+   (else restore; never delete a fresh lock); live lock → retry cap; permanent
+   errors → **STOP**.
 3. Under the lock only: re-scan by URL; match → read → apply only this phase's
    edits → sibling `*.md.tmp` → rename over original; no match → create by
    rendering a complete sibling tmp then **atomic no-replace** placement onto
    the vacant final path (no clobber; bump `-2`, `-3` on collision per
    dossier.md). Never write through an exclusively opened final path.
-4. Release: ownership-checked only (dossier.md) — rename to
-   `*.lock.release-{owner-token}`, delete only if `owner` still matches; never
-   `rm` a lock another writer reclaimed. Still locked or write fails after
-   retries → **STOP** and tell the operator to set `status: applied` by hand.
+4. Release: ownership-checked only (dossier.md) — read `owner` first; rename to
+   `*.lock.release-{owner-token}` only if it is yours; delete only when `owner`
+   still matches; never move or `rm` a foreign/reclaimed lock. Still locked or
+   write fails after retries → **STOP** and tell the operator to set
+   `status: applied` by hand.
 
 Never create or rename without that URL's lock. Never exclusive-create a lock
 before `scout/jobs/` exists.
