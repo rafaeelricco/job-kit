@@ -24,6 +24,13 @@ YES=0
 SKIP_CLAUDE=0
 SKIP_CODEX=0
 SKIP_GROK=0
+DRY_RUN=0
+ONLY_TARGETS=""
+# Aside skill subset from --only; empty means every SKILL_NAMES entry.
+ASIDE_ONLY=""
+# Row field separator. Not TAB: TAB is IFS-whitespace, so `read` collapses an
+# empty field and shifts the path left into the label.
+ROW_FS="$(printf '\037')"
 
 # die MSG…
 # Prints an error to stderr and exits 1.
@@ -271,12 +278,19 @@ Targets:
 
 Options:
   -y, --yes     Skip confirmations (profile / all / cache)
+  --dry-run     Print the plan, run every guard, remove nothing
+  --only LIST   Comma-separated subset, instead of positional targets:
+                aside | job-scout | job-application
+                agents | claude | codex | grok
+                profile | cache
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
 
-Profile path: ${XDG_CONFIG_HOME:-$HOME/.config}/job-kit and, when different,
-$host_default ($HOST_HOME/.config/job-kit). All/profile require typing yes
-unless --yes.
+Every run prints a plan first. A plan holding profile or cache data requires
+typing yes; anything re-installable takes [Y/n]. --yes skips both.
+
+Profile path: $XDG_CONFIG_HOME/job-kit when set, otherwise $HOME/.config/job-kit,
+and both when they differ.
 
 Environment:
   JOB_KIT_HOME   Kit cache (default $XDG_DATA_HOME/job-kit or ~/.local/share/job-kit)
@@ -287,7 +301,7 @@ EOF
 
 # uninstall_aside — remove kit-owned Aside skills via aside/lib.sh (subshell).
 uninstall_aside() {
-  local repo="${REPO_ROOT}"
+  local repo="${REPO_ROOT}" aside_only="${ASIDE_ONLY}"
   (
     # shellcheck source=aside/lib.sh
     . "${repo}/scripts/aside/lib.sh"
@@ -296,10 +310,11 @@ uninstall_aside() {
     echo "== job-kit Aside uninstall for ${dest_root} =="
     unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
     for name in ${SKILL_NAMES}; do
+      aside_selected "${name}" || { echo "${name}: not selected (--only)."; continue; }
       dest="$(skill_dest "${dest_root}" "${name}")"
       unlink_skill "${dest}" "${repo}" "${name}"
     done
-    remove_legacy_user_skills "${repo}" "${dest_root}" || exit 1
+    remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only:-${SKILL_NAMES}}" || exit 1
     echo "Uninstall completed for ${dest_root}"
   )
 }
@@ -585,6 +600,322 @@ owned_by_root() {
     fi
   done
   return 0
+}
+
+# owned_kind PATH — "link" or "copy", the two forms owned_by_root reads.
+owned_kind() {
+  if [ -L "$1" ]; then
+    printf 'link\n'
+  elif [ -d "$1" ] && [ -f "$1/.job-kit" ]; then
+    printf 'copy\n'
+  fi
+}
+
+# plan_row DEST NAME TAG LINK_ONLY — one manifest row for a skill path.
+# Ownership is decided by owned_by_root against REPO_ROOT, the same comparison
+# the mutators make (aside/lib.sh:102,116 and agents/lib.sh:136).
+# LINK_ONLY=1 for the agents channel: agents/lib.sh:300 requires is_kit_skill_link,
+# so a marked copy under an agent root is skipped at apply time and must not be
+# promised here. owned_by_root always returns 0 (see above) — test output, not status.
+plan_row() {
+  local dest="$1" name="$2" tag="$3" link_only="${4:-0}" hit kind
+  hit="$(owned_by_root "${dest}" "${name}" "${REPO_ROOT}")"
+  kind="$(owned_kind "${dest}")"
+  if [ -n "${hit}" ] && { [ "${link_only}" -eq 0 ] || [ "${kind}" = link ]; }; then
+    printf 'I%sremove %s (%s)%s%s\n' "${ROW_FS}" "${kind}" "${tag}" "${ROW_FS}" "${dest}"
+  elif [ -e "${dest}" ] || [ -L "${dest}" ]; then
+    printf 'N%snot kit-owned%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+  elif [ "${tag}" = current ]; then
+    printf 'N%snot installed%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+  fi
+}
+
+# aside_selected NAME — 0 when --only keeps NAME in the aside walk.
+aside_selected() {
+  [ -n "${ASIDE_ONLY}" ] || return 0
+  case " ${ASIDE_ONLY} " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# plan_rows_aside — rows for the aside target. No mutation.
+# Mirrors uninstall_aside (below): LEGACY_SKILL_NAMES then SKILL_NAMES at the
+# resolved root, then the legacy user root. That second root is re-derived here
+# because aside/lib.sh:290 inlines it and exposes no accessor; the same-physical-
+# path guard aside/lib.sh:292-299 makes is mirrored with it, or the plan
+# double-reports under an ASIDE_SKILLS override.
+plan_rows_aside() {
+  local repo="${REPO_ROOT}"
+  (
+    # shellcheck source=aside/lib.sh
+    . "${repo}/scripts/aside/lib.sh"
+    local dest_root user_root name
+    dest_root="$(resolve_aside_skills_root)" || exit 1
+    printf 'H%saside%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest_root}"
+    for name in ${LEGACY_SKILL_NAMES}; do
+      plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" legacy
+    done
+    for name in ${SKILL_NAMES}; do
+      if aside_selected "${name}"; then
+        plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" current
+      else
+        printf 'N%snot selected%s%s\n' "${ROW_FS}" "${ROW_FS}" "$(skill_dest "${dest_root}" "${name}")"
+      fi
+    done
+    user_root="${HOME}/.aside/u/${ASIDE_ACCOUNT_ID}/skills/user"
+    [ -d "${user_root}" ] || exit 0
+    printf 'H%saside (legacy user root)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${user_root}"
+    for name in ${LEGACY_SKILL_NAMES}; do
+      plan_row "$(skill_dest "${user_root}" "${name}")" "${name}" legacy
+    done
+    # aside/lib.sh:295 stops after legacy names when the two roots are one tree.
+    paths_equal "${user_root}" "${dest_root}" && exit 0
+    for name in ${SKILL_NAMES}; do
+      aside_selected "${name}" || continue
+      plan_row "$(skill_dest "${user_root}" "${name}")" "${name}" current
+    done
+  )
+}
+
+# plan_rows_agents — rows for the agents target. No mutation.
+# Mirrors uninstall_agents (below), including the override early exit (which also
+# makes the SKIP_* flags and the legacy Codex sweep unreachable) and the
+# parent-or-root eligibility test. link_only=1 throughout: agents/lib.sh:300
+# requires a symlink, never a marked copy.
+plan_rows_agents() {
+  local repo="${REPO_ROOT}"
+  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  (
+    # shellcheck source=agents/lib.sh
+    . "${repo}/scripts/agents/lib.sh"
+    local override target root parent label name
+    override="$(resolve_override_skills)" || exit 1
+    if [ -n "${override}" ]; then
+      printf 'H%sagents (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
+      for name in ${LEGACY_SKILL_NAMES} ${SKILL_NAMES}; do
+        plan_row "$(skill_dest "${override}" "${name}")" "${name}" current 1
+      done
+      exit 0
+    fi
+    for target in ${AGENT_TARGETS}; do
+      root="$(agent_skills_root "${target}")"
+      label="$(agent_label "${target}")"
+      if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
+        printf 'N%sskipped (--skip-claude)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+      elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
+        printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+      elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
+        printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+      fi
+      parent="$(agent_parent_dir "${target}")"
+      if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
+        printf 'N%snothing to uninstall%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+      fi
+      printf 'H%sagents · %s%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${root}"
+      for name in ${LEGACY_SKILL_NAMES}; do
+        plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
+      done
+      for name in ${SKILL_NAMES}; do
+        plan_row "$(skill_dest "${root}" "${name}")" "${name}" current 1
+      done
+    done
+    root="${HOME}/.codex/skills"
+    [ -d "${root}" ] || [ -L "${root}" ] || exit 0
+    printf 'H%sagents (legacy Codex root)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"
+    for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+      plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
+    done
+  )
+}
+
+# plan_rows_profile — rows for the profile target. No mutation, and no refusal:
+# refuse_profile_path and the removability walks stay in preflight_targets,
+# which runs after the render. Resolves a symlinked candidate exactly as
+# remove_profile does below, so the X row names the tree rm -rf will walk.
+plan_rows_profile() {
+  local path pointer
+  local -a existing
+  existing=()
+  printf 'H%sprofile%s%s\n' "${ROW_FS}" "${ROW_FS}" "$(job_kit_config)"
+  while IFS= read -r path; do
+    [ -n "${path}" ] || continue
+    [ -e "${path}" ] || [ -L "${path}" ] || continue
+    if [ -L "${path}" ] && [ -d "${path}" ]; then
+      printf 'X%sremove alias%s%s\n' "${ROW_FS}" "${ROW_FS}" "${path}"
+      path="$(cd "${path}" && pwd -P)"
+    fi
+    local seen=0 e
+    for e in "${existing[@]+"${existing[@]}"}"; do
+      paths_equal "${e}" "${path}" && { seen=1; break; }
+    done
+    [ "${seen}" -eq 0 ] || continue
+    existing[${#existing[@]}]="${path}"
+    printf 'X%sDELETE TREE%s%s\n' "${ROW_FS}" "${ROW_FS}" "${path}"
+  done <<EOF
+$(profile_delete_candidates)
+EOF
+  [ "${#existing[@]}" -ne 0 ] \
+    || printf 'N%salready absent%s%s\n' "${ROW_FS}" "${ROW_FS}" "$(job_kit_config)"
+  # remove_profile clears pointers on both branches, including the already-absent
+  # one, and clear_pointer_if_matches drops an empty pointer unconditionally — so
+  # an existing pointer file is always a row.
+  while IFS= read -r pointer; do
+    [ -n "${pointer}" ] || continue
+    if [ -f "${pointer}" ]; then
+      printf 'I%sclear pointer%s%s\n' "${ROW_FS}" "${ROW_FS}" "${pointer}"
+    else
+      printf 'N%spointer absent%s%s\n' "${ROW_FS}" "${ROW_FS}" "${pointer}"
+    fi
+  done <<EOF
+$(profile_pointer_files)
+EOF
+}
+
+# plan_rows_cache — row for the cache target. No mutation.
+# Ownership and removability stay with purge_preflight; this states intent and
+# the refusal prints after it with its reason.
+plan_rows_cache() {
+  local raw dest
+  raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+  printf 'H%scache%s%s\n' "${ROW_FS}" "${ROW_FS}" "${raw}"
+  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
+    printf 'N%salready absent%s%s\n' "${ROW_FS}" "${ROW_FS}" "${raw}"
+    return 0
+  fi
+  dest="$(resolve_cache_path "${raw}")"
+  printf 'X%sPURGE CACHE%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+}
+
+# build_plan TARGET… — every manifest row, in apply order.
+build_plan() {
+  local t
+  for t in "$@"; do
+    case "${t}" in
+      aside) plan_rows_aside ;;
+      agents) plan_rows_agents ;;
+      profile) plan_rows_profile ;;
+      cache) plan_rows_cache ;;
+    esac
+  done
+}
+
+# plan_count ROWS KIND… — how many rows carry any of KIND.
+plan_count() {
+  local rows="$1" kind label path want n=0
+  shift
+  while IFS="${ROW_FS}" read -r kind label path; do
+    [ -n "${kind}" ] || continue
+    for want in "$@"; do
+      [ "${kind}" = "${want}" ] || continue
+      n=$((n + 1))
+      break
+    done
+  done <<EOF
+${rows}
+EOF
+  printf '%s\n' "${n}"
+}
+
+# render_plan ROWS — print the manifest to stdout.
+render_plan() {
+  local rows="$1" kind label path
+  echo "job-kit uninstall · plan"
+  echo "--------------------------------------------------------------"
+  while IFS="${ROW_FS}" read -r kind label path; do
+    [ -n "${kind}" ] || continue
+    if [ "${kind}" = H ]; then
+      printf '%-9s %s\n' "${label}" "${path}"
+    elif [ "${kind}" = X ]; then
+      printf '          %-24s %s  · irreversible\n' "${label}" "${path}"
+    else
+      printf '          %-24s %s\n' "${label}" "${path}"
+    fi
+  done <<EOF
+${rows}
+EOF
+  echo "--------------------------------------------------------------"
+}
+
+# confirm_plan REMOVALS IRREVERSIBLE — the single gate for the whole run.
+# --yes suppresses both tiers without ever calling read, which is what keeps
+# remote.sh's five uninstall call sites from hanging on a curl pipe.
+confirm_plan() {
+  local removals="$1" irreversible="$2" answer
+  [ "${YES}" -eq 1 ] && return 0
+  if [ "${irreversible}" -gt 0 ]; then
+    confirm_yes "Proceed? Profile/cache data cannot be recovered. Type yes: "
+    return $?
+  fi
+  printf 'Proceed? %s removals, all re-installable. [Y/n] ' "${removals}" >&2
+  read -r answer || true
+  case "${answer}" in
+    ''|y|Y|yes) return 0 ;;
+    *) echo "aborted." >&2; return 1 ;;
+  esac
+}
+
+# plan_preflight TARGET… — prove the manifest can be truthful before it prints.
+# Only the guards whose failure would make the plan *wrong*: absolute pointer
+# lines, channel roots that resolve, and paths whose absence must be provable.
+# Everything about whether removal can succeed stays in preflight_targets.
+plan_preflight() {
+  local t blocker raw
+  for t in "$@"; do
+    if [ "${t}" = aside ]; then
+      ( . "${REPO_ROOT}/scripts/aside/lib.sh"; resolve_aside_skills_root >/dev/null ) \
+        || die "refusing to start: the aside target cannot resolve its skills root"
+    elif [ "${t}" = agents ]; then
+      ( . "${REPO_ROOT}/scripts/agents/lib.sh"; resolve_override_skills >/dev/null ) \
+        || die "refusing to start: the agents target cannot resolve its skills root"
+    elif [ "${t}" = profile ]; then
+      validate_profile_inputs
+    elif [ "${t}" = cache ]; then
+      raw="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
+      blocker="$(first_uninspectable "${raw}")"
+      [ -z "${blocker}" ] \
+        || die "refusing to start: the cache path cannot be inspected at ${blocker}, so its absence cannot be proven: ${raw}"
+    fi
+  done
+}
+
+# expand_only LIST — map --only tokens onto targets, SKIP_*, and ASIDE_ONLY.
+# Desugaring rather than a parallel selection path: every downstream guard keeps
+# reading the flags it already reads.
+expand_only() {
+  local list="$1" tok
+  local want_aside=0 want_agents=0 want_profile=0 want_cache=0
+  local want_claude=0 want_codex=0 want_grok=0 named_agent=0
+  for tok in $(printf '%s' "${list}" | tr ',' ' '); do
+    case "${tok}" in
+      aside) want_aside=1; ASIDE_ONLY="" ;;
+      job-scout|job-application)
+        want_aside=1
+        [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
+      agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      claude) want_agents=1; named_agent=1; want_claude=1 ;;
+      codex)  want_agents=1; named_agent=1; want_codex=1 ;;
+      grok)   want_agents=1; named_agent=1; want_grok=1 ;;
+      profile) want_profile=1 ;;
+      cache) want_cache=1 ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-application|agents|claude|codex|grok|profile|cache)" ;;
+    esac
+  done
+  if [ "${named_agent}" -eq 1 ]; then
+    [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
+    [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
+    [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
+  fi
+  # A deselected Aside skill survives the unlink phase still pointing at the
+  # cache, so the purge would refuse mid-run. Refuse the combination instead.
+  if [ -n "${ASIDE_ONLY}" ] && [ "${want_cache}" -eq 1 ]; then
+    die "refusing --only with an Aside skill subset plus cache: the unselected skill would still point at the cache (select 'aside', or omit cache)"
+  fi
+  [ "${want_aside}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} aside"
+  [ "${want_agents}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} agents"
+  [ "${want_profile}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} profile"
+  [ "${want_cache}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} cache"
+  [ -n "${ONLY_TARGETS}" ] || die "--only selected nothing"
 }
 
 # first_uninspectable PATH — the first existing component of PATH that cannot be
@@ -1144,26 +1475,84 @@ ${roots}
 EOF
 }
 
-do_all() {
-  confirm_yes "Uninstall ALL (Aside + agents + profile + kit cache). Type yes: " || return 1
-  YES=1
-  preflight_targets aside agents profile
-  purge_preflight survivors
-  uninstall_aside
-  uninstall_agents
-  remove_profile
-  purge_cache
-}
-
 run_target() {
   case "$1" in
     aside) uninstall_aside ;;
     agents) uninstall_agents ;;
     profile) remove_profile ;;
     cache) purge_cache ;;
-    all) do_all ;;
     *) die "unknown target: $1 (aside|agents|profile|cache|all)" ;;
   esac
+}
+
+# plan_order TARGET… — dedup, and force cache last. `cache` can delete REPO_ROOT
+# (purge_cache) and every other target sources its channel library from there.
+plan_order() {
+  local t has_cache=0 out=""
+  for t in "$@"; do
+    case "${t}" in
+      cache) has_cache=1; continue ;;
+    esac
+    case " ${out} " in
+      *" ${t} "*) continue ;;
+    esac
+    out="${out}${out:+ }${t}"
+  done
+  [ "${has_cache}" -eq 0 ] || out="${out}${out:+ }cache"
+  printf '%s\n' "${out}"
+}
+
+# run_plan TARGET… — the single path every entry point takes.
+# Order is the contract: nothing mutates before the plan is on screen, the
+# existing preflights still refuse before the prompt, and the prompt is the last
+# thing between the user and rm.
+run_plan() {
+  local ordered rows removals irreversible t
+  local seen_aside=0 seen_agents=0 has_cache=0 scope=all
+  ordered="$(plan_order "$@")"
+  [ -n "${ordered}" ] || die "no targets selected"
+  for t in ${ordered}; do
+    case "${t}" in
+      aside) seen_aside=1 ;;
+      agents) seen_agents=1 ;;
+      cache) has_cache=1 ;;
+    esac
+  done
+
+  plan_preflight ${ordered}
+  rows=""
+  rows="$(build_plan ${ordered})"
+  render_plan "${rows}"
+  removals="$(plan_count "${rows}" I X)"
+  irreversible="$(plan_count "${rows}" X)"
+  printf '%s removals · %s irreversible\n' "${removals}" "${irreversible}"
+  echo
+
+  preflight_targets ${ordered}
+  if [ "${has_cache}" -eq 1 ]; then
+    if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
+      scope=survivors
+    fi
+    purge_preflight "${scope}"
+  fi
+
+  if [ "${DRY_RUN}" -eq 1 ]; then
+    echo "--dry-run: nothing has been touched."
+    return 0
+  fi
+  if [ "${removals}" -eq 0 ]; then
+    echo "nothing to remove."
+    return 0
+  fi
+  confirm_plan "${removals}" "${irreversible}" || return 1
+  YES=1
+  echo
+  echo "applying"
+  for t in ${ordered}; do
+    run_target "${t}"
+  done
+  echo
+  printf 'done · %s removals · 0 failed\n' "${removals}"
 }
 
 # interactive_menu — bash select when stdin is a TTY.
@@ -1178,15 +1567,14 @@ interactive_menu() {
     "All of the above" \
     "Quit"
   do
-    # Same preflight the argument path runs before its targets: these branches
-    # reach the destructive functions directly, and `profile` and `cache` cannot
-    # be undone once a partial `rm` has run. `all` preflights inside do_all.
+    # Every branch routes through run_plan, which renders the manifest and runs
+    # the same preflights the argument path runs before any removal.
     case "${REPLY}" in
-      1) preflight_targets aside; run_target aside; return 0 ;;
-      2) preflight_targets agents; run_target agents; return 0 ;;
-      3) preflight_targets profile; run_target profile; return 0 ;;
-      4) purge_preflight; run_target cache; return 0 ;;
-      5) run_target all; return 0 ;;
+      1) run_plan aside; return 0 ;;
+      2) run_plan agents; return 0 ;;
+      3) run_plan profile; return 0 ;;
+      4) run_plan cache; return 0 ;;
+      5) run_plan aside agents profile cache; return 0 ;;
       6) echo "quit"; return 0 ;;
       *) echo "invalid choice" >&2 ;;
     esac
@@ -1211,6 +1599,13 @@ main() {
     case "$1" in
       -h|--help) usage; exit 0 ;;
       -y|--yes) YES=1 ;;
+      --dry-run) DRY_RUN=1 ;;
+      --only)
+        shift
+        [ "$#" -gt 0 ] || die "--only needs a comma-separated list (see --help)"
+        expand_only "$1"
+        ;;
+      --only=*) expand_only "${1#--only=}" ;;
       --skip-claude) SKIP_CLAUDE=1 ;;
       --skip-codex) SKIP_CODEX=1 ;;
       --skip-grok) SKIP_GROK=1 ;;
@@ -1225,12 +1620,18 @@ main() {
   done
 
   if [ "${#targets[@]}" -eq 0 ]; then
+    if [ -n "${ONLY_TARGETS}" ]; then
+      run_plan ${ONLY_TARGETS}
+      return 0
+    fi
     if [ -t 0 ]; then
       interactive_menu
       return 0
     fi
     die "need a target (aside|agents|profile|cache|all) when stdin is not a TTY"
   fi
+  [ -z "${ONLY_TARGETS}" ] \
+    || die "--only cannot be combined with positional targets (see --help)"
 
   local t has_all=0
   for t in "${targets[@]}"; do
@@ -1239,45 +1640,12 @@ main() {
   if [ "${has_all}" -eq 1 ]; then
     [ "${#targets[@]}" -eq 1 ] \
       || die "'all' cannot be combined with other targets"
-    run_target all
+    run_plan aside agents profile cache
     return 0
   fi
 
-  # `cache` runs last whatever order was typed: it can delete REPO_ROOT, and the
-  # other targets source their channel libraries from that checkout.
-  local -a ordered
-  ordered=()
-  local seen_aside=0 seen_agents=0 has_cache=0 scope=all
-  for t in "${targets[@]}"; do
-    case "${t}" in
-      cache)
-        has_cache=1
-        continue
-        ;;
-      aside) seen_aside=1 ;;
-      agents) seen_agents=1 ;;
-    esac
-    ordered[${#ordered[@]}]="${t}"
-  done
-  if [ "${has_cache}" -eq 1 ]; then
-    ordered[${#ordered[@]}]="cache"
-  fi
-
-  # Every prerequisite is proved before the first target runs: `profile` and
-  # `cache` are irreversible, so a later target that would refuse must refuse now.
-  preflight_targets "${ordered[@]}"
-  if [ "${has_cache}" -eq 1 ]; then
-    # Links are exempt only when both unlink targets also run — and with `cache`
-    # forced last, they necessarily precede it.
-    if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
-      scope=survivors
-    fi
-    purge_preflight "${scope}"
-  fi
-
-  for t in "${ordered[@]}"; do
-    run_target "${t}"
-  done
+  # run_plan owns ordering, preflight and scope for every entry point.
+  run_plan "${targets[@]}"
 }
 
 main "$@"
