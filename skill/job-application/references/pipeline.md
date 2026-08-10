@@ -224,7 +224,7 @@ normalized `url`:
   rules; base name taken by a file whose `url` differs → `-2`, `-3`. That suffix is
   for two jobs sharing a name, never for one job twice. Create only when the URL
   re-scan still found none; if a race materializes a file or URL match, abandon
-  create and take the update path (compare-and-retry) on the winner.
+  create and take the locked update path on the winner.
 - All nine frontmatter keys. `company` / `title` / `url` double-quoted and escaped
   per dossier quoting law, `url` the normalized identity URL from the gate above
   (never `—`);
