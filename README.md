@@ -244,8 +244,7 @@ agents channel symlinks, so edits in the checkout are live:
 ```bash
 git clone https://github.com/rafaeelricco/job-kit.git
 cd job-kit
-bash scripts/agents/install.sh
-bash scripts/aside/install.sh
+bash scripts/install.sh          # interactive menu, or: all | aside | agents
 ```
 
 Prerequisites: Bash, plus the target for whichever channel you install — at
@@ -254,30 +253,33 @@ once if missing), and an Aside account profile (`~/.aside/u/0`, including a
 `skills` parent). Private clone: use whatever auth your host requires (`gh repo
 clone rafaeelricco/job-kit`, HTTPS token, or SSH remote).
 
-Run the installers from **this** checkout, or pass absolute paths to them. They
-never clone for you and never run from a profile directory.
+Run the installer from **this** checkout, or pass an absolute path to it. It
+never clones for you and never runs from a profile directory. Channel wrappers
+(`scripts/agents/install.sh`, `scripts/aside/install.sh`) still work.
 
 ```bash
-bash scripts/agents/install.sh --skip-codex
-CLAUDE_SKILLS=/path/to/skills bash scripts/agents/install.sh
-ASIDE_ACCOUNT=1 bash scripts/aside/install.sh
+bash scripts/install.sh agents --skip-codex
+bash scripts/install.sh --only claude --dry-run
+CLAUDE_SKILLS=/path/to/skills bash scripts/install.sh agents
+ASIDE_ACCOUNT=1 bash scripts/install.sh aside
 ```
 
 Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
 multi-target install also removes legacy kit links there, which the
 `CLAUDE_SKILLS` single-dest escape hatch skips.
 
-| Path                        | Role                                             |
-| --------------------------- | ------------------------------------------------ |
-| `skill/job-scout/`          | Scout law, contracts, surfaces                   |
-| `skill/job-application/`    | Apply law, draft contract                        |
-| `skill/job-profile-init/`   | Intake + templates for empty profiles            |
-| `skill/job-profile-config/` | Show + edit search intent and boards             |
-| `skill/job-tracker/`        | Read the profile's scout store; never writes     |
-| `scripts/aside/`            | Aside install (scout+apply)                      |
-| `scripts/agents/`           | Coding-agent install (init + config + tracker)   |
-| `scripts/uninstall.sh`      | Single uninstall: plan, confirm, apply           |
-| `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
+| Path                        | Role                                                |
+| --------------------------- | --------------------------------------------------- |
+| `skill/job-scout/`          | Scout law, contracts, surfaces                      |
+| `skill/job-application/`    | Apply law, draft contract                           |
+| `skill/job-profile-init/`   | Intake + templates for empty profiles               |
+| `skill/job-profile-config/` | Show + edit search intent and boards                |
+| `skill/job-tracker/`        | Read the profile's scout store; never writes        |
+| `scripts/install.sh`        | Single install: plan, confirm, apply (aside+agents) |
+| `scripts/aside/`            | Aside lib + thin install wrapper                    |
+| `scripts/agents/`           | Agents lib + thin install wrapper                   |
+| `scripts/uninstall.sh`      | Single uninstall: plan, confirm, apply              |
+| `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone)    |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-config packs`. `impl` stems must
