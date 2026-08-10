@@ -31,13 +31,18 @@ every other Profile-root path stay read-only in every phase.
 Open the posting, or take the text the operator pasted. No posting → no fit → no letter.
 A recruiter's summary is not the ad: when the post links a fuller listing, open that.
 
-Print `### Ad`: company · title · seniority · channel · one line per requirement the ad prints,
-quoted or tightly paraphrased. Requirements the ad states, never requirements you expect.
-An ad that prints no requirement list: say so, and Phase 1 runs on the description.
+Print `### Ad`: company · title · seniority · channel · source URL · one line per
+requirement the ad prints, quoted or tightly paraphrased. Requirements the ad states,
+never requirements you expect. An ad that prints no requirement list: say so, and
+Phase 1 runs on the description.
 
 `channel` is the apply route the ad prints, same vocab as the store: `ats` (a form or Easy
 Apply), `direct_email`, `dm_request`, `founder`. Read it off the posting; no route printed →
 `—`. Phase 4 records it, so never guess one here.
+
+Source URL: the URL you opened, or a URL the paste itself prints. Print it normalized
+later for the store; if the operator only pasted text with no URL, print `—` here and
+know Phase 4 cannot record until they supply one (identity is URL-only).
 
 An ad naming more than one role is more than one ad. Print every title, carry exactly one
 forward, and name the ones you dropped. Pick the title whose printed stack overlaps most with
@@ -155,8 +160,12 @@ holds through this phase: the operator submitted, this skill writes down that th
 
 `job-scout/references/dossier.md` is the writer SSOT — filename and slug rules,
 quoting and escaping for posting-copied values, injection law, log-line grammar,
-and atomic replace (render the whole file to a sibling `*.md.tmp` under
-`scout/jobs/`, then rename over the original; never rewrite in place).
+atomic replace, and **concurrent-writer compare-and-retry** (job-scout Phase 6
+may rewrite the same file while this phase runs). Update path: read full file as
+`base` → apply only this phase's edits → write sibling `*.md.tmp` → re-read; if
+still equal to `base`, rename over original; if not, retry from the new base, cap
+3, then **STOP** and tell the operator to set `status: applied` by hand. Never
+rename over a base that changed. Never rewrite in place.
 Preconditions, per `job-scout/references/pipeline.md` Phase 6 steps 1-2 and 5,
 scoped to the one file: resolve the physical path and **STOP** unless it is still
 under the canonical Profile root; write nothing until `scout/jobs/` lists and the
@@ -168,6 +177,19 @@ This phase touches two regions and no others: frontmatter `status:`, and new lin
 appended below `<!-- scout never writes below this line -->`. The scout-owned body
 is never rewritten here, not even to correct it. Existing log lines are never
 rewritten or reordered.
+
+### Identity URL required before any write
+
+Store identity is normalized `url` only. Phase 4 never creates or updates a dossier
+without a resolvable source URL for this posting:
+
+- URL opened in Phase 0, or a URL printed in the paste → normalize per
+  `job-scout/references/contract-search.md` "URL normalize" and use it.
+- Paste / review with no URL (`### Ad` showed `—` for source URL) → ask once:
+  `Source URL? Store identity is URL-only; I cannot record without one.` Operator
+  supplies a URL → normalize and continue. Anything else → write nothing and stop.
+- Never invent a URL. Never store `—` (or empty) as frontmatter `url:` — that would
+  collapse unrelated missing-URL pastes onto one identity and break every re-scan.
 
 ### On the dossier Phase 0 matched
 
@@ -197,9 +219,12 @@ normalized `url`:
 - `mkdir -p scout/jobs` when absent, then create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
   rules; base name taken by a file whose `url` differs → `-2`, `-3`. That suffix is
-  for two jobs sharing a name, never for one job twice.
+  for two jobs sharing a name, never for one job twice. Create only when the URL
+  re-scan still found none; if a race materializes a file or URL match, abandon
+  create and take the update path (compare-and-retry) on the winner.
 - All nine frontmatter keys. `company` / `title` / `url` double-quoted and escaped
-  per dossier quoting law, `url` normalized (Phase 0 already did);
+  per dossier quoting law, `url` the normalized identity URL from the gate above
+  (never `—`);
   `status: applied`; `first_seen` and `last_seen` today; `channel` from `### Ad`;
   `score: —` and `bucket: unbucketed` — this skill never scores and never buckets,
   and `—` is the store's own word for unknown. Scout's next run on this `url`
