@@ -39,16 +39,17 @@ Skill-local files: `./references/*` only.
 Pack list: `data/search_packs.yaml` under Profile root; absent → fall back to
 `./references/search_packs.yaml` (kit deck). Never merge the two.
 
-Writable here: `scout/runs/*.md` and `scout/jobs/*.md` under Profile root, main
-thread only, Phase 6 only. Every other path under Profile root — all of `data/`
-and `cv/` — is read-only in this skill. Workers never write.
+Writable here: `scout/jobs/*.md` under Profile root, main thread only, Phase 6
+only. Every other path under Profile root — all of `data/` and `cv/` — is
+read-only in this skill. Workers never write. Never create or write
+`scout/runs/`; if an old `runs/` directory is present, ignore it.
 
 1. Read `./references/pipeline.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
 4. Pack list, parallelism, gates, score: pipeline only. Contracts own list-only + evidence.
 5. Deliver report per `scout-report.md`.
-6. Persist one dossier per live job per `dossier.md`, then the run record, then STOP.
+6. Persist one dossier per live job per `dossier.md`, then STOP.
 
 ## References
 

@@ -18,5 +18,5 @@
 6. LinkedIn browser session must match `data/profiles.yaml` LinkedIn username.
 7. Additional details captured during init are preserved in
    `data/observations.yaml`; scout and application ignore this file.
-8. After a scout run persists, `/job-tracker` reads `scout/` back — dossiers,
-   run reports, and application status — without writing to it.
+8. After a scout run persists, `/job-tracker` reads `scout/jobs/` back — dossiers
+   and application status — without writing to it.

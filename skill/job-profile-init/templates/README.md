@@ -10,7 +10,7 @@ Skills live in **job-kit**, not in this tree.
 | -------- | -------------------------------------------------------------------------------------------- |
 | `data/`  | Canonical YAML about you. Edit here first.                                                   |
 | `cv/`    | Compiled resume PDF(s) for attachments                                                       |
-| `scout/` | Written by job-scout, read by job-tracker: `jobs/` per-job dossiers, `runs/` per-run records |
+| `scout/` | Written by job-scout, read by job-tracker: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
 `data/` may mix `.yaml` and `.yml`.
 
