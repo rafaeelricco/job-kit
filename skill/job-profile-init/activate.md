@@ -138,12 +138,12 @@
    - Both channels installed → `Kit channels already installed from <KIT_ROOT>.
 Nothing to run.`
    - Aside not installed → prefer unified entry when present:
-`Install scout/apply into Aside:
+     `Install scout/apply into Aside:
 bash "<KIT_ROOT>/scripts/install.sh" aside`
      Fall back to `bash "<KIT_ROOT>/scripts/aside/install.sh"` when
      `scripts/install.sh` is missing (older checkout).
    - Agents probe matched no eligible home → prefer:
-`Link job-profile-init into your agent homes:
+     `Link job-profile-init into your agent homes:
 bash "<KIT_ROOT>/scripts/install.sh" agents`
      Fall back to `bash "<KIT_ROOT>/scripts/agents/install.sh"` when
      `scripts/install.sh` is missing.
