@@ -193,10 +193,18 @@ normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
 (`shasum -a 256`, `sha256sum`, `openssl dgst -sha256`). Same normalized URL →
 same digest → same lock. Do **not** put the raw slug in the path name.
 
-Lock directories, their metadata files (`acquired_at`, `owner`), and short-lived
-reclaim siblings (`*.lock.reclaim-*`) are writable path shapes (Phase 6 SSOT /
-job-application Phase 4 writable store); create only under `scout/jobs/`, never
-elsewhere.
+Lock directories, their metadata files (`acquired_at`, `owner`), lock-internal
+place staging (`*.lock/place-*`), short-lived reclaim siblings
+(`*.lock.reclaim-*`), and release-claim siblings (`*.lock.released-*`) are
+writable path shapes (Phase 6 SSOT / job-application Phase 4 writable store);
+create only under `scout/jobs/`, never elsewhere.
+
+**Lock instance identity.** Every reclaim or release claim fingerprints the
+lock directory's **device + inode** (`stat` / `stat -f '%d %i'` / `stat -c '%d %i'`)
+together with `owner` / `acquired_at` / mtime. A path name can be reused by a
+fresh `mkdir` after a prior instance is gone; only the inode proves you still
+observe the same directory instance. Never rename a canonical lock whose inode
+no longer matches the fingerprint you recorded.
 
 Hold the URL lock across the full create-or-update:
 
@@ -209,21 +217,29 @@ Hold the URL lock across the full create-or-update:
        attempts / ~10s.
      - Age **> 15 minutes** → stale (crashed writer **or** abandoned after
        `mkdir` before metadata init). Reclaim:
-       1. **Fingerprint** first. With `owner` present: remember `owner` and
-          `acquired_at` (else mtime). With `owner` **missing**: fingerprint is
-          mtime only and the fact that metadata is absent — this is the
-          pre-initialization abandon case and **is** reclaimable when aged out
-          (do not treat missing metadata as permanently live).
-       2. **Claim** by renaming to `url-{url-digest}.lock.reclaim-{unique}`
-          (PID + random). Rename fails → live (wait/retry).
+       1. **Fingerprint** first, including **device + inode**. With `owner`
+          present: remember `owner`, `acquired_at` (else mtime), and inode.
+          With `owner` **missing**: fingerprint is mtime, inode, and the fact
+          that metadata is absent — this is the pre-initialization abandon case
+          and **is** reclaimable when aged out (do not treat missing metadata as
+          permanently live).
+       2. **Re-stat immediately before any rename.** If the path is gone, the
+          inode differs, or metadata no longer matches the fingerprint → another
+          writer already reclaimed or replaced the instance; **do not rename**;
+          treat as live (wait/retry). Only when the live path still matches the
+          full fingerprint, claim by renaming to
+          `url-{url-digest}.lock.reclaim-{unique}` (PID + random). Rename fails →
+          live (wait/retry).
        3. **Validate before delete:** re-read the claimed path. Fingerprint must
-          still match (same `owner`/`acquired_at`, or still no `owner` with the
-          same mtime). Mismatch → another writer already reclaimed and
-          re-acquired: restore to the canonical path when free; **never
-          delete**; treat as live. Match → remove **only** the claimed path,
-          then retry acquire once.
-       Never delete a lock you have not both renamed under your claim name and
-       validated against the observed fingerprint.
+          still match (same inode, same `owner`/`acquired_at`, or still no
+          `owner` with the same mtime). Mismatch → you moved a different
+          instance: restore to the canonical path when free; **never delete**;
+          treat as live. Match → remove **only** the claimed path, then retry
+          acquire once.
+       Never rename a canonical lock whose pre-rename re-stat failed the
+       fingerprint. Never delete a lock you have not both renamed under your
+       claim name and validated against the observed fingerprint (including
+       inode).
    - Permanent errors (`ENAMETOOLONG` should not occur with the digest path;
      permission failures) → **STOP**, do not spin.
    - Still locked after retries → **STOP**, name the URL, tell the operator the
@@ -240,34 +256,50 @@ Hold the URL lock across the full create-or-update:
      crashed/abandoned holders only; a resumed holder that lost ownership must
      not fence-jump by refreshing someone else's lease.
 2. Under the lock only (still fenced): re-scan `scout/jobs/` for this
-   normalized `url`. Before every create or replace of a dossier file, re-read
-   `owner`; if missing or ≠ your token → **STOP** without placing the file
-   (ownership lost mid-section — do not commit a lost update).
-   - Match → read that file, apply only this writer's allowed edits, render to
-     sibling `*.md.tmp`, rename over the original (only after the owner check).
-   - No match → create a new dossier under the same lock. **Filename allocation**
-     is exclusive even across different URLs (two postings can share
-     company+title): for candidate names (unsuffixed, then `-2`, `-3`, …)
-     render the **complete** file to a unique sibling tmp, then place that
-     finished inode onto the vacant final path with **atomic no-replace only**
-     (`renameat2(RENAME_NOREPLACE)`, hard-link then unlink the tmp, or `mv -n`
-     when it refuses overwrite) — only after the owner check. Never open/write
-     the final `.md` path directly — a cancelled or partial write leaves a
-     truncated unparseable dossier and stops later persistence. Never
-     rename/clobber over an existing dossier. First no-replace success wins;
-     bump suffix and retry on collision.
-3. Release (ownership-checked — even when the write failed after acquire):
-   - **Never rename the canonical lock directory on release.** Renaming a path
-     you do not still own vacates the canonical name and lets a third writer
-     acquire while the displaced owner is mid-check. Release is in-place only.
+   normalized `url`. **Place is coupled to lock ownership** — never check-then-
+   rename from a free-standing `*.md.tmp` under `scout/jobs/`. Stage the finished
+   dossier bytes inside the lock directory so reclaiming that directory removes
+   the place source:
+   - Re-read `owner`; if missing or ≠ your token → **STOP** without staging or
+     placing (ownership lost mid-section).
+   - Match → read that file, apply only this writer's allowed edits, render the
+     **complete** updated file to
+     `scout/jobs/url-{url-digest}.lock/place-{owner-token}.md`.
+   - No match → create under the same lock. **Filename allocation** is exclusive
+     even across different URLs (two postings can share company+title): for each
+     candidate name (unsuffixed, then `-2`, `-3`, …) render the **complete** file
+     to the same lock-internal place path (overwrite the place file on retry).
+   - **Commit place (source under the lock):** re-read `owner` again; must still
+     equal your token. Then rename the place file from the lock path onto the
+     final dossier path — update: atomic replace over the existing file; create:
+     **atomic no-replace only**
+     (`renameat2(RENAME_NOREPLACE)`, hard-link then unlink the place file, or
+     `mv -n` when it refuses overwrite). If the place source is missing, the
+     rename fails, or `owner` no longer matches → **STOP** without further
+     writes (the lock was reclaimed; do not invent another source path). Never
+     open/write the final `.md` path directly — a cancelled or partial write
+     leaves a truncated unparseable dossier and stops later persistence. Never
+     rename/clobber over an existing dossier on the create path. First
+     no-replace success wins; bump suffix and retry on collision (re-stage into
+     the place file each attempt). Leave no free-standing `*.md.tmp` for this
+     fenced place — the lock directory is the only stage.
+3. Release (ownership-checked claim — even when the write failed after acquire):
    - Path missing → done (already reclaimed; do not recreate).
    - Read `owner` at the canonical path. Unreadable or ≠ your acquire token →
      leave the path **completely untouched** (no rename, no `rm`).
-   - When `owner` equals your token: re-read `owner` once more in the same
-     step sequence and, only if it still matches, `rm -rf` the canonical lock
-     directory in place. If the second read differs, leave it untouched.
-   - Do not use a `*.lock.release-*` rename. A leftover crashed lock is cleared
-     only by fingerprint-validated stale reclaim (including no-metadata dirs).
+   - When `owner` equals your token: fingerprint **device + inode**, re-read
+     `owner` and re-stat **immediately before** rename; if either check fails,
+     leave untouched. Only when both still match, claim by renaming to
+     `url-{url-digest}.lock.released-{owner-token}`.
+   - Validate the claimed path: `owner` must still equal your token (and inode
+     is the claimed directory). Match → remove **only** the claimed path.
+     Mismatch → restore to the canonical path when free; **never delete**; do
+     not touch whatever now sits at the canonical name.
+   - **Never `rm -rf` the canonical lock path.** An in-place recursive delete
+     after a non-atomic owner read can remove a replacement writer's lock.
+     Release deletes only a path you renamed under your `released-{token}` name
+     and re-validated. A leftover crashed lock is cleared only by
+     fingerprint-validated stale reclaim (including no-metadata dirs).
 
 Never create or rename a dossier for a URL without holding that URL's lock.
 Never skip the lock because "only one agent is running" — Phase 6 and Phase 4
