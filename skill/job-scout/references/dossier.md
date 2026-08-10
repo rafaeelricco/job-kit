@@ -237,10 +237,10 @@ Hold the URL lock across the full create-or-update:
           instance: restore to the canonical path when free; **never delete**;
           treat as live. Match → remove **only** the claimed path, then retry
           acquire once.
-       Never rename a canonical lock whose pre-rename re-stat failed the
-       fingerprint. Never delete a lock you have not both renamed under your
-       claim name and validated against the observed fingerprint (including
-       inode).
+          Never rename a canonical lock whose pre-rename re-stat failed the
+          fingerprint. Never delete a lock you have not both renamed under your
+          claim name and validated against the observed fingerprint (including
+          inode).
    - Permanent errors (`ENAMETOOLONG` should not occur with the digest path;
      permission failures) → **STOP**, do not spin.
    - Still locked after retries → **STOP**, name the URL, tell the operator the
