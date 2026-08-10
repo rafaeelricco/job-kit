@@ -959,11 +959,15 @@ preflight_targets() {
             for target in ${AGENT_TARGETS}; do
               # Match uninstall_agents: a skipped agent is never unlinked, so an
               # unreadable/unwritable home for that agent must not refuse the run.
-              case "${target}" in
-                claude) [ "${SKIP_CLAUDE}" -eq 1 ] && continue ;;
-                codex)  [ "${SKIP_CODEX}" -eq 1 ] && continue ;;
-                grok)   [ "${SKIP_GROK}" -eq 1 ] && continue ;;
-              esac
+              # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm
+              # case inside command substitutions.
+              if [ "${target}" = claude ] && [ "${SKIP_CLAUDE}" -eq 1 ]; then
+                continue
+              elif [ "${target}" = codex ] && [ "${SKIP_CODEX}" -eq 1 ]; then
+                continue
+              elif [ "${target}" = grok ] && [ "${SKIP_GROK}" -eq 1 ]; then
+                continue
+              fi
               agent_skills_root "${target}"
             done
             # Legacy Codex root is still walked even with --skip-codex.
@@ -1075,23 +1079,19 @@ unremovable_skill_entries() {
   euid="$(id -u)"
   # Root is not bound by sticky-directory ownership rules.
   [ "${euid}" -eq 0 ] && return 0
-  names="$(
-    case "${target}" in
-      agents)
-        # shellcheck source=agents/lib.sh
-        . "${REPO_ROOT}/scripts/agents/lib.sh"
-        printf '%s %s\n' "${SKILL_NAMES}" "${LEGACY_SKILL_NAMES}"
-        ;;
-      aside)
-        # shellcheck source=aside/lib.sh
-        . "${REPO_ROOT}/scripts/aside/lib.sh"
-        printf '%s %s\n' "${SKILL_NAMES}" "${LEGACY_SKILL_NAMES}"
-        ;;
-      *)
-        die "internal error: unremovable_skill_entries unknown target: ${target}"
-        ;;
-    esac
-  )"
+  # Resolve names with if/elif, not `case` inside `$(...)` — macOS Bash 3.2
+  # misparses multi-arm case in command substitutions.
+  if [ "${target}" = agents ]; then
+    # shellcheck source=agents/lib.sh
+    . "${REPO_ROOT}/scripts/agents/lib.sh"
+    names="${SKILL_NAMES} ${LEGACY_SKILL_NAMES}"
+  elif [ "${target}" = aside ]; then
+    # shellcheck source=aside/lib.sh
+    . "${REPO_ROOT}/scripts/aside/lib.sh"
+    names="${SKILL_NAMES} ${LEGACY_SKILL_NAMES}"
+  else
+    die "internal error: unremovable_skill_entries unknown target: ${target}"
+  fi
   while IFS= read -r root; do
     [ -n "${root}" ] || continue
     [ -d "${root}" ] || continue
