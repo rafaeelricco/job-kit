@@ -23,11 +23,12 @@ tables or score factors. No preamble. No apply / message / connect / open-form l
 - Direct-email hits: {n}
 - Dead on extract: {n}
 - Packs dry: {none|comma list}
-- Saved: {n} dossiers · `{abs Profile root}/scout/jobs/`
+- To write: {n} dossiers · `{abs Profile root}/scout/jobs/`
 
-`Saved` is the chat claim for Phase 6; print the absolute `scout/jobs/` directory.
-Phase 6 may still STOP with fewer files on disk if a write fails — Gaps then name
-the path. Never invent a run filename here.
+`To write` is Phase 6's target count, never a completion claim — this report ships
+before the first dossier lands. Print the absolute `scout/jobs/` directory. Phase 6
+may STOP with fewer files on disk if a write fails; Gaps then name the path. Never
+print a count that asserts the writes succeeded, and never invent a run filename here.
 
 ### Do this first
 
