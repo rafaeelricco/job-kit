@@ -26,9 +26,9 @@ The main agent opens the posting itself. Contract dual-load timing: SKILL step 2
 Writable in Phase 4 only, under Profile root: `scout/jobs/*.md`, sibling
 `*.md.tmp` during atomic rename, exclusive lock directories `scout/jobs/*.lock`,
 lock metadata `scout/jobs/*.lock/acquired_at` and `scout/jobs/*.lock/owner`, and
-short-lived reclaim/release siblings `scout/jobs/*.lock.reclaim-*` /
-`scout/jobs/*.lock.release-*` (per `job-scout/references/dossier.md`). `data/`,
-`cv/`, and every other Profile-root path stay read-only in every phase.
+short-lived reclaim siblings `scout/jobs/*.lock.reclaim-*` (per
+`job-scout/references/dossier.md`). `data/`, `cv/`, and every other Profile-root
+path stay read-only in every phase.
 
 ## Phase 0 — read the ad
 
@@ -176,20 +176,20 @@ Order every write:
    lock contention — and never `mkdir` through an out-of-tree symlink.
 2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
    `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
-   (dossier.md). Stale lock (>15 min) → fingerprint `owner`/`acquired_at`, claim
-   by rename to `*.lock.reclaim-*`, delete only if fingerprint still matches
-   (else restore; never delete a fresh lock); live lock → retry cap; permanent
-   errors → **STOP**.
+   (dossier.md). Write `owner`/`acquired_at` immediately. Stale lock (>15 min,
+   including no-metadata abandon) → fingerprint then claim via
+   `*.lock.reclaim-*`, delete only if fingerprint still matches; live lock →
+   retry cap; permanent errors → **STOP**. Refresh lease if the hold may near
+   15 minutes.
 3. Under the lock only: re-scan by URL; match → read → apply only this phase's
    edits → sibling `*.md.tmp` → rename over original; no match → create by
    rendering a complete sibling tmp then **atomic no-replace** placement onto
    the vacant final path (no clobber; bump `-2`, `-3` on collision per
    dossier.md). Never write through an exclusively opened final path.
-4. Release: ownership-checked only (dossier.md) — read `owner` first; rename to
-   `*.lock.release-{owner-token}` only if it is yours; delete only when `owner`
-   still matches; never move or `rm` a foreign/reclaimed lock. Still locked or
-   write fails after retries → **STOP** and tell the operator to set
-   `status: applied` by hand.
+4. Release: ownership-checked in place only (dossier.md) — re-read `owner`,
+   `rm -rf` the canonical lock only when it is still yours; never rename the
+   lock directory on release. Still locked or write fails after retries →
+   **STOP** and tell the operator to set `status: applied` by hand.
 
 Never create or rename without that URL's lock. Never exclusive-create a lock
 before `scout/jobs/` exists.

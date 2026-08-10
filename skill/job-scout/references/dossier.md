@@ -194,41 +194,47 @@ normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
 same digest → same lock. Do **not** put the raw slug in the path name.
 
 Lock directories, their metadata files (`acquired_at`, `owner`), and short-lived
-reclaim/release siblings (`*.lock.reclaim-*`, `*.lock.release-*`) are writable
-path shapes (Phase 6 SSOT / job-application Phase 4 writable store); create only
-under `scout/jobs/`, never elsewhere.
+reclaim siblings (`*.lock.reclaim-*`) are writable path shapes (Phase 6 SSOT /
+job-application Phase 4 writable store); create only under `scout/jobs/`, never
+elsewhere.
 
 Hold the URL lock across the full create-or-update:
 
 1. Acquire: exclusive-create the lock directory via `mkdir` (fails if held —
    that is the lock). Do not use a plain file create that can clobber.
-   - If `mkdir` fails and the path exists: read its age. Prefer mtime of the
-     directory, or an `acquired_at` file (ISO timestamp) written inside on
-     success. Age **> 15 minutes** → treat as stale (crashed writer):
-     1. **Fingerprint** the instance first: read and remember `owner` and
-        `acquired_at` (or mtime if no `acquired_at`) from the lock dir. Missing
-        unreadable metadata → treat as live (wait/retry), do not reclaim.
-     2. **Claim** by renaming to a claimant-unique sibling
-        `url-{url-digest}.lock.reclaim-{unique}` (PID + random or equivalent).
-        Rename fails → another writer already claimed it or the lock is live;
-        treat as live (wait/retry).
-     3. **Validate claim before delete:** re-read `owner` / `acquired_at` (or
-        mtime) inside the claimed path. If they do **not** match the fingerprint
-        from step 1 → this is not the stale instance you observed (another
-        writer already reclaimed and re-acquired): restore the claimed path to
-        the canonical lock path when free; **never delete**; treat as live
-        (wait/retry). If they match → remove **only** that claimed path, then
-        retry acquire once on the real lock path.
-     Never delete a lock directory you have not both renamed under your claim
-     name **and** validated against the observed stale fingerprint.
-   - Age ≤ 15 minutes → live lock; wait briefly and retry; cap 5 attempts / ~10s.
+   - If `mkdir` fails and the path exists: age the instance. Prefer directory
+     **mtime** always (set at `mkdir`); also read `acquired_at` / `owner` when
+     present.
+     - Age **≤ 15 minutes** → live (or mid-init); wait briefly and retry; cap 5
+       attempts / ~10s.
+     - Age **> 15 minutes** → stale (crashed writer **or** abandoned after
+       `mkdir` before metadata init). Reclaim:
+       1. **Fingerprint** first. With `owner` present: remember `owner` and
+          `acquired_at` (else mtime). With `owner` **missing**: fingerprint is
+          mtime only and the fact that metadata is absent — this is the
+          pre-initialization abandon case and **is** reclaimable when aged out
+          (do not treat missing metadata as permanently live).
+       2. **Claim** by renaming to `url-{url-digest}.lock.reclaim-{unique}`
+          (PID + random). Rename fails → live (wait/retry).
+       3. **Validate before delete:** re-read the claimed path. Fingerprint must
+          still match (same `owner`/`acquired_at`, or still no `owner` with the
+          same mtime). Mismatch → another writer already reclaimed and
+          re-acquired: restore to the canonical path when free; **never
+          delete**; treat as live. Match → remove **only** the claimed path,
+          then retry acquire once.
+       Never delete a lock you have not both renamed under your claim name and
+       validated against the observed fingerprint.
    - Permanent errors (`ENAMETOOLONG` should not occur with the digest path;
      permission failures) → **STOP**, do not spin.
    - Still locked after retries → **STOP**, name the URL, tell the operator the
      write did not land (job-application: set `status: applied` by hand).
-   - On successful acquire: write `acquired_at` (ISO now) and a unique `owner`
-     token (PID + random or equivalent) inside the lock dir. Keep the token for
-     release — it identifies this acquisition only.
+   - On successful acquire: **immediately** write `acquired_at` (ISO now) and a
+     unique `owner` token (PID + random) inside the lock dir — before any
+     dossier read/edit. Keep the token for release. A crash between `mkdir` and
+     this write leaves a no-metadata dir that mtime-stale reclaim clears.
+   - **Lease while held:** if the hold may approach 15 minutes, rewrite
+     `acquired_at` and touch the lock directory mtime so a live writer is not
+     reclaimed mid-write. Stale reclaim is for crashed/abandoned holders only.
 2. Under the lock only: re-scan `scout/jobs/` for this normalized `url`.
    - Match → read that file, apply only this writer's allowed edits, render to
      sibling `*.md.tmp`, rename over the original.
@@ -243,22 +249,17 @@ Hold the URL lock across the full create-or-update:
      stops later persistence. Never rename/clobber over an existing dossier.
      First no-replace success wins; bump suffix and retry on collision.
 3. Release (ownership-checked — even when the write failed after acquire):
-   - Never unconditionally `rm` or rename the canonical lock path. A write that
-     outlives the 15-minute stale window can be reclaimed; the path may now hold
-     another writer's lock. **Do not move a foreign lock** — that vacates the
-     canonical path and lets a third writer in.
-   - **Read first, move only if yours:** read `owner` at the canonical lock path.
-     Path missing → done (already reclaimed; do not recreate). `owner` unreadable
-     or ≠ your acquire token → leave the path **completely untouched** (no
-     rename, no `rm`).
-   - Only when `owner` equals your token: rename to
-     `url-{url-digest}.lock.release-{owner-token}`. Rename fails → path already
-     moved; leave it.
-   - Re-read `owner` inside the release path. If it still equals your token →
-     remove **only** that release path. If it differs → restore immediately to
-     the canonical lock path when free; never delete a foreign `owner`.
-   - A leftover live lock that still belongs to a crashed writer is cleared by
-     fingerprint-validated stale reclaim, not by a foreign release.
+   - **Never rename the canonical lock directory on release.** Renaming a path
+     you do not still own vacates the canonical name and lets a third writer
+     acquire while the displaced owner is mid-check. Release is in-place only.
+   - Path missing → done (already reclaimed; do not recreate).
+   - Read `owner` at the canonical path. Unreadable or ≠ your acquire token →
+     leave the path **completely untouched** (no rename, no `rm`).
+   - When `owner` equals your token: re-read `owner` once more in the same
+     step sequence and, only if it still matches, `rm -rf` the canonical lock
+     directory in place. If the second read differs, leave it untouched.
+   - Do not use a `*.lock.release-*` rename. A leftover crashed lock is cleared
+     only by fingerprint-validated stale reclaim (including no-metadata dirs).
 
 Never create or rename a dossier for a URL without holding that URL's lock.
 Never skip the lock because "only one agent is running" — Phase 6 and Phase 4
