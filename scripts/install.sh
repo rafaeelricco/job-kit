@@ -55,6 +55,8 @@ Options:
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-application | job-profile-config | job-tracker
                 agents | claude | codex | grok
+                (job-profile-config also installs job-scout — packs mutate
+                needs its surface-*.md stems)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
   -h, --help    Show this help
@@ -132,6 +134,18 @@ expand_only() {
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
+  # job-profile-config packs add/remove validates impl against job-scout's
+  # surface-*.md stems; standalone config without scout is unusable.
+  if [ -n "${ASIDE_ONLY}" ]; then
+    case " ${ASIDE_ONLY} " in
+      *" job-profile-config "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-scout "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
+        esac
+        ;;
+    esac
+  fi
   [ "${want_aside}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} aside"
   [ "${want_agents}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} agents"
   [ -n "${ONLY_TARGETS}" ] || die "--only selected nothing"

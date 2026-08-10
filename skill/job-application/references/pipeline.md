@@ -179,13 +179,14 @@ Order every write:
    (dossier.md). Write `owner`/`acquired_at` immediately. Stale lock (>15 min,
    including no-metadata abandon) → fingerprint then claim via
    `*.lock.reclaim-*`, delete only if fingerprint still matches; live lock →
-   retry cap; permanent errors → **STOP**. Refresh lease if the hold may near
-   15 minutes.
-3. Under the lock only: re-scan by URL; match → read → apply only this phase's
-   edits → sibling `*.md.tmp` → rename over original; no match → create by
-   rendering a complete sibling tmp then **atomic no-replace** placement onto
-   the vacant final path (no clobber; bump `-2`, `-3` on collision per
-   dossier.md). Never write through an exclusively opened final path.
+   retry cap; permanent errors → **STOP**. Lease refresh and every dossier
+   place are fenced: re-read `owner`; if not yours → **STOP** without writing.
+3. Under the lock only (fenced): re-scan by URL; before each create/replace
+   re-check `owner`. Match → read → apply only this phase's edits → sibling
+   `*.md.tmp` → rename over original; no match → create by rendering a complete
+   sibling tmp then **atomic no-replace** placement onto the vacant final path
+   (no clobber; bump `-2`, `-3` on collision per dossier.md). Never write
+   through an exclusively opened final path.
 4. Release: ownership-checked in place only (dossier.md) — re-read `owner`,
    `rm -rf` the canonical lock only when it is still yours; never rename the
    lock directory on release. Still locked or write fails after retries →

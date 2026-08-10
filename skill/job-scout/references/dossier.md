@@ -232,22 +232,30 @@ Hold the URL lock across the full create-or-update:
      unique `owner` token (PID + random) inside the lock dir — before any
      dossier read/edit. Keep the token for release. A crash between `mkdir` and
      this write leaves a no-metadata dir that mtime-stale reclaim clears.
-   - **Lease while held:** if the hold may approach 15 minutes, rewrite
-     `acquired_at` and touch the lock directory mtime so a live writer is not
-     reclaimed mid-write. Stale reclaim is for crashed/abandoned holders only.
-2. Under the lock only: re-scan `scout/jobs/` for this normalized `url`.
+   - **Lease while held (fenced):** if the hold may approach 15 minutes, first
+     re-read `owner`. If it is missing or ≠ your token → the lock was reclaimed;
+     **STOP** without refreshing, without writing any dossier, and without
+     releasing a foreign lock. Only when `owner` still matches, rewrite
+     `acquired_at` and touch the lock directory mtime. Stale reclaim is for
+     crashed/abandoned holders only; a resumed holder that lost ownership must
+     not fence-jump by refreshing someone else's lease.
+2. Under the lock only (still fenced): re-scan `scout/jobs/` for this
+   normalized `url`. Before every create or replace of a dossier file, re-read
+   `owner`; if missing or ≠ your token → **STOP** without placing the file
+   (ownership lost mid-section — do not commit a lost update).
    - Match → read that file, apply only this writer's allowed edits, render to
-     sibling `*.md.tmp`, rename over the original.
+     sibling `*.md.tmp`, rename over the original (only after the owner check).
    - No match → create a new dossier under the same lock. **Filename allocation**
      is exclusive even across different URLs (two postings can share
      company+title): for candidate names (unsuffixed, then `-2`, `-3`, …)
      render the **complete** file to a unique sibling tmp, then place that
      finished inode onto the vacant final path with **atomic no-replace only**
      (`renameat2(RENAME_NOREPLACE)`, hard-link then unlink the tmp, or `mv -n`
-     when it refuses overwrite). Never open/write the final `.md` path directly
-     — a cancelled or partial write leaves a truncated unparseable dossier and
-     stops later persistence. Never rename/clobber over an existing dossier.
-     First no-replace success wins; bump suffix and retry on collision.
+     when it refuses overwrite) — only after the owner check. Never open/write
+     the final `.md` path directly — a cancelled or partial write leaves a
+     truncated unparseable dossier and stops later persistence. Never
+     rename/clobber over an existing dossier. First no-replace success wins;
+     bump suffix and retry on collision.
 3. Release (ownership-checked — even when the write failed after acquire):
    - **Never rename the canonical lock directory on release.** Renaming a path
      you do not still own vacates the canonical name and lets a third writer
