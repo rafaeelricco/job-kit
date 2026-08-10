@@ -18,15 +18,19 @@ batch — still one diff, one yes.
    temp path.
 6. Edit surgically. Never re-serialize the document, never drop comments or
    keys outside the diff.
-7. Re-parse **every** file this cycle wrote. All parse → print
-   `wrote <abs path>` per file and re-print only the affected
-   `### Constraints` (or `### Sources`) slice.
-8. Any file fails to parse → restore **every** file in the cycle from the
-   step-5 contents, print the parser error, and say the cycle was rolled back.
-   Never print `wrote`. Never leave a cycle half-applied: the card-clear and
-   its `job_search.yaml` edit stand or fall together. Restoring bytes this
-   protocol just wrote is not the step-2 case — step 2 refuses to overwrite a
-   file that was **already** broken when read.
+7. Confirm **every** write in this cycle landed, then re-parse **every** file it
+   wrote. All writes landed and all parse → print `wrote <abs path>` per file
+   and re-print only the affected `### Constraints` (or `### Sources`) slice.
+8. Any write that fails, or any file that fails to parse → restore **every**
+   file in the cycle from the step-5 contents, print the failing path and its
+   error, and say the cycle was rolled back. Never print `wrote`. Never leave a
+   cycle half-applied: the card-clear and its `job_search.yaml` edit stand or
+   fall together — a write that never landed still fails the cycle, even though
+   the file it did not touch still parses clean. Restoring bytes this protocol
+   just wrote is not the step-2 case — step 2 refuses to overwrite a file that
+   was **already** broken when read. A restore that itself fails → name every
+   file and whether it holds pre-edit or post-edit content; never report a
+   rollback that did not happen.
 9. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
