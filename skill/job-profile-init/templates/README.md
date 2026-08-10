@@ -6,11 +6,11 @@ Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder   | What's in it                                                                                               |
-| -------- | ---------------------------------------------------------------------------------------------------------- |
-| `data/`  | Canonical YAML about you. Edit here first.                                                                 |
-| `cv/`    | Compiled resume PDF(s) for attachments                                                                     |
-| `scout/` | Written by job-scout, read by job-tracker: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
+| Folder   | What's in it                                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data/`  | Canonical YAML about you. Edit here first.                                                                                                                                |
+| `cv/`    | Compiled resume PDF(s) for attachments                                                                                                                                    |
+| `scout/` | Written by job-scout, plus `status:` and Application-log records by job-application; read by job-tracker: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
 `data/` may mix `.yaml` and `.yml`.
 
@@ -53,5 +53,6 @@ roots stay active until the tree is deleted.
 ## Rules
 
 - Facts are read from files, never recalled from chat memory.
-- job-scout is list-only; job-application stops at review and waits for an explicit yes.
+- job-scout is list-only; job-application stops at review, waits for an explicit yes,
+  and records to `scout/jobs/` only once you confirm the application was submitted.
 - Never sign up, solve CAPTCHAs, or submit applications.

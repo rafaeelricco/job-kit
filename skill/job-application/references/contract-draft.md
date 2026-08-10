@@ -4,7 +4,6 @@ Paste this file **verbatim** into every **Phase 3 drafting brief**. Drafts inher
 This file is the sole home of Fact, Voice and Gate law.
 Main Phases 0–2 bind Fact + Gate + untrusted without pasting Voice; Phase 3 full paste binds Voice.
 Paths: Profile root per `../SKILL.md` (ordered steps in `job-scout/SKILL.md`), not session CWD.
-Unreadable Fact file → stop and say so.
 
 === DRAFT AND STAGE, NEVER SUBMIT ===
 MAY draft letters, fill form fields, stage attachments.
@@ -40,13 +39,9 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
-- The two legacy reads above are fallbacks for profiles an update never rewrote:
-  `skills-by-company.yml` still carries which stack was used at which employer —
-  the evidence for saying a skill predates the current role — and the screening
-  answers (`willing_to_complete_assessments`, `willing_to_undergo_drug_tests`,
-  `willing_to_undergo_background_checks`) are already stored. Read them when
-  present; a stored answer is never re-asked and never omitted. Absent is absent,
-  not a reason to guess.
+- Legacy fallbacks (`skills-by-company.yml`, the `willing_to_*` screening answers):
+  read when present; a stored answer is never re-asked and never omitted. Absent is
+  absent, not a reason to guess.
 - Prefer concrete technical cause + plain outcome from those files over bare counts or
   résumé statistics (see Voice law). A count alone is not letter evidence.
 - Language level: use `languages[].level` as printed (self-assessed). Pair with `name`.
@@ -110,8 +105,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
   file naming. Ignoring one is the first filter the ad applies.
 - Exactly one CV per submission. Prefer a tailored compiled PDF already produced for this
   application. Else `cv/en-us-resume.pdf` only if present and the PDF opens. NEVER a `.tex`.
-  Missing PDF: stop and surface; operator builds it per `cv/README.md`. If `python` on
-  PATH is a platform stub, use the operator's documented runner when building CV PDFs.
+  Missing PDF: stop and surface; operator builds it per `cv/README.md`.
   Do not generate LaTeX here.
 - Duplicate check: pipeline Phase 0 (SSOT). Review reprints that line. Operator
   confirms first contact; never assume first.
