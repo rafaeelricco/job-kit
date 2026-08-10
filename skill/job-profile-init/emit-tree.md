@@ -56,15 +56,16 @@ emitted here and never a Gap; this flow neither creates nor reads it.
 ## Unfilled inventory (what the template ships blank)
 
 `fill.md` applies the questionnaire buffer. Scaffold-only still runs the
-questionnaire; if every field is skipped, SKILL step 4.8 prints **only the
-scout-critical lines below** as Gaps — never `none`, and never optional shells
-(preferences, projects, languages, CV).
+questionnaire; if every field is skipped, the `./fill.md` Gap report lists
+**only the scout-critical lines** (allowlist owned by `./fill.md` "Gaps
+allowlist only") as Gaps — never `none`, and never optional shells
+(preferences, projects, languages, CV). Handoff injects that report via
+`./activate.md` step 9 → `./next-steps.md`.
 
-- `data/job_search.yaml`: `positions` (`Software Engineer` placeholder),
-  `keywords.primary` (`TODO-skill`), `locations`
-- `data/candidate.yaml`: `salary_expectations.salary_range_usd`,
-  `availability.notice_period`, `legal_authorization.*`,
-  `employment_routes.employer_of_record`
+Non-Gap blanks that ship empty/false and require questionnaire keep/edit
+instead: `job_search.yaml` filter maps (`work_model`, `job_types`,
+`date_posted`), `seniority_level`, `apply_once_at_company`,
+`keywords.hiring_model`.
 
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics

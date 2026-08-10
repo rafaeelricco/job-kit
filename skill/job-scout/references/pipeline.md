@@ -29,10 +29,10 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
 
 ## Phase 0 — preflight + context (main)
 
-1. Resolve Profile root per SKILL.md; print `Profile root: /abs/path`. Probe
-   `data/candidate.yaml` and `data/job_search.yaml` under that root. Probe
-   the deck: `data/search_packs.yaml` under Profile root, else
-   `./references/search_packs.yaml` next to this skill. Print `Deck: <abs path>`.
+1. Resolve Profile root per `SKILL.md` (ordered probe); print
+   `Profile root: /abs/path`. Probe the deck: `data/search_packs.yaml` under
+   Profile root, else `./references/search_packs.yaml` next to this skill.
+   Print `Deck: <abs path>`.
    Neither readable, or the winner fails to parse → STOP, name the file.
    Never merge the two files and never read the fallback when the profile deck exists.
    `job_search.yaml` still carrying a key this revision dropped → **STOP**: an
@@ -53,6 +53,10 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
      not a market: it keeps every location. Hire-from routes use `home_market`, never
      the job's own location.
+   - Empty or missing `home_market` in `data/candidate.yaml` → list under Gaps
+     (`home_market missing`); never invent a code. Home-market bucket labels and
+     ranked `{home_market}-*` tables use the literal token `home_market` or skip
+     those sections with `_(none)_` until set — do not default a country.
 3. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
    order). No other subset. Each `enabled: false` pack still gets a Query log row with
    verdict `skipped: disabled` — a pack is never silently absent from the report.
@@ -75,9 +79,13 @@ Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
 Parallelism: `max_parallel` SSOT. Never two LI-session packs concurrent
-(`linkedin_*` or `people-ta`). Launch up to `max_parallel` → join → Phase 2 MERGE.
+— a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
+`linkedin.com` or ends `.linkedin.com`. Both keys count: `surface` alone misses
+`people-ta`, and a host alone is unevaluable for a `from data/sources.yaml …`
+entry. Launch up to `max_parallel` → join → Phase 2 MERGE.
 Every pack attempted (`auth_gate` is pack defect).
-Each unit prints `### Candidates` + `### Defect log` (or Contacts for people).
+Expect `### Candidates` + `### Defect log` per unit (`### Contacts` +
+`### Defect log` for people packs) — headings defined in `contract-search.md`.
 
 ## Phase 2 — MERGE (main only)
 
@@ -96,7 +104,8 @@ Contacts side-channel only; never enter extract.
 
 Batch size = `extract_batch_size` from the resolved deck (SSOT). For each unique job URL
 batch run `worker-extract`; people skip; independent batches may parallel up to
-`max_parallel`; each batch opens URLs one at a time. Emit `### Verified` rows.
+`max_parallel`; each batch opens URLs one at a time. Expect `### Verified`
+rows — heading defined in `contract-extract.md`.
 
 ## Phase 4 — CONTRACT GATE (main)
 
@@ -128,28 +137,30 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 
 ## Phase 6 — PERSIST (main only) → STOP
 
-Main writes; a worker never does. Only one path shape is writable under Profile
-root: `scout/jobs/*.md`. `mkdir -p scout/jobs` on first run. Never create, write,
+**Writable SSOT for this skill.** Main writes; a worker never does. Only two
+path shapes under Profile root: `scout/jobs/*.md` and its `*.md.tmp` staging
+sibling during atomic rename. Every other Profile-root path (`data/`, `cv/`, …)
+is read-only. `mkdir -p scout/jobs` on first run. Never create, write,
 list-require, or delete `scout/runs/` — an orphan from an older revision is ignored.
 
-1. One dossier per row with `status=live` that passed the Phase 4 gate — including
-   `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
-   dossier goes through the `dossier.md` re-run handler so its closure log is
-   appended; `uncertain` rows, and `dead` rows never seen live, stay in the chat
-   report only and create no dossier.
-2. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
-3. Resolve `scout/jobs/` and every file you are about to write to its physical path
-   first, and **STOP** unless that path is still under the canonical Profile root.
-   A store or dossier that is a symlink out of the tree passes every listability
-   and parse check while the write lands somewhere else — the writable path shape
-   above is a containment rule, not a spelling.
-4. Write nothing until `scout/jobs/` can be **listed**, and every existing dossier
+1. Resolve `scout/jobs/` and every file you are about to write to its physical
+   path first, and **STOP** unless that path is still under the canonical Profile
+   root. A store or dossier that is a symlink out of the tree passes every
+   listability and parse check while the write lands somewhere else — the writable
+   path shapes above are a containment rule, not a spelling.
+2. Write nothing until `scout/jobs/` can be **listed**, and every existing dossier
    can be **read and parsed**. A store that is writable but not listable (or a
    dossier that will not parse) cannot answer which file a `url` already owns,
    which suffix that name carries, or what `status:` and `## Application log` it
    already holds — writing there overwrites the operator's application history
    with a fresh `status: new` under a second filename. Unreadable or unparseable
    → print the path under Gaps and STOP, same as a failed write.
+3. One dossier per row with `status=live` that passed the Phase 4 gate — including
+   `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
+   dossier goes through the `dossier.md` re-run handler so its closure log is
+   appended; `uncertain` rows, and `dead` rows never seen live, stay in the chat
+   report only and create no dossier.
+4. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
 5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
    A dossier that fails stops the phase; report the error in chat under Gaps.
@@ -188,7 +199,8 @@ Derived here from extract output. NEVER set by a worker. First match wins.
 country. `{home_market}-EOR` is reachable only when `candidate.yaml`
 `employment_routes.employer_of_record` is Yes.
 
-Note: `{home_market}-friendly` = hire-from-home-market _route_, not the job's location. `home_market` from `data/candidate.yaml` (default `BR` if empty).
+Note: `{home_market}-friendly` = hire-from-home-market _route_, not the job's location.
+`home_market` from `data/candidate.yaml` only — never invent; empty → Gaps (Phase 0).
 
 ## Channel sort (report tables)
 
@@ -198,11 +210,8 @@ Note: `{home_market}-friendly` = hire-from-home-market _route_, not the job's lo
 
 ## Anti-patterns
 
-- Invent postings or fields
 - Rank before merge+extract+gate
 - Summarize CONSTRAINTS into a field list for workers
-- Apply / message / connect / edit the kit repo
-- Write any Profile-root path outside `scout/` — `data/` and `cv/` are read-only
-- Let a worker write anything; Phase 6 is main-only
 - Overwrite a dossier's `status:` or `## Application log` on a re-run
 - Silent dry packs
+- Write outside Phase 6 writable paths (see Phase 6 SSOT) or let a worker write

@@ -104,9 +104,9 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
 
-### Inclusion / hard rules
+## Inclusion / hard rules (spec-only; never emitted)
 
-- Tables {home_market}-direct / {home_market}-EOR / EU-US: `status=live` AND `score≥7` AND after `apply_once_at_company`
+- Tables {home_market}-direct / {home_market}-EOR / EU/US-only: `status=live` AND `score≥7` AND after `apply_once_at_company`
 - EU/US-only: score desc; `blocker` = printed geo/auth constraint only
 - Ranked tables always carry `source`, `author`, `date` from search (`—` if unknown), so
   social and founder provenance stays auditable
@@ -114,7 +114,7 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 - Empty section → keep heading + `_(none)_`
 - why ≤12 words in tables; ≤20 in Do this first
 
-### Controlled vocab
+## Controlled vocab (spec-only; never emitted)
 
 - `bucket_short`: `{home_market}-direct` | `{home_market}-EOR` | `EU/US-only` | `unbucketed`
 - `bucket` full: `{home_market}-friendly (direct)` | `{home_market}-friendly (EOR)` | `EU/US-only` | `unbucketed`

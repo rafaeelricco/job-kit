@@ -6,17 +6,20 @@ Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder   | What's in it                                                                                 |
-| -------- | -------------------------------------------------------------------------------------------- |
-| `data/`  | Canonical YAML about you. Edit here first.                                                   |
-| `cv/`    | Compiled resume PDF(s) for attachments                                                       |
+| Folder   | What's in it                                                                                               |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| `data/`  | Canonical YAML about you. Edit here first.                                                                 |
+| `cv/`    | Compiled resume PDF(s) for attachments                                                                     |
 | `scout/` | Written by job-scout, read by job-tracker: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
 `data/` may mix `.yaml` and `.yml`.
 
 ## Register Profile root
 
-`/job-profile-init` registers this checkout automatically at the end of the flow.
+`/job-profile-init` offers **Activate** at the end of the flow. Registration
+runs only when the operator answers **Yes**. **No** leaves a data-only tree
+(not allowed when the target is host-default / `JOB_KIT_CONFIG`, which would
+auto-activate from the probe files alone).
 
 To register manually, or to switch the active profile later, re-run
 `/job-profile-init` against this path and answer **Activate: Yes**.

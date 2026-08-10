@@ -12,10 +12,25 @@ batch — still one diff, one yes.
    `<file>:<line>`, showing only the lines that change.
 4. Wait for an explicit **yes**. Silence, a question, or edits are not a yes. Edits →
    back to step 3 with the revision.
-5. On yes: edit surgically. Never re-serialize the document, never drop comments or
-   keys outside the diff. Then print `wrote <abs path>` and re-print only the affected
-   `### Constraints` (or `### Sources`) slice.
-6. On no: abort; say nothing was written.
+5. On yes: hold the exact pre-edit contents of every file this cycle touches —
+   the target and, when the card-clear below fires, `data/profile_card.yaml`.
+6. Render each file's edited content to a sibling `*.yaml.tmp` staging path.
+   Edit surgically: never re-serialize the document, never drop comments or
+   keys outside the diff. A live file is never edited in place.
+7. Re-parse **every** staged file. Any staging write or parse that fails →
+   delete the staged files and say nothing was written, naming the failing path
+   and its error. No live file was touched, so there is nothing to undo — a full
+   disk or a truncated write lands here, before the profile changes.
+8. All staged files parse → rename each over its original. Rename is the only
+   step that mutates a live file, and it allocates nothing, so the conditions
+   that break a write cannot half-apply a cycle.
+9. A rename that fails after an earlier one succeeded → restore those originals
+   from the step-5 contents and report the cycle rolled back. Never print
+   `wrote` for a cycle that did not complete: the card-clear and its
+   `job_search.yaml` edit stand or fall together.
+10. All renames done → print `wrote <abs path>` per file and re-print only the
+    affected `### Constraints` (or `### Sources`) slice.
+11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
 

@@ -1,5 +1,5 @@
-# Where to search. Groups named by job-scout references/search_packs.yaml entry lines:
-#   from data/sources.yaml tier_1_high_alpha | tier_2_aggregators | baseline_floor
+# Where to search. Groups named by this profile's own data/search_packs.yaml
+#   entry lines: from data/sources.yaml tier_1_high_alpha | tier_2_aggregators | baseline_floor
 # access: public | account_optional | account_required (account_required -> log, do not sign up)
 # Edit freely; keep the three required group names below if packs still reference them.
 
