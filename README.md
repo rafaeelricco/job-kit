@@ -15,7 +15,7 @@ profile init, config, and tracker run in coding agents (Claude Code, Codex, Grok
 | `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
 | `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-tracker`        | Read the profile's `scout/` store: dossiers, run reports, application status                        | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                             | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
@@ -107,14 +107,12 @@ order, and ranks the job rows it extracts. Application drafts and stages one pos
 time; it may open an Apply control that only reveals the form, then stops at
 review and waits for an explicit yes.
 
-Scout writes one dossier per live job to `scout/jobs/{first_seen}-{company}--{title}.md`,
-and a per-run record to `scout/runs/{YYYY-MM-DD}-scout.md` holding only what the ranked
-list cannot: recruiters, pack yield, dropped rows, gaps, and a `url|company|title|score`
-manifest frozen at that run. Every other job fact lives in the dossier and is never copied
-into the run file. Those two paths are the
-only thing scout writes; `data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — re-running scout never overwrites it, and never
-renames the file.
+Scout writes one dossier per live job to
+`scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
+writes; the full ranked report (including People/TA, Dropped, Query log, Gaps)
+stays in chat. `data/` and `cv/` stay read-only to it. Set `status:` in a
+dossier's frontmatter as you apply — re-running scout never overwrites it, and
+never renames the file.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
 application, or `cv/en-us-resume.pdf` as the fallback. With neither,
@@ -140,8 +138,8 @@ network calls.
 /job-tracker
 ```
 
-Resolves your Profile root, prints the `scout/` store paths, and answers from the
-dossiers already on disk. It never writes one.
+Resolves your Profile root, prints `scout/jobs/`, and answers from the dossiers
+already on disk. It never writes one.
 
 ## Profile root
 
