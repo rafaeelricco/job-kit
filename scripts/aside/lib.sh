@@ -284,8 +284,11 @@ unlink_skill() {
 # When DEST_ROOT is the same physical path as skills/user, only remove LEGACY basenames
 # (do not delete current SKILL_NAMES just installed there via ASIDE_SKILLS override).
 # Side effects: may rm kit-owned paths under skills/user.
+# NAMES (optional, 3rd arg) narrows the current-name sweep; legacy basenames are
+# always cleared, since they are orphans no selector can name.
 remove_legacy_user_skills() {
-  local repo="$1" dest_root="${2:-}" account="${ASIDE_ACCOUNT:-0}" user_root name dest
+  local repo="$1" dest_root="${2:-}" names="${3:-${SKILL_NAMES}}"
+  local account="${ASIDE_ACCOUNT:-0}" user_root name dest
   local user_phys dest_phys
   user_root="${HOME}/.aside/u/${account}/skills/user"
   [ -d "${user_root}" ] || return 0
@@ -299,7 +302,7 @@ remove_legacy_user_skills() {
     fi
   fi
   unlink_legacy_skills "${user_root}" "${repo}" || return 1
-  for name in ${SKILL_NAMES}; do
+  for name in ${names}; do
     dest="$(skill_dest "${user_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}" || return 1
   done
