@@ -193,10 +193,10 @@ normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
 (`shasum -a 256`, `sha256sum`, `openssl dgst -sha256`). Same normalized URL →
 same digest → same lock. Do **not** put the raw slug in the path name.
 
-Lock directories, their `acquired_at` metadata file, and short-lived reclaim
-siblings (`*.lock.reclaim-*`) are writable path shapes (Phase 6 SSOT /
-job-application Phase 4 writable store); create only under `scout/jobs/`, never
-elsewhere.
+Lock directories, their metadata files (`acquired_at`, `owner`), and short-lived
+reclaim/release siblings (`*.lock.reclaim-*`, `*.lock.release-*`) are writable
+path shapes (Phase 6 SSOT / job-application Phase 4 writable store); create only
+under `scout/jobs/`, never elsewhere.
 
 Hold the URL lock across the full create-or-update:
 
@@ -218,8 +218,9 @@ Hold the URL lock across the full create-or-update:
      permission failures) → **STOP**, do not spin.
    - Still locked after retries → **STOP**, name the URL, tell the operator the
      write did not land (job-application: set `status: applied` by hand).
-   - On successful acquire: write `acquired_at` (ISO now) inside the lock dir so
-     later reclaim has a clear timestamp.
+   - On successful acquire: write `acquired_at` (ISO now) and a unique `owner`
+     token (PID + random or equivalent) inside the lock dir. Keep the token for
+     release — it identifies this acquisition only.
 2. Under the lock only: re-scan `scout/jobs/` for this normalized `url`.
    - Match → read that file, apply only this writer's allowed edits, render to
      sibling `*.md.tmp`, rename over the original.
@@ -233,8 +234,19 @@ Hold the URL lock across the full create-or-update:
      — a cancelled or partial write leaves a truncated unparseable dossier and
      stops later persistence. Never rename/clobber over an existing dossier.
      First no-replace success wins; bump suffix and retry on collision.
-3. Release: remove the lock directory (and its contents) even when the write
-   failed after acquire. A leftover live lock blocks writers until stale reclaim.
+3. Release (ownership-checked — even when the write failed after acquire):
+   - Never unconditionally `rm` the canonical lock path. A write that outlives
+     the 15-minute stale window can be reclaimed; the path may now hold another
+     writer's lock.
+   - If the lock path is missing → done (already reclaimed; do not recreate).
+   - Rename the lock path to `url-{url-digest}.lock.release-{owner-token}`
+     (your token from acquire). Rename fails → path already moved; leave it.
+   - Read `owner` inside the claimed release path. If it equals your token →
+     remove **only** that release path. If it differs → put the directory back
+     to the canonical lock path when that path is free (best effort); never
+     delete a lock whose `owner` is not yours.
+   - A leftover live lock that still belongs to a crashed writer is cleared by
+     stale reclaim, not by a foreign release.
 
 Never create or rename a dossier for a URL without holding that URL's lock.
 Never skip the lock because "only one agent is running" — Phase 6 and Phase 4

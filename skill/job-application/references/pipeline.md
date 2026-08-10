@@ -25,8 +25,9 @@ The main agent opens the posting itself. Contract dual-load timing: SKILL step 2
 
 Writable in Phase 4 only, under Profile root: `scout/jobs/*.md`, sibling
 `*.md.tmp` during atomic rename, exclusive lock directories `scout/jobs/*.lock`,
-lock metadata `scout/jobs/*.lock/acquired_at`, and short-lived reclaim siblings
-`scout/jobs/*.lock.reclaim-*` (per `job-scout/references/dossier.md`). `data/`,
+lock metadata `scout/jobs/*.lock/acquired_at` and `scout/jobs/*.lock/owner`, and
+short-lived reclaim/release siblings `scout/jobs/*.lock.reclaim-*` /
+`scout/jobs/*.lock.release-*` (per `job-scout/references/dossier.md`). `data/`,
 `cv/`, and every other Profile-root path stay read-only in every phase.
 
 ## Phase 0 — read the ad
@@ -183,9 +184,10 @@ Order every write:
    rendering a complete sibling tmp then **atomic no-replace** placement onto
    the vacant final path (no clobber; bump `-2`, `-3` on collision per
    dossier.md). Never write through an exclusively opened final path.
-4. Release: remove the lock directory even on failure. Still locked or write
-   fails after retries → **STOP** and tell the operator to set `status: applied`
-   by hand.
+4. Release: ownership-checked only (dossier.md) — rename to
+   `*.lock.release-{owner-token}`, delete only if `owner` still matches; never
+   `rm` a lock another writer reclaimed. Still locked or write fails after
+   retries → **STOP** and tell the operator to set `status: applied` by hand.
 
 Never create or rename without that URL's lock. Never exclusive-create a lock
 before `scout/jobs/` exists.
