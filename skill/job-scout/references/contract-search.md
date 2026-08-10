@@ -80,6 +80,11 @@ Anything that would touch a company or the user's account → stop; put it under
 6. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
 7. One call = one surface × one pack. Cards + URLs only. Public contacts only.
 
+## Output sections
+
+Each unit prints `### Candidates` (or `### Contacts` on a people pack) followed
+by `### Defect log` — every pack, no exceptions, empty log included.
+
 ## Search Candidate (fixed columns, pipe table)
 
 `company | title | url | source | channel | author | contact | date | why`

@@ -33,25 +33,13 @@ Persisted only; never printed in chat.
 | url | company | title | score |
 | --- | ------- | ----- | ----: |
 
-One row per row that reached a ranked table or `### Dropped`, `url` normalized per
-`contract-search.md`. This is the entire per-job payload the run file keeps: it is
-what lets two runs be diffed by URL after the dossier has moved on. `company` and
-`title` are frozen at the run, exactly as `### Dropped` already prints them — a re-see
-rewrites both in the dossier, so a manifest that stored neither could only be read
-against whatever the posting says today, and what the run actually found would be gone.
-`company` and `title` are copied from the posting, so escape every `|` inside them as
-`\|` and collapse any newline or run of whitespace to one space before the row is written.
-Ordinary board titles carry both: `Platform Engineer | Remote` splits one row into five
-cells, and a line break opens a second row a reader takes for another job the run found.
-Either way the frozen pair is unrecoverable and that URL stops diffing between runs.
-`url` is already normalized, so it stays as it is. `score` is a bare integer for every
-row that entered scoring (ranked tables, `score <7`, company-dedupe). Dead rows that
-reach `### Dropped` never enter scoring — write `—` for them, never invent an integer
-and never omit the URL. A reader that requires an integer for every Dropped URL forces
-one of those two defects on every normal dead extract.
-
-Never add a bucket, channel, contact, blocker or why column here — those track the
-posting rather than the run, and copying them back is exactly the drift this split removes.
+One row per ranked-table or `### Dropped` row. `url` normalized per
+`contract-search.md` (leave as-is). `company` and `title` frozen at the run (as
+`### Dropped` prints them). Escape every `|` as `\|`; collapse newline or
+whitespace runs to one space before writing the row. `score`: bare integer for
+rows that entered scoring (ranked tables, `score <7`, company-dedupe). Dead
+Dropped rows: `—` — never invent an integer, never omit the URL. Never add
+bucket, channel, contact, blocker, or why columns.
 
 ### Header
 
@@ -66,12 +54,9 @@ posting rather than the run, and copying them back is exactly the drift this spl
 - Packs dry: {none|comma list}
 - Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{run_file}`
 
-`{run_file}` is the collision-free name Phase 6 step 1 resolves — `{YYYY-MM-DD}-scout.md`,
-or `-2` / `-3` when that is taken. Resolve it before rendering this line: Snapshot is a
-persisted section and reaches disk unchanged, so an unsuffixed name here would make the
-saved record point at an earlier run. The name is resolved early but the file is written
-last, in Phase 6 step 4, so `Saved: {n} dossiers` only ever reaches disk when all `n`
-landed.
+`{run_file}` is the collision-free name Phase 6 step 1 resolves
+(`{YYYY-MM-DD}-scout.md`, or `-2`/`-3` if taken). Resolve before rendering this
+line. File write is Phase 6 step 4.
 
 ### Do this first
 
@@ -147,9 +132,9 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
 
-### Inclusion / hard rules
+## Inclusion / hard rules (spec-only; never emitted)
 
-- Tables {home_market}-direct / {home_market}-EOR / EU-US: `status=live` AND `score≥7` AND after `apply_once_at_company`
+- Tables {home_market}-direct / {home_market}-EOR / EU/US-only: `status=live` AND `score≥7` AND after `apply_once_at_company`
 - EU/US-only: score desc; `blocker` = printed geo/auth constraint only
 - Ranked tables always carry `source`, `author`, `date` from search (`—` if unknown), so
   social and founder provenance stays auditable
@@ -157,7 +142,7 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 - Empty section → keep heading + `_(none)_`
 - why ≤12 words in tables; ≤20 in Do this first
 
-### Controlled vocab
+## Controlled vocab (spec-only; never emitted)
 
 - `bucket_short`: `{home_market}-direct` | `{home_market}-EOR` | `EU/US-only` | `unbucketed`
 - `bucket` full: `{home_market}-friendly (direct)` | `{home_market}-friendly (EOR)` | `EU/US-only` | `unbucketed`

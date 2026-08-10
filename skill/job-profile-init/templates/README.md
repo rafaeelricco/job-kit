@@ -16,7 +16,11 @@ Skills live in **job-kit**, not in this tree.
 
 ## Register Profile root
 
-`/job-profile-init` registers this checkout automatically at the end of the flow.
+`/job-profile-init` offers **Activate** at the end of the flow. Registration
+runs only when the operator answers **Yes**. **No** leaves a data-only tree
+(not allowed when the target is host-default / `JOB_KIT_CONFIG`, which would
+auto-activate from the probe files alone).
+
 
 To register manually, or to switch the active profile later, re-run
 `/job-profile-init` against this path and answer **Activate: Yes**.
