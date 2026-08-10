@@ -137,9 +137,11 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 
 ## Phase 6 — PERSIST (main only) → STOP
 
-**Writable SSOT for this skill.** Main writes; a worker never does. Only two
-path shapes under Profile root: `scout/jobs/*.md` and its `*.md.tmp` staging
-sibling during atomic rename. Every other Profile-root path (`data/`, `cv/`, …)
+**Writable SSOT for this skill.** Main writes; a worker never does. Only these
+path shapes under Profile root: `scout/jobs/*.md`, its `*.md.tmp` staging
+sibling during atomic rename, and exclusive lock directories
+`scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
+`dossier.md` concurrent writers). Every other Profile-root path (`data/`, `cv/`, …)
 is read-only. `mkdir -p scout/jobs` on first run. Never create, write,
 list-require, or delete `scout/runs/` — an orphan from an older revision is ignored.
 

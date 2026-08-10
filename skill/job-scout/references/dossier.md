@@ -173,28 +173,33 @@ the only step that either happens or does not.
 
 **Concurrent writers (job-scout Phase 6 and job-application Phase 4):** atomic
 rename alone does not prevent lost updates — and check-then-rename is still a
-race (both pass equality, both rename; the later rename drops the earlier
-writer). Serialize every update of an existing dossier with an exclusive lock
-held across the full read → edit → tmp write → rename:
+race. Serialize **by normalized `url`**, not by intended filename: two writers
+can pick different basenames for the same URL (midnight straddle, multi-title
+extract) and filename locks would not meet. Lock path:
 
-1. Acquire lock: create directory `scout/jobs/{dossier-basename}.md.lock` with
-   exclusive create (`mkdir` fails if the path exists — that is the lock). Do
-   not use a plain file create that can clobber. If `mkdir` fails, wait briefly
-   and retry; cap 5 attempts / ~10s. Still locked → **STOP**, name the dossier,
-   tell the operator the write did not land (job-application: set
-   `status: applied` by hand). Never write the dossier while the lock is held
-   by someone else.
-2. Under the lock only: read the whole file, apply only this writer's allowed
-   edits, render the full result to the sibling `*.md.tmp`, rename the tmp over
-   the original.
-3. Release lock: remove the lock directory (`rmdir` / delete) even when the
-   write failed after acquire. A leftover lock blocks every future writer.
+`scout/jobs/url-{url-slug}.lock`
 
-Never rename without holding the lock. Never skip the lock because "only one
-agent is running" — Phase 6 and Phase 4 are independent skills.
+where `{url-slug}` is the already-normalized URL run through the same slug
+rules as dossier filenames (lowercased; every run of non-alphanumerics → one
+`-`; trimmed). Same URL → same lock, whatever basename each writer would use.
+Lock directories are a writable path shape (Phase 6 SSOT / job-application Phase 4
+writable store); create only under `scout/jobs/`, never elsewhere.
 
-Create path: re-scan by normalized `url` first. If none, acquire the intended
-filename's lock the same way (`{new-basename}.md.lock`), re-scan again under
-the lock, then create only if still absent. If a URL match or the name appears,
-release, take the update path on the winner. Never leave two files for one
-`url`.
+Hold the URL lock across the full create-or-update:
+
+1. Acquire: exclusive-create the lock directory via `mkdir` (fails if held —
+   that is the lock). Do not use a plain file create that can clobber. If
+   `mkdir` fails, wait briefly and retry; cap 5 attempts / ~10s. Still locked →
+   **STOP**, name the URL, tell the operator the write did not land
+   (job-application: set `status: applied` by hand).
+2. Under the lock only: re-scan `scout/jobs/` for this normalized `url`.
+   - Match → read that file, apply only this writer's allowed edits, render to
+     sibling `*.md.tmp`, rename over the original.
+   - No match → create the new dossier (filename rules as usual) under the same
+     lock. A race cannot create a second file for this URL while you hold it.
+3. Release: remove the lock directory even when the write failed after acquire.
+   A leftover lock blocks every future writer for that URL.
+
+Never create or rename a dossier for a URL without holding that URL's lock.
+Never skip the lock because "only one agent is running" — Phase 6 and Phase 4
+are independent skills. Never leave two files for one `url`.
