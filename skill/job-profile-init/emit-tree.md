@@ -7,9 +7,7 @@ Source = `./templates/` only. Destination = intake target path.
 ```
 <target>/
   README.md
-  data/                 # Fact-law shells + search deck
-  scripts/install.sh
-  scripts/uninstall.sh
+  data/                 # Fact-law shells, search deck + observations
   cv/README.md
 ```
 
@@ -25,8 +23,6 @@ substitute every token in the target tree (all text files):
 | `{{email}}`             | Email             |
 | `{{github_username}}`   | GitHub username   |
 | `{{home_market}}`       | Home market code  |
-
-Make `scripts/install.sh` and `scripts/uninstall.sh` executable (`chmod +x`).
 
 ## Leak gate (must pass before checklist)
 
@@ -52,13 +48,17 @@ After substitution, no `{{…}}` tokens may remain. Target must not contain skil
 
 `fill.md` overwrites Fact-law files under `data/` and may place `cv/en-us-resume.pdf`.
 It must not write skill trees or any path outside the emitted layout (`data/`, `cv/`,
-root README, `scripts/`). Re-run this leak gate after fill.
+root README). Re-run this leak gate after fill.
+
+`job-scout` Phase 6 creates `scout/` under Profile root at first run. It is not
+emitted here and never a Gap; this flow neither creates nor reads it.
 
 ## Unfilled inventory (what the template ships blank)
 
-`fill.md` closes Fact files from SoT. When fill does not run (**scaffold-only**),
-SKILL step 4.8 prints **only the scout-critical lines below** as Gaps — never
-`none`, and never optional shells (screening, projects, languages, CV).
+`fill.md` applies the questionnaire buffer. Scaffold-only still runs the
+questionnaire; if every field is skipped, SKILL step 4.8 prints **only the
+scout-critical lines below** as Gaps — never `none`, and never optional shells
+(preferences, projects, languages, CV).
 
 - `data/job_search.yaml`: `positions` (`Software Engineer` placeholder),
   `keywords.primary` (`TODO-skill`), `locations`
@@ -68,7 +68,9 @@ SKILL step 4.8 prints **only the scout-critical lines below** as Gaps — never
 
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
-empties, `cv/en-us-resume.pdf`.
+empties, `cv/en-us-resume.pdf`, and `data/observations.yaml`.
+
+`data/observations.yaml` is optional human-only detail storage and is never a Gap.
 
 `data/search_packs.yaml` ships every pack `enabled: true` and is runnable as
 emitted — never a Gap, including on scaffold-only.

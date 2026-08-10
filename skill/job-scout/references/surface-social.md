@@ -1,7 +1,7 @@
 # surface-social
 
 Surface: pack `surface` value (`linkedin_posts` or `x`). Obey CONTRACT_SEARCH
-(LI auth when surface is `linkedin_*`; list-only + schemas live there).
+(gate handling + list-only + schemas live there).
 
 ## Deltas
 

@@ -1,6 +1,7 @@
 # Intake
 
-Named stages only — never number the questions or steps. Stages run in order.
+Named stages only — never number the questions or steps. PLAN approval precedes
+all stages. Stages run in order.
 Batch only independent enums (Route modes; Source modes when the harness
 supports multi-option tools). Dependent branches stay sequential. Enumerables:
 options, most-likely first, labelled **(Recommended)**, free-text escape.
@@ -41,8 +42,7 @@ Two outcomes; offer both.
   where the operator points and where the session already is; do not sweep the
   filesystem. Choosing this **ends intake** — no Folder, Source, Identity, or
   Approve; no emit; no fill. Then run **Activate ask** (below) with that path as
-  `<target>`, then SKILL step 4. Does not require `scripts/install.sh` on the
-  profile.
+  `<target>`, then SKILL step 4.
 - **Create new** → continue to Folder.
 
 ## Folder (create only)
@@ -51,7 +51,7 @@ Absolute `<target>` for the profile tree.
 
 - **Default (Recommended):** `JOB_KIT_CONFIG` from pre-discovery
   (`${XDG_CONFIG_HOME:-$HOST_HOME/.config}/job-kit`). Single-profile layout:
-  `data/`, `cv/`, `scripts/` live directly under that path.
+  `data/` and `cv/` live directly under that path.
 - Operator may override with another absolute path (migration / advanced).
 - `<target>` must be absolute and must not exist or be an empty directory. Test
   before offering — never offer a path this law would refuse. Else STOP.
@@ -105,8 +105,10 @@ Modes: **file path(s)** (Recommended) | **paste** | **scaffold-only**.
   > visa, stack, or experience. Reply with path(s) or paste, then we continue.
 - **paste:** the following user message is the SoT buffer. Chat memory alone is
   not SoT.
-- **scaffold-only:** emit + Activate (if Yes) + next-steps; **skip fill**; state
-  shells-only. Offer it; select only on the operator's explicit intent.
+- **scaffold-only:** continue without a source of truth, ask the complete
+  questionnaire directly, then emit the answered profile. If every field is
+  skipped, state shells-only. Offer it; select only on the operator's explicit
+  intent.
 
 ## Identity (create only)
 
@@ -122,11 +124,12 @@ Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`,
    `@`). Invent matrix + Hard refuses bind — extract only what is printed; never
    invent identity fields. Fill reuses this buffer when the Source key is
    unchanged (see `./fill.md` Source gate).
-2. Present the draft. Ask **only** empty or conflicting fields — never re-ask
-   fields the draft already settled unless the operator disputes them.
+2. Present the draft as proposals. The Profile questionnaire must still show
+   every identity field and require confirm, edit, or skip.
 3. Required before Approve: `display_name`, `linkedin_username` (no `@`),
    `home_market` (short country/region label job-scout uses to bucket openings).
-   `email` and `github_username` optional (`""` OK).
+   `email` and `github_username` are optional but still require an explicit
+   value or skip (`""`).
 4. Recommend `home_market` only when SoT prints a clear location/country signal;
    never invent one.
 5. Operator answers overwrite the draft for those fields.
@@ -138,10 +141,16 @@ No extract. Ask required fields (`display_name`, `linkedin_username`,
 recommended answers only when grounded (e.g. name from conversation context the
 operator just typed — not guessed from chat memory about prior sessions).
 
+## Profile questionnaire (create and scaffold-only)
+
+Read `./questionnaire.md`. Collect every user-owned field, including explicit
+`seniority_level` and source/default confirmations. Register-existing skips this
+stage. Collect observations last.
+
 ## Approve (create only)
 
-Present the plan: absolute `<target>`, Activate Yes/No, identity tokens, Source
-mode (and paths or paste/scaffold). Prefer the harness plan/approval step when
-one exists; otherwise an explicit yes in chat. Silence is not approval.
-Corrections → re-ask only the named fields → re-present. On approval → emit-tree
-(then fill, unless scaffold-only). **No write before this yes.**
+Present the target, activation choice, source mode, all field values, explicit
+skips, `seniority_level`, pack choices, and observations. Prefer the harness
+approval step when one exists; otherwise an explicit yes in chat. Silence is
+not approval. Corrections reopen only the affected questionnaire fields. On
+approval → emit-tree, then fill. **No write before this yes.**

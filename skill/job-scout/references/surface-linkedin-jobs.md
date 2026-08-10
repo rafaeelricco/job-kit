@@ -1,6 +1,7 @@
 # surface-linkedin-jobs
 
-Surface: `linkedin_jobs`. Obey CONTRACT_SEARCH (auth + list-only + schemas live there).
+Surface: `linkedin_jobs`. Obey CONTRACT_SEARCH (gate handling + list-only + schemas
+live there).
 
 ## Deltas
 
