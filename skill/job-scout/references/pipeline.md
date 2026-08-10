@@ -12,7 +12,7 @@ rule a worker needs.
 ## Mode: list only
 
 Finds and reports jobs. Never acts on them. Done when the Report ships and Phase 6
-has written the dossier → **STOP**.
+has written every dossier it must → **STOP**.
 
 ## Inputs (read-only)
 
@@ -135,50 +135,33 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 
 ## Phase 6 — PERSIST (main only) → STOP
 
-**Writable SSOT for this skill.** Main writes; a worker never does. Only three
-path shapes under Profile root: `scout/runs/*.md`, `scout/jobs/*.md`, and their
-`*.md.tmp` staging siblings during atomic rename. Every other Profile-root path
-(`data/`, `cv/`, …) is read-only. `mkdir -p` both stores on first run.
+**Writable SSOT for this skill.** Main writes; a worker never does. Only two
+path shapes under Profile root: `scout/jobs/*.md` and its `*.md.tmp` staging
+sibling during atomic rename. Every other Profile-root path (`data/`, `cv/`, …)
+is read-only. `mkdir -p scout/jobs` on first run. Never create, write,
+list-require, or delete `scout/runs/` — an orphan from an older revision is ignored.
 
-1. Resolve `scout/runs/`, `scout/jobs/`, and every file you are about to write to
-   its physical path first, and **STOP** unless that path is still under the
-   canonical Profile root. A store or dossier that is a symlink out of the tree
-   passes every listability and parse check while the write lands somewhere else
-   — the three writable path shapes above are a containment rule, not a spelling.
-2. Write nothing until `scout/runs/` and `scout/jobs/` can be **listed**, and every
-   existing dossier can be **read and parsed**. A store that is writable but not
-   listable (or a dossier that will not parse) cannot answer which file a `url`
-   already owns, which suffix that name carries, or what `status:` and
-   `## Application log` it already holds — writing there overwrites the operator's
-   application history with a fresh `status: new` under a second filename.
-   Unreadable or unparseable → print the path under Gaps and STOP, same as a failed
-   write.
-3. Resolve the run filename: `scout/runs/{YYYY-MM-DD}-scout.md`, or `-2` / `-3`
-   when that name is taken. Never overwrite an existing run file. Phase 5 already
-   rendered that resolved name into its Snapshot `run` line, and the dossiers written
-   below cite it in their `## Application log`. Resolving the name is not creating the
-   file — the run record lands last, in step 6.
-4. One dossier per row with `status=live` that passed the Phase 4 gate — including
+1. Resolve `scout/jobs/` and every file you are about to write to its physical
+   path first, and **STOP** unless that path is still under the canonical Profile
+   root. A store or dossier that is a symlink out of the tree passes every
+   listability and parse check while the write lands somewhere else — the writable
+   path shapes above are a containment rule, not a spelling.
+2. Write nothing until `scout/jobs/` can be **listed**, and every existing dossier
+   can be **read and parsed**. A store that is writable but not listable (or a
+   dossier that will not parse) cannot answer which file a `url` already owns,
+   which suffix that name carries, or what `status:` and `## Application log` it
+   already holds — writing there overwrites the operator's application history
+   with a fresh `status: new` under a second filename. Unreadable or unparseable
+   → print the path under Gaps and STOP, same as a failed write.
+3. One dossier per row with `status=live` that passed the Phase 4 gate — including
    `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
    dossier goes through the `dossier.md` re-run handler so its closure log is
-   appended; `uncertain` rows, and `dead` rows never seen live, stay in the run
+   appended; `uncertain` rows, and `dead` rows never seen live, stay in the chat
    report only and create no dossier.
-5. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
-6. Only once every dossier in step 4 is renamed into place, write the sections named
-   by `./references/scout-report.md` `## Persisted subset` to the name resolved in
-   step 3 — not the Phase 5 markdown verbatim. A ranked table or Score audit row in
-   the run file is a defect: those columns are dossier-owned. Render it to a sibling
-   `*.md.tmp` path under `scout/runs/` and rename it into place, and re-check the name
-   is still free immediately before that rename, since deferring the write no longer
-   reserves it. A run file is never overwritten, so its existence is the claim that
-   its `Saved: {n} dossiers` line and `### Run manifest` rows are backed on disk.
-   If the run file were written first, a dossier that dies partway — a full disk is
-   enough — would leave a run record no retry can correct: the retry would take `-2`
-   while the incomplete first file still reads as a valid run.
-7. Unwritable path (permission, read-only FS) → print the error and the path under
+4. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
+5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
-   A dossier that fails in step 4 stops the phase before step 6, so no run file claims
-   it: report the error in chat under Gaps, and leave `scout/runs/` untouched.
+   A dossier that fails stops the phase; report the error in chat under Gaps.
 
 Then **STOP**.
 
