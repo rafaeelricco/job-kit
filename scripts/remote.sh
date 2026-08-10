@@ -86,6 +86,7 @@ die() { echo "error: $*" >&2; exit 1; }
 # ownership probe and (when used) the git-ref ownership probe.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
+scripts/install.sh
 scripts/uninstall.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
@@ -381,6 +382,17 @@ ensure_kit_cache() {
       && { [ -f "${dest}/scripts/aside/uninstall.sh" ] || [ -f "${dest}/scripts/agents/uninstall.sh" ]; }; then
       echo "refreshing kit cache (uninstall layout changed): ${dest}"
       fetch_kit "${raw}" "${KIT_LEGACY_OWNERSHIP_FILES}"
+      require_checkout "${raw}"
+      return 0
+    fi
+    # Caches from after unified uninstall but before unified install lack
+    # scripts/install.sh. Prove with the ownership set minus that file.
+    if [ ! -f "${dest}/scripts/install.sh" ] \
+      && [ -z "$(kit_paths_missing "${dest}" "${KIT_LEGACY_OWNERSHIP_FILES}
+scripts/uninstall.sh")" ]; then
+      echo "refreshing kit cache (install layout changed): ${dest}"
+      fetch_kit "${raw}" "${KIT_LEGACY_OWNERSHIP_FILES}
+scripts/uninstall.sh"
       require_checkout "${raw}"
       return 0
     fi

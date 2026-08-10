@@ -102,9 +102,9 @@
      `/job-profile-init`, choose register-existing on `<target>`, answer Yes
      (mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
-     Never print bare `bash scripts/agents/install.sh` or
-     `bash scripts/aside/install.sh` without an absolute kit root or the
-     README get-kit recipe. Operator is often only in a profile directory.
+     Never print bare `bash scripts/install.sh` (or channel wrappers) without
+     an absolute kit root or the README Install recipe. Operator is often only
+     in a profile directory.
    - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
      file: set to **empty** (omit the line). Else set to:
      `- If CV not placed: add cv/en-us-resume.pdf before job-application attachments.`
@@ -112,10 +112,11 @@
 
    **Resolve `KIT_ROOT` (optional):** take the real path of this skill
    directory (`…/skill/job-profile-init`). Parent of `skill/` is a candidate
-   kit root if both of these files exist:
-   `$KIT_ROOT/scripts/agents/install.sh` and
-   `$KIT_ROOT/scripts/aside/install.sh`. Symlink installs usually resolve;
-   a copied skill with no kit tree does not — then treat as unresolved.
+   kit root if `$KIT_ROOT/scripts/install.sh` exists, **or** both channel
+   wrappers exist (`$KIT_ROOT/scripts/agents/install.sh` and
+   `$KIT_ROOT/scripts/aside/install.sh`) for older checkouts. Symlink installs
+   usually resolve; a copied skill with no kit tree does not — then treat as
+   unresolved.
 
    **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
    that cannot run reports _unknown_, never _installed_.
@@ -136,10 +137,16 @@
 
    - Both channels installed → `Kit channels already installed from <KIT_ROOT>.
 Nothing to run.`
-   - Aside not installed → `Install scout/apply into Aside:
-bash "<KIT_ROOT>/scripts/aside/install.sh"`
-   - Agents probe matched no eligible home → `Link job-profile-init into your
-agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
+   - Aside not installed → prefer unified entry when present:
+`Install scout/apply into Aside:
+bash "<KIT_ROOT>/scripts/install.sh" aside`
+     Fall back to `bash "<KIT_ROOT>/scripts/aside/install.sh"` when
+     `scripts/install.sh` is missing (older checkout).
+   - Agents probe matched no eligible home → prefer:
+`Link job-profile-init into your agent homes:
+bash "<KIT_ROOT>/scripts/install.sh" agents`
+     Fall back to `bash "<KIT_ROOT>/scripts/agents/install.sh"` when
+     `scripts/install.sh` is missing.
    - Agents probe matched some but not all eligible homes → name the homes that
      are missing it, then the same absolute command.
    - Any probe _unknown_ → print its command with the reason it could not be
@@ -151,13 +158,14 @@ agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
    to (mirror README SSOT; do not invent a different host or script path):
 
    > Kit skills are not on this machine as a checkout. Get job-kit, then
-   > install channels you need (README "Get the kit" + Install sections):
+   > install channels you need (README Install / Work locally sections):
    >
    > ```bash
    > git clone https://github.com/rafaeelricco/job-kit.git
    > cd job-kit
-   > bash scripts/aside/install.sh    # scout/apply into Aside
-   > bash scripts/agents/install.sh  # only if coding-agent homes lack job-profile-init
+   > bash scripts/install.sh aside    # scout/apply into Aside
+   > bash scripts/install.sh agents   # only if coding-agent homes lack job-profile-init
+   > # or: bash scripts/install.sh all
    > ```
    >
    > Private clone: use your host's auth. Do not run kit installers from the
