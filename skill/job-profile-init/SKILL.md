@@ -30,13 +30,14 @@ separate gates.
    observations, place the CV, and run the leak/YAML gates. No post-approval
    field questions. SoT / invent / Gaps: `./fill.md` (Hard refuses bind).
    Scaffold-only may fill from questionnaire without a SoT; all-skip → shells-only.
-4. **Activate** Profile root for absolute `<target>` only if Activate ask was
-   **Yes**. If **No**:
-   - If `<target>` equals `JOB_KIT_CONFIG` / host-default (path-convention
-     probe without pointer) → STOP (this profile would auto-activate on emit
-     despite the refusal). Re-run Activate ask.
-   - Else: obey `./activate.md` for Activate-skipped handoff (next-steps only). STOP.
-     If **Yes**: obey `./activate.md` end-to-end. Then STOP.
+4. **Activate** Profile root for absolute `<target>`, branching on the Activate
+   ask. Exactly one bullet runs; none is nested under another.
+   - **Yes** → obey `./activate.md` end-to-end. Then STOP.
+   - **No**, and `<target>` equals `JOB_KIT_CONFIG` / host-default
+     (path-convention probe without pointer) → STOP (this profile would
+     auto-activate on emit despite the refusal). Re-run Activate ask.
+   - **No**, otherwise → obey `./activate.md` for Activate-skipped handoff
+     (next-steps only). STOP.
 
 ## References
 

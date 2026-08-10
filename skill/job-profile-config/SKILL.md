@@ -42,7 +42,8 @@ candidate; try the next step. Do not invent a profile path.
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
 Writable here: `data/job_search.yaml`, `data/sources.yaml`, `data/profile_card.yaml`,
-`data/search_packs.yaml`.
+`data/search_packs.yaml`, and their `*.yaml.tmp` staging siblings during atomic
+rename.
 Every other path under Profile root is read-only in this skill.
 
 1. Read `./references/show.md` now; obey it for `show` and `gaps`. Card
