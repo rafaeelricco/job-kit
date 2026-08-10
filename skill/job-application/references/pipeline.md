@@ -163,21 +163,27 @@ holds through this phase: the operator submitted, this skill writes down that th
 `job-scout/references/dossier.md` is the writer SSOT — filename and slug rules,
 quoting and escaping for posting-copied values, injection law, log-line grammar,
 atomic replace, and **URL-keyed exclusive lock** (job-scout Phase 6 may rewrite
-the same posting while this phase runs). Lock path
-`scout/jobs/url-{url-slug}.lock` from the normalized identity URL (slug rules =
-dossier filenames). Exclusive-create via `mkdir` → under that lock only: re-scan
-by URL; match → read → apply only this phase's edits → sibling `*.md.tmp` →
-rename; no match → create; then remove the lock directory. Cap lock-wait retries
-per dossier.md; still locked or write fails → **STOP** and tell the operator to
-set `status: applied` by hand. Never create or rename without that URL's lock.
-Filename locks are not enough — two writers can invent different basenames for
-the same URL and both create.
-Preconditions, per `job-scout/references/pipeline.md` Phase 6 steps 1-2 and 5,
-scoped to the one file: resolve the physical path and **STOP** unless it is still
-under the canonical Profile root; write nothing until `scout/jobs/` lists and the
-target dossier reads and parses; on an unwritable path print the error and the
-path, tell the operator to set `status: applied` by hand, and stop — never fall
-back to another directory, never fail silently.
+the same posting while this phase runs).
+
+Order every write:
+
+1. Ensure store: `mkdir -p scout/jobs` when absent; resolve under Profile root
+   (Phase 6 steps 1-2 and 5). Never acquire a lock before the parent exists —
+   a missing `scout/jobs/` is not lock contention.
+2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
+   `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
+   (dossier.md). Stale lock (>15 min) → reclaim once; live lock → retry cap;
+   permanent errors → **STOP**.
+3. Under the lock only: re-scan by URL; match → read → apply only this phase's
+   edits → sibling `*.md.tmp` → rename over original; no match → create with
+   **exclusive** final-path placement (no clobber; bump `-2`, `-3` on collision
+   per dossier.md).
+4. Release: remove the lock directory even on failure. Still locked or write
+   fails after retries → **STOP** and tell the operator to set `status: applied`
+   by hand.
+
+Never create or rename without that URL's lock. Never exclusive-create a lock
+before `scout/jobs/` exists.
 
 This phase touches two regions and no others: frontmatter `status:`, and new lines
 appended below `<!-- scout never writes below this line -->`. The scout-owned body
@@ -217,17 +223,18 @@ Phase 0 printed `no prior application recorded` with no match, or
 above — the operator applied to a posting that has no dossier under this
 normalized `url`:
 
-- Acquire the URL lock (`url-{url-slug}.lock` per dossier.md), then re-scan
-  `scout/jobs/` for this normalized `url` under the lock. Scout, or another
-  application, may have opened a dossier while the review sat waiting — a URL
-  match under the lock takes the update path (set status, append log + record)
-  on that file. Release the lock when done. A second file for one `url` splits
-  the history the store joins on.
-- `mkdir -p scout/jobs` when absent. Still no URL match under the lock → create
+- `mkdir -p scout/jobs` when absent (before any lock). Then acquire the URL lock
+  (`url-{url-digest}.lock` per dossier.md), re-scan for this normalized `url`
+  under the lock. Scout, or another application, may have opened a dossier while
+  the review sat waiting — a URL match under the lock takes the update path (set
+  status, append log + record) on that file. Release the lock when done. A second
+  file for one `url` splits the history the store joins on.
+- Still no URL match under the lock → create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
-  rules; base name taken by a file whose `url` differs → `-2`, `-3`. That suffix is
-  for two jobs sharing a name, never for one job twice. Create only while holding
-  the URL lock and the re-scan under it still found none.
+  rules; exclusive final-path create only (no clobber); base name taken → try
+  `-2`, `-3` until exclusive create succeeds. That suffix is for two jobs sharing
+  a name, never for one job twice. Create only while holding the URL lock and the
+  re-scan under it still found none.
 - All nine frontmatter keys. `company` / `title` / `url` double-quoted and escaped
   per dossier quoting law, `url` the normalized identity URL from the gate above
   (never `—`);
