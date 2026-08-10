@@ -6,20 +6,21 @@ facts, read back what a run saved. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
-Two install channels: scout and apply run in [Aside Browser](https://aside.com),
-profile init, config, and tracker run in coding agents (Claude Code, Codex, Grok).
+Two install channels: scout, apply, config, and tracker run in
+[Aside Browser](https://aside.com); profile init (plus config and tracker as
+symlinks) run in coding agents (Claude Code, Codex, Grok).
 
-| Skill                | Role                                                                                                | Channel                 | Installed under                     |
-| -------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------- |
-| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)            | `~/.aside/u/0/skills/builtin/`      |
-| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                             | Coding agents (symlink) | `~/.claude`, `~/.agents`, `~/.grok` |
+| Skill                | Role                                                                                                | Channel                         | Installed under                                                     |
+| -------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
+| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                             | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
-Neither Aside skill transmits Submit / Send / final Confirm.
+Neither scout nor apply transmits Submit / Send / final Confirm.
 
 ## Install
 
@@ -40,7 +41,7 @@ bash remote.sh all
 | Argument       | Installs                                                                                           |
 | -------------- | -------------------------------------------------------------------------------------------------- |
 | `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
-| `aside`        | `job-scout` + `job-application` (fails if no Aside)                                                |
+| `aside`        | `job-scout` + `job-application` + `job-profile-config` + `job-tracker` (fails if no Aside)         |
 | `agents`       | `job-profile-init` + `job-profile-config` + `job-tracker` (fails if no agent home)                 |
 | `fetch`        | Nothing — refresh the cached checkout only                                                         |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                        |
@@ -111,15 +112,18 @@ Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; the full ranked report (including People/TA, Dropped, Query log, Gaps)
 stays in chat. `data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — re-running scout never overwrites it, and
-never renames the file.
+dossier's frontmatter as you apply — job-application sets `applied` itself once you
+confirm you submitted, and records the letter, the staged form answers, and the ad
+under the dossier's Application log; later statuses (`interview`, `offer`,
+`rejected`, `dropped`) are yours to set. Re-running scout never overwrites
+`status:`, and never renames the file.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
 application, or `cv/en-us-resume.pdf` as the fallback. With neither,
 job-application stops and asks you to build it.
 
-**3. Tune the search.** Day-2 edits on a profile that already exists, back in a
-coding agent:
+**3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
+or a coding agent:
 
 ```text
 /job-profile-config
@@ -132,7 +136,7 @@ and boards. It writes only `data/job_search.yaml`, `data/sources.yaml`, and
 nothing is written before it prints a diff and you say yes, and it makes no
 network calls.
 
-**4. Read back what scout saved.** Any coding-agent session:
+**4. Read back what scout saved.** In Aside or any coding-agent session:
 
 ```text
 /job-tracker
@@ -205,7 +209,7 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 
 | Choice / target | Removes                                                                                          |
 | --------------- | ------------------------------------------------------------------------------------------------ |
-| Aside           | `job-scout` + `job-application` kit copies                                                       |
+| Aside           | `job-scout` + `job-application` + `job-profile-config` + `job-tracker` kit copies                |
 | Agents          | `job-profile-init` + `job-profile-config` + `job-tracker` kit links (+ legacy `profile-init`)    |
 | Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files |
 | Cache           | Cached checkout at `JOB_KIT_HOME`                                                                |
@@ -216,9 +220,10 @@ profile or cache data requires typing `yes`; a plan of re-installable links take
 `[Y/n]`. `--yes` skips both, `--dry-run` prints the plan and stops.
 
 `--only` selects a subset instead of positional targets — by channel (`aside`,
-`agents`), by Aside skill (`job-scout`, `job-application`), or by agent home
-(`claude`, `codex`, `grok`), plus `profile` and `cache`. An Aside skill subset
-cannot be combined with `cache`: the unselected skill would still point at it.
+`agents`), by Aside skill (`job-scout`, `job-application`, `job-profile-config`,
+`job-tracker`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
+`cache`. An Aside skill subset cannot be combined with `cache`: the unselected
+skill would still point at it.
 
 ```bash
 bash scripts/uninstall.sh --only claude,job-scout --dry-run
