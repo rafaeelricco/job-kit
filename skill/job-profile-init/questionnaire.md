@@ -20,7 +20,11 @@ profile URLs. Do not collect demographic/EEO data.
 
 Show source-derived values and template defaults as proposals. Every field needs
 explicit `confirm`, `edit`, or `skip`; silence is re-asked. Typed defaults need
-explicit `keep`. Never infer legal authorization or language levels.
+explicit `keep`.
+Template bool maps (`work_model`, `job_types`, `date_posted`)
+and `apply_once_at_company` are convenience shells, not facts — require
+`keep` or `edit`; on `skip` write empty/`false`, never retain shipped trues.
+Never infer legal authorization or language levels.
 
 Ask one seniority value and write it as `seniority_level`, for example `entry`,
 `mid-level`, `senior`, or `director`.

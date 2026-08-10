@@ -1,13 +1,15 @@
 # Profile root — recovery (Aside / dual-home)
 
-Ordered probe steps live only in `../SKILL.md`. This file does not redefine order.
+Ordered probe steps are authored in `../SKILL.md` and mirrored (lockstep-edit
+marker) in job-tracker and job-profile-config SKILL.md. This file does not
+redefine order.
 Load when resolve STOPs or steps 2–4 fail.
 
 ## Why dual-home
 
-Aside `$HOME` is often `…/.aside/runtime/home`. Coding-agent `export PROFILE_ROOT`
-from `/job-profile-init` does not appear here unless Aside (or the operator) set it
-for **this** process.
+Aside `$HOME` is often `…/.aside/runtime/home`, so this process may lack
+`PROFILE_ROOT`. Host pointer + host-default probe (SKILL steps 3–4) bridge host
+and Aside.
 
 ## Who writes pointers
 

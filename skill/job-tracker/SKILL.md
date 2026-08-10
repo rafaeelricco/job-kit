@@ -6,6 +6,7 @@ description: "Read this when you need to inspect the job scout store already on 
 # Job tracker
 
 Profile root: resolve in order; print absolute path before any read; STOP if none.
+<!-- mirror of job-scout SKILL.md resolve block (steps 1-5 verbatim) — keep in sync -->
 
 **Probe** (must all pass for a candidate dir): directory exists and is readable;
 contains `data/candidate.yaml` and `data/job_search.yaml`. Unreadable dir
@@ -43,13 +44,14 @@ path: absence means there is nothing to read, a read failure means every answer
 would be wrong. If an old `scout/runs/` directory exists, ignore it — never read
 or require it.
 
-1. Read `./references/read.md` now; obey it end-to-end.
+1. Read `./references/read.md` and `./references/views.md` now, and glob
+   `scout/jobs/` in parallel; obey read.md end-to-end.
 2. Dossiers under `scout/jobs/` are current state — the only store.
 3. Print `score`, `bucket`, and posting facts as they sit on disk. Never re-score,
    never re-derive `bucket`, never open a posting URL to refresh a field.
 4. Unparseable file under `scout/jobs/` → name it under Gaps and keep going. Never
    guess its fields, never repair it.
-5. Deliver per `./references/views.md`, then **STOP**.
+5. Deliver per the view shape already loaded, then **STOP**.
 
 ## References
 

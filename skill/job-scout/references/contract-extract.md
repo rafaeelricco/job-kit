@@ -19,6 +19,10 @@ Unknown value = `—`. NEVER invent a value.
 - Salary, work_auth, hiring_route, seniority-as-fact: **only** from the opened JD page.
 - Carry every search column unchanged. Do not re-derive author or contact.
 
+## Output section
+
+Emit rows under `### Verified`.
+
 ## Search columns (must keep; schema owned by contract-search.md)
 
 `company | title | url | source | channel | author | contact | date | why`

@@ -1,13 +1,13 @@
 work_model:
-  remote: true
-  hybrid: true
+  remote: false
+  hybrid: false
   onsite: false
 
-seniority_level: "senior" # can be "entry (junior), mid-level, senior etc
+seniority_level: "" # entry | mid-level | senior | director — set via questionnaire keep/edit
 
 job_types:
-  full_time: true
-  contract: true
+  full_time: false
+  contract: false
   part_time: false
   temporary: false
   internship: false
@@ -16,22 +16,18 @@ job_types:
 
 date_posted:
   all_time: false
-  month: true
-  week: true
-  "24_hours": true
+  month: false
+  week: false
+  "24_hours": false
 
-positions:
-  - "Software Engineer" # TODO replace with target titles
+positions: [] # confirm target titles; empty → Gap until set
 
 keywords:
   # groups named here become [skill:<group>] tokens expanded by job-scout packs
   primary:
     - "TODO-skill"
-  hiring_model:
-    - "remote"
-    - "Employer of Record"
+  hiring_model: []
 
-locations:
-  - "Remote" # TODO strong-pay markets as needed
+locations: [] # confirm; empty → Gap until set
 
-apply_once_at_company: true
+apply_once_at_company: false # require keep/edit; not a fact until confirmed

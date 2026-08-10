@@ -3,7 +3,7 @@
 Runs only after emit-tree succeeds and profile Approve is explicit (or on an
 already scaffolded target when the operator says "continue fill"). Applies the
 in-memory questionnaire buffer; it does not ask new profile questions.
-Never invent. Full matrix below. Hard refuses: SKILL.md. Never network-import LinkedIn.
+Hard refuses: `SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent.
 
 ## Source gate
 
@@ -26,14 +26,15 @@ Never invent. Full matrix below. Hard refuses: SKILL.md. Never network-import Li
 
 ## Invent matrix
 
-| Class                                                                      | SoT present                                                                                                       | SoT silent                                                                |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR                          | Propose only verbatim / clear synonym, then require questionnaire confirmation                                    | Ask explicitly; skip leaves empty and may produce a Gap                   |
-| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`) | Propose only when SoT prints a clear answer, then require confirmation                                            | Ask explicitly; skip leaves empty; **do not** list under Gaps             |
-| Positions, keywords groups, locations                                      | Propose from SoT only; questionnaire confirmation is required                                                     | Ask explicitly; skip → `[]` + Gaps when empty                             |
-| Experiences, skills, projects, languages (incl. levels, experience URLs)   | Propose only what is printed, then require row/field confirmation                                                 | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps |
-| CV binary                                                                  | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                              | Report only under **### CV** (not Gaps)                                   |
-| Identity (name, email, LI, GH, home_market)                                | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill | Ask explicitly; required fields cannot be skipped                         |
+| Class                                                                                                 | SoT present                                                                                                       | SoT silent                                                                                        |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR                                                     | Propose only verbatim / clear synonym, then require questionnaire confirmation                                    | Ask explicitly; skip leaves empty and may produce a Gap                                           |
+| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)                            | Propose only when SoT prints a clear answer, then require confirmation                                            | Ask explicitly; skip leaves empty; **do not** list under Gaps                                     |
+| Positions, keywords groups, locations                                                                 | Propose from SoT only; questionnaire confirmation is required                                                     | Ask explicitly; skip → `[]` + Gaps when empty                                                     |
+| Search filters (`work_model`, `job_types`, `date_posted`), `seniority_level`, `apply_once_at_company` | Propose only from SoT or template as **proposals**; require confirm/keep/edit                                     | Ask; skip → empty/`false` / `""` — **not** Gaps; never retain shipped template trues without keep |
+| Experiences, skills, projects, languages (incl. levels, experience URLs)                              | Propose only what is printed, then require row/field confirmation                                                 | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps                         |
+| CV binary                                                                                             | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                              | Report only under **### CV** (not Gaps)                                                           |
+| Identity (name, email, LI, GH, home_market)                                                           | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill | Ask explicitly; required fields cannot be skipped                                                 |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
@@ -71,7 +72,7 @@ were confirmed before Approve. Apply them here without re-asking.
 1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf` by path
    (overwrite only if user confirms when a different PDF already exists). Do not
    re-parse PDF text when the SoT buffer already holds facts.
-2. Never generate PDF/LaTeX. Non-PDF SoT → report under **### CV** only (not Gaps).
+2. PDF/LaTeX generation is a Hard refuse (`SKILL.md`). Non-PDF SoT → report under **### CV** only (not Gaps).
 
 ## Post-fill leak gate
 

@@ -1,7 +1,6 @@
 # surface-social
 
-Surface: pack `surface` value (`linkedin_posts` or `x`). Obey CONTRACT_SEARCH
-(gate handling + list-only + schemas live there).
+Surface: pack `surface` value (`linkedin_posts` or `x`). Obey CONTRACT_SEARCH.
 
 ## Deltas
 
