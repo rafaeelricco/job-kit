@@ -20,17 +20,14 @@ date_posted:
   week: false
   "24_hours": false
 
-positions:
-  [] # confirm target titles; empty → Gap until set
+positions: [] # confirm target titles; empty → Gap until set
 
 keywords:
   # groups named here become [skill:<group>] tokens expanded by job-scout packs
   primary:
     - "TODO-skill"
-  hiring_model:
-    []
+  hiring_model: []
 
-locations:
-  [] # confirm; empty → Gap until set
+locations: [] # confirm; empty → Gap until set
 
 apply_once_at_company: false # require keep/edit; not a fact until confirmed
