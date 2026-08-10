@@ -141,11 +141,12 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 path shapes under Profile root: `scout/jobs/*.md`, its `*.md.tmp` staging
 sibling during atomic rename, exclusive lock directories `scout/jobs/*.lock`
 (create via `mkdir`, remove when the write finishes — see `dossier.md`
-concurrent writers), the lock metadata file `scout/jobs/*.lock/acquired_at`,
-and short-lived reclaim siblings `scout/jobs/*.lock.reclaim-*` (rename target
-during stale reclaim only). Every other Profile-root path (`data/`, `cv/`, …)
-is read-only. Never create, write, list-require, or delete `scout/runs/` — an
-orphan from an older revision is ignored.
+concurrent writers), lock metadata `scout/jobs/*.lock/acquired_at` and
+`scout/jobs/*.lock/owner`, and short-lived reclaim/release siblings
+`scout/jobs/*.lock.reclaim-*` / `scout/jobs/*.lock.release-*` (rename targets
+only). Every other Profile-root path (`data/`, `cv/`, …) is read-only. Never
+create, write, list-require, or delete `scout/runs/` — an orphan from an older
+revision is ignored.
 
 1. Resolve `scout/jobs/` and every file you are about to write to its physical
    path first (prospective `scout/jobs` via its deepest existing ancestor), and
