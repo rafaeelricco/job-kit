@@ -56,4 +56,5 @@ separate gates.
 - Generate a CV PDF or LaTeX
 - Run job-scout or job-application
 - Edit a non-empty or donor profile
-- Run a profile's `scripts/install.sh` (legacy/stale; kit does not emit one)
+- Run a **profile** `scripts/install.sh` (legacy/stale; kit does not emit one).
+  Kit install is the checkout's `scripts/install.sh`, never under the profile.

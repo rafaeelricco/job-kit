@@ -180,6 +180,20 @@ ensure_aside_skills_root() {
   }
 }
 
+# install_skills_into DEST_ROOT REPO FORCE
+# Copies every SKILL_NAMES entry into DEST_ROOT; then unlinks legacy names there.
+# Side effects: may mkdir, copy trees, remove kit-owned legacy paths.
+install_skills_into() {
+  local dest_root="$1" repo="$2" force="$3" name source dest
+  ensure_aside_skills_root "${dest_root}" || return 1
+  for name in ${SKILL_NAMES}; do
+    source="$(skill_source "${repo}" "${name}")"
+    dest="$(skill_dest "${dest_root}" "${name}")"
+    copy_skill "${source}" "${dest}" "${force}" "${repo}" || return 1
+  done
+  unlink_legacy_skills "${dest_root}" "${repo}" || return 1
+}
+
 # require_skill_source SOURCE
 # Exit 0 if SOURCE is a skill directory with SKILL.md.
 # Side effects: none. Prints error and returns 1 if missing.
