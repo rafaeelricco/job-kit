@@ -36,7 +36,8 @@ not delete the pointer in either, or this profile stops winning:
 Any other location — including `$XDG_CONFIG_HOME/job-kit` when it differs —
 always gets `~/.config/profile-root` plus the Aside runtime mirror when present. To
 remove this profile tree and kit skills, run the kit uninstaller from a job-kit
-checkout: `bash scripts/uninstall.sh` (choose Profile or All). Path-convention
+checkout: `bash scripts/uninstall.sh` (choose Profile or All; it prints a plan
+and asks before deleting anything). Path-convention
 roots stay active until the tree is deleted.
 
 ## Fill before a useful run

@@ -194,7 +194,8 @@ under Aside's `skills/user/`.
 
 ## Uninstall
 
-One script — interactive pick, or pass targets:
+One script — interactive pick, or pass targets. Every run prints a plan of
+exactly what it will remove before it removes anything:
 
 ```bash
 bash scripts/uninstall.sh
@@ -210,8 +211,18 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 | Cache           | Cached checkout at `JOB_KIT_HOME`                                                                |
 | **All**         | Aside + agents + **profile** + cache                                                             |
 
-Only kit-owned skill paths are removed. **All** / **Profile** permanently delete
-profile facts (type `yes` unless `--yes`). Foreign skills stay.
+Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
+profile or cache data requires typing `yes`; a plan of re-installable links takes
+`[Y/n]`. `--yes` skips both, `--dry-run` prints the plan and stops.
+
+`--only` selects a subset instead of positional targets — by channel (`aside`,
+`agents`), by Aside skill (`job-scout`, `job-application`), or by agent home
+(`claude`, `codex`, `grok`), plus `profile` and `cache`. An Aside skill subset
+cannot be combined with `cache`: the unselected skill would still point at it.
+
+```bash
+bash scripts/uninstall.sh --only claude,job-scout --dry-run
+```
 
 Curl / non-interactive skills-only (does **not** delete profile data):
 
@@ -265,7 +276,7 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-tracker/`        | Read the profile's scout store; never writes     |
 | `scripts/aside/`            | Aside install (scout+apply)                      |
 | `scripts/agents/`           | Coding-agent install (init + config + tracker)   |
-| `scripts/uninstall.sh`      | Single interactive / flagged uninstall           |
+| `scripts/uninstall.sh`      | Single uninstall: plan, confirm, apply           |
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
