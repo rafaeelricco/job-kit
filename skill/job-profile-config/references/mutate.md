@@ -12,13 +12,22 @@ batch — still one diff, one yes.
    `<file>:<line>`, showing only the lines that change.
 4. Wait for an explicit **yes**. Silence, a question, or edits are not a yes. Edits →
    back to step 3 with the revision.
-5. On yes: edit surgically. Never re-serialize the document, never drop comments or
+5. On yes: hold the exact pre-edit contents of every file this cycle will touch
+   — the target and, when the card-clear below fires, `data/profile_card.yaml`.
+   Hold them in memory: the write fence in `../SKILL.md` allows no `.bak` or
+   temp path.
+6. Edit surgically. Never re-serialize the document, never drop comments or
    keys outside the diff.
-6. Re-parse the edited file. Parse fails → print the parser error, do **not**
-   print `wrote`, and offer to revert the edit.
-7. Parse succeeds → print `wrote <abs path>` and re-print only the affected
+7. Re-parse **every** file this cycle wrote. All parse → print
+   `wrote <abs path>` per file and re-print only the affected
    `### Constraints` (or `### Sources`) slice.
-8. On no (step 4): abort; say nothing was written.
+8. Any file fails to parse → restore **every** file in the cycle from the
+   step-5 contents, print the parser error, and say the cycle was rolled back.
+   Never print `wrote`. Never leave a cycle half-applied: the card-clear and
+   its `job_search.yaml` edit stand or fall together. Restoring bytes this
+   protocol just wrote is not the step-2 case — step 2 refuses to overwrite a
+   file that was **already** broken when read.
+9. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
 
