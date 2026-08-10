@@ -416,7 +416,7 @@ install_aside() {
     else
       install_skills_into "${dest_root}" "${repo}" "${force}" || exit 1
     fi
-    remove_legacy_user_skills "${repo}" "${dest_root}" || exit 1
+    remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only:-${SKILL_NAMES}}" || exit 1
   )
 }
 
