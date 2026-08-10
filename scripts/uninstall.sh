@@ -885,10 +885,10 @@ plan_preflight() {
 expand_only() {
   local list="$1" tok
   local want_aside=0 want_agents=0 want_profile=0 want_cache=0
-  local want_claude=0 want_codex=0 want_grok=0 named_agent=0
+  local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
-      aside) want_aside=1; ASIDE_ONLY="" ;;
+      aside) want_aside=1; whole_aside=1 ;;
       job-scout|job-application)
         want_aside=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -906,6 +906,10 @@ expand_only() {
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
   fi
+  # `aside` names the whole channel, so it dominates any subset item in the same
+  # list — cleared after the loop, not inside it, or `aside,job-scout` would
+  # narrow to a subset while `job-scout,aside` removed both.
+  [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # A deselected Aside skill survives the unlink phase still pointing at the
   # cache, so the purge would refuse mid-run. Refuse the combination instead.
   if [ -n "${ASIDE_ONLY}" ] && [ "${want_cache}" -eq 1 ]; then
