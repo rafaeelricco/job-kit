@@ -7,11 +7,11 @@ Never paste into a worker brief. Workers never write.
 
 ```
 scout/
-  runs/2026-08-08-scout.md              # persisted subset, per scout-report.md
   jobs/2026-08-08-ambar--senior-software-engineer.md
 ```
 
-`scout/` is created by this phase, never by `job-profile-init`.
+`scout/jobs/` is created by this phase, never by `job-profile-init`. Never write
+`scout/runs/`.
 
 ## Filename
 
@@ -108,7 +108,7 @@ Never re-derive; never invent a contact.
 
 <!-- scout never writes below this line -->
 
-- 2026-08-08 · found by scout · run `scout/runs/2026-08-08-scout.md`
+- 2026-08-08 · found by scout
 ```
 
 ## Re-run rules
