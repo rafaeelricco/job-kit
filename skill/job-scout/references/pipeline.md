@@ -137,17 +137,25 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 
 ## Phase 6 — PERSIST (main only) → STOP
 
-**Writable SSOT for this skill.** Main writes; a worker never does. Only two
-path shapes under Profile root: `scout/jobs/*.md` and its `*.md.tmp` staging
-sibling during atomic rename. Every other Profile-root path (`data/`, `cv/`, …)
-is read-only. `mkdir -p scout/jobs` on first run. Never create, write,
-list-require, or delete `scout/runs/` — an orphan from an older revision is ignored.
+**Writable SSOT for this skill.** Main writes; a worker never does. Only these
+path shapes under Profile root: `scout/jobs/*.md`, exclusive lock directories
+`scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
+`dossier.md` concurrent writers), lock metadata `scout/jobs/*.lock/acquired_at`
+and `scout/jobs/*.lock/owner`, lock-internal place staging
+`scout/jobs/*.lock/place-*`, short-lived reclaim siblings
+`scout/jobs/*.lock.reclaim-*`, and release-claim siblings
+`scout/jobs/*.lock.released-*`.
+Every other Profile-root path (`data/`, `cv/`, …) is read-only. Never create,
+write, list-require, or delete `scout/runs/` — an orphan from an older
+revision is ignored.
 
 1. Resolve `scout/jobs/` and every file you are about to write to its physical
-   path first, and **STOP** unless that path is still under the canonical Profile
-   root. A store or dossier that is a symlink out of the tree passes every
-   listability and parse check while the write lands somewhere else — the writable
-   path shapes above are a containment rule, not a spelling.
+   path first (prospective `scout/jobs` via its deepest existing ancestor), and
+   **STOP** unless that path is still under the canonical Profile root. Only
+   then `mkdir -p scout/jobs` when absent. A store or dossier that is a symlink
+   out of the tree passes every listability and parse check while the write lands
+   somewhere else — the writable path shapes above are a containment rule, not a
+   spelling. Never `mkdir` through an out-of-tree symlink.
 2. Write nothing until `scout/jobs/` can be **listed**, and every existing dossier
    can be **read and parsed**. A store that is writable but not listable (or a
    dossier that will not parse) cannot answer which file a `url` already owns,

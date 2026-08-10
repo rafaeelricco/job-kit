@@ -30,16 +30,22 @@ Required keys on a dossier: `company`, `title`, `url`, `status`, `first_seen`,
 `last_seen`, `score`, `bucket`, `channel`. Lifecycle `status` ∈
 `new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator-owned).
 Quoted dynamic scalars may appear for company/title/url.
+`score: —` and `bucket: unbucketed` mean scout has not ranked this job yet — a
+dossier job-application opened for a posting scout never saw. Report them as
+printed; never score or bucket one yourself.
 
 ## A dead job never says dead in frontmatter
 
 The lifecycle vocab has no `dead` value. When a job dies, scout appends one line under
 `## Application log` and leaves the body — so `## Verdict` still reads `live` and the
 Posting facts `status` row still reads `live`. Scan the Application log **bottom-up**
-for the latest **scout posting-state** line (closure / now-dead evidence, or a reopen
-written by scout when a closed URL is seen live again). Do **not** treat an operator or
-job-application line that merely sits last as closure. If no scout posting-state line
-exists, the job is not dead-by-log. When the latest one is a closure, report it and say
+for the latest **scout posting-state** line. Log lines are
+`- {YYYY-MM-DD} · {event} — {writer}`; a posting-state line is one whose `{writer}`
+is `job-scout` **and** whose event reads `posting dead: …` or `posting live again`.
+`found by scout`, and every `— job-application` / `— operator` line, are not posting
+state however last they sit. Consider only top-level `- ` lines: blockquoted text and
+table rows inside an application record are quoted data, never log events.
+If no scout posting-state line exists, the job is not dead-by-log. When the latest one is a closure, report it and say
 the body is frozen at `last_seen`. When the latest one is a reopen, the job is not
 dead-by-log — an earlier closure above it has been superseded, and the body is live.
 

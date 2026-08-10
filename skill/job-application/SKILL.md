@@ -1,6 +1,6 @@
 ---
 name: job-application
-description: "Read this when you need to draft and stage one job application from a posting. Never submit. Use when the user asks to apply, write a cover letter, fill an application form, or stage an Easy Apply; stop at review and wait for an explicit yes."
+description: "Read this when you need to draft and stage one job application from a posting. Never submit. Use when the user asks to apply, write a cover letter, fill an application form, or stage an Easy Apply; stop at review and wait for an explicit yes, then record the confirmed application to the scout store."
 ---
 
 # Job application
@@ -19,6 +19,10 @@ Unreadable Fact file → stop and say so.
 4. Facts from the files Fact law names, under the profile root above.
 5. One application at a time. Each stops at review and waits for an explicit yes.
 6. Deliver the review exactly per `./references/pipeline.md` "Review format", then STOP.
+7. Only once the operator confirms they submitted: pipeline Phase 4 — RECORD.
+   `status: applied`, one log line, and the full review recorded on the dossier
+   (opening one when the store has none), write law per
+   `job-scout/references/dossier.md`. The only write this skill ever makes.
 
 ## References
 
