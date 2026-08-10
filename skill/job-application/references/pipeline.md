@@ -160,12 +160,15 @@ holds through this phase: the operator submitted, this skill writes down that th
 
 `job-scout/references/dossier.md` is the writer SSOT — filename and slug rules,
 quoting and escaping for posting-copied values, injection law, log-line grammar,
-atomic replace, and **concurrent-writer compare-and-retry** (job-scout Phase 6
-may rewrite the same file while this phase runs). Update path: read full file as
-`base` → apply only this phase's edits → write sibling `*.md.tmp` → re-read; if
-still equal to `base`, rename over original; if not, retry from the new base, cap
-3, then **STOP** and tell the operator to set `status: applied` by hand. Never
-rename over a base that changed. Never rewrite in place.
+atomic replace, and **exclusive lock across the full update** (job-scout Phase 6
+may rewrite the same file while this phase runs). Update path: exclusive-create
+`scout/jobs/{basename}.md.lock` via `mkdir` (fails if held) → under that lock
+only: read → apply only this phase's edits → sibling `*.md.tmp` → rename over
+original → remove the lock directory. Cap lock-wait retries per dossier.md;
+still locked or write fails → **STOP** and tell the operator to set
+`status: applied` by hand. Never rename without the lock. Never rewrite in place.
+Check-then-rename without a lock is not enough — two writers can both pass a
+re-read equality check and the later rename still drops the earlier write.
 Preconditions, per `job-scout/references/pipeline.md` Phase 6 steps 1-2 and 5,
 scoped to the one file: resolve the physical path and **STOP** unless it is still
 under the canonical Profile root; write nothing until `scout/jobs/` lists and the
