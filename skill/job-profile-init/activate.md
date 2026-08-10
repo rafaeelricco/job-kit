@@ -9,19 +9,18 @@
 4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
    `JOB_KIT_CONFIG` (non-empty `$XDG_CONFIG_HOME` → `$XDG_CONFIG_HOME/job-kit`,
    else `HOST_DEFAULT`). Path-convention branch when `REPO` equals
-   `HOST_DEFAULT` **and** pure convention applies: this process is **not**
-   inside Aside runtime (`$HOME` does not end with `/.aside/runtime/home`)
-   **and** `JOB_KIT_CONFIG` either equals `HOST_DEFAULT` or fails the two-file
-   probe (after `pwd -P` when dirs exist). Skills always probe host-default
-   after any XDG candidate; pure convention needs no pointer only when no
-   valid XDG profile would outrank it and host XDG is observable.
+   `HOST_DEFAULT` **and** this process is **not** inside Aside runtime (`$HOME`
+   does not end with `/.aside/runtime/home`) **and** `JOB_KIT_CONFIG` either
+   equals `HOST_DEFAULT` or fails the two-file probe. Host-default needs no
+   pointer except the two exceptions in `../templates/README.md` (XDG
+   outranks it, or activation ran inside Aside) — see the fall-through below.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.
    - **Do clear** shadowing registrations: read host
      `$HOST_HOME/.config/profile-root` and, when the runtime home exists,
      `$HOST_HOME/.aside/runtime/home/.config/profile-root`. Delete both
      together; if mirror removal fails after host delete, **restore** the host
-     pointer (same atomicity as install.sh).
+     pointer.
    - Host or mirror line non-empty and resolves to a path other than `REPO`
      (or is unresolvable non-empty) → show that path; ask whether to switch to
      host-default `REPO`. Yes → delete host pointer and mirror; state switched;
@@ -67,7 +66,7 @@
    - Host pointer absent or empty, no mirror conflict, but `REPO` is
      host-default and this-env `JOB_KIT_CONFIG` differs and passes the probe →
      active XDG convention is a conflict; ask to switch (Activate Yes already
-     covers the skill path; manual `install.sh` requires `--yes`).
+     covers the skill path).
    - Only an absent/empty host pointer **and** no mirror conflict **and** no
      XDG-convention conflict skips the switch ask.
 6. `mkdir -p "$HOST_HOME/.config"` and write exactly one line: canonical
@@ -86,15 +85,17 @@
    host-default path-convention probe + dual-home read + (otherwise) host
    pointer and runtime mirror cover Aside.
 9. Print `./next-steps.md` with placeholders filled, then STOP:
-   - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, including
+   - `{{GAPS_LINE}}` — if the fill report has any scout-critical Gaps remaining,
+     set to a single line:
+     `- Resolve remaining Gaps from the fill report: <gap bullets or summary>.`
+     If none (or register-existing wrote no tree): set to **empty** (omit the line).
+     Remaining Gaps from the fill report include
      skipped **scout-critical** blockers (not optional/preference shells).
      **Scaffold-only: report the gaps the completed fill actually left**, and
      fall back to the `./emit-tree.md` unfilled inventory only for values still
      holding their placeholder. The questionnaire now confirms positions,
      keywords, locations, and blockers during the same run, so printing the
      whole inventory would claim resolved fields still read `TODO-skill`.
-     `none` is correct when the fill left no scout-critical gap, and for
-     register-existing, where this flow wrote no tree.
    - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
      host path written + mirror yes/no (including XDG-only defaults); session
      export yes/no. If skipped: how to Activate later — re-run
@@ -104,6 +105,10 @@
      Never print bare `bash scripts/agents/install.sh` or
      `bash scripts/aside/install.sh` without an absolute kit root or the
      README get-kit recipe. Operator is often only in a profile directory.
+   - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
+     file: set to **empty** (omit the line). Else set to:
+     `- If CV not placed: add cv/en-us-resume.pdf before job-application attachments.`
+     Register-existing: probe the same path under `<target>`.
 
    **Resolve `KIT_ROOT` (optional):** take the real path of this skill
    directory (`…/skill/job-profile-init`). Parent of `skill/` is a candidate

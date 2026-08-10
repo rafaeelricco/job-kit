@@ -7,7 +7,7 @@ Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
 | Path                                                    | Supplies                                                                                                                 |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `data/job_search.yaml`                                  | work_model, seniority_level, job_types, date_posted, positions, keywords.*, locations, apply_once_at_company             |
-| `data/candidate.yaml`                                   | salary_range_usd, notice_period, legal_authorization._, employment_routes._, work_preferences_from_resume.*, home_market |
+| `data/candidate.yaml`                                   | salary_range_usd, notice_period, legal_authorization.*, employment_routes.*, work_preferences_from_resume.*, home_market |
 | `data/sources.yaml`                                     | groups → rows (name, url, access)                                                                                        |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                     |
 | `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                               |
@@ -32,23 +32,18 @@ file order, then `name — url (access)` rows.
 enabled|disabled · tokens`. Absent → one line saying job-scout will use the kit
 fallback deck; never print the fallback's contents as if they were the profile's.
 
-Unknown value = `—`, never invented. Card field rules:
-
-- **Always derive from current `job_search.yaml`** (never prefer the cache):
-  `primary_role` ← `positions[0]`; `seniority` ← `seniority_level` verbatim;
-  `target_stack` ← `keywords.*` values, groups
-  in file order. These change
-  via `set` without touching `profile_card.yaml`, so a cached value is stale.
-- **Other card fields** (`top_skills`, `industries`, `languages`, `summary`):
-  `data/profile_card.yaml` present → its non-empty fields win; derive only what
-  it leaves empty.
+Unknown value = `—`, never invented. Card field source rules: full per-field
+table in `./profile-card-schema.md` (single SSOT — load it here too, not only
+for `refresh-card`). Cache present → its non-empty fields win except
+`primary_role`/`seniority`/`target_stack`, always re-derived from current
+`job_search.yaml` since `set` does not touch `profile_card.yaml`.
 
 Say which: `card: profile_card.yaml`, `card: derived`, or `card: hybrid`
 (cache present but at least one always-derived field came from facts).
 
 ## Gaps
 
-Print **only** these — the `job-profile-init` `fill.md` "Gaps allowlist only" set:
+Print **only** these — this skill's own Gaps allowlist:
 
 - `salary_expectations.salary_range_usd`
 - `availability.notice_period`
@@ -58,13 +53,12 @@ Print **only** these — the `job-profile-init` `fill.md` "Gaps allowlist only" 
 
 `keywords` counts as a gap only when **no** group holds a non-empty list. Groups are
 named by the operator and expand as `[skill:<group>]` tokens, so a profile with
-`ai` and `backend` but no `primary` is complete — do not nag for a group name
-`fill.md` happens to use as its example.
+`ai` and `backend` but no `primary` is complete — do not nag for any single
+group name.
 
 Never Gaps: remote / in-person prefs (`in_person_work*`),
 `direct_contractor`, `local_employment`, empty `projects.yml` / `languages.yaml` /
 experience `url.*`, CV. Nothing outstanding → `Gaps: none`.
 
-Shipped template defaults count as empty, not as answers: `positions:
-["Software Engineer"]`, any keyword value `TODO-skill`, `locations: ["Remote"]`
-alone. Name them as unset.
+Shipped template defaults count as empty, not as answers: any keyword value
+`TODO-skill`. Name it as unset.

@@ -10,6 +10,7 @@ Day-2 edits on a profile that already passes the probe. Creating a profile is
 Every mutation is diff → confirm → write; nothing is written before an explicit yes.
 
 Profile root: resolve in order; print absolute path before any work; STOP if none.
+<!-- mirror of job-scout SKILL.md resolve block (steps 1-5 verbatim) — keep in sync -->
 
 **Probe** (must all pass for a candidate dir): directory exists and is readable;
 contains `data/candidate.yaml` and `data/job_search.yaml`. Unreadable dir
@@ -44,9 +45,12 @@ Writable here: `data/job_search.yaml`, `data/sources.yaml`, `data/profile_card.y
 `data/search_packs.yaml`.
 Every other path under Profile root is read-only in this skill.
 
-1. Read `./references/show.md` now; obey it for `show` and `gaps`.
+1. Read `./references/show.md` now; obey it for `show` and `gaps`. Card
+   derivation (cache absent or hybrid) also needs
+   `./references/profile-card-schema.md` — load it then, not only for
+   `refresh-card`.
 2. Any mutation: obey `./references/mutate.md` end-to-end (parse → diff → yes → write).
-3. `refresh-card` writes the shape in `./references/profile-card-schema.md`, nothing else.
+3. `refresh-card` writes the shape in `./references/profile-card-schema.md`.
 4. No mutation intent → run `show`, then STOP.
 
 ## Commands

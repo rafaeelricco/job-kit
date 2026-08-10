@@ -76,7 +76,9 @@ Factors and sum exactly as `### Score audit` printed them. A mismatch is a defec
 
 ## Posting facts
 
-Every extract key from `contract-extract.md`. `—` = the page did not print it.
+Every extract key from `contract-extract.md` except `jd_excerpt` (its own
+`## From the posting` section), plus main-derived `blocker`. `—` = the page
+did not print it.
 
 | key             | value              |
 | --------------- | ------------------ |

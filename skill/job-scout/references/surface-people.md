@@ -1,8 +1,8 @@
 # surface-people
 
-Surface: `people`. Contacts only (`### Contacts`, never `### Candidates`; never extract).
-Obey CONTRACT_SEARCH (gate handling + list-only + schemas live there).
+Surface: `people`. Obey CONTRACT_SEARCH.
 
 ## Deltas
 
-1. Report only a profile you actually opened; drop the rest.
+1. Contacts only (`### Contacts`, never `### Candidates`; never extract).
+2. Report only a profile you actually opened; drop the rest.

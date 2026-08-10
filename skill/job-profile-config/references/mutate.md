@@ -13,9 +13,12 @@ batch — still one diff, one yes.
 4. Wait for an explicit **yes**. Silence, a question, or edits are not a yes. Edits →
    back to step 3 with the revision.
 5. On yes: edit surgically. Never re-serialize the document, never drop comments or
-   keys outside the diff. Then print `wrote <abs path>` and re-print only the affected
+   keys outside the diff.
+6. Re-parse the edited file. Parse fails → print the parser error, do **not**
+   print `wrote`, and offer to revert the edit.
+7. Parse succeeds → print `wrote <abs path>` and re-print only the affected
    `### Constraints` (or `### Sources`) slice.
-6. On no: abort; say nothing was written.
+8. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
 

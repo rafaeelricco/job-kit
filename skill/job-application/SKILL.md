@@ -5,8 +5,8 @@ description: "Read this when you need to draft and stage one job application fro
 
 # Job application
 
-Profile root: **same ordered resolver as job-scout** — obey `job-scout/SKILL.md`
-Profile root steps (SSOT). Recovery essay: `job-scout/references/profile-root.md`.
+Profile root: same ordered resolver as job-scout — steps SSOT in `job-scout/SKILL.md`.
+On STOP / resolve fail: `job-scout/references/profile-root.md`.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 
