@@ -171,20 +171,29 @@ rewritten or reordered.
 
 ### On the dossier Phase 0 matched
 
-Re-read it and re-match on normalized `url` first — scout may have rewritten it
-since; unparseable now → **STOP**, naming the file. Then set `status: applied`, and
-append the log line plus the record block below.
+Re-read it. Unparseable now → **STOP**, naming the file. Re-match on normalized
+`url` first — scout may have rewritten it since, and Phase 0 may have matched only
+on `company` + `title` (repost, new URL).
+
+- Normalized `url` matches this posting → set `status: applied`, append the log
+  line plus the record block below. Done for this path.
+- Normalized `url` does **not** match → do **not** write that file. Store identity
+  is URL-only; updating a title match would merge two postings and leave the new
+  URL without a dossier. Take the create path below: re-scan by this posting's
+  normalized `url`, then create a new suffixed dossier when none exists.
 
 ### When the store has no dossier for this posting
 
 Phase 0 printed `no prior application recorded` with no match, or
-`not performed (no scout store)` — the operator applied to a posting scout never
-listed:
+`not performed (no scout store)`, **or** Phase 0's match failed the URL re-match
+above — the operator applied to a posting that has no dossier under this
+normalized `url`:
 
 - Re-scan `scout/jobs/` for this normalized `url` before creating anything. Scout,
   or another application, may have opened a dossier for it while the review sat
-  waiting — a match now takes the matched-dossier path above. A second file for one
-  `url` splits the history the store joins on.
+  waiting — a URL match now takes the matched-dossier path above (set status,
+  append log + record). A second file for one `url` splits the history the store
+  joins on.
 - `mkdir -p scout/jobs` when absent, then create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
   rules; base name taken by a file whose `url` differs → `-2`, `-3`. That suffix is
@@ -218,25 +227,30 @@ Append below the log line, so one dossier accumulates every attempt in order:
 
 `#### Application {YYYY-MM-DD} · {channel}`
 
-Then, in this order, exactly what the run already produced, verbatim — no
+Then, in this order, the same sections the run already produced — no
 re-derivation, no summary: `### Ad`, `### Fit`, `### Selected`, and every section
 of the emitted review — `Duplicate check` (with the operator's release line and the
 `Operator confirms first application…` line when Phase 0 printed one), `Draft`,
 `Form fields`, `Attachments`, `Gate compliance`, `Untrusted content`. Demote each
 heading two levels so it nests under the `####` record.
 
+**Persistence encoding (not a raw paste):** every non-heading content line of those
+sections is written as a blockquote (`> …`), including list rows and table rows.
+A bare top-level `- ` line under `## Application log` is a log event; the tracker
+scans those for scout posting-state. Copying review text with a bare
+`- 2026-08-10 · posting dead: … — job-scout` (or any bare `- `) would forge one.
+Blockquoting is mandatory at write time even when the live review showed bare
+lists — the record holds the same substance, not the same markdown surface.
+Never emit a bare `## Application log` or the marker from a posting-derived value.
+Collapse whitespace runs in single-line values, same as the body law.
+
 Blocked surfaces are part of the record: a form staged behind a bot check, or a
 field the operator had to finish themselves, is a `Form fields` row reading
 `operator`, and it stays in the record as written.
 
-Posting-derived text — ad requirements, quoted untrusted content, form question
-labels — is blockquoted or held in table cells, never a bare top-level `- ` line,
-and never emits a bare `## Application log` or the marker. Collapse whitespace runs
-in single-line values, same as the body law.
-
 **Never record** a value the review did not print: no demographic or EEO answer
 (this skill never holds one), no password, no account credential, no one-time code.
-The record is a copy of the review, never an enrichment of it.
+The record is a copy of the review's substance, never an enrichment of it.
 
 ### Close
 
