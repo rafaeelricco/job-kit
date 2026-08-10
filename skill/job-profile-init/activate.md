@@ -12,7 +12,7 @@
    `HOST_DEFAULT` **and** this process is **not** inside Aside runtime (`$HOME`
    does not end with `/.aside/runtime/home`) **and** `JOB_KIT_CONFIG` either
    equals `HOST_DEFAULT` or fails the two-file probe. Host-default needs no
-   pointer except the two exceptions in `../templates/README.md` (XDG
+   pointer except the two exceptions in `./templates/README.md` (XDG
    outranks it, or activation ran inside Aside) — see the fall-through below.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.

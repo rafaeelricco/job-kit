@@ -79,8 +79,10 @@ Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
 Parallelism: `max_parallel` SSOT. Never two LI-session packs concurrent
-(any pack whose `entry` host is `linkedin.com`). Launch up to `max_parallel` →
-join → Phase 2 MERGE.
+— a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
+`linkedin.com` or ends `.linkedin.com`. Both keys count: `surface` alone misses
+`people-ta`, and a host alone is unevaluable for a `from data/sources.yaml …`
+entry. Launch up to `max_parallel` → join → Phase 2 MERGE.
 Every pack attempted (`auth_gate` is pack defect).
 Expect `### Candidates` + `### Defect log` per unit (`### Contacts` +
 `### Defect log` for people packs) — headings defined in `contract-search.md`.

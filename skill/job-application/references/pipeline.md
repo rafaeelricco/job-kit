@@ -57,14 +57,18 @@ would assert what the scan could not verify.
 rebuild it from `company` + `title`: the match was made on frontmatter, and the
 prefix is that dossier's `first_seen`, not today.
 
-`scout/` absent → `Duplicate check: not performed (no scout store).` No scout
-store to check against → `Operator confirms first application to {company}
-for {role}.` Never omit. Never soften to "probably first". Never infer from
-memory.
+`scout/` absent → `Duplicate check: not performed (no scout store).`
 `scout/` present but unreadable (permissions, sandbox) → **STOP**, naming the
 path. Absence means there is nothing to check; a read failure means prior
 applications cannot be ruled out, and reporting "no scout store" there would
 disable the guard exactly when it is needed.
+
+Either non-blocking outcome — `no prior application recorded` or
+`not performed` — then requires
+`Operator confirms first application to {company} for {role}.`
+Never omit. Never soften to "probably first". Never infer from memory. A clean
+scan proves only that this store holds no record; it cannot see an application
+made outside the tracker.
 
 **Ad gate (outcome):** `### Ad` printed. Duplicate check, prechecks, untrusted
 harvest, and Fit all run in parallel off `### Ad`; Select waits on an
@@ -78,7 +82,7 @@ all-green gate:
    → **STOP** at the gate until they answer
 
 **Scheduling:** all four items and Fit run in parallel immediately after
-`### Ad`. Select waits on the all-green gate (2-4 clear) and on Fit.
+`### Ad`. Select waits on the all-green gate (1-4 clear) and on Fit.
 
 ## Phase 1 — FIT
 
@@ -166,8 +170,9 @@ No preamble. Nothing is transmitted before the yes.
 ### Duplicate check
 
 Reprint the Phase 0 `Duplicate check:` line verbatim, and — when it named a
-non-`new` match — the operator's answer that released it. Never re-derive it
-here, never omit the section.
+non-`new` match — the operator's answer that released it. Reprint the
+`Operator confirms first application…` line too whenever Phase 0 printed one.
+Never re-derive it here, never omit the section.
 
 ### Draft
 

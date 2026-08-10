@@ -2,8 +2,10 @@
 
 Pick the shape the question asks for. Unknown = `—`, never invented.
 Every shape ends with a `### Gaps` list naming files skipped, unparseable, or unreadable.
-Rows plus `### Gaps` entries must account for every file globbed under
-`scout/jobs/`; a mismatch is a defect to report, never repair.
+In `## All jobs` and `## Status board`, emitted rows plus `### Gaps` entries
+must account for every file globbed under `scout/jobs/`; a mismatch is a defect
+to report, never repair. `## One job` accounts only for the dossier asked for —
+never name a job the operator did not ask about, in rows or in Gaps.
 
 ## All jobs
 
