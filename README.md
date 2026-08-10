@@ -268,18 +268,18 @@ Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
 multi-target install also removes legacy kit links there, which the
 `CLAUDE_SKILLS` single-dest escape hatch skips.
 
-| Path                        | Role                                             |
-| --------------------------- | ------------------------------------------------ |
-| `skill/job-scout/`          | Scout law, contracts, surfaces                   |
-| `skill/job-application/`    | Apply law, draft contract                        |
-| `skill/job-profile-init/`   | Intake + templates for empty profiles            |
-| `skill/job-profile-config/` | Show + edit search intent and boards             |
-| `skill/job-tracker/`        | Read the profile's scout store; never writes     |
+| Path                        | Role                                                |
+| --------------------------- | --------------------------------------------------- |
+| `skill/job-scout/`          | Scout law, contracts, surfaces                      |
+| `skill/job-application/`    | Apply law, draft contract                           |
+| `skill/job-profile-init/`   | Intake + templates for empty profiles               |
+| `skill/job-profile-config/` | Show + edit search intent and boards                |
+| `skill/job-tracker/`        | Read the profile's scout store; never writes        |
 | `scripts/install.sh`        | Single install: plan, confirm, apply (aside+agents) |
-| `scripts/aside/`            | Aside lib + thin install wrapper                 |
-| `scripts/agents/`           | Agents lib + thin install wrapper                |
-| `scripts/uninstall.sh`      | Single uninstall: plan, confirm, apply           |
-| `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone) |
+| `scripts/aside/`            | Aside lib + thin install wrapper                    |
+| `scripts/agents/`           | Agents lib + thin install wrapper                   |
+| `scripts/uninstall.sh`      | Single uninstall: plan, confirm, apply              |
+| `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone)    |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-config packs`. `impl` stems must
