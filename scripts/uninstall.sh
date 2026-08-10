@@ -785,6 +785,10 @@ plan_rows_cache() {
   fi
   dest="$(resolve_cache_path "${raw}")"
   printf 'X%sPURGE CACHE%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+  # purge_cache drops a live symlink in a second step after the tree, so the
+  # link is its own removal — the manifest counts it like the profile aliases.
+  [ ! -L "${raw}" ] \
+    || printf 'X%sremove alias%s%s\n' "${ROW_FS}" "${ROW_FS}" "${raw}"
 }
 
 # build_plan TARGET… — every manifest row, in apply order.
