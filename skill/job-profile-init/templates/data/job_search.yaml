@@ -3,13 +3,7 @@ work_model:
   hybrid: true
   onsite: false
 
-experience_level:
-  internship: false
-  entry: false
-  associate: false
-  mid_senior_level: true
-  director: false
-  executive: false
+seniority_level: "senior" # can be "entry (junior), mid-level, senior etc
 
 job_types:
   full_time: true
@@ -41,13 +35,3 @@ locations:
   - "Remote" # TODO strong-pay markets as needed
 
 apply_once_at_company: true
-
-distance_km: 100000
-
-company_blacklist: []
-
-title_blacklist:
-  - Internship
-  - Junior
-
-location_blacklist: []

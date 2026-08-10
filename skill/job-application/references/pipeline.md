@@ -35,13 +35,47 @@ forward, and name the ones you dropped. Pick the title whose printed stack overl
 `data/skills.yaml`; a title the ad prints with no stack of its own wins only when it is the
 only title. NEVER address two titles in one letter.
 
+Then print `### Duplicate check`, before any evidence work.
+
+Read `scout/jobs/` under Profile root. Normalize this posting's URL first, per
+`job-scout/references/contract-search.md` "URL normalize" — the stored `url` is
+already normalized, so a tracked link (`?utm_source=…`, `#fragment`) matches
+nothing until you do. A dossier whose normalized `url` matches this posting,
+or whose `company` + `title` match, and whose `status:` is not `new` → print
+`Duplicate check: {status} per scout/jobs/{filename}` and **STOP** for the
+operator's call (no Fit, no Phase 3). No date: the dossier stores `first_seen`
+and `last_seen`, neither of which records when `status:` changed, and a scout
+date printed as the application date would be a fabrication.
+No match, or `status: new` → `Duplicate check: no prior application recorded.`
+
+A dossier under `scout/jobs/` that cannot be read, or whose frontmatter will not
+parse, is a failed check and never a non-match → **STOP**, naming the file. It may
+be the prior application for this posting, and "no prior application recorded"
+would assert what the scan could not verify.
+
+`{filename}` is the dossier's name as listed on disk, date prefix included. Never
+rebuild it from `company` + `title`: the match was made on frontmatter, and the
+prefix is that dossier's `first_seen`, not today.
+
+`scout/` absent → `Duplicate check: not performed (no scout store).`
+`scout/` present but unreadable (permissions, sandbox) → **STOP**, naming the
+path. Absence means there is nothing to check; a read failure means prior
+applications cannot be ruled out, and reporting "no scout store" there would
+disable the guard exactly when it is needed.
+`Operator confirms first application to {company} for {role}.`
+Never omit. Never soften to "probably first". Never infer from memory.
+This runs here and not in Review because Review is emitted after Phase 3 has
+already composed the draft — a duplicate has to reach the operator before that.
+
 **Ad gate (outcome):** `### Ad` printed **and** terminal prechecks green before Fit:
 
 1. Untrusted harvest done (quotes ready for Review `### Untrusted content`)
 2. CV path resolvable — missing/unopenable PDF → **STOP** (no Fit, no Phase 3)
 3. Ad-stated Gate precheck — Facts cannot meet a hard format requirement → **STOP**
    (no Fit, no Phase 3)
-   2–3 green before Fit. Track 1 and Fit may parallel after 2–3 green. Select waits
+4. `### Duplicate check` printed, and a non-`new` match answered by the operator
+   → **STOP** until they answer (no Fit, no Phase 3)
+   2–4 green before Fit. Track 1 and Fit may parallel after 2–4 green. Select waits
    on Fit only.
 
 ## Phase 1 — FIT
@@ -130,9 +164,9 @@ No preamble. Nothing is transmitted before the yes.
 
 ### Duplicate check
 
-`Duplicate check: not performed (this pack keeps no tracker).`
-`Operator confirms first application to {company} for {role}.`
-Never omit. Never soften to "probably first".
+Reprint the Phase 0 `Duplicate check:` line verbatim, and — when it named a
+non-`new` match — the operator's answer that released it. Never re-derive it
+here, never omit the section.
 
 ### Draft
 

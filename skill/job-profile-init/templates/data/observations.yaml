@@ -1,0 +1,3 @@
+# Human-provided details not represented by structured profile fields.
+# job-scout and job-application do not consume this file.
+observations: []

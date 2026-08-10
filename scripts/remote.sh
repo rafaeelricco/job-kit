@@ -39,10 +39,14 @@ Install channels:
   fetch     Refresh the cached checkout, install nothing
 
 Uninstall:
-  uninstall           Both channels (default target: all)
+  uninstall           Aside + agent skills (default target: all)
   uninstall all       Same
   uninstall aside     Aside only
   uninstall agents    Coding agents only
+
+  Interactive (profile data + menu): bash scripts/uninstall.sh
+  from a local or cached checkout. Remote uninstall never deletes
+  ~/.config/job-kit.
 
   -h, --help  Show this help
 
@@ -81,9 +85,18 @@ die() { echo "error: $*" >&2; exit 1; }
 # `skill/` alone is never enough. Single source of truth for the filesystem
 # ownership probe and (when used) the git-ref ownership probe.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
-scripts/agents/uninstall.sh
 scripts/aside/install.sh scripts/aside/lib.sh
-scripts/aside/uninstall.sh
+scripts/uninstall.sh
+skill/job-profile-init/SKILL.md
+skill/job-scout/SKILL.md
+skill/job-application/SKILL.md"
+
+# Ownership signature for caches predating the unified uninstaller: the same
+# set minus `scripts/uninstall.sh`, which those revisions never shipped. Only
+# the migration refresh in `ensure_kit_cache` may use it, and only after a
+# channel `uninstall.sh` has already proved the tree is an older job-kit.
+KIT_LEGACY_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+scripts/aside/install.sh scripts/aside/lib.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md
 skill/job-application/SKILL.md"
@@ -95,7 +108,8 @@ skill/job-application/SKILL.md"
 # without SKILL.md, and by then the cache has already been replaced — so the
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
-skill/job-profile-config/SKILL.md"
+skill/job-profile-config/SKILL.md
+skill/job-tracker/SKILL.md"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a
@@ -191,20 +205,24 @@ resolve_cache_path() {
   printf '%s' "${p}"
 }
 
-# fetch_tarball DEST
+# fetch_tarball DEST [OWNERSHIP_FILES]
 # Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
 # required. DEST is removed only once the download proves to be a complete
 # job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
-# DEST is slash-normalized and symlink-resolved so a cache behind a link is
-# refreshed in place (agent links/`pwd -P` markers stay valid) rather than
-# replacing the link itself.
+# OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES and must carry whatever list
+# the caller already probed with: a non-git legacy cache reaches its refresh
+# through here, so re-probing the default signature would reject it for the very
+# file the refresh installs. DEST is slash-normalized and symlink-resolved so a
+# cache behind a link is refreshed in place (agent links/`pwd -P` markers stay
+# valid) rather than replacing the link itself.
 # Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
 fetch_tarball() {
-  local dest url stage parent missing
+  local dest url stage parent missing files
   dest="$(resolve_cache_path "$1")"
+  files="${2:-${KIT_OWNERSHIP_FILES}}"
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     # Ownership only: a pre-this-skill cache must still be replaceable.
-    missing="$(kit_owned_missing "${dest}")"
+    missing="$(kit_paths_missing "${dest}" "${files}")"
     [ -z "${missing}" ] \
       || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
   fi
@@ -288,30 +306,32 @@ fetch_git_clone() {
   echo "cloned: ${dest} @ ${JOB_KIT_REF}"
 }
 
-# fetch_kit DEST
+# fetch_kit DEST [OWNERSHIP_FILES]
 # Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
 # that is not kit-owned (ownership signature) is never fetched into, checked
 # out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path. Legacy caches that lack skills added in later revisions still pass the
-# ownership probe so they can upgrade. DEST is slash-normalized and
-# symlink-resolved first so a cache behind a link is refreshed at its physical
-# path (matching agent `pwd -P` markers).
+# path. OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES; the migration path
+# passes KIT_LEGACY_OWNERSHIP_FILES so a cache from before the unified
+# uninstaller is not rejected by the very signature it is being refreshed to
+# gain. DEST is slash-normalized and symlink-resolved first so a cache behind a
+# link is refreshed at its physical path (matching agent `pwd -P` markers).
 # Side effects: creates or updates DEST.
 fetch_kit() {
-  local dest missing raw
+  local dest missing raw files
   raw="$(strip_trailing_slashes "$1")"
+  files="${2:-${KIT_OWNERSHIP_FILES}}"
   if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
     dest="${raw}"
     if have git; then
       fetch_git_clone "${dest}"
     else
-      fetch_tarball "${dest}"
+      fetch_tarball "${dest}" "${files}"
     fi
     return 0
   fi
 
   dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_owned_missing "${dest}")"
+  missing="$(kit_paths_missing "${dest}" "${files}")"
   [ -z "${missing}" ] \
     || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
 
@@ -323,7 +343,7 @@ fetch_kit() {
     return 0
   fi
 
-  fetch_tarball "${dest}"
+  fetch_tarball "${dest}" "${files}"
 }
 
 # require_checkout DIR
@@ -353,30 +373,19 @@ ensure_kit_cache() {
   fi
   dest="$(resolve_cache_path "${raw}")"
   missing="$(kit_owned_missing "${dest}")"
-  [ -z "${missing}" ] \
-    || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
-}
-
-# purge_kit_cache DEST
-# Removes DEST only when it is kit-owned (ownership signature — never foreign
-# trees). Legacy kits missing later skills still purge.
-# Side effects: may rm -rf DEST (and a symlink at DEST when DEST is a link).
-purge_kit_cache() {
-  local dest raw missing
-  raw="$(strip_trailing_slashes "$1")"
-  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
-    echo "cache already absent: ${raw}"
-    return 0
+  if [ -n "${missing}" ]; then
+    # Pre-single-uninstall caches still have channel uninstall.sh; refresh once,
+    # probing with the legacy signature so the refresh is not rejected for the
+    # very file it exists to install.
+    if [ -z "$(kit_paths_missing "${dest}" "${KIT_LEGACY_OWNERSHIP_FILES}")" ] \
+      && { [ -f "${dest}/scripts/aside/uninstall.sh" ] || [ -f "${dest}/scripts/agents/uninstall.sh" ]; }; then
+      echo "refreshing kit cache (uninstall layout changed): ${dest}"
+      fetch_kit "${raw}" "${KIT_LEGACY_OWNERSHIP_FILES}"
+      require_checkout "${raw}"
+      return 0
+    fi
+    die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
   fi
-  dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_owned_missing "${dest}")"
-  [ -z "${missing}" ] \
-    || die "refusing to purge non-kit path (missing ${missing}): ${dest}"
-  rm -rf "${dest}" || die "failed to remove cache: ${dest}"
-  if [ -L "${raw}" ]; then
-    rm -f "${raw}" || die "failed to remove cache symlink: ${raw}"
-  fi
-  echo "purged cache: ${dest}"
 }
 
 # aside_ready
@@ -475,24 +484,30 @@ main() {
 
     case "${target}" in
       aside)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside
         ;;
       agents)
         if [ "${#agent_flags[@]}" -eq 0 ]; then
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents
         else
-          bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh" "${agent_flags[@]}"
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents "${agent_flags[@]}"
         fi
         ;;
       all)
-        bash "${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
-        bash "${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+        # Skills only over curl — never deletes profile data (~/.config/job-kit).
+        # With --purge, `cache` joins the same invocation so the composite
+        # preflight runs before anything is unlinked: a survivor found after the
+        # unlink pass would otherwise leave a failed, half-finished uninstall.
+        if [ "${purge}" -eq 1 ]; then
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents cache
+        else
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents
+        fi
         ;;
     esac
 
     echo
     if [ "${purge}" -eq 1 ]; then
-      purge_kit_cache "${JOB_KIT_HOME}"
       echo "job-kit uninstall finished (cache purged)"
     else
       echo "job-kit uninstall finished"
@@ -541,9 +556,8 @@ main() {
   echo
   echo "job-kit cached at: ${JOB_KIT_HOME}"
   echo "  keep it: agent skills symlink into it, Aside re-runs prove ownership by it"
-  echo "  uninstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
-  echo "         or: bash ${JOB_KIT_HOME}/scripts/aside/uninstall.sh"
-  echo "             bash ${JOB_KIT_HOME}/scripts/agents/uninstall.sh"
+  echo "  uninstall (interactive / profile): bash ${JOB_KIT_HOME}/scripts/uninstall.sh"
+  echo "  uninstall (skills only): curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
 }
 
 main "$@"

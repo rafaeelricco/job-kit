@@ -1,4 +1,3 @@
 languages:
   - name: "" # TODO
-    description: "" # apply uses printed string as-is; never invent certs
-    level: 0
+    level: "" # printed proficiency as-is (e.g. native, B2-C1); never invent certs

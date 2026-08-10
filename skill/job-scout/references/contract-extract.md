@@ -25,7 +25,7 @@ Unknown value = `—`. NEVER invent a value.
 
 ## Extract adds
 
-`status | status_reason | seniority | work_model | location | salary | required_skills | work_auth | hiring_route | jd_date`
+`status | status_reason | seniority | work_model | location | salary | required_skills | work_auth | hiring_route | jd_date | jd_excerpt`
 
 - `status` ∈ `live` | `dead` | `uncertain`
   - `live` — opened; role open
@@ -34,3 +34,6 @@ Unknown value = `—`. NEVER invent a value.
 - Record salary / work_auth / hiring_route only when page prints them; else `—`
 - `work_auth` e.g. "US work authorization required", "sponsorship not available"
 - `hiring_route` e.g. contractor / B2B, EOR (Deel/Oyster/hire-from-anywhere), local entity only
+- `jd_excerpt` — the responsibilities and requirements prose as printed, ≤1500 chars,
+  truncated at a sentence boundary with `…`. Copy; never summarize, never paraphrase.
+  Page did not open, or prints no such prose → `—`.

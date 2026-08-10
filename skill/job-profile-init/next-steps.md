@@ -16,3 +16,7 @@
    only a fallback and is overwritten on every kit reinstall.
 5. If CV not placed: add `cv/en-us-resume.pdf` before job-application attachments.
 6. LinkedIn browser session must match `data/profiles.yaml` LinkedIn username.
+7. Additional details captured during init are preserved in
+   `data/observations.yaml`; scout and application ignore this file.
+8. After a scout run persists, `/job-tracker` reads `scout/` back — dossiers,
+   run reports, and application status — without writing to it.

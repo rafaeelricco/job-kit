@@ -3,7 +3,7 @@
 1. `REPO="$(cd "<target>" && pwd -P)"` — STOP if not a directory.
 2. Require `"$REPO/data/candidate.yaml"` and `"$REPO/data/job_search.yaml"`;
    else STOP (same two-file probe as Route). Create path: this runs **after**
-   emit (and fill unless scaffold-only) so probes exist.
+   emit and apply the questionnaire (including scaffold-only) so probes exist.
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
 4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
@@ -87,16 +87,19 @@
    pointer and runtime mirror cover Aside.
 9. Print `./next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_OR_NONE}}` — remaining Gaps from the fill report, including
-     skipped **scout-critical** blockers (not optional/screening shells).
-     **Scaffold-only: print the `./emit-tree.md` unfilled inventory, never
-     `none`** — that inventory is scout-critical only; a scout run against
-     placeholders would search for `TODO-skill`. `none` is correct only for
+     skipped **scout-critical** blockers (not optional/preference shells).
+     **Scaffold-only: report the gaps the completed fill actually left**, and
+     fall back to the `./emit-tree.md` unfilled inventory only for values still
+     holding their placeholder. The questionnaire now confirms positions,
+     keywords, locations, and blockers during the same run, so printing the
+     whole inventory would claim resolved fields still read `TODO-skill`.
+     `none` is correct when the fill left no scout-critical gap, and for
      register-existing, where this flow wrote no tree.
    - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
      host path written + mirror yes/no (including XDG-only defaults); session
-     export yes/no. If skipped: how to Activate later (register-existing with
-     Yes, or `bash "<target>/scripts/install.sh"` for non-host-default paths —
-     mirrors Aside when runtime home exists).
+     export yes/no. If skipped: how to Activate later — re-run
+     `/job-profile-init`, choose register-existing on `<target>`, answer Yes
+     (mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
      Never print bare `bash scripts/agents/install.sh` or
      `bash scripts/aside/install.sh` without an absolute kit root or the
@@ -154,8 +157,3 @@ agent homes: bash "<KIT_ROOT>/scripts/agents/install.sh"`
    >
    > Private clone: use your host's auth. Do not run kit installers from the
    > profile directory.
-
-Profile `scripts/install.sh` remains for **manual** Activate/switch outside
-this skill; the skill never shells it. Manual install mirrors Aside runtime
-home when present (always for non-host-default paths; also for host-default
-when a durable pointer is required — XDG outrank or Aside without host XDG).

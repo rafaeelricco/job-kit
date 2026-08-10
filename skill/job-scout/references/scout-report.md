@@ -5,12 +5,57 @@ Never paste either into a worker brief.
 
 ## Report format
 
-Emit markdown **exactly** in this section order, then **STOP**.
+Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
+Phase 6 — the dossiers are written after this report and the run file after them,
+and the **STOP** belongs at the end of that phase, not here.
+Every section below is the chat deliverable. Only `## Persisted subset` reaches
+disk — a section that repeats a dossier field is never written to the run file.
 No preamble. No apply / message / connect / open-form language.
+
+## Persisted subset
+
+Phase 6 writes these sections to `scout/runs/{run_file}`, in this order, and nothing
+else: **Header**, **Snapshot**, **Run manifest**, **People / TA**, **Dropped**,
+**Query log**, **Gaps**.
+
+Chat-only — never persisted, because every column already lives in a dossier:
+Do this first, Best {home_market}-friendly, {home_market}-friendly (direct),
+{home_market}-friendly (EOR), EU/US-only, Direct contacts, Score audit.
+
+`Direct contacts` is chat-only because each row is the dossier's own `## Provenance`
+contact plus its `channel:`. `People / TA` is persisted because those rows have no
+dossier and exist nowhere else.
+
+### Run manifest
+
+Persisted only; never printed in chat.
+
+| url | company | title | score |
+| --- | ------- | ----- | ----: |
+
+One row per row that reached a ranked table or `### Dropped`, `url` normalized per
+`contract-search.md`. This is the entire per-job payload the run file keeps: it is
+what lets two runs be diffed by URL after the dossier has moved on. `company` and
+`title` are frozen at the run, exactly as `### Dropped` already prints them — a re-see
+rewrites both in the dossier, so a manifest that stored neither could only be read
+against whatever the posting says today, and what the run actually found would be gone.
+`company` and `title` are copied from the posting, so escape every `|` inside them as
+`\|` and collapse any newline or run of whitespace to one space before the row is written.
+Ordinary board titles carry both: `Platform Engineer | Remote` splits one row into five
+cells, and a line break opens a second row a reader takes for another job the run found.
+Either way the frozen pair is unrecoverable and that URL stops diffing between runs.
+`url` is already normalized, so it stays as it is. `score` is a bare integer for every
+row that entered scoring (ranked tables, `score <7`, company-dedupe). Dead rows that
+reach `### Dropped` never enter scoring — write `—` for them, never invent an integer
+and never omit the URL. A reader that requires an integer for every Dropped URL forces
+one of those two defects on every normal dead extract.
+
+Never add a bucket, channel, contact, blocker or why column here — those track the
+posting rather than the run, and copying them back is exactly the drift this split removes.
 
 ### Header
 
-`# Job Scout · {YYYY-MM-DD} · LI={publicIdentifier|FAIL} · Deck={profile|kit fallback}`
+`# Job Scout · {YYYY-MM-DD} · Deck={profile|kit fallback}`
 
 ### Snapshot
 
@@ -19,6 +64,14 @@ No preamble. No apply / message / connect / open-form language.
 - Direct-email hits: {n}
 - Dead on extract: {n}
 - Packs dry: {none|comma list}
+- Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{run_file}`
+
+`{run_file}` is the collision-free name Phase 6 step 1 resolves — `{YYYY-MM-DD}-scout.md`,
+or `-2` / `-3` when that is taken. Resolve it before rendering this line: Snapshot is a
+persisted section and reaches disk unchanged, so an unsuffixed name here would make the
+saved record point at an earlier run. The name is resolved early but the file is written
+last, in Phase 6 step 4, so `Saved: {n} dossiers` only ever reaches disk when all `n`
+landed.
 
 ### Do this first
 

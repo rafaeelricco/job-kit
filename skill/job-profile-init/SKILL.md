@@ -17,28 +17,32 @@ would outrank it). Write a durable pointer when Activate targets host-default
 but `$XDG_CONFIG_HOME/job-kit` already passes the probe, or when Activate runs
 inside Aside without host XDG visible — so claimed activation wins over a
 higher-priority XDG convention path. XDG-only and other non-default targets
-always get pointers. Never run the profile's `scripts/install.sh` (may be
-missing or legacy). Session `export PROFILE_ROOT` is optional and not durable
+always get pointers. Never run a profile's `scripts/install.sh` — the kit no
+longer emits one; only legacy trees still carry it, and it may be stale.
+Session `export PROFILE_ROOT` is optional and not durable
 for Aside. Activating an existing profile is a valid outcome: pointer writes
 only (or host-default-location confirm), skip emit and fill. It is not an edit
 of that profile.
 
-Prefer harness plan/approval when present; else normal messages. Nothing is
-written until **Approve** (create path) or until Activate (register-only with
-Yes).
+Every invocation must enter **PLAN** mode before intake. Use the harness plan
+workflow when available; otherwise read `plan-format`, present a read-only plan,
+and wait for explicit approval. PLAN approval and profile **Approve** remain
+separate gates.
 
-1. Read `./intake.md` now; run its named stages (**Route** → **Folder** →
-   **Activate ask** → **Source** → **Identity** → **Approve**). **Register
-   existing** ends intake after Activate ask: skip Folder/Source/Identity/
-   Approve; go to step 4 with that path as `<target>`. Intake's read-only
+1. After PLAN approval, read `./intake.md`; run its named stages (**Route** →
+   **Folder** → **Activate ask** → **Source** → **Identity** → **Profile
+   questionnaire** → **Approve**). **Register existing** ends intake after
+   Activate ask: skip Folder/Source/Identity/Profile questionnaire/Approve; go
+   to step 4 with that path as `<target>`. Intake's read-only
    pointer pre-discovery runs before Route so a switch is chosen up front,
    not discovered at (4.4) after emit and fill already wrote the tree.
 2. On Approve: obey `./emit-tree.md` end-to-end (write → tokens → leak gate).
-3. Unless **scaffold-only**: obey `./fill.md` end-to-end (reuse Identity SoT
-   buffer when Source key unchanged; else read SoT once → Fact fan-out →
-   blocker fill → Suggestions → Packs → CV → post-fill leak+yaml gate → gap report).
-   Missing or unreadable SoT → STOP; do not invent; do not claim a filled
-   profile. Scaffold-only → skip fill; state shells-only.
+3. After Approve, obey `./fill.md` to apply the questionnaire buffer, write
+   observations, place the CV, and run the leak/YAML gates. No post-approval
+   field questions are allowed. Missing or unreadable SoT → STOP; do not
+   invent; do not claim a filled profile. Scaffold-only may fill from direct
+   questionnaire answers without a SoT; if every field is skipped, state
+   shells-only.
 4. **Activate** Profile root for absolute `<target>` only if Activate ask was
    **Yes**. If **No**:
    - If `<target>` equals `JOB_KIT_CONFIG` / host-default (path-convention
@@ -60,6 +64,7 @@ Yes).
 - Activate: `./activate.md` (dual-home pointers, rollback, KIT_INSTALL resolve)
 - Next steps: `./next-steps.md` (Gaps + Activate note + adaptive kit install)
 - Templates: `./templates/` (only allowed shell source tree; never live donor data)
+- Questionnaire: `./questionnaire.md` (field scope and confirmation rules)
 
 ## Hard refuses
 
