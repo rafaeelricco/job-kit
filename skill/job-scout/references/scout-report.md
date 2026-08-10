@@ -6,40 +6,11 @@ Never paste either into a worker brief.
 ## Report format
 
 Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
-Phase 6 — the dossiers are written after this report and the run file after them,
-and the **STOP** belongs at the end of that phase, not here.
-Every section below is the chat deliverable. Only `## Persisted subset` reaches
-disk — a section that repeats a dossier field is never written to the run file.
-No preamble. No apply / message / connect / open-form language.
-
-## Persisted subset
-
-Phase 6 writes these sections to `scout/runs/{run_file}`, in this order, and nothing
-else: **Header**, **Snapshot**, **Run manifest**, **People / TA**, **Dropped**,
-**Query log**, **Gaps**.
-
-Chat-only — never persisted, because every column already lives in a dossier:
-Do this first, Best {home_market}-friendly, {home_market}-friendly (direct),
-{home_market}-friendly (EOR), EU/US-only, Direct contacts, Score audit.
-
-`Direct contacts` is chat-only because each row is the dossier's own `## Provenance`
-contact plus its `channel:`. `People / TA` is persisted because those rows have no
-dossier and exist nowhere else.
-
-### Run manifest
-
-Persisted only; never printed in chat.
-
-| url | company | title | score |
-| --- | ------- | ----- | ----: |
-
-One row per ranked-table or `### Dropped` row. `url` normalized per
-`contract-search.md` (leave as-is). `company` and `title` frozen at the run (as
-`### Dropped` prints them). Escape every `|` as `\|`; collapse newline or
-whitespace runs to one space before writing the row. `score`: bare integer for
-rows that entered scoring (ranked tables, `score <7`, company-dedupe). Dead
-Dropped rows: `—` — never invent an integer, never omit the URL. Never add
-bucket, channel, contact, blocker, or why columns.
+Phase 6 — the dossiers are written after this report, and the **STOP** belongs at
+the end of that phase, not here.
+Every section below is the **chat deliverable only**. Disk receives dossiers under
+`scout/jobs/` per `dossier.md` — never a run file, never a second copy of ranked
+tables or score factors. No preamble. No apply / message / connect / open-form language.
 
 ### Header
 
@@ -52,11 +23,12 @@ bucket, channel, contact, blocker, or why columns.
 - Direct-email hits: {n}
 - Dead on extract: {n}
 - Packs dry: {none|comma list}
-- Saved: {n} dossiers · run `{abs Profile root}/scout/runs/{run_file}`
+- To write: {n} dossiers · `{abs Profile root}/scout/jobs/`
 
-`{run_file}` is the collision-free name Phase 6 step 1 resolves
-(`{YYYY-MM-DD}-scout.md`, or `-2`/`-3` if taken). Resolve before rendering this
-line. File write is Phase 6 step 4.
+`To write` is Phase 6's target count, never a completion claim — this report ships
+before the first dossier lands. Print the absolute `scout/jobs/` directory. Phase 6
+may STOP with fewer files on disk if a write fails; Gaps then name the path. Never
+print a count that asserts the writes succeeded, and never invent a run filename here.
 
 ### Do this first
 
