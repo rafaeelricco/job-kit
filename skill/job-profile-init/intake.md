@@ -82,7 +82,7 @@ Example prompt:
   Re-offer: **Yes (Recommended)**, or pick a different absolute non-default
   `<target>` and re-run Activate ask. Never emit under `JOB_KIT_CONFIG` after
   an Activate refusal.
-If pre-discovery found a **stale** pointer, say Yes would replace it (name the path).
+  If pre-discovery found a **stale** pointer, say Yes would replace it (name the path).
 
 ## Source (create only)
 

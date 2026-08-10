@@ -36,7 +36,7 @@ separate gates.
      probe without pointer) → STOP (this profile would auto-activate on emit
      despite the refusal). Re-run Activate ask.
    - Else: obey `./activate.md` for Activate-skipped handoff (next-steps only). STOP.
-   If **Yes**: obey `./activate.md` end-to-end. Then STOP.
+     If **Yes**: obey `./activate.md` end-to-end. Then STOP.
 
 ## References
 
