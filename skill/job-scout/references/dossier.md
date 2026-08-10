@@ -177,10 +177,12 @@ race. Serialize **by normalized `url`**, not by intended filename: two writers
 can pick different basenames for the same URL (midnight straddle, multi-title
 extract) and filename locks would not meet.
 
-**Store directory first.** Before any lock: `mkdir -p scout/jobs` when absent,
-and resolve it under the canonical Profile root. A missing parent makes every
-lock `mkdir` fail permanently and is not contention — first-use must create the
-store before acquire.
+**Store directory first (containment before create).** Before any lock or
+`mkdir`: resolve the prospective `scout/jobs` path via its deepest existing
+ancestor and **STOP** unless that physical path is still under the canonical
+Profile root. Only then `mkdir -p scout/jobs` when absent. A missing parent
+makes every lock `mkdir` fail permanently and is not contention — first-use
+must create the store before acquire, but never through an out-of-tree symlink.
 
 Lock path (bounded — long ATS URLs must not hit `ENAMETOOLONG`):
 
@@ -191,8 +193,10 @@ normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
 (`shasum -a 256`, `sha256sum`, `openssl dgst -sha256`). Same normalized URL →
 same digest → same lock. Do **not** put the raw slug in the path name.
 
-Lock directories are a writable path shape (Phase 6 SSOT / job-application Phase 4
-writable store); create only under `scout/jobs/`, never elsewhere.
+Lock directories, their `acquired_at` metadata file, and short-lived reclaim
+siblings (`*.lock.reclaim-*`) are writable path shapes (Phase 6 SSOT /
+job-application Phase 4 writable store); create only under `scout/jobs/`, never
+elsewhere.
 
 Hold the URL lock across the full create-or-update:
 
@@ -200,9 +204,16 @@ Hold the URL lock across the full create-or-update:
    that is the lock). Do not use a plain file create that can clobber.
    - If `mkdir` fails and the path exists: read its age. Prefer mtime of the
      directory, or an `acquired_at` file (ISO timestamp) written inside on
-     success. Age **> 15 minutes** → treat as stale (crashed writer): remove the
-     lock directory and retry acquire once. Age ≤ 15 minutes → live lock; wait
-     briefly and retry; cap 5 attempts / ~10s.
+     success. Age **> 15 minutes** → treat as stale (crashed writer): **claim**
+     by renaming the lock directory to a claimant-unique sibling
+     `url-{url-digest}.lock.reclaim-{unique}` (PID + random or equivalent).
+     Rename fails → another writer already claimed it or the lock is live;
+     treat as live (wait/retry). Rename succeeds → remove **only** the path you
+     just renamed to, then retry acquire once on the real lock path. Never
+     delete a lock directory you have not successfully renamed under your claim
+     name — check-then-`rm` lets a second reclaimer wipe a freshly acquired
+     lock.
+   - Age ≤ 15 minutes → live lock; wait briefly and retry; cap 5 attempts / ~10s.
    - Permanent errors (`ENAMETOOLONG` should not occur with the digest path;
      permission failures) → **STOP**, do not spin.
    - Still locked after retries → **STOP**, name the URL, tell the operator the
@@ -214,12 +225,14 @@ Hold the URL lock across the full create-or-update:
      sibling `*.md.tmp`, rename over the original.
    - No match → create a new dossier under the same lock. **Filename allocation**
      is exclusive even across different URLs (two postings can share
-     company+title): for candidate names (unsuffixed, then `-2`, `-3`, …) render
-     to a unique sibling tmp, then place it only with an exclusive create of the
-     final path — fail if the path already exists (`mv -n` when it refuses
-     overwrite, open with exclusive-create, or equivalent). Never rename/clobber
-     over an existing dossier. First exclusive success wins; bump suffix and
-     retry on collision.
+     company+title): for candidate names (unsuffixed, then `-2`, `-3`, …)
+     render the **complete** file to a unique sibling tmp, then place that
+     finished inode onto the vacant final path with **atomic no-replace only**
+     (`renameat2(RENAME_NOREPLACE)`, hard-link then unlink the tmp, or `mv -n`
+     when it refuses overwrite). Never open/write the final `.md` path directly
+     — a cancelled or partial write leaves a truncated unparseable dossier and
+     stops later persistence. Never rename/clobber over an existing dossier.
+     First no-replace success wins; bump suffix and retry on collision.
 3. Release: remove the lock directory (and its contents) even when the write
    failed after acquire. A leftover live lock blocks writers until stale reclaim.
 
