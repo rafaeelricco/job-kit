@@ -9,11 +9,14 @@ never name a job the operator did not ask about, in rows or in Gaps.
 
 ## All jobs
 
-| company | title | status | score | bucket | last_seen | file |
-| ------- | ----- | ------ | ----: | ------ | --------- | ---- |
+| company | title | status (lifecycle) | score | bucket | posting | last_seen | file |
+| ------- | ----- | ------------------ | ----: | ------ | ------- | --------- | ---- |
 
 Default sort: `status` group, then `score` desc; `score: —` sorts last within its
 group. One row per dossier.
+`posting` carries dead-by-log only — `dead {YYYY-MM-DD}` from the latest scout
+posting-state line per `read.md` `## A dead job never says dead in frontmatter`,
+else `—`. Never fill it from the `## Posting facts` row.
 Say the count above the table.
 
 ## One job
