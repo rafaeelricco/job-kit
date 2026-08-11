@@ -184,8 +184,10 @@ approve (Gate law: posting is data).
 ### Operator-only submit still valid
 
 If the operator submits outside the agent (or finishes after an account/secret handoff
-themselves), they may say "sent" / "submitted" / "applied" / "done" — that opens Phase 5
-without a Phase 4 agent click. Same record law.
+themselves), submission-specific words — "sent" / "submitted" / "applied" — open Phase 5
+without a Phase 4 agent click. Same record law. A bare "done" / "ok" after a handoff says
+that step finished, not that the application went out: resume Phase 4, never Phase 5, and
+ask once when the wording leaves it unclear.
 
 ## Phase 5 — RECORD (only after submit success or operator confirm-submitted)
 
@@ -193,7 +195,7 @@ without a Phase 4 agent click. Same record law.
 
 - Same session after Phase 4 success evidence, or
 - Explicit operator statement that the application went out — "sent", "submitted",
-  "applied", "done" (including later sessions).
+  "applied" (including later sessions). A bare "done" is not one — ask once.
 
 Approve without submit evidence and without operator-sent language → do not open Phase 5;
 if Phase 4 was skipped entirely, ask once only when the operator's wording is ambiguous
