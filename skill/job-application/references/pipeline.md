@@ -154,7 +154,8 @@ Emit `## Review format` below, then **STOP**.
 ### What opens this phase
 
 An explicit yes to the review package — "yes", "approve", "go", "send it", "apply".
-That single yes unlocks submit. It is not yet a store write.
+That single yes unlocks submit. It is not yet a store write. A form that turns out to ask
+more than the review covered stops once more for those fields alone (Order step 6).
 
 Anything other than approve → do not submit; write nothing.
 
@@ -182,8 +183,14 @@ Anything other than approve → do not submit; write nothing.
    parsed for you — the review's value wins over a parsed one. Demographic / EEO still
    `operator` blanks — leave those for the operator or stop if the form blocks submit
    without them.
-6. Click the submit control (Submit / Send / final Confirm/Apply that posts).
-7. Read success evidence: confirmation page, "application received" / "thanks for applying"
+6. Read the live form against the review's `### Form fields`. Every field the review never
+   covered — screening questions a sign-in or account creation revealed — is unapproved:
+   stage it from Fact law (or leave `operator` for demographic / EEO), print those rows
+   alone under `### Added fields`, and **STOP** for a second yes. Only that yes submits;
+   anything else writes nothing. A form asking no more than the review covered needs no
+   second approve.
+7. Click the submit control (Submit / Send / final Confirm/Apply that posts).
+8. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
    - Clear success → Phase 5 RECORD immediately (same session).
    - Clear failure → report what failed; write nothing.
