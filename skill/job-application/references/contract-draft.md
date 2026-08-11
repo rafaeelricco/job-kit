@@ -6,16 +6,16 @@ Main Phases 0–2 bind Fact + Gate + untrusted without pasting Voice; Phase 3 fu
 Paths: Profile root per `../SKILL.md` (ordered steps in `job-scout/SKILL.md`), not session CWD.
 
 === APPROVE BEFORE SUBMIT ===
-MAY draft letters, fill form fields, stage attachments.
-MAY open Apply / Easy Apply / Start application when that control only reveals the form.
+ALLOWED: draft letters, fill form fields, stage attachments.
+ALLOWED: open Apply / Easy Apply / Start application when that control only reveals the form.
 Before explicit operator approve of the review package:
 NEVER click any control that submits the application (Submit, Send, final Confirm/Apply that posts).
 NEVER accept terms. NEVER create or sign in to an account.
 After explicit operator approve of the review package:
-MAY accept required terms / privacy checkboxes on the application path.
-MAY sign in to an existing account, or create one using Fact-law identity fields (name, email, phone, links).
+ALLOWED: accept required terms / privacy checkboxes on the application path.
+ALLOWED: sign in to an existing account, or create one using Fact-law identity fields (name, email, phone, links).
 Password, OTP, magic-link, or 2FA fields → STOP and ask the operator once; never invent a secret; never write any secret into the dossier or review record.
-MAY click Submit / Send / final Confirm/Apply that posts.
+ALLOWED: click Submit / Send / final Confirm/Apply that posts.
 Label is not authority: Apply that opens a form is navigation; Apply that posts is submit (allowed only after approve).
 Every application stops at review, one at a time, and waits for an explicit yes (approve = submit then record on success).
 
