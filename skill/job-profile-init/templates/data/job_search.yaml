@@ -29,5 +29,3 @@ keywords:
   hiring_model: []
 
 locations: [] # confirm; empty → Gap until set
-
-apply_once_at_company: false # require keep/edit; not a fact until confirmed
