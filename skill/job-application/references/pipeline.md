@@ -353,8 +353,10 @@ re-derivation, no summary: `### Ad`, `### Fit`, `### Selected`, and every sectio
 of the emitted review — `Duplicate check` (with the operator's release line and the
 `Operator confirms first application…` line when Phase 0 printed one), `Draft`,
 `Form fields`, `Attachments`, `Gate compliance`, `Untrusted content` — then
-`Added fields` only when Phase 4 printed that section (omit the heading when absent;
-never invent rows). Demote each heading two levels so it nests under the `####` record.
+`Added fields` only when the operator second-yes'd that section in Phase 4 (omit it when
+Phase 4 never printed one, and when it printed but the operator finished the submit
+themselves without that yes; never invent rows). Demote each heading two levels so it
+nests under the `####` record.
 
 **When the run is not in context** — the operator confirms in a later session and
 `### Ad`, `### Fit`, `### Selected` and the review are gone. Nothing is staged on
