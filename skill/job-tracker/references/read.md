@@ -72,8 +72,7 @@ Join and re-find on normalized `url` only — the filename is not an id. A dossi
 named `{first_seen}-{company}--{title}.md`; the date is the day it was created, so
 it does not track `last_seen`, and a `-2` suffix means two dossiers share one base,
 told apart only by `url`. `uncertain` rows and `dead` rows never seen live have no
-dossier. `score<7` and company-dedupe losers do have dossiers when scout persisted
-them live.
+dossier. `score<7` rows do have dossiers when scout persisted them live.
 
 Never read `scout/runs/` even if present (legacy).
 

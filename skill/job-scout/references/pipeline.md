@@ -19,7 +19,7 @@ has written every dossier it must → **STOP**.
 | Path                                                            | Supplies                                                        |
 | --------------------------------------------------------------- | --------------------------------------------------------------- |
 | `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                |
-| `data/job_search.yaml`                                          | positions, keywords, filters, apply_once_at_company             |
+| `data/job_search.yaml`                                          | positions, keywords, filters                                    |
 | `data/sources.yaml`                                             | tiers, access, channels                                         |
 | `data/search_packs.yaml`, else `./references/search_packs.yaml` | every enabled pack, YAML order; whichever file wins, wins whole |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
@@ -44,6 +44,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      `seniority_level` string is present
    - a non-empty `company_blacklist`, `title_blacklist`, or `location_blacklist`,
      whose exclusions no longer reach CONSTRAINTS or any filter
+   - `apply_once_at_company: true`, whose one-per-company collapse no longer runs
 2. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · seniority level · job types · positions · keywords · locations ·
@@ -97,7 +98,6 @@ Every pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.
-No company-dedupe here — a dead listing must not evict a live one from the same company.
 Contacts side-channel only; never enter extract.
 
 ## Phase 3 — EXTRACT
@@ -128,8 +128,7 @@ Location-gate drops already excluded above — do not score them.
 
 REAL FIT = stack × geo/auth × salary.
 
-Score ≥7 via `## Score`. Then `apply_once_at_company` on scored live rows (one per company,
-highest score). Company losers → Dropped. Bucket per `## Bucket`.
+Score ≥7 via `## Score`. Bucket per `## Bucket`.
 Print the per-factor breakdown in `### Score audit`. A row whose factors do not sum to its
 printed score is a defect: fix the row, do not adjust the sum.
 
@@ -164,7 +163,7 @@ revision is ignored.
    with a fresh `status: new` under a second filename. Unreadable or unparseable
    → print the path under Gaps and STOP, same as a failed write.
 3. One dossier per row with `status=live` that passed the Phase 4 gate — including
-   `score<7` and `apply_once_at_company` losers. A `dead` row that already has a
+   `score<7` rows. A `dead` row that already has a
    dossier goes through the `dossier.md` re-run handler so its closure log is
    appended; `uncertain` rows, and `dead` rows never seen live, stay in the chat
    report only and create no dossier.
