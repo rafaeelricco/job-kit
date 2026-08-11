@@ -161,8 +161,11 @@ Anything other than approve → do not submit; write nothing.
 ### Order
 
 1. Re-open the apply path from `### Ad` source URL / channel when the form is not already live.
-2. Account wall (Sign Up / Create account) → create with Fact-law identity only
-   (`data/basics.yaml`, `data/profiles.yaml` as Fact law names). Password / OTP /
+2. Account wall (Sign In / Sign Up) → sign in when this identity already holds an
+   account there; create one with Fact-law identity only (`data/basics.yaml`,
+   `data/profiles.yaml` as Fact law names) when it does not. Unknown which → try
+   sign-in first, and read an "email already exists" refusal as sign-in, never as a
+   second account. Password / OTP /
    magic-link / 2FA → **STOP**, ask the operator once, resume after they supply or complete it.
    Never invent a secret. Never persist a secret to disk or into the review record.
 3. Required terms / privacy checkboxes on the application path → accept.
