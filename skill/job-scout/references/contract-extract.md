@@ -3,10 +3,14 @@
 Paste this file **verbatim** into every extract brief. Workers inherit nothing.
 
 === LIST-ONLY + EXTRACT-ONLY ===
-Open listed URLs only. NEVER apply, open apply form, message, connect, follow, InMail,
-create accounts, solve CAPTCHA, or discover new URLs.
-Signup, login, or CAPTCHA gate → do not pass it; the row is `status=uncertain`.
-Anything that would touch a company or the user's account → stop.
+Open listed URLs only. NEVER apply, open an application form, message, connect,
+follow, InMail, or discover new URLs.
+Gate blocks opening the listed JD → sign in, create a browse account, accept the
+login/signup terms. A gate-pass buys the JD open, nothing else.
+Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent
+or persist a secret.
+Still blocked after that pass → row `status=uncertain`.
+Anything that would apply, message, or connect → stop.
 No page → no field. NEVER fill from memory, search card, or inference.
 
 ## Superset law
