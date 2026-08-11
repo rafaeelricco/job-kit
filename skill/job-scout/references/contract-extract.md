@@ -7,6 +7,8 @@ Open listed URLs only. NEVER apply, open an application form, message, connect,
 follow, InMail, or discover new URLs.
 Gate blocks opening the listed JD → sign in, create a browse account, accept the
 login/signup terms. A gate-pass buys the JD open, nothing else.
+URLs the sign-in flow itself reaches (login page, identity provider, callback) belong to
+that pass and are not URL discovery; return to the listed URL when it completes.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent
 or persist a secret.
 Signup identity fields (name, email, handle) come from the browser's saved autofill.
