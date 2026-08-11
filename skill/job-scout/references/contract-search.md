@@ -10,6 +10,9 @@ Gate blocks listing or opening a JD for extract → sign in, create a browse acc
 accept the login/signup terms. A gate-pass buys listing and extract, nothing else.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent a
 secret; never write any secret into dossiers or the report.
+Signup identity fields (name, email, handle) come from the browser's saved autofill.
+A field autofill cannot supply → STOP and ask the operator once; never invent one and
+never fill it from memory.
 Anything that would apply, message, or connect → stop; put it under Gaps.
 
 ## Evidence (search)
@@ -37,6 +40,8 @@ Anything that would apply, message, or connect → stop; put it under Gaps.
    login/signup terms. Never use a gate-pass to apply, Easy Apply, or fill an
    application form. Secrets (password / OTP / magic-link / 2FA) → STOP, ask the
    operator once, resume after they supply or complete it.
+   Signup identity fields come from browser autofill; anything autofill cannot supply
+   → STOP and ask the operator once. Never invent one (Evidence: no invent, no memory fill).
    Still blocked after that pass, or the operator declines to unblock it → failed
    gate:
    - **Shared surface** (pack `entry` is one URL/host, or the gate blocks the pack

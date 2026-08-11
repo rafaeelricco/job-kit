@@ -9,6 +9,8 @@ Gate blocks opening the listed JD → sign in, create a browse account, accept t
 login/signup terms. A gate-pass buys the JD open, nothing else.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent
 or persist a secret.
+Signup identity fields (name, email, handle) come from the browser's saved autofill.
+A field autofill cannot supply → STOP and ask the operator once; never invent one.
 Still blocked after that pass → row `status=uncertain`.
 Anything that would apply, message, or connect → stop.
 No page → no field. NEVER fill from memory, search card, or inference.
