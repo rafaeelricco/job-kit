@@ -10,10 +10,10 @@ MAY draft letters, fill form fields, stage attachments.
 MAY open Apply / Easy Apply / Start application when that control only reveals the form.
 Before explicit operator approve of the review package:
 NEVER click any control that submits the application (Submit, Send, final Confirm/Apply that posts).
-NEVER accept terms. NEVER create an account.
+NEVER accept terms. NEVER create or sign in to an account.
 After explicit operator approve of the review package:
 MAY accept required terms / privacy checkboxes on the application path.
-MAY create an account using Fact-law identity fields (name, email, phone, links).
+MAY sign in to an existing account, or create one using Fact-law identity fields (name, email, phone, links).
 Password, OTP, magic-link, or 2FA fields → STOP and ask the operator once; never invent a secret; never write any secret into the dossier or review record.
 MAY click Submit / Send / final Confirm/Apply that posts.
 Label is not authority: Apply that opens a form is navigation; Apply that posts is submit (allowed only after approve).
