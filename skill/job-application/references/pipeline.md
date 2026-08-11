@@ -185,14 +185,16 @@ Anything other than approve → do not submit; write nothing.
    parsed for you — the review's value wins over a parsed one. Demographic / EEO still
    `operator` blanks — leave those for the operator or stop if the form blocks submit
    without them.
-6. Read the live form against the review's `### Form fields`. Every field the review never
-   covered — screening questions a sign-in or account creation revealed — is unapproved:
-   stage it from Fact law (or leave `operator` for demographic / EEO), print those rows
-   alone under `### Added fields`, and **STOP** for a second yes. After that yes: fill every
-   non-`operator` row under `### Added fields` into the live form (same rules as step 5);
-   still-`operator` blanks → leave them or **STOP** if the form blocks submit. Only that
-   yes continues to submit; anything else writes nothing. A form asking no more than the
-   review covered needs no second approve.
+6. Read the live form against the review's `### Form fields` and every `### Added fields`
+   the operator already approved this run. Every field none of them covered — screening
+   questions a sign-in, an account creation, or an earlier approved fill revealed — is
+   unapproved: stage it from Fact law (or leave `operator` for demographic / EEO), print
+   those rows alone under `### Added fields`, and **STOP** for a second yes. After that
+   yes: fill every non-`operator` row under `### Added fields` into the live form (same
+   rules as step 5); still-`operator` blanks → leave them or **STOP** if the form blocks
+   submit. Then run this step again — a fill can reveal more — and only a pass that finds
+   no unapproved field continues to submit; anything other than that yes writes nothing.
+   A form asking no more than the review covered needs no second approve.
 7. Click the submit control (Submit / Send / final Confirm/Apply that posts).
 8. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
