@@ -175,12 +175,13 @@ Anything other than approve → do not submit; write nothing.
 3. Required terms / privacy checkboxes on the application path → accept.
 4. Attach every file the review's `### Attachments` names, before any field fill — an ATS
    that parses a resume writes into the form's fields, so uploading after the fill would
-   replace approved answers. Form already shows that named file → this step is done; the
-   absence of an upload control is not a failure when the named file is already there. A
-   different default CV is already attached and the control can replace it → upload the
-   review-named file. Upload control present and the upload fails, or a named attachment
-   is missing with no way to attach the review-named file → **STOP**; never submit without
-   the CV the operator approved.
+   replace approved answers. An upload or replace control is available → upload the
+   review-named file, even when the form already shows that name: a matching filename is
+   not proof the bytes are the reviewed file. Form already shows that named file and
+   offers no way to replace it → this step is done; the absence of an upload control is
+   not a failure when the named file is already there. Upload control present and the
+   upload fails, or a named attachment is missing with no way to attach the review-named
+   file → **STOP**; never submit without the CV the operator approved.
 5. Fill remaining staged Form fields from the review, and correct any field the upload
    parsed for you — the review's value wins over a parsed one. Demographic / EEO still
    `operator` blanks — leave those for the operator or stop if the form blocks submit
