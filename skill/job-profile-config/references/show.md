@@ -4,14 +4,14 @@ Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
 
 ## Read set (all under Profile root)
 
-| Path                                                    | Supplies                                                                                                                 |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `data/job_search.yaml`                                  | work_model, seniority_level, job_types, date_posted, positions, keywords.*, locations, apply_once_at_company             |
-| `data/candidate.yaml`                                   | salary_range_usd, notice_period, legal_authorization._, employment_routes._, work_preferences_from_resume.*, home_market |
-| `data/sources.yaml`                                     | groups → rows (name, url, access)                                                                                        |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                     |
-| `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                               |
-| `data/search_packs.yaml`                                | deck: pack ids, `enabled`, tokens each pack needs                                                                        |
+| Path                                                    | Supplies                                                                                                                       |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `data/job_search.yaml`                                  | work_model, seniority_level, job_types, date_posted, positions, `keywords.*`, locations                                        |
+| `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*`, home_market |
+| `data/sources.yaml`                                     | groups → rows (name, url, access)                                                                                              |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                           |
+| `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                     |
+| `data/search_packs.yaml`                                | deck: pack ids, `enabled`, tokens each pack needs                                                                              |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
 An unreadable file → stop and name it.
