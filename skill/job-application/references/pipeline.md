@@ -289,6 +289,15 @@ of the emitted review — `Duplicate check` (with the operator's release line an
 `Form fields`, `Attachments`, `Gate compliance`, `Untrusted content`. Demote each
 heading two levels so it nests under the `####` record.
 
+**When the run is not in context** — the operator confirms in a later session and
+`### Ad`, `### Fit`, `### Selected` and the review are gone. Nothing is staged on
+disk before this phase, so there is nothing to recover, and rebuilding those
+sections from the posting would record a draft this run never produced. Write
+`status: applied` and the log line, append the `#### Application {YYYY-MM-DD} ·
+{channel}` heading, and under it exactly one line —
+`> record not available (confirmed in a later session)` — and no section headings.
+Never reconstruct a section from the posting or from memory.
+
 **Persistence encoding (not a raw paste):** every non-heading content line of those
 sections is written as a blockquote (`> …`), including list rows and table rows.
 A bare top-level `- ` line under `## Application log` is a log event; the tracker
