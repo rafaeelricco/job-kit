@@ -16,11 +16,12 @@
    outranks it, or activation ran inside Aside) — see the fall-through below.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.
-   - **Do clear** shadowing registrations: read host
+   - **Do read** shadowing registrations: host
      `$HOST_HOME/.config/profile-root` and, when the runtime home exists,
-     `$HOST_HOME/.aside/runtime/home/.config/profile-root`. Delete both
-     together; if mirror removal fails after host delete, **restore** the host
-     pointer.
+     `$HOST_HOME/.aside/runtime/home/.config/profile-root`. Delete nothing here —
+     the operator has not been asked yet. Any delete below removes host and
+     mirror together; if mirror removal fails after host delete, **restore** the
+     host pointer and STOP with the error.
    - Host or mirror line non-empty and resolves to a path other than `REPO`
      (or is unresolvable non-empty) → show that path; ask whether to switch to
      host-default `REPO`. Yes → delete host pointer and mirror; state switched;
