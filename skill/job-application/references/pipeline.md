@@ -174,8 +174,12 @@ Anything other than approve → do not submit; write nothing.
 3. Required terms / privacy checkboxes on the application path → accept.
 4. Fill remaining staged Form fields from the review. Demographic / EEO still `operator`
    blanks — leave those for the operator or stop if the form blocks submit without them.
-5. Click the submit control (Submit / Send / final Confirm/Apply that posts).
-6. Read success evidence: confirmation page, "application received" / "thanks for applying"
+5. Upload every file the review's `### Attachments` lists that this form does not already
+   hold. The gate proved the CV opens, not that it was attached, and a form first reached
+   in this phase holds nothing. No upload control, or the upload fails → **STOP**; never
+   submit without the CV the operator approved.
+6. Click the submit control (Submit / Send / final Confirm/Apply that posts).
+7. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
    - Clear success → Phase 5 RECORD immediately (same session).
    - Clear failure → report what failed; write nothing.
