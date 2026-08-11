@@ -20,8 +20,12 @@ Unreadable Fact file → stop and say so.
 5. One application at a time. Each stops at review and waits for an explicit yes.
 6. Deliver the review exactly per `./references/pipeline.md` "Review format", then STOP.
 7. Only once the operator confirms they submitted: pipeline Phase 4 — RECORD.
-   `status: applied`, one log line, and the full review recorded on the dossier
-   (opening one when the store has none), write law per
+   Same-session: `status: applied`, one log line, and the full review on the
+   dossier (opening one when the store has none). Later session (no `### Ad` /
+   review in context): re-identify first, use the real submission date, preserve
+   any advanced lifecycle status, and write the abbreviated `record not available`
+   placeholder — never rewind `interview`/`offer`/`rejected`/`dropped` to
+   `applied`, never reconstruct the review. Write law per
    `job-scout/references/dossier.md`. The only write this skill ever makes.
 
 ## References
