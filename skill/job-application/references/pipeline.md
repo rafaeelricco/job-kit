@@ -172,12 +172,16 @@ Anything other than approve → do not submit; write nothing.
    magic-link / 2FA → **STOP**, ask the operator once, resume after they supply or complete it.
    Never invent a secret. Never persist a secret to disk or into the review record.
 3. Required terms / privacy checkboxes on the application path → accept.
-4. Fill remaining staged Form fields from the review. Demographic / EEO still `operator`
-   blanks — leave those for the operator or stop if the form blocks submit without them.
-5. Upload every file the review's `### Attachments` lists that this form does not already
-   hold. The gate proved the CV opens, not that it was attached, and a form first reached
-   in this phase holds nothing. No upload control, or the upload fails → **STOP**; never
-   submit without the CV the operator approved.
+4. Attach every file the review's `### Attachments` names, before any field fill — an ATS
+   that parses a resume writes into the form's fields, so uploading after the fill would
+   replace approved answers. Already attached (a saved profile CV, nothing to upload) →
+   this step is done; the absence of an upload control is not a failure. A named
+   attachment missing with no way to attach it → **STOP**; never submit without the CV
+   the operator approved.
+5. Fill remaining staged Form fields from the review, and correct any field the upload
+   parsed for you — the review's value wins over a parsed one. Demographic / EEO still
+   `operator` blanks — leave those for the operator or stop if the form blocks submit
+   without them.
 6. Click the submit control (Submit / Send / final Confirm/Apply that posts).
 7. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
