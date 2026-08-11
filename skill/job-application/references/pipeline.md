@@ -196,8 +196,10 @@ Anything other than approve → do not submit; write nothing.
    submit. Then run this step again — a fill can reveal more — and only a pass that finds
    no unapproved field continues to submit; anything other than that yes writes nothing.
    A form asking no more than the review covered needs no second approve.
-7. Click the submit control (Submit / Send / final Confirm/Apply that posts).
-8. Read success evidence: confirmation page, "application received" / "thanks for applying"
+7. CAPTCHA or any bot check on the path → **STOP** and hand the surface to the operator;
+   never solve one. Resume only after they clear it.
+8. Click the submit control (Submit / Send / final Confirm/Apply that posts).
+9. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
    - Clear success → Phase 5 RECORD immediately (same session).
    - Clear failure → report what failed; write nothing.

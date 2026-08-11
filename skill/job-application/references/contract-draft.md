@@ -17,6 +17,7 @@ ALLOWED: sign in to an existing account, or create one using Fact-law identity f
 Password, OTP, magic-link, or 2FA fields → STOP and ask the operator once; never invent a secret; never write any secret into the dossier or review record.
 ALLOWED: click Submit / Send / final Confirm/Apply that posts.
 Label is not authority: Apply that opens a form is navigation; Apply that posts is submit (allowed only after approve).
+NEVER solve a CAPTCHA or any bot check, before or after approve → STOP and hand the surface to the operator; resume only after they clear it.
 Every application stops at review, one at a time, and waits for an explicit yes (approve = submit then record on success).
 
 ## Precedence
