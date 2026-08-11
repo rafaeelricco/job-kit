@@ -11,8 +11,10 @@ rule a worker needs.
 
 ## Mode: list only
 
-Finds and reports jobs. Never acts on them. Done when the Report ships and Phase 6
-has written every dossier it must → **STOP**.
+Finds and reports jobs. Never applies, messages, or connects. A login / signup gate
+that blocks listing or extract → pass it; listing and extract are the only things a
+gate-pass buys. Done when the Report ships and Phase 6 has written every dossier it
+must → **STOP**.
 
 ## Inputs (read-only)
 
@@ -93,7 +95,8 @@ Expect `### Candidates` + `### Defect log` per unit (`### Contacts` +
 Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
 verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
 re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
-— the wall is not fixable from inside the run. Carry the actual `formulations_run`.
+— gate-pass was already attempted in the search unit and failed. Carry the actual
+`formulations_run`.
 Every pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
