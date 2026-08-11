@@ -188,9 +188,11 @@ Anything other than approve → do not submit; write nothing.
 6. Read the live form against the review's `### Form fields`. Every field the review never
    covered — screening questions a sign-in or account creation revealed — is unapproved:
    stage it from Fact law (or leave `operator` for demographic / EEO), print those rows
-   alone under `### Added fields`, and **STOP** for a second yes. Only that yes submits;
-   anything else writes nothing. A form asking no more than the review covered needs no
-   second approve.
+   alone under `### Added fields`, and **STOP** for a second yes. After that yes: fill every
+   non-`operator` row under `### Added fields` into the live form (same rules as step 5);
+   still-`operator` blanks → leave them or **STOP** if the form blocks submit. Only that
+   yes continues to submit; anything else writes nothing. A form asking no more than the
+   review covered needs no second approve.
 7. Click the submit control (Submit / Send / final Confirm/Apply that posts).
 8. Read success evidence: confirmation page, "application received" / "thanks for applying"
    copy, or an equivalent ATS success state tied to this posting.
@@ -350,8 +352,9 @@ Then, in this order, the same sections the run already produced — no
 re-derivation, no summary: `### Ad`, `### Fit`, `### Selected`, and every section
 of the emitted review — `Duplicate check` (with the operator's release line and the
 `Operator confirms first application…` line when Phase 0 printed one), `Draft`,
-`Form fields`, `Attachments`, `Gate compliance`, `Untrusted content`. Demote each
-heading two levels so it nests under the `####` record.
+`Form fields`, `Attachments`, `Gate compliance`, `Untrusted content` — then
+`Added fields` only when Phase 4 printed that section (omit the heading when absent;
+never invent rows). Demote each heading two levels so it nests under the `####` record.
 
 **When the run is not in context** — the operator confirms in a later session and
 `### Ad`, `### Fit`, `### Selected` and the review are gone. Nothing is staged on
@@ -401,9 +404,10 @@ Operator-only fields are part of the record: a field the operator had to finish
 themselves (demographic / EEO, or anything left blank for them) is a `Form fields`
 row reading `operator`, and it stays in the record as written.
 
-**Never record** a value the review did not print: no demographic or EEO answer
-(this skill never holds one), no password, no account credential, no one-time code.
-The record is a copy of the review's substance, never an enrichment of it.
+**Never record** a value this run did not print and the operator did not approve:
+no demographic or EEO answer (this skill never holds one), no password, no account
+credential, no one-time code. The record copies approved run substance — the review
+plus any Phase 4 `### Added fields` the operator second-yes'd — never invented enrichment.
 
 ### Close
 
