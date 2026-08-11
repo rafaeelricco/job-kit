@@ -18,7 +18,7 @@ tables or score factors. No preamble. No apply / message / connect / open-form l
 
 ### Snapshot
 
-- Live scored ≥7: {n} (after company dedupe)
+- Live scored ≥7: {n}
 - Best {home_market}-friendly: {company} · {short_title} · {score}
 - Direct-email hits: {n}
 - Dead on extract: {n}
@@ -74,7 +74,6 @@ From people-pack `### Contacts` only. Never invent contact/channel.
 
 - dead: {company} — {title} ({reason})
 - score <7: {score} {company} — {title} ({one-line why low})
-- company-dedupe: {score} {company} — {title} (kept: {winner_title} · {winner_score})
 
 ### Score audit
 
@@ -106,7 +105,7 @@ Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry pa
 
 ## Inclusion / hard rules (spec-only; never emitted)
 
-- Tables {home_market}-direct / {home_market}-EOR / EU/US-only: `status=live` AND `score≥7` AND after `apply_once_at_company`
+- Tables {home_market}-direct / {home_market}-EOR / EU/US-only: `status=live` AND `score≥7`
 - EU/US-only: score desc; `blocker` = printed geo/auth constraint only
 - Ranked tables always carry `source`, `author`, `date` from search (`—` if unknown), so
   social and founder provenance stays auditable

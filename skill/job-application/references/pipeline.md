@@ -289,6 +289,40 @@ of the emitted review — `Duplicate check` (with the operator's release line an
 `Form fields`, `Attachments`, `Gate compliance`, `Untrusted content`. Demote each
 heading two levels so it nests under the `####` record.
 
+**When the run is not in context** — the operator confirms in a later session and
+`### Ad`, `### Fit`, `### Selected` and the review are gone. Nothing is staged on
+disk before this phase, so there is nothing to recover, and rebuilding those
+sections from the posting would record a draft this run never produced.
+
+Re-identify before any write. Ask once for every value not already stated in this
+session: source URL, company, title, submission channel, and the calendar date the
+application went out (`YYYY-MM-DD`). Then:
+
+- Normalize the URL via the identity gate above; missing or refused URL → write
+  nothing and stop. Channel blank or `—` → ask which route they used; never infer.
+  Submission date not stated → ask `Submission date? (YYYY-MM-DD)`; never use the
+  recording run's date as a stand-in for an unstated submission day.
+- Company and title are required when the create path will open a new dossier;
+  an update path that already matched on URL may keep the dossier's own values.
+- Re-scan `scout/jobs/` by the normalized URL (and again under the URL lock on
+  the write path below) before choosing update vs create. Phase 0's duplicate
+  match is gone with the rest of the run — do not write from memory of an earlier
+  session.
+
+Then take the same update-or-create write path as above, with these differences:
+
+- `{YYYY-MM-DD}` in the log line and `#### Application {YYYY-MM-DD} · {channel}`
+  heading is the **submission** date from re-identify, not today's date.
+- `{channel}` is the re-identified channel (same rule as the log line above when
+  the operator names the route).
+- Frontmatter `status:` on an existing dossier: leave `interview`, `offer`,
+  `rejected`, or `dropped` untouched — a late confirmation must not rewind the
+  lifecycle. Status `new` or a create → set `status: applied`. Status already
+  `applied` → leave it. Always append the log line and record either way.
+- Under the application heading write exactly one line —
+  `> record not available (confirmed in a later session)` — and no section
+  headings. Never reconstruct a section from the posting or from memory.
+
 **Persistence encoding (not a raw paste):** every non-heading content line of those
 sections is written as a blockquote (`> …`), including list rows and table rows.
 A bare top-level `- ` line under `## Application log` is a log event; the tracker
