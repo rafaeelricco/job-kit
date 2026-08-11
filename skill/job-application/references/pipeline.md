@@ -160,7 +160,10 @@ Anything other than approve → do not submit; write nothing.
 
 ### Order
 
-1. Re-open the apply path from `### Ad` source URL / channel when the form is not already live.
+1. Re-open the apply path from `### Ad` source URL when the form is not already live.
+   Source URL `—` and no live form → **STOP** and ask once:
+   `Apply URL? I have no address to submit to.` A `channel` value (`ats`, `dm_request`)
+   names a route, not an address, and never stands in for one.
 2. Account wall (Sign In / Sign Up) → sign in when this identity already holds an
    account there; create one with Fact-law identity only (`data/basics.yaml`,
    `data/profiles.yaml` as Fact law names) when it does not. Unknown which → try
