@@ -1,7 +1,7 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout) and **job-application**
-(draft + stage, never submit), read back by **job-tracker** (read-only).
+(draft → approve → transmit → record; CAPTCHA human), read back by **job-tracker** (read-only).
 Skills live in **job-kit**, not in this tree.
 
 ## Layout
@@ -54,5 +54,6 @@ roots stay active until the tree is deleted.
 
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only; job-application stops at review, waits for an explicit yes,
-  and records to `scout/jobs/` only once you confirm the application was submitted.
-- Never sign up, solve CAPTCHAs, or submit applications.
+  then may create an account, accept terms, and submit; records to `scout/jobs/` on
+  transmit success (or when you confirm you submitted outside it).
+- Never solve CAPTCHAs. job-scout never signs up or submits; job-application may after approve.

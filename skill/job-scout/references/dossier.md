@@ -172,7 +172,7 @@ in-place write that dies partway — a full disk is enough — truncates exactly
 those lines. The pre-write readability and parse checks cannot help once the
 write has begun; a rename is the only step that either happens or does not.
 
-**Concurrent writers (job-scout Phase 6 and job-application Phase 4):** atomic
+**Concurrent writers (job-scout Phase 6 and job-application Phase 5):** atomic
 rename alone does not prevent lost updates — and check-then-rename is still a
 race. Serialize **by normalized `url`**, not by intended filename: two writers
 can pick different basenames for the same URL (midnight straddle, multi-title
@@ -197,7 +197,7 @@ same digest → same lock. Do **not** put the raw slug in the path name.
 Lock directories, their metadata files (`acquired_at`, `owner`), lock-internal
 place staging (`*.lock/place-*`), short-lived reclaim siblings
 (`*.lock.reclaim-*`), and release-claim siblings (`*.lock.released-*`) are
-writable path shapes (Phase 6 SSOT / job-application Phase 4 writable store);
+writable path shapes (Phase 6 SSOT / job-application Phase 5 writable store);
 create only under `scout/jobs/`, never elsewhere.
 
 **Lock instance identity.** Every reclaim or release claim fingerprints the
@@ -303,5 +303,5 @@ Hold the URL lock across the full create-or-update:
      fingerprint-validated stale reclaim (including no-metadata dirs).
 
 Never create or rename a dossier for a URL without holding that URL's lock.
-Never skip the lock because "only one agent is running" — Phase 6 and Phase 4
+Never skip the lock because "only one agent is running" — Phase 6 and Phase 5
 are independent skills. Never leave two files for one `url`.
