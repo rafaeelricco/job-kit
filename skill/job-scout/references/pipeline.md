@@ -11,8 +11,10 @@ rule a worker needs.
 
 ## Mode: list only
 
-Finds and reports jobs. Never acts on them. Done when the Report ships and Phase 6
-has written every dossier it must → **STOP**.
+Finds and reports jobs. Never applies, messages, or connects. A login / signup gate
+that blocks listing or extract → pass it; listing and extract are the only things a
+gate-pass buys. Done when the Report ships and Phase 6 has written every dossier it
+must → **STOP**.
 
 ## Inputs (read-only)
 
@@ -79,8 +81,11 @@ as **SOURCES** in the same brief, verbatim. Packs with a concrete URL `entry` ge
 Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
-Parallelism: `max_parallel` SSOT. Never two LI-session packs concurrent
-— a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
+Parallelism: `max_parallel` SSOT. Never two packs that would sign in to the same host
+concurrent — same `surface`, or the same `entry` host: two workers passing one gate race
+the session and can trip duplicate OTPs or account throttling. `x-dm-me` and `x-funding`
+both sit on `x.com`, so they serialize.
+LinkedIn stays the named case — a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
 `linkedin.com` or ends `.linkedin.com`. Both keys count: `surface` alone misses
 `people-ta`, and a host alone is unevaluable for a `from data/sources.yaml …`
 entry. Launch up to `max_parallel` → join → Phase 2 MERGE.
@@ -93,7 +98,8 @@ Expect `### Candidates` + `### Defect log` per unit (`### Contacts` +
 Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
 verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
 re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
-— the wall is not fixable from inside the run. Carry the actual `formulations_run`.
+— gate-pass was already attempted in the search unit and failed. Carry the actual
+`formulations_run`.
 Every pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
@@ -104,7 +110,8 @@ Contacts side-channel only; never enter extract.
 
 Batch size = `extract_batch_size` from the resolved deck (SSOT). For each unique job URL
 batch run `worker-extract`; people skip; independent batches may parallel up to
-`max_parallel`; each batch opens URLs one at a time. Expect `### Verified`
+`max_parallel`; each batch opens URLs one at a time. Batches that would gate-pass the
+same host are not independent — serialize them, same rule as Phase 1. Expect `### Verified`
 rows — heading defined in `contract-extract.md`.
 
 ## Phase 4 — CONTRACT GATE (main)

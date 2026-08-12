@@ -3,10 +3,21 @@
 Paste this file **verbatim** into every extract brief. Workers inherit nothing.
 
 === LIST-ONLY + EXTRACT-ONLY ===
-Open listed URLs only. NEVER apply, open apply form, message, connect, follow, InMail,
-create accounts, solve CAPTCHA, or discover new URLs.
-Signup, login, or CAPTCHA gate → do not pass it; the row is `status=uncertain`.
-Anything that would touch a company or the user's account → stop.
+Open listed URLs only. NEVER apply, open an application form, message, connect,
+follow, InMail, or discover new URLs.
+Gate blocks opening the listed JD → sign in, create a browse account, accept the
+login/signup terms. A gate-pass buys the JD open, nothing else.
+URLs the sign-in flow itself reaches (login page, identity provider, callback) belong to
+that pass and are not URL discovery — but only while each hop stays on the listed URL's
+registrable domain or on a known identity provider (Google, Microsoft, Apple, LinkedIn,
+GitHub, Okta). Any other host → STOP and ask the operator once before going on; never
+autofill identity or enter a secret there. Return to the listed URL when the pass completes.
+Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent
+or persist a secret.
+Signup identity fields (name, email, handle) come from the browser's saved autofill.
+A field autofill cannot supply → STOP and ask the operator once; never invent one.
+Still blocked after that pass → row `status=uncertain`.
+Anything that would apply, message, or connect → stop.
 No page → no field. NEVER fill from memory, search card, or inference.
 
 ## Superset law
