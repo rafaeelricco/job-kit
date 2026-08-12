@@ -1,6 +1,6 @@
 # Where to search. Groups named by this profile's own data/search_packs.yaml
 #   entry lines: from data/sources.yaml tier_1_high_alpha | tier_2_aggregators | baseline_floor
-# access: public | account_optional | account_required (account_required -> log, do not sign up)
+# access: public | account_optional | account_required (account_required -> sign in or create a browse account to list; never apply)
 # Edit freely; keep the three required group names below if packs still reference them.
 
 tier_1_high_alpha:
@@ -11,7 +11,7 @@ tier_1_high_alpha:
     cadence: daily
     access: account_optional
     channels: [ats, founder]
-    notes: Browsing may be gated — public listings only, log the gate, never sign up
+    notes: Pass login/signup to list; never apply
 
   - name: a16z portfolio jobs
     url: https://jobs.a16z.com

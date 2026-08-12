@@ -10,17 +10,19 @@ Two install channels: scout, apply, config, and tracker run in
 [Aside Browser](https://aside.com); profile init (plus config and tracker as
 symlinks) run in coding agents (Claude Code, Codex, Grok).
 
-| Skill                | Role                                                                                                | Channel                         | Installed under                                                     |
-| -------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` (file order) and rank the job rows | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-application`    | Draft letter and form fields for one posting; stage only                                            | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                                    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write                   | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                             | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| Skill                | Role                                                                                   | Channel                         | Installed under                                                     |
+| -------------------- | -------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
+| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` and rank the job rows | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-application`    | Draft, stage, and after approve submit one posting                                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                       | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write      | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
-`<agent home>/skills/<skill>`. Scout never applies, messages, or connects.
-Neither scout nor apply transmits Submit / Send / final Confirm.
+`<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
+applications; a gate that blocks listing → it signs in or creates a browse account.
+job-application clicks Submit / Send / final Confirm only after an explicit review
+approve.
 
 ## Install
 
@@ -105,17 +107,17 @@ Aside Browser:
 
 Scout runs every enabled pack in your profile's `data/search_packs.yaml`, in file
 order, and ranks the job rows it extracts. Application drafts and stages one posting at a
-time; it may open an Apply control that only reveals the form, then stops at
-review and waits for an explicit yes.
+time; it opens an Apply control only when that control reveals the form, stops at
+review, and on explicit yes submits (account wall, required terms, Submit).
 
 Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; the full ranked report (including People/TA, Dropped, Query log, Gaps)
 stays in chat. `data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — job-application sets `applied` itself once you
-confirm you submitted, and records the letter, the staged form answers, and the ad
-under the dossier's Application log; later statuses (`interview`, `offer`,
-`rejected`, `dropped`) are yours to set. Re-running scout never overwrites
+dossier's frontmatter as you apply — job-application sets `applied` itself after submit
+success (or once you confirm you submitted outside it), and records the letter, the form
+answers, and the ad under the dossier's Application log; later statuses (`interview`,
+`offer`, `rejected`, `dropped`) are yours to set. Re-running scout never overwrites
 `status:`, and never renames the file.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
@@ -276,7 +278,7 @@ multi-target install also removes legacy kit links there, which the
 | Path                        | Role                                                |
 | --------------------------- | --------------------------------------------------- |
 | `skill/job-scout/`          | Scout law, contracts, surfaces                      |
-| `skill/job-application/`    | Apply law, draft contract                           |
+| `skill/job-application/`    | Apply law, draft contract, approve-gated submit     |
 | `skill/job-profile-init/`   | Intake + templates for empty profiles               |
 | `skill/job-profile-config/` | Show + edit search intent and boards                |
 | `skill/job-tracker/`        | Read the profile's scout store; never writes        |

@@ -1,12 +1,19 @@
 # Contract (search) — job scout search
 
 Paste this file **verbatim** into every search brief. Workers inherit nothing.
-Sibling skill `job-application` drafts. This pack never does.
+Sibling skill `job-application` drafts and, after explicit review approve, submits. This pack never applies.
 
 === LIST-ONLY ===
-MUST report jobs or contacts. NEVER apply, open Easy Apply, fill forms, message,
-connect, follow, InMail, create accounts, solve CAPTCHA, or edit the profile repo.
-Anything that would touch a company or the user's account → stop; put it under Gaps.
+MUST report jobs or contacts. NEVER apply, open Easy Apply that posts, fill an
+application form, message, connect, follow, InMail, or edit the profile repo.
+Gate blocks listing or opening a JD for extract → sign in, create a browse account,
+accept the login/signup terms. A gate-pass buys listing and extract, nothing else.
+Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent a
+secret; never write any secret into dossiers or the report.
+Signup identity fields (name, email, handle) come from the browser's saved autofill.
+A field autofill cannot supply → STOP and ask the operator once; never invent one and
+never fill it from memory.
+Anything that would apply, message, or connect → stop; put it under Gaps.
 
 ## Evidence (search)
 
@@ -28,10 +35,15 @@ Anything that would touch a company or the user's account → stop; put it under
 
 ## Search procedure (every search unit)
 
-1. Login wall / paywall / signup / CAPTCHA / a surface that answers signed-out.
-   Never sign in. Never create an account. Never solve a CAPTCHA. Never retry
-   around a gate. No session is probed before searching — a gate is found here or
-   not at all.
+1. Login wall / paywall / signup / a surface that answers signed-out.
+   Pass the gate for listing only: sign in, create a browse account, accept
+   login/signup terms. Never use a gate-pass to apply, Easy Apply, or fill an
+   application form. Secrets (password / OTP / magic-link / 2FA) → STOP, ask the
+   operator once, resume after they supply or complete it.
+   Signup identity fields come from browser autofill; anything autofill cannot supply
+   → STOP and ask the operator once. Never invent one (Evidence: no invent, no memory fill).
+   Still blocked after that pass, or the operator declines to unblock it → failed
+   gate:
    - **Shared surface** (pack `entry` is one URL/host, or the gate blocks the pack
      surface before any SOURCES row is usable) → return zero candidates/contacts,
      verdict `auth_gate`, and move on.
@@ -39,8 +51,7 @@ Anything that would touch a company or the user's account → stop; put it under
      that row; record the source in `sources_skipped` (reason `auth_gate` or
      `account_required`); **keep** candidates from other rows; **continue** the
      sweep. Do **not** set pack verdict `auth_gate` from a single row alone.
-     If every row is skipped for a gate, pack verdict is `auth_gate` with zero
-     candidates.
+     If every row fails a gate, pack verdict is `auth_gate` with zero candidates.
 2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
    positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
