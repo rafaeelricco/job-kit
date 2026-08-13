@@ -5,6 +5,7 @@ availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
+  tip: "Stay inside the printed USD band. Empty ours or non-USD → surface. Job min >= our max → midpoint, or the min if no max. Else → job max, or our max if no max. No printed salary → our max. Range → high is that figure; low is job min when printed and ≤ high, else high; no job numbers → our range."
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are
