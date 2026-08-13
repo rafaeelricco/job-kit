@@ -69,6 +69,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 `salary_expectations.salary_range_usd` is our band, not the answer.
 Stay inside the job band. Job min >= our max → midpoint. Else → job max. No band → our max.
 This number is not invented. Empty ours → surface; do not invent a band.
+`salary_expectations.tip` is that rule on disk. Never paste it onto a form.
 
 ### Sponsorship, classify before answering
 
