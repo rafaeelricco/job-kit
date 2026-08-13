@@ -5,6 +5,7 @@ availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
+  tip: "Stay inside the job band. Job min >= our max → midpoint. Else → job max. No band → our max."
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are

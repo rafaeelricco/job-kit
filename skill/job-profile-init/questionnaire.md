@@ -12,8 +12,9 @@ language/skill row, and every `job_search.yaml` key:
 
 Ask each `search_packs.yaml` `packs[].enabled` flag.
 
-Do not ask fixed source-catalog fields, pack implementation metadata, or derived
-profile URLs. Do not collect demographic/EEO data.
+Do not ask fixed source-catalog fields, pack implementation metadata, derived
+profile URLs, or kit-owned `salary_expectations.tip`. Do not collect
+demographic/EEO data.
 
 ## Rules
 
