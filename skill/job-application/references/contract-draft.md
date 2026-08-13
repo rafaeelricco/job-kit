@@ -67,16 +67,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 ### Salary expectation
 
 `salary_expectations.salary_range_usd` is our band, not the answer.
-Empty ours → surface; do not invent a band.
-Job salary not USD → surface; do not convert; do not compare raw figures.
-No printed job salary → our max.
-USD both ends: job min >= our max → midpoint. Else → job max.
-USD min only: job min >= our max → job min. Else → our max.
-USD max only: job max.
-Ad or form asks for one figure → the figure above.
-Asks for a range → high is that figure; low is job min when printed and ≤ high, else high. No printed job salary → our stored range.
-This value is not invented.
-`salary_expectations.tip` is that rule on disk. Never paste it onto a form.
+Apply `salary_expectations.tip`. Never paste the tip onto a form.
 
 ### Sponsorship, classify before answering
 
