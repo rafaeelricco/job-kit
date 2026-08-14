@@ -112,8 +112,8 @@ review, and on explicit yes submits (account wall, required terms, Submit).
 
 Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
-writes; the full ranked report (including People/TA, Dropped, Query log, Gaps)
-stays in chat. `data/` and `cv/` stay read-only to it. Set `status:` in a
+writes; the Action strip (Do this first, ranked score≥9, Gaps) stays in chat.
+`data/` and `cv/` stay read-only to it. Set `status:` in a
 dossier's frontmatter as you apply — job-application sets `applied` itself after submit
 success (or once you confirm you submitted outside it), and records the letter, the form
 answers, and the ad under the dossier's Application log; later statuses (`interview`,
