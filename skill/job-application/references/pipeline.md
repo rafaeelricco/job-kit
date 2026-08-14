@@ -315,8 +315,10 @@ normalized `url`:
 - Still no URL match under the lock → create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
   rules; render complete into `*.lock/place-{owner-token}.md`, then hard-link
-  onto the vacant final path; base name taken → `ln` exits nonzero, so try `-2`,
-  `-3` until it succeeds. That suffix is for two jobs sharing a name,
+  onto the vacant final path; base name taken → `ln` exits nonzero with the place
+  file still present, so try `-2`, `-3`. Place file gone, or the link fails for any
+  other reason → **STOP** without re-rendering (dossier.md). That suffix is for two
+  jobs sharing a name,
   never for one job twice. Create only while holding the URL lock, staging
   through the lock place path (dossier.md), and the re-scan under the lock still
   found none.

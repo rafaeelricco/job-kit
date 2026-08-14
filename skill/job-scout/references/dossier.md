@@ -227,8 +227,8 @@ Hold the URL lock across the full create-or-update:
    - **No match** → create. Filename allocation is exclusive even across
      different URLs, since two postings can share company+title: try the
      unsuffixed name, then `-2`, `-3`.
-3. **Commit.** Re-read `owner` one last time; ≠ your token → **STOP**. Then move
-   the place file onto the final dossier path:
+3. **Commit.** Re-read `owner` one last time; missing, unreadable, or ≠ your token
+   → **STOP**. Then move the place file onto the final dossier path:
    - **Update** (a file already owns this `url`) → plain `mv`, an atomic replace.
    - **Create** (the name must not already exist) → hard-link then unlink:
      `ln place final && rm place`. `ln` exits nonzero when the name is taken,
@@ -237,6 +237,10 @@ Hold the URL lock across the full create-or-update:
      collision reads as success and the dossier is silently never written.
      Never open or write the final `.md` path directly — a cancelled or partial
      write leaves a truncated, unparseable dossier and blocks later persistence.
+   If the place file is gone, or the move fails for any reason other than a taken
+   name → **STOP** without further writes. Your lock was reclaimed while you were
+   away; never re-render and never invent another source path. Re-rendering here
+   is what turns a lost lock into a lost update or a second file for one `url`.
 4. **Release.** Read `owner` at the lock path. Equals your token → remove the
    lock directory. Missing, unreadable, or a different token → leave it
    completely untouched; it is not yours, and deleting it would free a live
