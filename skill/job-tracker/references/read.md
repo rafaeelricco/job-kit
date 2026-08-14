@@ -57,14 +57,14 @@ Marker line, byte-exact: `<!-- scout never writes below this line -->`.
 
 ## A file in scout/jobs/ is not necessarily a dossier
 
-Scout replaces a dossier by rendering to a sibling temp path in the same directory and
-renaming over the original. A glob can catch that temp file mid-write. Anything that does
-not parse as a dossier is not one: skip it, name it under Gaps, never repair it.
+Scout and job-application render a replacement inside the URL lock directory and rename
+it over the original, so a partly written dossier never appears under `scout/jobs/`.
+Anything that does not parse as a dossier is still not one: skip it, name it under Gaps,
+never repair it.
 
-## bucket is profile-dependent
-
-`BR-direct`, `BR-EOR`, `EU/US-only`, `unbucketed` — the prefix is `home_market` from
-`data/candidate.yaml`. Read the literal; never hard-code the enum.
+`*.lock` directories under `scout/jobs/` are write furniture, not store contents — a
+scout or application write is in flight. Skip them silently: they are neither a dossier
+nor a defect, and naming them under Gaps reports normal concurrent writing as breakage.
 
 ## Identity
 

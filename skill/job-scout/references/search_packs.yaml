@@ -5,13 +5,11 @@
 # [role] = job_search.yaml positions. [skill:<group>] = keywords.<group>.
 # [industry] = profile card. Create the group in job_search.yaml before naming it here.
 # enabled: false keeps a pack in the file but out of the run (absent = true).
-
-max_parallel: 5
-# SSOT for extract batch size — pipeline + worker must name this key, never hard-code
-extract_batch_size: 5
+# entry = one URL, or a list of {name, url, access, notes?} rows (SOURCES).
+# access: public | account_optional | account_required
 
 packs:
-  - id: li-jobs-core
+  - id: linkedin-jobs
     impl: surface-linkedin-jobs
     surface: linkedin_jobs
     entry: https://www.linkedin.com/jobs/
@@ -20,8 +18,9 @@ packs:
       - "[role]"
       - "[role] [skill:primary]"
       - "[skill:primary] engineer [skill:hiring_model]"
+      - "[role] [industry]"
 
-  - id: hn-whoishiring
+  - id: hn-hiring
     impl: surface-open-web
     surface: hn
     entry: https://hnhiring.com
@@ -31,7 +30,7 @@ packs:
       - "[skill:primary]"
       - "[role] [skill:hiring_model]"
 
-  - id: waas
+  - id: work-at-a-startup
     impl: surface-open-web
     surface: waas
     entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
@@ -41,47 +40,44 @@ packs:
       - "[role] [skill:primary]"
       - '(founding OR "early-stage") [role]'
 
-  - id: boards-tier1
+  - id: remote-boards
     impl: surface-open-web
     surface: web_boards
-    entry: from data/sources.yaml tier_1_high_alpha
-    enabled: true
-    formulations:
-      - "[role]"
-      - "[role] [skill:primary]"
-      - "[skill:primary] [skill:hiring_model]"
-
-  - id: boards-tier2
-    impl: surface-open-web
-    surface: web_boards
-    entry: from data/sources.yaml tier_2_aggregators
+    entry:
+      - name: We Work Remotely
+        url: https://weworkremotely.com
+        access: public
+      - name: Himalayas
+        url: https://himalayas.app
+        access: public
+      - name: HiringCafe
+        url: https://hiring.cafe
+        access: account_optional
     enabled: true
     formulations:
       - "[role]"
       - "[skill:primary] [role]"
       - "[role] [industry]"
 
-  - id: boards-baseline
+  - id: ats-boards
     impl: surface-open-web
     surface: web_boards
-    entry: from data/sources.yaml baseline_floor
+    entry:
+      - name: Greenhouse
+        url: https://job-boards.greenhouse.io
+        access: public
+        notes: "No browsable global index — use only as a site: restriction, never open the root"
+      - name: Lever
+        url: https://jobs.lever.co
+        access: public
+        notes: "No browsable global index — use only as a site: restriction, never open the root"
     enabled: true
     formulations:
       - "[role]"
       - "[role] [skill:primary]"
       - "[role] [industry] [skill:hiring_model]"
 
-  - id: li-jobs-hybrid
-    impl: surface-linkedin-jobs
-    surface: linkedin_jobs
-    entry: https://www.linkedin.com/jobs/
-    enabled: true
-    formulations:
-      - "[role] [industry]"
-      - "[skill:primary] [skill:hiring_model]"
-      - "[role] ([skill:primary] OR [industry])"
-
-  - id: li-posts-en
+  - id: linkedin-posts
     impl: surface-social
     surface: linkedin_posts
     entry: https://www.linkedin.com/search/results/content/
@@ -90,33 +86,3 @@ packs:
       - '("we''re hiring" OR "now hiring") [role]'
       - '("open role" OR "join our team") [skill:primary]'
       - "hiring [role] [skill:hiring_model]"
-
-  - id: x-dm-me
-    impl: surface-social
-    surface: x
-    entry: https://x.com/search?f=live
-    enabled: true
-    formulations:
-      - 'hiring "DM me" [role]'
-      - '"we''re hiring" ("email me" OR "send CV") [role]'
-      - "[role] hiring (DM OR email)"
-
-  - id: x-funding
-    impl: surface-social
-    surface: x
-    entry: https://x.com/search?f=live
-    enabled: true
-    formulations:
-      - '("just raised" OR "Series A" OR "seed round") hiring [role]'
-      - '"out of stealth" hiring [role]'
-      - "raised hiring [skill:primary]"
-
-  - id: people-ta
-    impl: surface-people
-    surface: people
-    entry: https://www.linkedin.com/search/results/people/
-    enabled: true
-    formulations:
-      - '("Tech Recruiter" OR "Talent Acquisition") [industry]'
-      - '"Engineering Recruiter" ([industry] OR [skill:primary])'
-      - "Recruiter [industry] [role]"

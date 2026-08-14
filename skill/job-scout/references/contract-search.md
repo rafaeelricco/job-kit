@@ -1,11 +1,11 @@
 # Contract (search) — job scout search
 
 Paste this file **verbatim** into every search brief. Workers inherit nothing.
-Sibling skill `job-application` drafts and, after explicit review approve, submits. This pack never applies.
 
 === LIST-ONLY ===
-MUST report jobs or contacts. NEVER apply, open Easy Apply that posts, fill an
-application form, message, connect, follow, InMail, or edit the profile repo.
+MUST report jobs. NEVER apply, open Easy Apply that posts, fill an application
+form, message, connect, follow, InMail, or edit the profile repo — anything that
+would, put under Gaps instead.
 Gate blocks listing or opening a JD for extract → sign in, create a browse account,
 accept the login/signup terms. A gate-pass buys listing and extract, nothing else.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent a
@@ -13,7 +13,6 @@ secret; never write any secret into dossiers or the report.
 Signup identity fields (name, email, handle) come from the browser's saved autofill.
 A field autofill cannot supply → STOP and ask the operator once; never invent one and
 never fill it from memory.
-Anything that would apply, message, or connect → stop; put it under Gaps.
 
 ## Evidence (search)
 
@@ -35,17 +34,14 @@ Anything that would apply, message, or connect → stop; put it under Gaps.
 
 ## Search procedure (every search unit)
 
-1. Login wall / paywall / signup / a surface that answers signed-out.
-   Pass the gate for listing only: sign in, create a browse account, accept
-   login/signup terms. Never use a gate-pass to apply, Easy Apply, or fill an
-   application form. Secrets (password / OTP / magic-link / 2FA) → STOP, ask the
-   operator once, resume after they supply or complete it.
-   Signup identity fields come from browser autofill; anything autofill cannot supply
-   → STOP and ask the operator once. Never invent one (Evidence: no invent, no memory fill).
+1. Login wall / paywall / signup / a surface that answers signed-out → pass it
+   per LIST-ONLY above. That pass buys listing; opening a JD for extract has its
+   own pass in `contract-extract.md`. Resume after the operator supplies or
+   completes a secret.
    Still blocked after that pass, or the operator declines to unblock it → failed
    gate:
    - **Shared surface** (pack `entry` is one URL/host, or the gate blocks the pack
-     surface before any SOURCES row is usable) → return zero candidates/contacts,
+     surface before any SOURCES row is usable) → return zero candidates,
      verdict `auth_gate`, and move on.
    - **One SOURCES row** in a multi-row open-web pack → emit no candidates from
      that row; record the source in `sources_skipped` (reason `auth_gate` or
@@ -87,14 +83,14 @@ Anything that would apply, message, or connect → stop; put it under Gaps.
    - card is onsite or location-restricted → keep only if it matches CONSTRAINTS
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)
-     Outside other positive filters → not a candidate. People packs skip this step.
-6. Normalize URLs per the rules above. Cap 40 candidates, or 20 contacts on a people pack.
-7. One call = one surface × one pack. Cards + URLs only. Public contacts only.
+     Outside other positive filters → not a candidate.
+6. Normalize URLs per the rules above. Cap 40 candidates.
+7. One call = one surface × one pack. Cards + URLs only.
 
 ## Output sections
 
-Each unit prints `### Candidates` (or `### Contacts` on a people pack) followed
-by `### Defect log` — every pack, no exceptions, empty log included.
+Each unit prints `### Candidates` followed by `### Defect log` — every pack, no
+exceptions, empty log included.
 
 ## Search Candidate (fixed columns, pipe table)
 
@@ -105,15 +101,11 @@ by `### Defect log` — every pack, no exceptions, empty log included.
 - `contact` = public email or @handle when printed; else `—`
 - Unknown value = `—`. NEVER omit a column. NEVER invent a value.
 
-## Contact (people pack only; never enters extract)
-
-`name | role | company | profile_url | date_seen`
-
 ## Defect
 
 `pack | formulations_run | row_runs | sources_hit | sources_skipped | zero_result_runs | verdict`
 
 - `formulations_run` = formulations run per source row. MUST be ≥ 3 or verdict names the defect.
-- `row_runs` = source rows swept. `1`, unless PACK `entry` names a source group: then every
-  row in that group.
+- `row_runs` = source rows swept. `1`, unless PACK `entry` is a source-row list: then every
+  row in that list.
 - Search operations = `formulations_run` × `row_runs`. NEVER report one without the other.

@@ -25,11 +25,9 @@ session, or after the operator confirms they submitted outside the agent.
 The main agent opens the posting itself. Contract dual-load timing: SKILL step 2.
 
 Writable in Phase 5 only, under Profile root: `scout/jobs/*.md`, exclusive lock
-directories `scout/jobs/*.lock`, lock metadata `scout/jobs/*.lock/acquired_at`
-and `scout/jobs/*.lock/owner`, lock-internal place staging
-`scout/jobs/*.lock/place-*`, short-lived reclaim siblings
-`scout/jobs/*.lock.reclaim-*`, and release-claim siblings
-`scout/jobs/*.lock.released-*` (per `job-scout/references/dossier.md`). `data/`,
+directories `scout/jobs/*.lock`, lock metadata `scout/jobs/*.lock/owner`, and
+lock-internal place staging `scout/jobs/*.lock/place-*`
+(per `job-scout/references/dossier.md`). `data/`,
 `cv/`, and every other Profile-root path stay read-only in every phase. Phase 4
 submits in the browser only — no Profile-root writes until Phase 5.
 
@@ -248,23 +246,22 @@ Order every write:
    lock contention — and never `mkdir` through an out-of-tree symlink.
 2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
    `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
-   (dossier.md). Write `owner`/`acquired_at` immediately. Stale lock (>15 min,
-   including no-metadata abandon) → fingerprint (including device+inode),
-   re-stat before any rename, claim via `*.lock.reclaim-*`, delete only if
-   fingerprint still matches; live lock → retry cap; permanent errors → **STOP**.
-   Lease refresh and every dossier place are fenced: re-read `owner`; if not
-   yours → **STOP** without writing.
+   (dossier.md). Write `owner` immediately. Stale lock (>15 min by directory
+   mtime, including no-metadata abandon) → remove it and retry acquire once;
+   live lock → retry cap then **STOP**; permanent errors → **STOP**.
+   Every dossier place is fenced: re-read `owner`; if not yours → **STOP**
+   without writing.
 3. Under the lock only (fenced): re-scan by URL; re-check `owner`. Match → read
    → apply only this phase's edits → render complete file into
    `*.lock/place-{owner-token}.md` → re-check `owner` → rename place file over
    the original; no match → stage the complete create into the same place path
-   then **atomic no-replace** onto the vacant final path (no clobber; bump
-   `-2`, `-3` on collision per dossier.md). Never stage place outside the lock
-   directory. Never write through an exclusively opened final path.
-4. Release: ownership-checked claim rename (dossier.md) — fingerprint inode,
-   rename to `*.lock.released-{owner-token}` only when `owner` still matches,
-   delete only the claimed path after re-validation; never `rm -rf` the
-   canonical lock. Still locked or write fails after retries → **STOP** and
+   then hard-link onto the vacant final path (`ln place final && rm place`;
+   never `mv -n`; bump `-2`, `-3` on collision per dossier.md). Never stage
+   place outside the lock directory. Never write through an exclusively opened
+   final path.
+4. Release: read `owner` at the lock path (dossier.md); equals your token →
+   remove the lock directory; missing, unreadable, or different → leave it
+   completely untouched. Still locked or write fails after retries → **STOP** and
    tell the operator to set `status: applied` by hand.
 
 Never create or rename without that URL's lock. Never exclusive-create a lock
@@ -317,9 +314,9 @@ normalized `url`:
   joins on.
 - Still no URL match under the lock → create
   `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
-  rules; render complete into `*.lock/place-{owner-token}.md`, then atomic
-  no-replace onto vacant final path (no clobber); base name taken → try `-2`,
-  `-3` until no-replace succeeds. That suffix is for two jobs sharing a name,
+  rules; render complete into `*.lock/place-{owner-token}.md`, then hard-link
+  onto the vacant final path; base name taken → `ln` exits nonzero, so try `-2`,
+  `-3` until it succeeds. That suffix is for two jobs sharing a name,
   never for one job twice. Create only while holding the URL lock, staging
   through the lock place path (dossier.md), and the re-scan under the lock still
   found none.

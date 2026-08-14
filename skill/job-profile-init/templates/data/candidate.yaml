@@ -1,6 +1,3 @@
-# Short country or region label job-scout uses to bucket and report openings.
-home_market: "{{home_market}}"
-
 availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
@@ -32,7 +29,7 @@ legal_authorization:
   requires_uk_sponsorship: ""
 
 employment_routes:
-  employer_of_record: "" # Yes | No: gates {home_market}-EOR bucket
+  employer_of_record: "" # Yes | No: gates the EOR bucket
   direct_contractor: ""
   local_employment: ""
 
