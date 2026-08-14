@@ -14,18 +14,26 @@ tables or score factors. No preamble. No apply / message / connect / open-form l
 
 ### Header
 
-`# Job Scout · {YYYY-MM-DD} · {n} live≥7 · {n} email · {n} defects`
+`# Job Scout · {YYYY-MM-DD} · {n} live≥7 · {n} contacts · {n} defects`
 
 - `live≥7` — `status=live` and score ≥7
-- `email` — public email or @handle across gated search rows
-- `defects` — pack verdicts `defect: {name}`
+- `contacts` — public email or @handle across gated search rows. Named `contacts`,
+  not `email`: an @handle is not an email address, and counting both under `email`
+  claims addresses the run never found
+- `defects` — pack verdicts `defect: {name}` **and** `auth_gate`, which
+  `pipeline.md` counts as a pack defect
 - Never invent a run filename. Never print a write-success count.
 
 ### Do this first
 
-Exactly 3 if ≥3 live score≥7 rows; fewer if not. Prefer direct over EU/US-only on ties.
+Exactly 3 if ≥3 **eligible** rows; fewer if not, including none. Eligible = live,
+score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population — counting
+it on all live≥7 rows would promise three picks this section is not allowed to list.
+Prefer direct over EU/US-only on ties.
 `unbucketed` rows are not eligible here or in the table — they list under Gaps only
 (`pipeline.md` `## Bucket`), because the posting printed no route to judge them by.
+The header's `live≥7` census stays unfiltered: every live row has a dossier, so the
+remainder line must point at the whole store.
 
 1. **{company}** — {title} — score **{score}** — {bucket_short}
    {why ≤ 20 words} / {contact if printed} / {url}
@@ -44,10 +52,17 @@ questions, and a table that hid its own top rows would read as if they were miss
 - `contact` = public email or @handle, else `—`
 - `why` ≤12 words; `EU/US-only` → printed geo/auth blocker only
 - Unknown = `—`
-- `live≥7` count > rows printed above (Do this first ∪ table, counted once) →
-  `+{n} more live≥7 → `{abs Profile root}/scout/jobs/``
-- Zero ≥8 rows → omit this heading and the table; still print the remainder line
-  when `live≥7` > 0
+- Zero ≥8 eligible rows → omit this heading and the table; the remainder line below
+  still prints
+
+**Remainder line** — a bare line, not a section heading. Emit it last, after whatever
+sections printed, when `live≥7` exceeds the rows already printed above (Do this first
+∪ table, counted once):
+
+- Rows printed above → `+{n} more live≥7 → {abs Profile root}/scout/jobs/`
+- Nothing printed above, because every live≥7 row was `unbucketed` →
+  `{n} live≥7 → {abs Profile root}/scout/jobs/`. Never `+{n} more` there: there is no
+  "more" when the reader was shown nothing to add to.
 
 ### Gaps
 
@@ -59,7 +74,7 @@ Omit this heading when the list is empty.
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
 
 `skipped` also covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
-pack verdicts `defect: {name}`. Omit recovered fetches, location-gate drops,
+pack verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate drops,
 disabled packs, never-live dead, and score<7 rows.
 
 ## Inclusion / hard rules (spec-only; never emitted)
@@ -75,4 +90,5 @@ disabled packs, never-live dead, and score<7 rows.
 - `bucket_short`: `direct` | `EOR` | `EU/US-only` | `unbucketed`
   (derivation table in `pipeline.md`, under `## Bucket`)
 - `channel`: `direct_email` | `dm_request` | `founder` | `ats`
-- `verdict`: `pass`, `skipped: disabled`, or `defect: {name}`
+- `verdict`: `pass`, `skipped: disabled`, `auth_gate`, or `defect: {name}`
+  (`auth_gate` and `defect: {name}` both count as defects — header and Gaps)
