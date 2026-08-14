@@ -70,9 +70,12 @@ Phase 1. A surface that answers signed-out is a Phase 1 defect
 
 For **each** pack: run `./references/<impl>.md` with
 PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
-A pack whose `impl` names no `surface-*.md` in this skill → do not run it; record
-`defect: unknown_impl {stem}` and name the pack under Gaps. A profile deck written
-by an older revision can still name a surface this revision removed.
+Do not run a pack, and record `defect: unsupported_pack {id}` naming it under Gaps,
+when either `impl` names no `surface-*.md` in this skill, or the resolved surface
+file does not name the pack's `surface`. A profile deck is never rewritten by an
+update, and `/job-profile-config` checks `impl` but not `surface`, so a deck can
+name a surface this revision does not implement — running it anyway yields
+silently wrong results rather than an error.
 When pack `entry` is a list of source rows, paste those rows as **SOURCES** in the
 same brief, verbatim. Packs with a URL-string `entry` get PACK only.
 
@@ -131,7 +134,8 @@ Location-gate drops already excluded above — do not score them.
 REAL FIT = stack. Geo/auth is a score factor only for onsite/hybrid
 (see `## Score`).
 
-Score ≥7 via `## Score` (header + Do this first). Ranked table keep is ≥8.
+Score ≥7 via `## Score` — the header census counts every live≥7 row; Do this first
+lists only the bucketed ones. Ranked table keep is ≥8, also bucketed only.
 Bucket per `## Bucket`. A row whose factors do not sum to its printed score is
 a defect: fix the row, do not adjust the sum. Print factors only on dossier
 `## Verdict` — never a chat Score audit.
@@ -206,7 +210,8 @@ Derived here from extract output. NEVER set by a worker. First match wins.
 | `work_auth` names a jurisdiction requirement, **or** `location` restricts to a country or region      | `EU/US-only` (blocker = the printed string) |
 | none of the above                                                                                     | `unbucketed`                                |
 
-`unbucketed` enters no ranked table. List under Gaps. Never guess a route from a company's
+`unbucketed` enters no ranked table and no Do this first — it still gets a dossier and
+still counts in the header census. List under Gaps. Never guess a route from a company's
 country. `EOR` is reachable only when `candidate.yaml`
 `employment_routes.employer_of_record` is Yes.
 

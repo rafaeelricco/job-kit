@@ -1,6 +1,6 @@
 # surface-open-web
 
-Surface: open-web packs. Obey CONTRACT_SEARCH.
+Surface: `hn`, `waas`, `web_boards`. Obey CONTRACT_SEARCH.
 
 ## Deltas
 
