@@ -72,24 +72,23 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 - `add` / `remove` a pack — require `id`, `impl`, `surface`, `entry`, and ≥3
   formulations from the user. `impl` must match a `surface-*.md` basename in the
   installed job-scout skill; unknown stem → refuse, name the valid stems.
-- `max_parallel` / `extract_batch_size` — int, only when explicit.
+  `entry` is a URL string or a list of `{name, url}` rows (`access` / `notes` optional).
 
 A `[skill:<group>]` token in a formulation whose group is absent from
 `job_search.yaml` is dropped at search time — say so alongside the diff.
 
-## `sources.yaml` — writable
+## Boards — writable on `search_packs.yaml`
 
-- `list` — read-only. Groups in file order, then `name — url (access)`.
-- `add` — require `name` + `url` from the user. Optional: `why`, `access`
-  (`public` | `account_optional` | `account_required`), `density`, `cadence`,
-  `channels`, `notes`. Group defaults to `tier_2_aggregators`; any other group must
-  already exist or be named by the user. Never invent a board, a URL, or a `why`.
-- `remove` — match `name` case-insensitively. No match → say so, do not guess.
-  Two matches → ask which.
-
-`tier_1_high_alpha`, `tier_2_aggregators`, `baseline_floor` are named by job-scout
-packs (`entry: from data/sources.yaml <group>`). Emptying or removing one leaves
-those packs with no rows — warn alongside the diff, then let the user decide.
+- `list` — read-only. Every pack whose `entry` is a source-row list, file order:
+  pack `id`, then `name — url (access)`.
+- `add` — require pack `id` + `name` + `url`. Pack must exist and already have a
+  list `entry` (or the user is turning a URL-string `entry` into a one-row list —
+  refuse that; add a new pack instead). Optional: `access`
+  (`public` | `account_optional` | `account_required`), `notes`. Never invent a
+  board or a URL.
+- `remove` — match `name` case-insensitively across list-entry packs. No match →
+  say so. Two matches → ask which. Emptying a pack's list leaves that pack with
+  no rows — warn alongside the diff, then let the user decide.
 
 ## Refuse (redirect, never write)
 
@@ -97,7 +96,7 @@ those packs with no rows — warn alongside the diff, then let the user decide.
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*` | Print what is on disk. Editing is `job-profile-init` blocker fill, or a human editing `data/candidate.yaml`. |
 | experiences, skills, languages, projects, basics, profiles                             | Read-only here.                                                                                              |
-| identity (`home_market`, LinkedIn username)                                            | Read-only here.                                                                                              |
+| identity (LinkedIn username)                                                           | Read-only here.                                                                                              |
 | "look up better keywords" / "find me boards"                                           | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.

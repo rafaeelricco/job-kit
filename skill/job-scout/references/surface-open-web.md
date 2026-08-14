@@ -4,7 +4,7 @@ Surface: open-web packs. Obey CONTRACT_SEARCH.
 
 ## Deltas
 
-1. Start from pack `entry`. When entry names a `data/sources.yaml` group: sweep those
+1. Start from pack `entry`. When `entry` is a source-row list: sweep those
    rows; dry source → log; `access: account_required` or a runtime gate on that
    row’s host → public-first, then pass the gate per CONTRACT_SEARCH step 1; still
    blocked → log+skip into `sources_skipped` (not pack `auth_gate` unless every row

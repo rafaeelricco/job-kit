@@ -112,7 +112,7 @@ review, and on explicit yes submits (account wall, required terms, Submit).
 
 Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
-writes; the Action strip (Do this first, ranked score≥9, Gaps) stays in chat.
+writes; the Action strip (Do this first, ranked score≥8, Gaps) stays in chat.
 `data/` and `cv/` stay read-only to it. Set `status:` in a
 dossier's frontmatter as you apply — job-application sets `applied` itself after submit
 success (or once you confirm you submitted outside it), and records the letter, the form
@@ -133,7 +133,7 @@ or a coding agent:
 
 `show` prints the profile, `gaps` names what still blocks a useful scout, and
 `set` / `sources add` / `sources remove` change keywords, positions, locations,
-and boards. It writes only `data/job_search.yaml`, `data/sources.yaml`, and
+and boards. It writes only `data/job_search.yaml`, `data/search_packs.yaml`, and
 `data/profile_card.yaml` — everything else under the profile is read-only here,
 nothing is written before it prints a diff and you say yes, and it makes no
 network calls.

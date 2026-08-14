@@ -22,7 +22,6 @@ must → **STOP**.
 | --------------------------------------------------------------- | --------------------------------------------------------------- |
 | `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                |
 | `data/job_search.yaml`                                          | positions, keywords, filters                                    |
-| `data/sources.yaml`                                             | tiers, access, channels                                         |
 | `data/search_packs.yaml`, else `./references/search_packs.yaml` | every enabled pack, YAML order; whichever file wins, wins whole |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
 | legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                  |
@@ -37,16 +36,16 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    Print `Deck: <abs path>`.
    Neither readable, or the winner fails to parse → STOP, name the file.
    Never merge the two files and never read the fallback when the profile deck exists.
-   `job_search.yaml` still carrying a key this revision dropped → **STOP**: an
-   update never rewrites profile data, so the constraint the operator configured
-   would silently stop applying. Name the file and the key, and say to migrate
-   via `/job-profile-config`. Never derive a replacement value — these are
-   operator-owned, per `job-profile-init/fill.md`. The dropped keys:
-   - the pre-`seniority_level` boolean `experience_level` map, when no
-     `seniority_level` string is present
-   - a non-empty `company_blacklist`, `title_blacklist`, or `location_blacklist`,
-     whose exclusions no longer reach CONSTRAINTS or any filter
-   - `apply_once_at_company: true`, whose one-per-company collapse no longer runs
+   `job_search.yaml` carrying a key scout does not consume → **STOP**: an update
+   never rewrites profile data, so a constraint the operator configured would
+   silently stop applying. Consumed keys are exactly `work_model`,
+   `seniority_level`, `job_types`, `date_posted`, `positions`, `keywords`,
+   `locations`. Any other key holding a value that is not empty, `false`, or null
+   → name the file and the key, and say to migrate via `/job-profile-config`.
+   Never derive a replacement value — these are operator-owned, per
+   `job-profile-init/fill.md`. Keep this an allowlist rather than a list of
+   dropped keys: a key scout stops consuming then fails closed here instead of
+   going quietly unread.
 2. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · seniority level · job types · positions · keywords · locations ·
@@ -54,12 +53,8 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    - Markets intent (prose in Constraints): listed locations are strong-pay markets
      (employers that pay USD, EUR, or GBP). Remote roles paid in those currencies are
      in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
-     not a market: it keeps every location. Hire-from routes use `home_market`, never
-     the job's own location.
-   - Empty or missing `home_market` in `data/candidate.yaml` → list under Gaps
-     (`home_market missing`); never invent a code. Home-market bucket labels and
-     ranked-table `bucket` labels use the literal token `home_market` until set
-     — do not default a country.
+     not a market: it keeps every location. Hire-from routes come from the JD's printed
+     `hiring_route`, never the job's own location.
 3. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
    order). No other subset. Each `enabled: false` pack is recorded internally
    (`skipped: disabled`) and omitted from chat. usable=0 → Gaps `skipped: {pack} (dry)`.
@@ -75,23 +70,25 @@ Phase 1. A surface that answers signed-out is a Phase 1 defect
 
 For **each** pack: run `./references/<impl>.md` with
 PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
-When pack `entry` names a `data/sources.yaml` tier, resolve it and paste the selected rows
-as **SOURCES** in the same brief, verbatim. Packs with a concrete URL `entry` get PACK only.
+A pack whose `impl` names no `surface-*.md` in this skill → do not run it; record
+`defect: unknown_impl {stem}` and name the pack under Gaps. A profile deck written
+by an older revision can still name a surface this revision removed.
+When pack `entry` is a list of source rows, paste those rows as **SOURCES** in the
+same brief, verbatim. Packs with a URL-string `entry` get PACK only.
 
 Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
-Parallelism: `max_parallel` SSOT. Never two packs that would sign in to the same host
+Parallelism: at most 5 packs at once. Never two packs that would sign in to the same host
 concurrent — same `surface`, or the same `entry` host: two workers passing one gate race
-the session and can trip duplicate OTPs or account throttling. `x-dm-me` and `x-funding`
-both sit on `x.com`, so they serialize.
+the session and can trip duplicate OTPs or account throttling.
 LinkedIn stays the named case — a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
-`linkedin.com` or ends `.linkedin.com`. Both keys count: `surface` alone misses
-`people-ta`, and a host alone is unevaluable for a `from data/sources.yaml …`
-entry. Launch up to `max_parallel` → join → Phase 2 MERGE.
+`linkedin.com` or ends `.linkedin.com`. Both keys count: `linkedin-jobs` and `linkedin-posts`
+carry different `surface` values on one host, and a host alone is unevaluable when
+`entry` is a source-row list. Launch up to 5 → join → Phase 2 MERGE.
 Every pack attempted (`auth_gate` is pack defect).
-Expect `### Candidates` + `### Defect log` per unit (`### Contacts` +
-`### Defect log` for people packs) — headings defined in `contract-search.md`.
+Expect `### Candidates` + `### Defect log` per unit — headings defined in
+`contract-search.md`.
 
 ## Phase 2 — MERGE (main only)
 
@@ -104,15 +101,13 @@ Every pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.
-Contacts side-channel only; never enter extract.
 
 ## Phase 3 — EXTRACT
 
-Batch size = `extract_batch_size` from the resolved deck (SSOT). For each unique job URL
-batch run `worker-extract`; people skip; independent batches may parallel up to
-`max_parallel`; each batch opens URLs one at a time. Batches that would gate-pass the
-same host are not independent — serialize them, same rule as Phase 1. Expect `### Verified`
-rows — heading defined in `contract-extract.md`.
+Batch size = 5 job URLs. For each unique job URL batch run `worker-extract`;
+independent batches may parallel up to 5; each batch opens URLs one at a time.
+Batches that would gate-pass the same host are not independent — serialize them, same
+rule as Phase 1. Expect `### Verified` rows — heading defined in `contract-extract.md`.
 
 ## Phase 4 — CONTRACT GATE (main)
 
@@ -125,7 +120,7 @@ Never invent a field to pass the gate. Unknown = `—`.
 Re-apply contract-search Location keep on extract-confirmed locations; deferred — becomes
 keep/drop here; do not redefine keep rules in this file.
 
-People contacts skip. Search-time keeps still apply; this gate closes the deferred path.
+Search-time keeps still apply; this gate closes the deferred path.
 
 ## Phase 5 — RANK + REPORT (main)
 
@@ -136,7 +131,7 @@ Location-gate drops already excluded above — do not score them.
 REAL FIT = stack. Geo/auth is a score factor only for onsite/hybrid
 (see `## Score`).
 
-Score ≥7 via `## Score` (header + Do this first). Ranked table keep is ≥9.
+Score ≥7 via `## Score` (header + Do this first). Ranked table keep is ≥8.
 Bucket per `## Bucket`. A row whose factors do not sum to its printed score is
 a defect: fix the row, do not adjust the sum. Print factors only on dossier
 `## Verdict` — never a chat Score audit.
@@ -148,11 +143,8 @@ Emit final markdown **exactly** per `./references/scout-report.md`. Named headin
 **Writable SSOT for this skill.** Main writes; a worker never does. Only these
 path shapes under Profile root: `scout/jobs/*.md`, exclusive lock directories
 `scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
-`dossier.md` concurrent writers), lock metadata `scout/jobs/*.lock/acquired_at`
-and `scout/jobs/*.lock/owner`, lock-internal place staging
-`scout/jobs/*.lock/place-*`, short-lived reclaim siblings
-`scout/jobs/*.lock.reclaim-*`, and release-claim siblings
-`scout/jobs/*.lock.released-*`.
+`dossier.md` concurrent writers), lock metadata `scout/jobs/*.lock/owner`, and
+lock-internal place staging `scout/jobs/*.lock/place-*`.
 Every other Profile-root path (`data/`, `cv/`, …) is read-only. Never create,
 write, list-require, or delete `scout/runs/` — an orphan from an older
 revision is ignored.
@@ -209,28 +201,17 @@ Derived here from extract output. NEVER set by a worker. First match wins.
 
 | Printed on the JD                                                                                     | Bucket                                      |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `hiring_route` names EOR / Deel / Oyster / "hire from anywhere"                                       | `{home_market}-EOR`                         |
-| `hiring_route` names contractor / B2B, **or** `location` prints LATAM / global / anywhere / worldwide | `{home_market}-direct`                      |
+| `hiring_route` names EOR / Deel / Oyster / "hire from anywhere"                                       | `EOR`                                       |
+| `hiring_route` names contractor / B2B, **or** `location` prints LATAM / global / anywhere / worldwide | `direct`                                    |
 | `work_auth` names a jurisdiction requirement, **or** `location` restricts to a country or region      | `EU/US-only` (blocker = the printed string) |
 | none of the above                                                                                     | `unbucketed`                                |
 
 `unbucketed` enters no ranked table. List under Gaps. Never guess a route from a company's
-country. `{home_market}-EOR` is reachable only when `candidate.yaml`
+country. `EOR` is reachable only when `candidate.yaml`
 `employment_routes.employer_of_record` is Yes.
 
-Note: `{home_market}-friendly` = hire-from-home-market _route_, not the job's location.
-`home_market` from `data/candidate.yaml` only — never invent; empty → Gaps (Phase 0).
+Note: `direct` and `EOR` name the hire-from _route_ the JD prints, not the job's location.
 
 ## Channel sort (report tables)
 
 `direct_email` → `dm_request` → `founder` → `ats`, then score desc.
-
----
-
-## Anti-patterns
-
-- Rank before merge+extract+gate
-- Summarize CONSTRAINTS into a field list for workers
-- Overwrite a dossier's `status:` or `## Application log` on a re-run
-- Silent dry packs
-- Write outside Phase 6 writable paths (see Phase 6 SSOT) or let a worker write
