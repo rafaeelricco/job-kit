@@ -57,7 +57,7 @@ url: "https://example.com/jobs/123" # normalized, per contract-search.md "URL no
 status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
-score: 8
+score: 9
 bucket: BR-direct # bucket_short vocab, scout-report.md
 channel: ats
 ---
@@ -66,13 +66,13 @@ channel: ats
 
 ## Verdict
 
-score **8** · BR-direct · live · {the search `why` string verbatim}
+score **9** · BR-direct · live · {the search `why` string verbatim}
 
-| skills | seniority | geo/auth | salary | recency |   = |
-| -----: | --------: | -------: | -----: | ------: | --: |
-|      4 |         2 |        2 |      0 |       0 |   8 |
+| skills | seniority | geo/auth |   = |
+| -----: | --------: | -------: | --: |
+|      7 |         2 |        — |   9 |
 
-Factors and sum exactly as `### Score audit` printed them. A mismatch is a defect.
+Factors and sum exactly as Phase 5 `## Score` computed them. A mismatch is a defect.
 
 ## Posting facts
 

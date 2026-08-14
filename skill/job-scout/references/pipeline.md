@@ -58,11 +58,11 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      the job's own location.
    - Empty or missing `home_market` in `data/candidate.yaml` → list under Gaps
      (`home_market missing`); never invent a code. Home-market bucket labels and
-     ranked `{home_market}-*` tables use the literal token `home_market` or skip
-     those sections with `_(none)_` until set — do not default a country.
+     ranked-table `bucket` labels use the literal token `home_market` until set
+     — do not default a country.
 3. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
-   order). No other subset. Each `enabled: false` pack still gets a Query log row with
-   verdict `skipped: disabled` — a pack is never silently absent from the report.
+   order). No other subset. Each `enabled: false` pack is recorded internally
+   (`skipped: disabled`) and omitted from chat. usable=0 → Gaps `skipped: {pack} (dry)`.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
 they are the workers' only source for filters and for `[industry]`.
@@ -130,14 +130,16 @@ People contacts skip. Search-time keeps still apply; this gate closes the deferr
 ## Phase 5 — RANK + REPORT (main)
 
 Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
-never displace a scored row; never enter Do this first / home-market tables.
+never displace a scored row; never enter Do this first / the ranked table.
 Location-gate drops already excluded above — do not score them.
 
-REAL FIT = stack × geo/auth × salary.
+REAL FIT = stack. Geo/auth is a score factor only for onsite/hybrid
+(see `## Score`).
 
-Score ≥7 via `## Score`. Bucket per `## Bucket`.
-Print the per-factor breakdown in `### Score audit`. A row whose factors do not sum to its
-printed score is a defect: fix the row, do not adjust the sum.
+Score ≥7 via `## Score` (header + Do this first). Ranked table keep is ≥9.
+Bucket per `## Bucket`. A row whose factors do not sum to its printed score is
+a defect: fix the row, do not adjust the sum. Print factors only on dossier
+`## Verdict` — never a chat Score audit.
 
 Emit final markdown **exactly** per `./references/scout-report.md`. Named headings only. Then Phase 6.
 
@@ -172,8 +174,8 @@ revision is ignored.
 3. One dossier per row with `status=live` that passed the Phase 4 gate — including
    `score<7` rows. A `dead` row that already has a
    dossier goes through the `dossier.md` re-run handler so its closure log is
-   appended; `uncertain` rows, and `dead` rows never seen live, stay in the chat
-   report only and create no dossier.
+   appended; `uncertain` rows stay in chat Gaps only and create no dossier;
+   `dead` rows never seen live create no dossier and are not listed in chat.
 4. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
 5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
@@ -181,22 +183,25 @@ revision is ignored.
 
 Then **STOP**.
 
-## Score (0–10; keep ≥ 7)
+## Score (0–9; keep ≥ 7)
 
-| Factor                                                       | Points |
-| ------------------------------------------------------------ | ------ |
-| Skills / stack overlap                                       | 0–4    |
-| Seniority match                                              | 0–2    |
-| Geo/auth route fit (prefer printed work_auth + hiring_route) | 0–2    |
-| Salary printed + in band                                     | 0–1    |
-| Recency                                                      | 0–1    |
+| Factor                                                       | Points | When                                                                                                                |
+| ------------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------- |
+| Skills / stack overlap                                       | 0–7    | always; **0–5** when geo/auth is in the sum                                                                         |
+| Seniority match                                              | 0–2    | always                                                                                                              |
+| Geo/auth route fit (prefer printed work_auth + hiring_route) | 0–2    | only when extract `work_model` is onsite or hybrid **and** the matching `job_search.yaml` `work_model` flag is true |
 
-Salary point: USD awards 1 only if overlaps `salary_range_usd`; EUR/GBP factor 0 until
-profile defines parity bands; other currencies 0; unprinted 0.
+Do not score recency. `date_posted` already dropped out-of-window rows at search.
 
-Geo/auth for remote: if work_model is remote and work_auth does not require a
-jurisdiction the candidate lacks, do not zero geo solely because company country is
-outside the locations list. Jurisdiction walls still bucket `EU/US-only` as today.
+Geo/auth is absent from the sum when `work_model` is remote (or the profile flag for
+the posting's model is false). Dossier Verdict prints `—` in that cell; `—` is not a
+number and is not added. Jurisdiction / timezone walls still bucket `EU/US-only`;
+they do not take points off a remote row.
+
+When geo/auth is in the sum, skills max is 5 so the row still caps at 9.
+
+Worked remote row (Ojin Product Engineer): TS/React/Node/Python/agents, listed
+position, 3–5y, remote CET → `7 + 2 + geo — = 9`.
 
 ## Bucket (main-derived; never a gated column)
 
