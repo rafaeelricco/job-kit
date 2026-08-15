@@ -12,6 +12,11 @@ export function App() {
           <p>We&apos;ve already added the button component for you.</p>
           <Button className="mt-2">Button</Button>
           <p className="mt-4">
+            <Link to="/dossiers" className="underline underline-offset-4">
+              Dossiers
+            </Link>
+          </p>
+          <p className="mt-4">
             <Link to="/notes" className="underline underline-offset-4">
               Notes
             </Link>
