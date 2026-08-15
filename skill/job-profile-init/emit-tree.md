@@ -22,7 +22,6 @@ substitute every token in the target tree (all text files):
 | `{{display_name}}`      | Display name      |
 | `{{email}}`             | Email             |
 | `{{github_username}}`   | GitHub username   |
-| `{{home_market}}`       | Home market code  |
 
 ## Leak gate (must pass before checklist)
 

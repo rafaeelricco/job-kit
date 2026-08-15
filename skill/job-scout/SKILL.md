@@ -1,6 +1,6 @@
 ---
 name: job-scout
-description: "Read this when you need a list-only job scout across every search pack. Never apply, message, connect, or edit the kit repo; signs in or creates a browse account when a gate blocks listing. Writes only the profile's scout/ dossier tree. Use when the user asks to find jobs, scout openings, run job scout, or produce a job scout report; stop after the report and its dossier."
+description: "Read this when you need to find job openings across every search pack and produce a scout report plus one dossier per live job. Use when the user asks to find jobs, scout openings, look for roles, see what is hiring, run job scout, refresh the job search, or produce a scout report. List-only: it never applies, messages, or connects, and writes only the profile's scout/ tree. Not for drafting or submitting an application (job-application), reading dossiers already on disk (job-tracker), or changing search config (job-profile-config)."
 ---
 
 # Job scout
@@ -51,7 +51,7 @@ Writable paths: Phase 6 only (`./references/pipeline.md` — Writable SSOT).
 - Dossier: `./references/dossier.md` (scout/ layout, file format, re-run rules; main-only)
 - Search contract: `./references/contract-search.md` (paste card; never inherited)
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
-- Search surfaces: `./references/surface-{linkedin-jobs,open-web,social,people}.md` (surface deltas)
+- Search surfaces: `./references/surface-{linkedin-jobs,open-web,social}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
 - Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`
   (every enabled pack, YAML order)

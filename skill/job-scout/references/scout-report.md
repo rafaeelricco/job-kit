@@ -14,109 +14,81 @@ tables or score factors. No preamble. No apply / message / connect / open-form l
 
 ### Header
 
-`# Job Scout · {YYYY-MM-DD} · Deck={profile|kit fallback}`
+`# Job Scout · {YYYY-MM-DD} · {n} live≥7 · {n} contacts · {n} defects`
 
-### Snapshot
-
-- Live scored ≥7: {n}
-- Best {home_market}-friendly: {company} · {short_title} · {score}
-- Direct-email hits: {n}
-- Dead on extract: {n}
-- Packs dry: {none|comma list}
-- To write: {n} dossiers · `{abs Profile root}/scout/jobs/`
-
-`To write` is Phase 6's target count, never a completion claim — this report ships
-before the first dossier lands. Print the absolute `scout/jobs/` directory. Phase 6
-may STOP with fewer files on disk if a write fails; Gaps then name the path. Never
-print a count that asserts the writes succeeded, and never invent a run filename here.
+- `live≥7` — `status=live` and score ≥7
+- `contacts` — public email or @handle across gated search rows. Named `contacts`,
+  not `email`: an @handle is not an email address, and counting both under `email`
+  claims addresses the run never found
+- `defects` — pack verdicts `defect: {name}` **and** `auth_gate`, which
+  `pipeline.md` counts as a pack defect
+- Never invent a run filename. Never print a write-success count.
 
 ### Do this first
 
-Exactly 3 if ≥3 live score≥7 rows; fewer if not. Prefer {home_market}-direct over EU/US-only on ties.
+Exactly 3 if ≥3 **eligible** rows; fewer if not, including none. Eligible = live,
+score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population — counting
+it on all live≥7 rows would promise three picks this section is not allowed to list.
+Prefer direct over EU/US-only on ties.
+`unbucketed` rows are not eligible here or in the table — they list under Gaps only
+(`pipeline.md` `## Bucket`), because the posting printed no route to judge them by.
+The header's `live≥7` census stays unfiltered: every live row has a dossier, so the
+remainder line must point at the whole store.
 
 1. **{company}** — {title} — score **{score}** — {bucket_short}
-   {why ≤ 20 words} / {contact line if any} / {url}
+   {why ≤ 20 words} / {contact if printed} / {url}
 
-### Best {home_market}-friendly
+### Ranked
 
-{company} · {title} · score {score} · {url}
+`status=live` AND `score≥8`, excluding `unbucketed`. Sort per `pipeline.md`
+`## Channel sort`.
+Rows already named in Do this first repeat here — the two sections answer different
+questions, and a table that hid its own top rows would read as if they were missing.
 
-### {home_market}-friendly (direct)
+| score | company | title | bucket | contact | why | url |
+| ----: | ------- | ----- | ------ | ------- | --- | --- |
 
-| #   | score | company | title | channel | contact | source | author | date | why | url |
-| --- | ----: | ------- | ----- | ------- | ------- | ------ | ------ | ---- | --- | --- |
+- `bucket` = `bucket_short`
+- `contact` = public email or @handle, else `—`
+- `why` ≤12 words; `EU/US-only` → printed geo/auth blocker only
+- Unknown = `—`
+- Zero ≥8 eligible rows → omit this heading and the table; the remainder line below
+  still prints
 
-### {home_market}-friendly (EOR)
+**Remainder line** — a bare line, not a section heading. Emit it last, after whatever
+sections printed, when `live≥7` exceeds the rows already printed above (Do this first
+∪ table, counted once):
 
-(same columns as {home_market}-friendly direct)
-
-### EU/US-only
-
-| score | company | title | blocker | source | author | date | url |
-| ----: | ------- | ----- | ------- | ------ | ------ | ---- | --- |
-
-### Direct contacts
-
-| company | contact | channel | url |
-| ------- | ------- | ------- | --- |
-
-Public email or @handle only. Rows with no real contact cell → omit (no invent).
-Name-only people profiles go to **People / TA** instead.
-
-### People / TA
-
-| name | role | company | profile_url | date_seen |
-| ---- | ---- | ------- | ----------- | --------- |
-
-From people-pack `### Contacts` only. Never invent contact/channel.
-
-### Dropped
-
-- dead: {company} — {title} ({reason})
-- score <7: {score} {company} — {title} ({one-line why low})
-
-### Score audit
-
-| company | title | skills | seniority | geo/auth | salary | recency |   = |
-| ------- | ----- | -----: | --------: | -------: | -----: | ------: | --: |
-
-One row per row that entered a ranked table. Factors exactly per `pipeline.md` `## Score`.
-The `=` column MUST equal the score printed in the ranked tables — a mismatch is a defect,
-not a rounding.
-
-### Query log
-
-| pack      | formulations_run | row_runs | sources_hit |                  usable |                   zero_result_runs | verdict                |
-| --------- | ---------------: | -------: | ----------: | ----------------------: | ---------------------------------: | ---------------------- |
-| {pack_id} |              {n} |      {n} |         {n} | {n cards or n verified} | {n or list from worker Defect log} | pass \| defect: {name} |
-
-One row per pack in the resolved deck (all packs every run, disabled ones included
-with verdict `skipped: disabled`). Which deck won is named in the Header.
-Carry `formulations_run` and `row_runs` as the worker printed them; `contract-search.md`
-owns both. NEVER print one without the other.
-Roll worker Defect log `zero_result_runs` even when `usable > 0` (partial dry packs stay visible).
+- Rows printed above → `+{n} more live≥7 → {abs Profile root}/scout/jobs/`
+- Nothing printed above, because every live≥7 row was `unbucketed` →
+  `{n} live≥7 → {abs Profile root}/scout/jobs/`. Never `+{n} more` there: there is no
+  "more" when the reader was shown nothing to add to.
 
 ### Gaps
+
+Omit this heading when the list is empty.
 
 - skipped: {source} ({reason})
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
 
+`skipped` also covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
+pack verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate drops,
+disabled packs, never-live dead, and score<7 rows.
+
 ## Inclusion / hard rules (spec-only; never emitted)
 
-- Tables {home_market}-direct / {home_market}-EOR / EU/US-only: `status=live` AND `score≥7`
-- EU/US-only: score desc; `blocker` = printed geo/auth constraint only
-- Ranked tables always carry `source`, `author`, `date` from search (`—` if unknown), so
-  social and founder provenance stays auditable
+- Do this first: `status=live` AND `score≥7` AND bucket ≠ `unbucketed`
+- Ranked table: `status=live` AND `score≥8` AND bucket ≠ `unbucketed`
 - Unknown = `—` (never invent)
-- Empty section → keep heading + `_(none)_`
-- why ≤12 words in tables; ≤20 in Do this first
+- Empty section → omit (never `_(none)_`)
+- why ≤12 words in the table; ≤20 in Do this first
 
 ## Controlled vocab (spec-only; never emitted)
 
-- `bucket_short`: `{home_market}-direct` | `{home_market}-EOR` | `EU/US-only` | `unbucketed`
-- `bucket` full: `{home_market}-friendly (direct)` | `{home_market}-friendly (EOR)` | `EU/US-only` | `unbucketed`
+- `bucket_short`: `direct` | `EOR` | `EU/US-only` | `unbucketed`
   (derivation table in `pipeline.md`, under `## Bucket`)
 - `channel`: `direct_email` | `dm_request` | `founder` | `ats`
-- `verdict`: `pass`, `skipped: disabled`, or `defect: {name}`
+- `verdict`: `pass`, `skipped: disabled`, `auth_gate`, or `defect: {name}`
+  (`auth_gate` and `defect: {name}` both count as defects — header and Gaps)
