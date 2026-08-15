@@ -104,8 +104,7 @@ Modes: **file path(s)** (Recommended) | **paste** | **scaffold-only**.
 
 ## Identity (create only)
 
-Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`,
-`home_market`.
+Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`.
 
 ### When Source is path or paste
 
@@ -117,17 +116,15 @@ Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`,
    this buffer when the Source key is unchanged (see `./fill.md` Source gate).
 2. Present the draft as proposals. The Profile questionnaire must still show
    every identity field and require confirm, edit, or skip.
-3. Required before Approve: `display_name`, `linkedin_username` (no `@`),
-   `home_market` (short country/region label job-scout uses to bucket openings).
+3. Required before Approve: `display_name`, `linkedin_username` (no `@`).
    `email` and `github_username` are optional but still require an explicit
    value or skip (`""`).
-4. Recommend `home_market` only when SoT prints a clear location/country signal.
-5. Operator answers overwrite the draft for those fields.
+4. Operator answers overwrite the draft for those fields.
 
 ### When Source is scaffold-only
 
-No extract. Ask required fields (`display_name`, `linkedin_username`,
-`home_market`); offer optional email and GitHub. Recommend only when grounded
+No extract. Ask required fields (`display_name`, `linkedin_username`); offer
+optional email and GitHub. Recommend only when grounded
 (e.g. name the operator just typed — not prior-session memory).
 
 ## Profile questionnaire (create and scaffold-only)

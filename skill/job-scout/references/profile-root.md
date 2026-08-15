@@ -1,8 +1,10 @@
 # Profile root — recovery (Aside / dual-home)
 
-Ordered probe steps are authored in `../SKILL.md` and mirrored (lockstep-edit
-marker) in job-tracker and job-profile-config SKILL.md. This file does not
-redefine order.
+Ordered probe steps are authored in `../SKILL.md` and mirrored in job-tracker and
+job-profile-config SKILL.md, each marked `keep in sync`. They are inlined rather
+than delegated because the coding-agents channel installs those two skills without
+job-scout (`scripts/agents/lib.sh`), so they cannot read this tree. This file does
+not redefine order.
 Load when resolve STOPs or steps 2–4 fail.
 
 ## Why dual-home
@@ -40,4 +42,5 @@ env when set and absolute.
 
 ## On STOP
 
-Name each attempt: env, each pointer file + line, default `JOB_KIT_CONFIG`, walk start.
+Name each attempt: env, each pointer file + line, each default config path
+(`JOB_KIT_CONFIG` and host-default), walk start.

@@ -41,7 +41,7 @@ candidate; try the next step. Do not invent a profile path.
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
-Writable here: `data/job_search.yaml`, `data/sources.yaml`, `data/profile_card.yaml`,
+Writable here: `data/job_search.yaml`, `data/profile_card.yaml`,
 `data/search_packs.yaml`, and their `*.yaml.tmp` staging siblings during atomic
 rename.
 Every other path under Profile root is read-only in this skill.
@@ -62,7 +62,7 @@ Every other path under Profile root is read-only in this skill.
 | what's missing for scout                                 | `gaps`                            | —                        |
 | list my boards                                           | `sources list`                    | —                        |
 | change keywords / set positions / add location           | `set`                             | `data/job_search.yaml`   |
-| add board / remove Wellfound                             | `sources add` / `sources remove`  | `data/sources.yaml`      |
+| add board / remove HiringCafe                            | `sources add` / `sources remove`  | `data/search_packs.yaml` |
 | refresh profile card from data                           | `refresh-card`                    | `data/profile_card.yaml` |
 | list my packs / disable a pack / edit a formulation      | `packs`                           | `data/search_packs.yaml` |
 | create a profile / set one up from my CV                 | hand off `job-profile-init`, STOP | —                        |
