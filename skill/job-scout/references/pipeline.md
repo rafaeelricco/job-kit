@@ -71,11 +71,14 @@ Phase 1. A surface that answers signed-out is a Phase 1 defect
 For **each** pack: run `./references/<impl>.md` with
 PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
 Do not run a pack, and record `defect: unsupported_pack {id}` naming it under Gaps,
-when either `impl` names no `surface-*.md` in this skill, or the resolved surface
-file does not name the pack's `surface`. A profile deck is never rewritten by an
-update, and `/job-profile-config` checks `impl` but not `surface`, so a deck can
-name a surface this revision does not implement — running it anyway yields
-silently wrong results rather than an error.
+when any of: `impl` names no `surface-*.md` in this skill; the resolved surface file
+does not name the pack's `surface`; `entry` is neither an `http(s)` URL nor a list of
+source rows. A profile deck is never rewritten by an update, and `/job-profile-config`
+checks `impl` but neither `surface` nor `entry` shape, so a deck can still carry a
+surface this revision does not implement, or a `from data/sources.yaml <group>` entry
+it no longer resolves. Both run silently — an unresolvable entry reports as a dry pack,
+which is the same string a healthy-but-empty pack emits. Name the migration in Gaps:
+replace the scalar with a list of `{name, url}` rows, or drop the pack.
 When pack `entry` is a list of source rows, paste those rows as **SOURCES** in the
 same brief, verbatim. Packs with a URL-string `entry` get PACK only.
 
