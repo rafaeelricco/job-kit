@@ -22,7 +22,7 @@ must → **STOP**.
 | --------------------------------------------------------------- | --------------------------------------------------------------- |
 | `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                |
 | `data/job_search.yaml`                                          | positions, keywords, filters                                    |
-| `data/search_packs.yaml`, else `./references/search_packs.yaml` | every enabled pack, YAML order; whichever file wins, wins whole |
+| `data/search_packs.yaml`, else `./references/search_packs.yaml` | enabled packs, YAML order; chosen set is Phase 0 pick; whichever file wins, wins whole |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
 | legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                  |
 
@@ -46,7 +46,18 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    `job-profile-init/fill.md`. Keep this an allowlist rather than a list of
    dropped keys: a key scout stops consuming then fails closed here instead of
    going quietly unread.
-2. Read inputs → print `### Profile card` and `### Constraints`.
+2. Pack pick (blocking). List every pack in the resolved deck whose `enabled` is
+   true or absent, file order, as `N. {id}`. Last line: `{N+1}. Search in all`.
+   Listed packs = 0 → STOP, no enabled pack. That list is chat text — not a
+   question. **STOP** and wait. Do not search, and do not write the deck.
+   Valid reply: one or more listed numbers (those packs, file order), or
+   `Search in all` (case-insensitive) / the last number (every listed pack).
+   Empty, unlisted number, or other text → print the list again and wait.
+   Each `enabled: false` pack stays unlisted, recorded internally
+   (`skipped: disabled`), omitted from chat.
+   Chosen set = those packs. Phase 1 runs only that set.
+   usable=0 → Gaps `skipped: {pack} (dry)`.
+3. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · seniority level · job types · positions · keywords · locations ·
      date_posted · salary_range_usd · work auth · employment_routes · relocation
@@ -55,9 +66,6 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
      not a market: it keeps every location. Hire-from routes come from the JD's printed
      `hiring_route`, never the job's own location.
-3. Run **every** pack in the resolved deck whose `enabled` is true or absent (file
-   order). No other subset. Each `enabled: false` pack is recorded internally
-   (`skipped: disabled`) and omitted from chat. usable=0 → Gaps `skipped: {pack} (dry)`.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief —
 they are the workers' only source for filters and for `[industry]`.
@@ -66,33 +74,29 @@ Phase 0 opens no page and signs in to nothing — the run's first network access
 Phase 1. A surface that answers signed-out is a Phase 1 defect
 (`contract-search.md` step 1), never a preflight.
 
-## Phase 1 — SEARCH (all packs)
+## Phase 1 — SEARCH (chosen packs)
 
-For **each** pack: run `./references/<impl>.md` with
+For **each** chosen pack: run `./references/surface-<surface>.md` with
 PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
 Do not run a pack, and record `defect: unsupported_pack {id}` naming it under Gaps,
-when any of: `impl` names no `surface-*.md` in this skill; the resolved surface file
-does not name the pack's `surface`; `entry` is neither an `http(s)` URL nor a list of
-source rows. A profile deck is never rewritten by an update, and `/job-profile-config`
-checks `impl` but neither `surface` nor `entry` shape, so a deck can still carry a
-surface this revision does not implement, or a `from data/sources.yaml <group>` entry
-it no longer resolves. Both run silently — an unresolvable entry reports as a dry pack,
+when either: `surface` names no `surface-*.md` in this skill; `entry` is not one
+`http(s)` URL. A profile deck is never rewritten by an update, and
+`/job-profile-config` checks `surface` but not `entry` shape, so a deck can still
+carry a legacy source-row list, or a `from data/sources.yaml <group>` entry it no
+longer resolves. Both run silently — an unresolvable entry reports as a dry pack,
 which is the same string a healthy-but-empty pack emits. Name the migration in Gaps:
-replace the scalar with a list of `{name, url}` rows, or drop the pack.
-When pack `entry` is a list of source rows, paste those rows as **SOURCES** in the
-same brief, verbatim. Packs with a URL-string `entry` get PACK only.
+give each source row its own pack with that row's URL as `entry`, or drop the pack.
 
 Do not summarize, do not substitute a field list.
 A worker that was not given a constraint or guardrail cannot apply it.
 
-Parallelism: at most 5 packs at once. Never two packs that would sign in to the same host
-concurrent — same `surface`, or the same `entry` host: two workers passing one gate race
-the session and can trip duplicate OTPs or account throttling.
-LinkedIn stays the named case — a pack whose `surface` starts with `linkedin_`, **or** whose `entry` host is
-`linkedin.com` or ends `.linkedin.com`. Both keys count: `linkedin-jobs` and `linkedin-posts`
-carry different `surface` values on one host, and a host alone is unevaluable when
-`entry` is a source-row list. Launch up to 5 → join → Phase 2 MERGE.
-Every pack attempted (`auth_gate` is pack defect).
+Parallelism: at most 5 packs at once. Never two packs with the same `entry` host
+concurrent — two workers passing one gate race the session and can trip duplicate OTPs
+or account throttling. Every `entry` is one URL, so the host is always evaluable.
+LinkedIn stays the named case — `entry` host `linkedin.com` or ending `.linkedin.com`
+covers both `linkedin-jobs` and `linkedin-posts`, one host under two playbooks.
+Launch up to 5 → join → Phase 2 MERGE.
+Every chosen pack attempted (`auth_gate` is pack defect).
 Expect `### Candidates` + `### Defect log` per unit — headings defined in
 `contract-search.md`.
 
@@ -103,7 +107,7 @@ verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible 
 re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
 — gate-pass was already attempted in the search unit and failed. Carry the actual
 `formulations_run`.
-Every pack id must have Defect log row before extract.
+Every chosen pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
 Prefer non-`—` author; best channel per `## Channel sort`.

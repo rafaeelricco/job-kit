@@ -40,14 +40,8 @@ never fill it from memory.
    completes a secret.
    Still blocked after that pass, or the operator declines to unblock it → failed
    gate:
-   - **Shared surface** (pack `entry` is one URL/host, or the gate blocks the pack
-     surface before any SOURCES row is usable) → return zero candidates,
-     verdict `auth_gate`, and move on.
-   - **One SOURCES row** in a multi-row open-web pack → emit no candidates from
-     that row; record the source in `sources_skipped` (reason `auth_gate` or
-     `account_required`); **keep** candidates from other rows; **continue** the
-     sweep. Do **not** set pack verdict `auth_gate` from a single row alone.
-     If every row fails a gate, pack verdict is `auth_gate` with zero candidates.
+   Return zero candidates, verdict `auth_gate`, and move on. One pack is one host,
+   so a gate that blocks it blocks the whole pack.
 2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
    positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
@@ -85,7 +79,7 @@ never fill it from memory.
    - location unknown on card → keep (main re-applies Location keep after extract)
      Outside other positive filters → not a candidate.
 6. Normalize URLs per the rules above. Cap 40 candidates.
-7. One call = one surface × one pack. Cards + URLs only.
+7. One call = one pack. Cards + URLs only.
 
 ## Output sections
 
@@ -103,9 +97,6 @@ exceptions, empty log included.
 
 ## Defect
 
-`pack | formulations_run | row_runs | sources_hit | sources_skipped | zero_result_runs | verdict`
+`pack | formulations_run | zero_result_runs | verdict`
 
-- `formulations_run` = formulations run per source row. MUST be ≥ 3 or verdict names the defect.
-- `row_runs` = source rows swept. `1`, unless PACK `entry` is a source-row list: then every
-  row in that list.
-- Search operations = `formulations_run` × `row_runs`. NEVER report one without the other.
+- `formulations_run` = formulations run for the pack. MUST be ≥ 3 or verdict names the defect.

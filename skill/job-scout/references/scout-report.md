@@ -68,12 +68,12 @@ sections printed, when `live≥7` exceeds the rows already printed above (Do thi
 
 Omit this heading when the list is empty.
 
-- skipped: {source} ({reason})
+- skipped: {pack_id} ({reason})
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
 
-`skipped` also covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
+`skipped` covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
 pack verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate drops,
 disabled packs, never-live dead, and score<7 rows.
 
