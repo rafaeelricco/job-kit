@@ -80,3 +80,19 @@ packs:
       - '("we''re hiring" OR "now hiring") [role]'
       - '("open role" OR "join our team") [skill:primary]'
       - "hiring [role] [skill:hiring_model]"
+
+  - id: x-dm-me
+    surface: social
+    entry: https://x.com/search?f=live
+    formulations:
+      - 'hiring "DM me" [role]'
+      - '"we''re hiring" ("email me" OR "send CV") [role]'
+      - "[role] hiring (DM OR email)"
+
+  - id: x-funding
+    surface: social
+    entry: https://x.com/search?f=live
+    formulations:
+      - '("just raised" OR "Series A" OR "seed round") hiring [role]'
+      - '"out of stealth" hiring [role]'
+      - "raised hiring [skill:primary]"
