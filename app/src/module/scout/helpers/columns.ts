@@ -10,7 +10,7 @@ export {
   type View,
 }
 
-import { columnDef } from "@/components/ui/datatable"
+import { ColumnDef } from "@/components/ui/datatable"
 import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
 import { byScore, bySeen, byStatus } from "@/module/scout/helpers/select"
 import type { Dossier } from "@/module/scout/types"
@@ -44,12 +44,12 @@ const columnLabel = (id: ColumnId): string => LABELS[id]
 // Ascending is the natural direction of each comparator — DataTable negates for
 // descending.
 const DOSSIER_COLUMNS = {
-  score: columnDef({ label: LABELS.score, sortFun: byScore }),
-  company: columnDef({ label: LABELS.company, sortFun: null }),
-  location: columnDef({ label: LABELS.location, sortFun: null }),
-  salary: columnDef({ label: LABELS.salary, sortFun: null }),
-  seen: columnDef({ label: LABELS.seen, sortFun: bySeen }),
-  status: columnDef({ label: LABELS.status, sortFun: byStatus }),
+  score: new ColumnDef({ label: LABELS.score, sortFun: byScore }),
+  company: new ColumnDef({ label: LABELS.company, sortFun: null }),
+  location: new ColumnDef({ label: LABELS.location, sortFun: null }),
+  salary: new ColumnDef({ label: LABELS.salary, sortFun: null }),
+  seen: new ColumnDef({ label: LABELS.seen, sortFun: bySeen }),
+  status: new ColumnDef({ label: LABELS.status, sortFun: byStatus }),
 } satisfies ColumnsConfig<Dossier>
 
 // Same landing order as before: highest score first. `satisfies ColumnId` is

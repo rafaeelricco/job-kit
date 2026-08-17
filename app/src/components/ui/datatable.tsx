@@ -1,7 +1,10 @@
-import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react"
+import {
+  ArrowDownNarrowWide,
+  ArrowDownWideNarrow,
+  ArrowUpDown,
+} from "lucide-react"
 import type { Key, KeyboardEvent, ReactNode } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
   Pagination,
   PaginationContent,
@@ -23,19 +26,22 @@ import { cn } from "@/lib/utils"
 
 type SortFun<T> = (a: T, b: T) => number
 
+// A class, not a plain object type: `new ColumnDef({...})` pins T from `sortFun`
+// at the definition site, and the `values` box stops a bare literal passing
+// structurally where a column is expected.
 // `sortFun: null` marks a column unsortable — selection and action columns.
-type ColumnDef<T> = {
-  readonly label: ReactNode
-  readonly sortFun: SortFun<T> | null
-  readonly align?: "left" | "right"
-  readonly className?: string
+class ColumnDef<T> {
+  constructor(
+    readonly values: {
+      readonly label: ReactNode
+      readonly sortFun: SortFun<T> | null
+      readonly align?: "left" | "right"
+      readonly className?: string
+    }
+  ) {}
 }
 
 type ColumnsConfig<T> = { readonly [key: string]: ColumnDef<T> }
-
-// An identity function, but one that pins T so `sortFun` gets checked against
-// the row type at the definition site instead of at the call to DataTable.
-const columnDef = <T,>(values: ColumnDef<T>): ColumnDef<T> => values
 
 type Row<T, C extends ColumnsConfig<T>> = {
   readonly key: Key
@@ -70,7 +76,7 @@ const keepOrder: SortFun<unknown> = () => 0
 // degrades to store order rather than throwing.
 function comparator<T>(columns: ColumnsConfig<T>, sort: SortState): SortFun<T> {
   if (sort.sorting === "unsorted") return keepOrder
-  const sortFun = columns[sort.column]?.sortFun
+  const sortFun = columns[sort.column]?.values.sortFun
   if (sortFun === undefined || sortFun === null) return keepOrder
   return sort.sorting === "increasing" ? sortFun : (a, b) => -sortFun(a, b)
 }
@@ -100,16 +106,23 @@ function SortableHeader(props: {
 }): ReactNode {
   if (props.state === null) return props.label
   return (
-    <Button variant="ghost" onClick={props.onSort}>
+    <div className="inline-flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0">
       {props.label}
-      {props.state === "increasing" ? (
-        <ChevronUp />
-      ) : props.state === "decreasing" ? (
-        <ChevronDown />
-      ) : (
-        <ArrowUpDown />
-      )}
-    </Button>
+      <button
+        type="button"
+        aria-label="Toggle sort"
+        className="inline-flex cursor-pointer"
+        onClick={props.onSort}
+      >
+        {props.state === "increasing" ? (
+          <ArrowDownNarrowWide className="text-foreground" />
+        ) : props.state === "decreasing" ? (
+          <ArrowDownWideNarrow className="text-foreground" />
+        ) : (
+          <ArrowUpDown className="text-muted-foreground hover:text-foreground" />
+        )}
+      </button>
+    </div>
   )
 }
 
@@ -129,9 +142,9 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
     <div className="overflow-hidden rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-muted/50">
             {columnOrder.map((id) => {
-              const column = columns[id]
+              const column = columns[id]?.values
               if (column === undefined) return null
               const state: ColumnSort | null =
                 column.sortFun === null
@@ -189,7 +202,7 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
                   <TableCell
                     key={String(id)}
                     className={cn(
-                      columns[id]?.align === "right" && "text-right"
+                      columns[id]?.values.align === "right" && "text-right"
                     )}
                   >
                     {row.contents[id]}
@@ -270,5 +283,5 @@ function DataTablePagination(props: {
   )
 }
 
-export { DataTable, DataTablePagination, columnDef, comparator }
-export type { ColumnDef, ColumnsConfig, DataTableProps, Row, SortState }
+export { ColumnDef, DataTable, DataTablePagination, comparator }
+export type { ColumnsConfig, SortState }
