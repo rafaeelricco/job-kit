@@ -4,15 +4,15 @@ import { useMemo, useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import {
-  Building2,
+  Activity,
   CalendarDays,
   ChevronsUpDown,
-  CircleCheckBig,
-  Files,
   GitBranch,
+  Globe,
   Layers,
-  Radio,
+  Send,
   Star,
+  Target,
   TrendingUp,
 } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
@@ -24,21 +24,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   RANGES,
   anchorOf,
+  appliedDates,
   deltaPct,
+  foundDates,
   isHighScore,
   isLive,
   pairedSeries,
   seriesOf,
+  sourceSeries,
   tallyBy,
-  topCompanies,
   windowOf,
 } from "@/module/scout/helpers/analytics"
-import type { RangeKey, TallyRow, Window } from "@/module/scout/helpers/analytics"
+import type { PairedPoint, RangeKey, TallyRow, Window } from "@/module/scout/helpers/analytics"
 import { CHANNELS, LIFECYCLES } from "@/module/scout/types"
 import type { Channel, Dossier } from "@/module/scout/types"
 
 const ALL_CHANNELS = "all"
-const TOP_LIMIT = 5
 
 const CHANNEL_LABELS: Record<Channel, string> = {
   direct_email: "Direct email",
@@ -48,21 +49,45 @@ const CHANNEL_LABELS: Record<Channel, string> = {
 }
 
 const TILES = [
-  { key: "total", label: "Total dossiers", Icon: Files, pick: () => true },
   { key: "high", label: "Score 8+", Icon: Star, pick: isHighScore },
   {
-    key: "applied",
-    label: "Applied",
-    Icon: CircleCheckBig,
-    pick: (d: Dossier) => d.status === "applied",
+    key: "ready",
+    label: "Ready to apply",
+    Icon: Target,
+    pick: (d: Dossier) => d.status === "new" && isHighScore(d) && isLive(d),
   },
-  { key: "live", label: "Live postings", Icon: Radio, pick: isLive },
+  {
+    key: "play",
+    label: "In play",
+    Icon: Activity,
+    pick: (d: Dossier) => d.status === "applied" || d.status === "interview" || d.status === "offer",
+  },
 ] as const
 
 const CHART: ChartConfig = {
   count: { label: "This period", color: "var(--color-brand)" },
   prior: { label: "Previous", color: "var(--color-brand)" },
 }
+
+// The reference separates its series with shades of one hue, not a rainbow, and
+// this palette is a single brand blue over neutrals — `--chart-1..5` are all
+// zero-chroma. Mixing toward theme tokens keeps the ramp readable in both
+// themes. The last shade is grey, reserved for the folded "other" bucket.
+const SOURCE_COLORS = [
+  "var(--color-brand)",
+  "color-mix(in oklab, var(--color-brand) 62%, var(--color-foreground))",
+  "color-mix(in oklab, var(--color-brand) 45%, var(--color-card))",
+  "color-mix(in oklab, var(--color-brand) 35%, var(--color-muted-foreground))",
+  "var(--color-muted-foreground)",
+] as const
+
+const SOURCE_LIMIT = SOURCE_COLORS.length - 1
+
+const colorOf = (index: number) => SOURCE_COLORS[index] ?? "var(--color-muted-foreground)"
+
+// Source ids are their own labels and the strokes come from SOURCE_COLORS, so
+// the container needs no config entries — and none get emitted as CSS vars.
+const SOURCE_CHART: ChartConfig = {}
 
 function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
   const [range, setRange] = useState<RangeKey>("30d")
@@ -81,8 +106,12 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
   // "All time" has nothing behind it to compare against.
   const baseline = compare && days !== null ? previous : null
 
-  const trend = useMemo(() => pairedSeries(scoped, current, baseline, () => true), [scoped, current, baseline])
-  const companies = useMemo(() => topCompanies(scoped, current, TOP_LIMIT), [scoped, current])
+  const trend = useMemo(() => pairedSeries(scoped, current, baseline, foundDates), [scoped, current, baseline])
+  const applications = useMemo(
+    () => pairedSeries(scoped, current, baseline, appliedDates),
+    [scoped, current, baseline]
+  )
+  const sources = useMemo(() => sourceSeries(scoped, current, SOURCE_LIMIT), [scoped, current])
   const pipeline = useMemo(() => tallyBy(scoped, current, LIFECYCLES, (d) => d.status), [scoped, current])
   const total = trend.reduce((n, p) => n + p.count, 0)
 
@@ -115,7 +144,7 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         {TILES.map((tile) => (
           <Tile
             key={tile.key}
@@ -127,58 +156,67 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
         ))}
       </div>
 
+      <TrendCard title="Dossiers over time" Icon={TrendingUp} points={trend} current={current} baseline={baseline} />
+
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <SectionTitle Icon={TrendingUp}>Dossiers over time</SectionTitle>
-            <p className="text-[28px] leading-none font-semibold tabular-nums">{total.toLocaleString()}</p>
-          </div>
+          <SectionTitle Icon={Globe}>Sources over time</SectionTitle>
 
-          <ChartContainer config={CHART} className="h-64 w-full">
-            <LineChart data={[...trend]} margin={{ left: -16, right: 8 }}>
-              <CartesianGrid vertical={false} strokeDasharray="0" />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={12}
-                minTickGap={40}
-                tickFormatter={shortDate}
-              />
-              <YAxis tickLine={false} axisLine={false} tickMargin={12} allowDecimals={false} width={48} />
-              <ChartTooltip content={<ChartTooltipContent labelFormatter={shortDate} />} />
-              {baseline === null ? null : (
-                <Line
-                  dataKey="prior"
-                  type="monotone"
-                  stroke="var(--color-prior)"
-                  strokeWidth={1.5}
-                  strokeDasharray="2 3"
-                  strokeOpacity={0.55}
-                  dot={false}
-                  isAnimationActive={false}
-                />
-              )}
-              <Line
-                dataKey="count"
-                type="monotone"
-                stroke="var(--color-count)"
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ChartContainer>
+          {sources.rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No dossiers in this range.</p>
+          ) : (
+            <>
+              <ChartContainer config={SOURCE_CHART} className="h-64 w-full">
+                <LineChart data={[...sources.points]} margin={{ left: -16, right: 8 }}>
+                  <CartesianGrid vertical={false} strokeDasharray="0" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={12}
+                    minTickGap={40}
+                    tickFormatter={shortDate}
+                  />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={12} allowDecimals={false} width={48} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(label) => (typeof label === "string" ? shortDate(label) : label)}
+                      />
+                    }
+                  />
+                  {sources.rows.map((row, index) => (
+                    <Line
+                      key={row.label}
+                      dataKey={row.label}
+                      type="monotone"
+                      stroke={colorOf(index)}
+                      strokeWidth={2}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  ))}
+                </LineChart>
+              </ChartContainer>
 
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            <Key label={rangeLabel(current)} />
-            {baseline === null ? null : <Key label={rangeLabel(baseline)} faded />}
-          </div>
+              <div className="flex flex-wrap items-center justify-center gap-6">
+                {sources.rows.map((row, index) => (
+                  <Key key={row.label} label={row.label} color={colorOf(index)} count={row.count} />
+                ))}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <BarList title="Top companies" Icon={Building2} rows={companies} total={total} />
+        <TrendCard
+          title="Applications over time"
+          Icon={Send}
+          points={applications}
+          current={current}
+          baseline={baseline}
+        />
         <BarList title="Pipeline" Icon={GitBranch} rows={pipeline} total={total} />
       </div>
     </>
@@ -189,19 +227,101 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
 // the icon and the text, and never shouts it in uppercase.
 function SectionTitle({ Icon, children }: { readonly Icon: LucideIcon; readonly children: ReactNode }) {
   return (
-    <div className="flex w-fit items-center gap-2 border-b border-dotted border-muted-foreground/40 pb-1.5 text-[15px] text-muted-foreground">
+    <div className="flex w-fit items-center gap-2 text-[15px] text-muted-foreground">
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       <span>{children}</span>
     </div>
   )
 }
 
-function Key({ label, faded = false }: { readonly label: string; readonly faded?: boolean }) {
+function Key({ label, color, count }: { readonly label: string; readonly color: string; readonly count?: number }) {
   return (
     <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
-      <span className={faded ? "size-2 rounded-full bg-brand/50" : "size-2 rounded-full bg-brand"} aria-hidden="true" />
+      <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
       {label}
+      {count === undefined ? null : <span className="text-foreground tabular-nums">{count.toLocaleString()}</span>}
     </span>
+  )
+}
+
+// Two panels want the same card: a heading, the range total in 28px, a compare
+// line under it. The only differences are the title, the icon, and the series.
+function TrendCard({
+  title,
+  Icon,
+  points,
+  current,
+  baseline,
+}: {
+  readonly title: string
+  readonly Icon: LucideIcon
+  readonly points: readonly PairedPoint[]
+  readonly current: Window
+  readonly baseline: Window | null
+}) {
+  const total = points.reduce((n, p) => n + p.count, 0)
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <SectionTitle Icon={Icon}>{title}</SectionTitle>
+          <p className="text-[28px] leading-none font-semibold tabular-nums">{total.toLocaleString()}</p>
+        </div>
+
+        <ChartContainer config={CHART} className="h-64 w-full">
+          <LineChart data={[...points]} margin={{ left: -16, right: 8 }}>
+            <CartesianGrid vertical={false} strokeDasharray="0" />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={12}
+              minTickGap={40}
+              tickFormatter={shortDate}
+            />
+            <YAxis tickLine={false} axisLine={false} tickMargin={12} allowDecimals={false} width={48} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(label) => (typeof label === "string" ? shortDate(label) : label)}
+                />
+              }
+            />
+            {baseline === null ? null : (
+              <Line
+                dataKey="prior"
+                type="monotone"
+                stroke="var(--color-prior)"
+                strokeWidth={1.5}
+                strokeDasharray="2 3"
+                strokeOpacity={0.55}
+                dot={false}
+                isAnimationActive={false}
+              />
+            )}
+            <Line
+              dataKey="count"
+              type="monotone"
+              stroke="var(--color-count)"
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ChartContainer>
+
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          <Key label={rangeLabel(current)} color="var(--color-brand)" />
+          {baseline === null ? null : (
+            <Key
+              label={rangeLabel(baseline)}
+              color="color-mix(in oklab, var(--color-brand) 50%, var(--color-card))"
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -292,7 +412,7 @@ function Sparkline({ points }: { readonly points: readonly { date: string; count
       {bars.map((value, index) => (
         <span
           key={index}
-          className="w-2 rounded-[2px] bg-muted-foreground/20"
+          className="w-2 rounded-xs bg-muted-foreground/20"
           style={{ height: `${Math.max((value / peak) * 100, 10)}%` }}
         />
       ))}
