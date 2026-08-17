@@ -1,7 +1,7 @@
 export default DossiersPage
 
+import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
-import type { ReactNode } from "react"
 import { toast } from "sonner"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -9,133 +9,32 @@ import { Button } from "@/components/ui/button"
 import { CopyButton } from "@/components/ui/copy"
 import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ConsentDialog } from "@/module/scout/components/consent-dialog"
 import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
 import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
-import { PermissionEmpty } from "@/module/scout/components/permission-empty"
 import { SelectionBar } from "@/module/scout/components/selection-bar"
+import { StoreGate } from "@/module/scout/components/store-gate"
+import type { Ready } from "@/module/scout/components/store-gate"
 import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize } from "@/module/scout/helpers/select"
 import type { Filter } from "@/module/scout/helpers/select"
 import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
 import { trashDossiers } from "@/module/scout/helpers/trash"
-import { useConsent } from "@/module/scout/helpers/use-consent"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
-import { useStore } from "@/module/scout/helpers/use-store"
-import type { StoreState } from "@/module/scout/helpers/use-store"
-import { assertNever } from "@/module/scout/result"
-import type { Attempt, ParseError, Store } from "@/module/scout/types"
+import type { ParseError } from "@/module/scout/types"
 
 const PAGE_SIZE = PAGE_SIZES[0]
 
 function DossiersPage() {
-  const { granted, grant } = useConsent()
-  // Dismissing the dialog is not a dead end — the empty state reopens it.
-  const [asking, setAsking] = useState(true)
-  const { state, reload } = useStore(granted)
-
   return (
-    <>
-      <Body state={state} onAsk={() => setAsking(true)} onAllow={grant} onReload={reload} />
-      <ConsentDialog open={!granted && asking} onOpenChange={setAsking} onAllow={grant} />
-    </>
+    <StoreGate title="Dossiers" Icon={Briefcase}>
+      {(store, reload) => <Surface store={store} onReload={reload} />}
+    </StoreGate>
   )
 }
 
-function Body({
-  state,
-  onAsk,
-  onAllow,
-  onReload,
-}: {
-  readonly state: StoreState
-  readonly onAsk: () => void
-  readonly onAllow: () => void
-  readonly onReload: () => void
-}) {
-  switch (state.kind) {
-    case "idle":
-      return <PermissionEmpty onAllow={onAllow} onReview={onAsk} />
-    case "loading":
-      return (
-        <Shell>
-          <div className="space-y-3">
-            {Array.from({ length: 8 }, (_, row) => (
-              <Skeleton key={row} className="h-14 w-full" />
-            ))}
-          </div>
-        </Shell>
-      )
-    case "failed":
-      return (
-        <Shell>
-          <Alert variant="destructive">
-            <AlertTitle>Could not reach the store</AlertTitle>
-            <AlertDescription>{state.message}</AlertDescription>
-          </Alert>
-        </Shell>
-      )
-    case "loaded":
-      return <Loaded store={state.store} onReload={onReload} />
-    default:
-      return assertNever(state)
-  }
-}
-
-function Shell({ children }: { readonly children: ReactNode }) {
-  return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">{children}</div>
-    </div>
-  )
-}
-
-function Loaded({ store, onReload }: { readonly store: Store; readonly onReload: () => void }) {
-  switch (store.kind) {
-    case "unresolved":
-      return (
-        <Shell>
-          <Unresolved attempts={store.attempts} />
-        </Shell>
-      )
-    case "ready":
-      return <Surface store={store} onReload={onReload} />
-    default:
-      return assertNever(store)
-  }
-}
-
-// The skills require every attempt be named on STOP, then a handoff to
-// job-profile-init. This is that report, not a generic error.
-function Unresolved({ attempts }: { readonly attempts: readonly Attempt[] }) {
-  return (
-    <Alert variant="destructive">
-      <AlertTitle>No profile root resolved</AlertTitle>
-      <AlertDescription>
-        <ul className="my-2 space-y-1 font-mono text-xs">
-          {attempts.map((attempt) => (
-            <li key={`${attempt.source}:${attempt.path ?? ""}`}>
-              {attempt.source} · {attempt.path ?? "—"} · {attempt.outcome.kind}
-              {attempt.line === null ? "" : ` · line "${attempt.line}"`}
-            </li>
-          ))}
-        </ul>
-        Create one with <code>job-profile-init</code>, or register an existing profile with Activate = Yes.
-      </AlertDescription>
-    </Alert>
-  )
-}
-
-function Surface({
-  store,
-  onReload,
-}: {
-  readonly store: Extract<Store, { kind: "ready" }>
-  readonly onReload: () => void
-}) {
+function Surface({ store, onReload }: { readonly store: Ready; readonly onReload: () => void }) {
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
   const [page, setPage] = useState(1)
@@ -209,7 +108,7 @@ function Surface({
   }
 
   return (
-    <Shell>
+    <>
       <OverviewCards summary={summary} />
 
       <FilterBar
@@ -266,7 +165,7 @@ function Surface({
       <SelectionBar rows={selectedRows} onHide={onHide} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
-    </Shell>
+    </>
   )
 }
 
