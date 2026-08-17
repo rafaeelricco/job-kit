@@ -1,4 +1,17 @@
-export { RANGES, anchorOf, deltaPct, isHighScore, isLive, pairedSeries, seriesOf, tallyBy, topCompanies, windowOf }
+export {
+  RANGES,
+  anchorOf,
+  appliedDates,
+  deltaPct,
+  foundDates,
+  isHighScore,
+  isLive,
+  pairedSeries,
+  seriesOf,
+  sourceSeries,
+  tallyBy,
+  windowOf,
+}
 export type { PairedPoint, RangeKey, SeriesPoint, TallyRow, Window }
 
 import type { Dossier } from "@/module/scout/types"
@@ -19,6 +32,12 @@ type PairedPoint = SeriesPoint & {
 }
 type TallyRow = { readonly label: string; readonly count: number }
 type Window = { readonly from: string; readonly to: string }
+// The days a dossier contributes a count on. Discovery has exactly one; an
+// application has one per attempt, on the day it was sent.
+type Stamps = (d: Dossier) => readonly string[]
+// One row per day, carrying a count per source. The keys are the source ids
+// themselves, so the index signature has to admit `date` alongside them.
+type SourcePoint = { readonly date: string; readonly [source: string]: number | string }
 
 const isHighScore = (d: Dossier) => d.score.kind === "scored" && d.score.value >= 8
 const isLive = (d: Dossier) => d.posting.kind === "live"
@@ -50,12 +69,23 @@ function windowOf(anchor: string, days: number | null, back = 0): Window {
 
 const within = (d: Dossier, w: Window) => d.firstSeen >= w.from && d.firstSeen <= w.to
 
+const foundDates: Stamps = (d) => [d.firstSeen]
+
+// `applied via {channel}` is the line job-apply appends — see
+// skill/job-apply/references/pipeline.md. An application is stamped on
+// the day it was sent, never on `firstSeen`: a dossier found in March and
+// applied to yesterday belongs to yesterday.
+const APPLIED = "applied via"
+const appliedDates: Stamps = (d) => d.log.filter((e) => e.event.startsWith(APPLIED)).map((e) => e.date)
+
 // Zero-filled so a quiet week reads as a flat line rather than a missing gap.
-function seriesOf(all: readonly Dossier[], w: Window, pick: (d: Dossier) => boolean): readonly SeriesPoint[] {
+function daily(all: readonly Dossier[], w: Window, stamps: Stamps): readonly SeriesPoint[] {
   const counts = new Map<string, number>()
   for (const d of all) {
-    if (!within(d, w) || !pick(d)) continue
-    counts.set(d.firstSeen, (counts.get(d.firstSeen) ?? 0) + 1)
+    for (const date of stamps(d)) {
+      if (date < w.from || date > w.to) continue
+      counts.set(date, (counts.get(date) ?? 0) + 1)
+    }
   }
 
   const start = w.from === "0000-01-01" ? earliest(all, w) : w.from
@@ -66,6 +96,11 @@ function seriesOf(all: readonly Dossier[], w: Window, pick: (d: Dossier) => bool
   }
   return points
 }
+
+// The tiles ask "which dossiers match", not "which days", so the predicate
+// form stays — it is the same question `deltaPct` asks.
+const seriesOf = (all: readonly Dossier[], w: Window, pick: (d: Dossier) => boolean) =>
+  daily(all, w, (d) => (pick(d) ? foundDates(d) : []))
 
 function earliest(all: readonly Dossier[], w: Window): string {
   let oldest = ""
@@ -82,10 +117,10 @@ function pairedSeries(
   all: readonly Dossier[],
   current: Window,
   previous: Window | null,
-  pick: (d: Dossier) => boolean
+  stamps: Stamps
 ): readonly PairedPoint[] {
-  const now = seriesOf(all, current, pick)
-  const before = previous === null ? [] : seriesOf(all, previous, pick)
+  const now = daily(all, current, stamps)
+  const before = previous === null ? [] : daily(all, previous, stamps)
   const offset = before.length - now.length
 
   return now.map((point, index) => {
@@ -117,18 +152,6 @@ function deltaPct(
   return Math.round(((countIn(all, current, pick) - before) / before) * 100)
 }
 
-function topCompanies(all: readonly Dossier[], w: Window, limit: number): readonly TallyRow[] {
-  const counts = new Map<string, number>()
-  for (const d of all) {
-    if (!within(d, w)) continue
-    counts.set(d.company, (counts.get(d.company) ?? 0) + 1)
-  }
-  return [...counts]
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-    .slice(0, limit)
-}
-
 // Keeps the vocabulary's own order, and keeps empty buckets, so the pipeline
 // reads as a fixed set of stages rather than a list that reshuffles per filter.
 function tallyBy<T extends string>(
@@ -143,4 +166,47 @@ function tallyBy<T extends string>(
     counts.set(key(d), (counts.get(key(d)) ?? 0) + 1)
   }
   return vocab.map((label) => ({ label, count: counts.get(label) ?? 0 }))
+}
+
+const OTHER = "other"
+
+// Sources are search-pack ids the operator can mint, so the vocabulary comes
+// from the data rather than a fixed list like `tallyBy` takes. A long tail of
+// one-offs would be a dozen unreadable lines, so everything past the leaders
+// folds into one bucket and the rows still add up to the range total.
+function sourceSeries(
+  all: readonly Dossier[],
+  w: Window,
+  limit: number
+): { readonly rows: readonly TallyRow[]; readonly points: readonly SourcePoint[] } {
+  const totals = new Map<string, number>()
+  for (const d of all) {
+    if (!within(d, w)) continue
+    totals.set(d.provenance.source, (totals.get(d.provenance.source) ?? 0) + 1)
+  }
+
+  const ranked = [...totals]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+  const leaders = new Set(ranked.slice(0, limit).map((r) => r.label))
+  const tail = ranked.filter((r) => !leaders.has(r.label)).reduce((n, r) => n + r.count, 0)
+  const rows = tail === 0 ? ranked : [...ranked.slice(0, limit), { label: OTHER, count: tail }]
+
+  const counts = new Map<string, Map<string, number>>()
+  for (const d of all) {
+    if (!within(d, w)) continue
+    const label = leaders.has(d.provenance.source) ? d.provenance.source : OTHER
+    const day = counts.get(d.firstSeen) ?? new Map<string, number>()
+    day.set(label, (day.get(label) ?? 0) + 1)
+    counts.set(d.firstSeen, day)
+  }
+
+  const start = w.from === "0000-01-01" ? earliest(all, w) : w.from
+  const points: SourcePoint[] = []
+  for (let ms = toUtc(start); ms <= toUtc(w.to); ms += DAY_MS) {
+    const date = toIso(ms)
+    const day = counts.get(date)
+    points.push({ date, ...Object.fromEntries(rows.map((r) => [r.label, day?.get(r.label) ?? 0])) })
+  }
+  return { rows, points }
 }
