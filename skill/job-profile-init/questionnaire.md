@@ -31,5 +31,23 @@ answers are scoped to that list, so an empty list makes them unanswerable.
 Ask one seniority value and write it as `seniority_level`, for example `entry`,
 `mid-level`, `senior`, or `director`.
 
-After all fields, ask whether the user wants to add observations or details that
-were not covered. Preserve the response in the observations buffer.
+## Stories
+
+Ask after every other field and before observations.
+
+Ask which moments the user would tell in an interview: one line each, a short
+name and the employer or project it belongs to. Names only. Never ask for the
+narrative, never draft one, never propose a moment the source of truth does not
+print.
+
+Each confirmed name becomes a `data/stories/<slug>.md` stub, `status: draft`,
+every other field empty. `skip` writes no stub and is never a Gap.
+
+Do not ask for `claim`, `evidence.*`, `impact_numbers`, `never_say`, or any
+prose. Those need evidence this flow does not read; `/job-stories add` collects
+them.
+
+## Observations
+
+Ask last. Ask whether the user wants to add observations or details that were
+not covered. Preserve the response in the observations buffer.
