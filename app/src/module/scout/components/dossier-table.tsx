@@ -1,5 +1,4 @@
-export { DossierTable }
-export type { DossierTableProps }
+export { DossierTable, type DossierTableProps }
 
 import { ChevronDown, ChevronUp } from "lucide-react"
 import type { KeyboardEvent, ReactNode } from "react"

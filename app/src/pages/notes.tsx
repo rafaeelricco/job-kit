@@ -12,12 +12,12 @@ function NotesPage() {
   const note = getNoteByPath(pathname.replace(/^\/notes/, "") || "/")
 
   return (
-    <div className="bg-background min-h-svh">
-      <div className="border-border mx-auto max-w-3xl border-x border-dashed">
-        <header className="border-border border-b border-dashed px-4 py-4 sm:px-8">
+    <div className="min-h-svh bg-background">
+      <div className="mx-auto max-w-3xl border-x border-dashed border-border">
+        <header className="border-b border-dashed border-border px-4 py-4 sm:px-8">
           <Link
             to="/"
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Home</span>
@@ -26,28 +26,28 @@ function NotesPage() {
 
         <main className="px-4 py-8 sm:px-8 md:py-12">
           {note ? (
-            <article className="prose prose-neutral dark:prose-invert max-w-none">
+            <article className="prose max-w-none prose-neutral dark:prose-invert">
               <div className="mb-8">
                 <h1 className="mb-2 text-2xl font-bold tracking-tight">
                   {note.metadata.title}
                 </h1>
                 {note.metadata.description && (
-                  <p className="text-muted-foreground text-base">
+                  <p className="text-base text-muted-foreground">
                     {note.metadata.description}
                   </p>
                 )}
               </div>
-              <hr className="border-border my-4 border-t" />
+              <hr className="my-4 border-t border-border" />
               <MDXProvider components={mdxComponents}>
                 <note.Component />
               </MDXProvider>
             </article>
           ) : (
             <div className="py-24 text-center">
-              <h1 className="text-foreground text-2xl font-bold">
+              <h1 className="text-2xl font-bold text-foreground">
                 Page not found
               </h1>
-              <p className="text-muted-foreground mt-2 text-sm">
+              <p className="mt-2 text-sm text-muted-foreground">
                 The requested page could not be found.
               </p>
             </div>

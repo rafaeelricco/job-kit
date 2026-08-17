@@ -32,12 +32,17 @@ const mdxComponents = {
     <ol className="list-decimal pl-5 text-base" {...props} />
   ),
   blockquote: (props: ComponentProps<"blockquote">) => (
-    <blockquote className="border-border border-l-4 pl-4 italic" {...props} />
+    <blockquote className="border-l-4 border-border pl-4 italic" {...props} />
   ),
-  hr: () => <hr className="border-border my-6 border-t" />,
+  hr: () => <hr className="my-6 border-t border-border" />,
 
   img: ({ alt, ...props }: ComponentProps<"img">) => (
-    <img {...props} loading="lazy" className="my-4 rounded-lg" alt={alt ?? ""} />
+    <img
+      {...props}
+      loading="lazy"
+      className="my-4 rounded-lg"
+      alt={alt ?? ""}
+    />
   ),
 
   // In-page anchors and external links stay native; everything else is client-routed.
@@ -64,12 +69,13 @@ const mdxComponents = {
   code: ({ className, ...props }: ComponentProps<"code">) => {
     const isBlock = "data-language" in props
 
-    if (isBlock) return <code className={cn("relative", className)} {...props} />
+    if (isBlock)
+      return <code className={cn("relative", className)} {...props} />
 
     return (
       <code
         className={cn(
-          "bg-muted relative rounded-sm px-[0.3rem] py-[0.2rem] font-mono text-[0.8rem]! font-normal wrap-break-word",
+          "relative rounded-sm bg-muted px-[0.3rem] py-[0.2rem] font-mono text-[0.8rem]! font-normal wrap-break-word",
           className
         )}
         {...props}
@@ -78,23 +84,23 @@ const mdxComponents = {
   },
 
   table: (props: ComponentProps<"table">) => (
-    <div className="border-border my-6 w-full overflow-x-auto rounded-lg border">
+    <div className="my-6 w-full overflow-x-auto rounded-lg border border-border">
       <table className="w-full text-base" {...props} />
     </div>
   ),
   thead: (props: ComponentProps<"thead">) => (
-    <thead className="border-border border-b" {...props} />
+    <thead className="border-b border-border" {...props} />
   ),
   tbody: (props: ComponentProps<"tbody">) => (
-    <tbody className="divide-border divide-y" {...props} />
+    <tbody className="divide-y divide-border" {...props} />
   ),
   th: (props: ComponentProps<"th">) => (
     <th
-      className="text-foreground px-4 py-3 text-left font-semibold"
+      className="px-4 py-3 text-left font-semibold text-foreground"
       {...props}
     />
   ),
   td: (props: ComponentProps<"td">) => (
-    <td className="text-foreground px-4 py-3 align-middle" {...props} />
+    <td className="px-4 py-3 align-middle text-foreground" {...props} />
   ),
 }

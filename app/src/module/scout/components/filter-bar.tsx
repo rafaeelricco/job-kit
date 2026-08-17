@@ -1,5 +1,4 @@
-export { FilterBar }
-export type { FilterBarProps }
+export { FilterBar, type FilterBarProps }
 
 import {
   Columns3Icon,

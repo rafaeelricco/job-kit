@@ -1,5 +1,4 @@
-export { DossierSheet }
-export type { DossierSheetProps }
+export { DossierSheet, type DossierSheetProps }
 
 import type * as React from "react"
 import { ExternalLinkIcon, TriangleAlertIcon } from "lucide-react"

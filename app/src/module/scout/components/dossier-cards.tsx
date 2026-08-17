@@ -1,5 +1,4 @@
-export { DossierCards }
-export type { DossierCardsProps }
+export { DossierCards, type DossierCardsProps }
 
 import type { KeyboardEvent } from "react"
 

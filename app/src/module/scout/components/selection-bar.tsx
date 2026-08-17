@@ -1,5 +1,4 @@
-export { SelectionBar }
-export type { SelectionBarProps }
+export { SelectionBar, type SelectionBarProps }
 
 import { DownloadIcon, EyeOffIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"

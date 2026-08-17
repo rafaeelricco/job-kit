@@ -9,8 +9,11 @@ export {
   paginate,
   sortBy,
   summarize,
+  type Filter,
+  type Segment,
+  type Sort,
+  type SortKey,
 }
-export type { Filter, Segment, Sort, SortKey }
 
 import type {
   Bucket,
