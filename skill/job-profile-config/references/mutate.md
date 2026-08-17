@@ -29,7 +29,7 @@ batch — still one diff, one yes.
    `wrote` for a cycle that did not complete: the card-clear and its
    `job_search.yaml` edit stand or fall together.
 10. All renames done → print `wrote <abs path>` per file and re-print only the
-    affected `### Constraints` (or `### Sources`) slice.
+    affected `### Constraints` (or `### Packs`) slice.
 11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
@@ -64,31 +64,18 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 
 ## `search_packs.yaml` — writable
 
-- `list` — read-only. File order: `id · surface · enabled|disabled · tokens`.
+- `list` — read-only. File order: `id · entry host · enabled|disabled · tokens`.
 - `enable` / `disable` — flip `enabled` on a named `id`. No id match → say so.
 - `formulations` — replace the list on one pack with strings the user typed. Never
   compose a formulation, never widen one, never look a term up. `< 3` formulations
   → warn (contract-search requires ≥3), then let the user decide.
-- `add` / `remove` a pack — require `id`, `impl`, `surface`, `entry`, and ≥3
-  formulations from the user. `impl` must match a `surface-*.md` basename in the
-  installed job-scout skill; unknown stem → refuse, name the valid stems.
-  `entry` is a URL string or a list of `{name, url}` rows (`access` / `notes` optional).
+- `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥3 formulations
+  from the user. `surface` must match a `surface-<surface>.md` in the installed
+  job-scout skill; unknown → refuse, name the valid ones. `entry` is one `http(s)`
+  URL. A board is a pack, never a row inside one.
 
 A `[skill:<group>]` token in a formulation whose group is absent from
 `job_search.yaml` is dropped at search time — say so alongside the diff.
-
-## Boards — writable on `search_packs.yaml`
-
-- `list` — read-only. Every pack whose `entry` is a source-row list, file order:
-  pack `id`, then `name — url (access)`.
-- `add` — require pack `id` + `name` + `url`. Pack must exist and already have a
-  list `entry` (or the user is turning a URL-string `entry` into a one-row list —
-  refuse that; add a new pack instead). Optional: `access`
-  (`public` | `account_optional` | `account_required`), `notes`. Never invent a
-  board or a URL.
-- `remove` — match `name` case-insensitively across list-entry packs. No match →
-  say so. Two matches → ask which. Emptying a pack's list leaves that pack with
-  no rows — warn alongside the diff, then let the user decide.
 
 ## Refuse (redirect, never write)
 
