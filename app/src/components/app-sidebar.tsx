@@ -67,7 +67,7 @@ function initialsOf(name: string): string {
 // `to` is what separates a wired item from the reference's visual filler.
 const MAIN = [
   { label: "Home", Icon: LayoutGrid, to: "/" },
-  { label: "Dossiers", Icon: Briefcase },
+  { label: "Dossiers", Icon: Briefcase, to: "/dossiers" },
   { label: "Analytics", Icon: ChartNoAxesColumn, sub: true },
   { label: "Plan", Icon: Workflow },
   { label: "Apps", Icon: Grid2x2Plus },
