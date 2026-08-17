@@ -6,7 +6,7 @@ import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { DataTable, columnDef } from "@/components/ui/datatable"
+import { ColumnDef, DataTable } from "@/components/ui/datatable"
 import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
 import {
   DropdownMenu,
@@ -106,7 +106,7 @@ function DossierTable(props: DossierTableProps) {
   }
 
   const columns = {
-    select: columnDef<Dossier>({
+    select: new ColumnDef({
       className: "w-10",
       sortFun: null,
       label: (
@@ -118,7 +118,7 @@ function DossierTable(props: DossierTableProps) {
       ),
     }),
     ...DOSSIER_COLUMNS,
-    actions: columnDef<Dossier>({
+    actions: new ColumnDef({
       label: "",
       sortFun: null,
       className: "w-10",
