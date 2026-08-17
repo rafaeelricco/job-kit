@@ -72,13 +72,13 @@ function DossierTable(props: DossierTableProps) {
         )
       case "location":
         return (
-          <span className="block max-w-[14rem] truncate">
+          <span className="block max-w-56 truncate">
             {factText(row.facts.location)}
           </span>
         )
       case "salary":
         return (
-          <span className="block max-w-[14rem] truncate">
+          <span className="block max-w-56 truncate">
             {factText(row.facts.salary)}
           </span>
         )
