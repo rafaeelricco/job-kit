@@ -3,6 +3,15 @@ import type { Key, KeyboardEvent, ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
   Table,
   TableBody,
   TableCell,
@@ -195,33 +204,68 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
   )
 }
 
+// Page numbers to render, `null` marking an elided run. Caps the control at
+// seven slots so it does not widen as the dossier count grows.
+function pageWindow(page: number, pages: number): readonly (number | null)[] {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1)
+  const start = Math.min(Math.max(page - 1, 2), pages - 3)
+  const end = start + 2
+  return [
+    1,
+    ...(start > 2 ? [null] : []),
+    start,
+    start + 1,
+    end,
+    ...(end < pages - 1 ? [null] : []),
+    pages,
+  ]
+}
+
 function DataTablePagination(props: {
   readonly page: number
   readonly pages: number
   readonly onPage: (next: number) => void
   readonly status?: ReactNode
 }) {
+  const atFirst = props.page <= 1
+  const atLast = props.page >= props.pages
   return (
-    <div className="flex items-center justify-end space-x-2 py-4">
+    <div className="flex items-center justify-between gap-2">
       <div className="flex-1 text-sm text-muted-foreground">{props.status}</div>
-      <div className="space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={props.page <= 1}
-          onClick={() => props.onPage(props.page - 1)}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={props.page >= props.pages}
-          onClick={() => props.onPage(props.page + 1)}
-        >
-          Next
-        </Button>
-      </div>
+      <Pagination className="mx-0 w-auto">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              aria-disabled={atFirst}
+              className={cn(atFirst && "pointer-events-none opacity-50")}
+              onClick={() => props.onPage(props.page - 1)}
+            />
+          </PaginationItem>
+          {pageWindow(props.page, props.pages).map((n, i) =>
+            n === null ? (
+              <PaginationItem key={`gap-${i}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={n}>
+                <PaginationLink
+                  isActive={n === props.page}
+                  onClick={() => props.onPage(n)}
+                >
+                  {n}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          )}
+          <PaginationItem>
+            <PaginationNext
+              aria-disabled={atLast}
+              className={cn(atLast && "pointer-events-none opacity-50")}
+              onClick={() => props.onPage(props.page + 1)}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   )
 }
