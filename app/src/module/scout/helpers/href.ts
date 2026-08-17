@@ -5,9 +5,7 @@ export { httpHref }
 function httpHref(raw: string): string | null {
   try {
     const parsed = new URL(raw)
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-      ? raw
-      : null
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? raw : null
   } catch {
     return null
   }

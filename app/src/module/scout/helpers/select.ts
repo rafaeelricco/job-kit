@@ -13,13 +13,7 @@ export {
   type Segment,
 }
 
-import type {
-  Bucket,
-  Channel,
-  Dossier,
-  FactValue,
-  Lifecycle,
-} from "@/module/scout/types"
+import type { Bucket, Channel, Dossier, FactValue, Lifecycle } from "@/module/scout/types"
 import { LIFECYCLES } from "@/module/scout/types"
 import { assertNever } from "@/module/scout/result"
 
@@ -50,19 +44,11 @@ const EMPTY_FILTER: Filter = {
 
 // An unknown fact is a hole, not the em dash the corpus prints for it. Feeding
 // the glyph into the corpus would let a search for "—" match every gap.
-const known = (value: FactValue): string =>
-  value.kind === "known" ? value.text : ""
+const known = (value: FactValue): string => (value.kind === "known" ? value.text : "")
 
 // Same fields the previous viewer searched, in the same order.
 const corpus = (d: Dossier): string =>
-  [
-    d.company,
-    d.title,
-    d.verdict.why,
-    known(d.facts.required_skills),
-    known(d.facts.location),
-    d.host,
-  ]
+  [d.company, d.title, d.verdict.why, known(d.facts.required_skills), known(d.facts.location), d.host]
     .join("\n")
     .toLowerCase()
 
@@ -82,8 +68,7 @@ const inSegment = (segment: Segment, d: Dossier): boolean => {
 }
 
 // An empty facet array is "no constraint" — OR within a facet, AND across them.
-const facet = <T>(chosen: readonly T[], value: T): boolean =>
-  chosen.length === 0 || chosen.includes(value)
+const facet = <T>(chosen: readonly T[], value: T): boolean => chosen.length === 0 || chosen.includes(value)
 
 const matches =
   (f: Filter, hidden: ReadonlySet<string>) =>
@@ -114,12 +99,10 @@ const byScore = (a: Dossier, b: Dossier): number => {
 
 // IsoDate is branded exactly so this lexical compare is chronological.
 const byText = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
-const bySeen = (a: Dossier, b: Dossier): number =>
-  byText(a.lastSeen, b.lastSeen)
+const bySeen = (a: Dossier, b: Dossier): number => byText(a.lastSeen, b.lastSeen)
 
 // Lifecycle order is semantic (new → dropped), not alphabetical.
-const byStatus = (a: Dossier, b: Dossier): number =>
-  LIFECYCLES.indexOf(a.status) - LIFECYCLES.indexOf(b.status)
+const byStatus = (a: Dossier, b: Dossier): number => LIFECYCLES.indexOf(a.status) - LIFECYCLES.indexOf(b.status)
 
 /* -- paging and totals ---------------------------------------------------- */
 

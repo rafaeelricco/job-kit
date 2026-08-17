@@ -11,11 +11,7 @@ import { resolveProfileRoot } from "./resolve"
 const JOBS = ["scout", "jobs"] as const
 const TRASH = ".trash"
 
-async function trashDossiers(
-  env: NodeJS.ProcessEnv,
-  cwd: string,
-  files: readonly string[]
-): Promise<Trashed> {
+async function trashDossiers(env: NodeJS.ProcessEnv, cwd: string, files: readonly string[]): Promise<Trashed> {
   const resolution = resolveProfileRoot(env, cwd)
   if (resolution.kind === "unresolved") throw new Error("no profile root")
 
@@ -23,9 +19,7 @@ async function trashDossiers(
   const trash = path.join(dir, TRASH)
   await fs.mkdir(trash, { recursive: true })
 
-  const results = await Promise.all(
-    files.map((file) => moveToTrash(dir, trash, file))
-  )
+  const results = await Promise.all(files.map((file) => moveToTrash(dir, trash, file)))
   const { values, errors } = partition(results)
 
   return { moved: values, failed: errors }
@@ -33,11 +27,7 @@ async function trashDossiers(
 
 // One file, one Result. A rejected name and a failed rename are the same kind
 // of outcome to the caller, so neither throws.
-async function moveToTrash(
-  dir: string,
-  trash: string,
-  file: string
-): Promise<Result<string, TrashFailure>> {
+async function moveToTrash(dir: string, trash: string, file: string): Promise<Result<string, TrashFailure>> {
   const from = confine(dir, file)
   if (from === null) return err({ file, reason: "not a dossier name" })
 

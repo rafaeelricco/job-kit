@@ -16,10 +16,7 @@ function CopyButton({
   size = "sm",
   className,
   ...props
-}: Omit<
-  React.ComponentProps<typeof Button>,
-  "value" | "onClick" | "children"
-> & {
+}: Omit<React.ComponentProps<typeof Button>, "value" | "onClick" | "children"> & {
   readonly value: string | (() => string)
   readonly label?: string
   readonly copiedLabel?: string

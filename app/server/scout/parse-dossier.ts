@@ -58,8 +58,7 @@ const FACTS_HEADER = "key | value"
 const NUMERIC = /^-?\d+(?:\.\d+)?$/
 
 function parseDossier(file: string, raw: string): ParsedDossier {
-  const fail = (at: string, cause: ParseError["cause"]): ParsedDossier =>
-    err({ file, at, cause })
+  const fail = (at: string, cause: ParseError["cause"]): ParsedDossier => err({ file, at, cause })
   const lines = raw.split("\n")
 
   /* -- frontmatter -------------------------------------------------------- */
@@ -167,11 +166,8 @@ function parseDossier(file: string, raw: string): ParsedDossier {
   /* -- verdict ------------------------------------------------------------ */
 
   const verdictBody = sectionAt(0)
-  const headline = verdictBody
-    .map((line) => line.trim())
-    .find((line) => line !== "" && !line.startsWith("|"))
-  const why =
-    headline === undefined ? undefined : VERDICT_LINE.exec(headline)?.[4]
+  const headline = verdictBody.map((line) => line.trim()).find((line) => line !== "" && !line.startsWith("|"))
+  const why = headline === undefined ? undefined : VERDICT_LINE.exec(headline)?.[4]
   if (why === undefined) {
     return fail("## Verdict line", { kind: "section", heading: "## Verdict" })
   }
@@ -208,9 +204,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
   const verdict: Verdict = { why, factors }
 
   const total = row[row.length - 1] ?? UNKNOWN_TEXT
-  const score: Score = NUMERIC.test(total)
-    ? { kind: "scored", value: Number(total) }
-    : { kind: "unscored" }
+  const score: Score = NUMERIC.test(total) ? { kind: "scored", value: Number(total) } : { kind: "unscored" }
   if (score.kind === "scored" && Number(read("score")) !== score.value) {
     return fail("## Verdict table", {
       kind: "score-mismatch",
@@ -224,10 +218,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
   const factLines = sectionAt(1).filter((line) => line.trim().startsWith("|"))
   const factHeader = factLines[0]
   // Column padding varies between files, so the header is matched on cells.
-  if (
-    factHeader === undefined ||
-    cells(factHeader).join(" | ") !== FACTS_HEADER
-  ) {
+  if (factHeader === undefined || cells(factHeader).join(" | ") !== FACTS_HEADER) {
     return fail("## Posting facts", {
       kind: "table",
       detail: `no | ${FACTS_HEADER} | header`,
@@ -395,14 +386,11 @@ const cells = (line: string): string[] =>
     .split("|")
     .map((cell) => cell.trim())
 
-const value = (text: string): FactValue =>
-  text === UNKNOWN_TEXT ? { kind: "unknown" } : { kind: "known", text }
+const value = (text: string): FactValue => (text === UNKNOWN_TEXT ? { kind: "unknown" } : { kind: "known", text })
 
 // Verified key by key, so the assertion below only restates what the loop
 // already proved.
-function complete(
-  partial: Partial<Record<FactKey, FactValue>>
-): Readonly<Record<FactKey, FactValue>> | null {
+function complete(partial: Partial<Record<FactKey, FactValue>>): Readonly<Record<FactKey, FactValue>> | null {
   const out: Partial<Record<FactKey, FactValue>> = {}
   for (const key of FACT_KEYS) {
     const found = partial[key]

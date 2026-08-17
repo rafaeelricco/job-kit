@@ -1,28 +1,11 @@
-export {
-  COLUMNS,
-  DEFAULT_COLUMNS,
-  DEFAULT_SORT,
-  DOSSIER_COLUMNS,
-  VIEWS,
-  columnLabel,
-  isView,
-  type ColumnId,
-  type View,
-}
+export { COLUMNS, DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS, VIEWS, columnLabel, isView, type ColumnId, type View }
 
 import { ColumnDef } from "@/components/ui/datatable"
 import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
 import { byScore, bySeen, byStatus } from "@/module/scout/helpers/select"
 import type { Dossier } from "@/module/scout/types"
 
-const COLUMNS = [
-  "score",
-  "company",
-  "location",
-  "salary",
-  "seen",
-  "status",
-] as const
+const COLUMNS = ["score", "company", "location", "salary", "seen", "status"] as const
 
 type ColumnId = (typeof COLUMNS)[number]
 
@@ -63,5 +46,4 @@ const VIEWS = ["table", "cards"] as const
 
 type View = (typeof VIEWS)[number]
 
-const isView = (raw: string): raw is View =>
-  (VIEWS as readonly string[]).includes(raw)
+const isView = (raw: string): raw is View => (VIEWS as readonly string[]).includes(raw)

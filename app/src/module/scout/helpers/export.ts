@@ -38,16 +38,11 @@ const RISKY_LEAD = new Set(["=", "+", "-", "@", "\t", "\r"])
 const csvCell = (raw: string): string => {
   const lead = raw.charAt(0)
   const guarded = RISKY_LEAD.has(lead) ? `'${raw}` : raw
-  return /[",\n\r]/.test(guarded)
-    ? `"${guarded.replaceAll('"', '""')}"`
-    : guarded
+  return /[",\n\r]/.test(guarded) ? `"${guarded.replaceAll('"', '""')}"` : guarded
 }
 
 function toCsv(rows: readonly Dossier[]): string {
-  const lines = [
-    COLUMNS.map(csvCell).join(","),
-    ...rows.map((d) => cells(d).map(csvCell).join(",")),
-  ]
+  const lines = [COLUMNS.map(csvCell).join(","), ...rows.map((d) => cells(d).map(csvCell).join(","))]
   return lines.join("\n")
 }
 
@@ -62,15 +57,10 @@ function toJson(rows: readonly Dossier[]): string {
 // A bare pipe would end the cell and shift every column after it.
 const mdCell = (raw: string): string => raw.replaceAll("|", "\\|")
 
-const mdRow = (values: readonly string[]): string =>
-  `| ${values.map(mdCell).join(" | ")} |`
+const mdRow = (values: readonly string[]): string => `| ${values.map(mdCell).join(" | ")} |`
 
 function toMarkdown(rows: readonly Dossier[]): string {
-  const lines = [
-    mdRow(COLUMNS),
-    `| ${COLUMNS.map(() => "---").join(" | ")} |`,
-    ...rows.map((d) => mdRow(cells(d))),
-  ]
+  const lines = [mdRow(COLUMNS), `| ${COLUMNS.map(() => "---").join(" | ")} |`, ...rows.map((d) => mdRow(cells(d)))]
   return lines.join("\n")
 }
 

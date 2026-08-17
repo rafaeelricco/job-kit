@@ -1,23 +1,10 @@
 export { FilterBar, type FilterBarProps }
 
-import {
-  ChevronDown,
-  LayoutGridIcon,
-  ListFilterIcon,
-  Rows3Icon,
-  SearchIcon,
-  XIcon,
-} from "lucide-react"
+import { ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
+import { Command, CommandGroup, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -28,20 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
-import {
-  COLUMNS,
-  VIEWS,
-  columnLabel,
-  isView,
-} from "@/module/scout/helpers/columns"
+import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
 import type { Filter, Segment } from "@/module/scout/helpers/select"
 import { SEGMENTS } from "@/module/scout/helpers/select"
 import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
@@ -78,9 +56,7 @@ const isSegment = (raw: unknown): raw is Segment =>
 
 // Never mutates: the parent still holds the array we were handed.
 function toggled<T>(chosen: readonly T[], value: T): readonly T[] {
-  return chosen.includes(value)
-    ? chosen.filter((one) => one !== value)
-    : [...chosen, value]
+  return chosen.includes(value) ? chosen.filter((one) => one !== value) : [...chosen, value]
 }
 
 // A removable facet value, flattened so the chip row does not branch per facet.
@@ -91,17 +67,12 @@ type Chip = {
 }
 
 function FilterBar(props: FilterBarProps) {
-  const { columns, filter, onColumns, onFilter, onView, shown, total, view } =
-    props
+  const { columns, filter, onColumns, onFilter, onView, shown, total, view } = props
 
-  const setBuckets = (value: Bucket) =>
-    onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
-  const setChannels = (value: Channel) =>
-    onFilter({ ...filter, channels: toggled(filter.channels, value) })
-  const setStatuses = (value: Lifecycle) =>
-    onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
-  const setMinScore = (value: number) =>
-    onFilter({ ...filter, minScore: value })
+  const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
+  const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
+  const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
+  const setMinScore = (value: number) => onFilter({ ...filter, minScore: value })
 
   const highOnly = filter.minScore >= HIGH_SCORE
 
@@ -157,9 +128,7 @@ function FilterBar(props: FilterBarProps) {
           <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={filter.query}
-            onChange={(event) =>
-              onFilter({ ...filter, query: event.target.value })
-            }
+            onChange={(event) => onFilter({ ...filter, query: event.target.value })}
             placeholder="Search company, role, stack"
             aria-label="Search company, role, stack"
             className="pl-8"
@@ -228,9 +197,7 @@ function FilterBar(props: FilterBarProps) {
         </Popover>
 
         <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="outline" className="ml-auto" />}
-          >
+          <DropdownMenuTrigger render={<Button variant="outline" className="ml-auto" />}>
             Columns
             <ChevronDown />
           </DropdownMenuTrigger>
@@ -265,12 +232,7 @@ function FilterBar(props: FilterBarProps) {
           aria-label="View"
         >
           {VIEWS.map((id) => (
-            <ToggleGroupItem
-              key={id}
-              value={id}
-              aria-label={VIEW_LABELS[id]}
-              title={VIEW_LABELS[id]}
-            >
+            <ToggleGroupItem key={id} value={id} aria-label={VIEW_LABELS[id]} title={VIEW_LABELS[id]}>
               {id === "table" ? <Rows3Icon /> : <LayoutGridIcon />}
             </ToggleGroupItem>
           ))}

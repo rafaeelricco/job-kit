@@ -4,9 +4,7 @@ import { err, ok } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
 import type { Trashed } from "@/module/scout/types"
 
-async function trashDossiers(
-  files: readonly string[]
-): Promise<Result<Trashed, string>> {
+async function trashDossiers(files: readonly string[]): Promise<Result<Trashed, string>> {
   try {
     const response = await fetch("/api/trash", {
       method: "POST",
@@ -14,9 +12,7 @@ async function trashDossiers(
       body: JSON.stringify({ files }),
     })
     if (!response.ok) {
-      return err(
-        `/api/trash responded ${response.status} ${response.statusText}`
-      )
+      return err(`/api/trash responded ${response.status} ${response.statusText}`)
     }
     return ok((await response.json()) as Trashed)
   } catch (error) {

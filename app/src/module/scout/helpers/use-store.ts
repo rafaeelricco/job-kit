@@ -12,8 +12,7 @@ type StoreState =
 // /api/store exists only under the dev server middleware. A static build has no
 // backend, so the failure message has to say where the route comes from.
 const SERVED_BY =
-  "/api/store is served by the dev server middleware — run the dev server; " +
-  "a static build has no backend."
+  "/api/store is served by the dev server middleware — run the dev server; " + "a static build has no backend."
 
 // Loading is never stored — it is exactly "enabled, with nothing back yet", so
 // deriving it keeps the effect free of a synchronous setState.

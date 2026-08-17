@@ -17,8 +17,7 @@ import { trashDossiers } from "./server/scout/trash"
 const visualTransformers: ShikiTransformer[] = [
   {
     pre(node) {
-      node.properties["class"] =
-        "no-scrollbar min-w-0 overflow-x-auto px-4 py-3.5 outline-none !bg-transparent"
+      node.properties["class"] = "no-scrollbar min-w-0 overflow-x-auto px-4 py-3.5 outline-none !bg-transparent"
     },
     code(node) {
       node.properties["data-line-numbers"] = ""
@@ -109,9 +108,7 @@ function trashPlugin(): PluginOption {
         }
 
         readBody(req)
-          .then((body) =>
-            trashDossiers(process.env, process.cwd(), filesOf(body))
-          )
+          .then((body) => trashDossiers(process.env, process.cwd(), filesOf(body)))
           .then((result) => reply(200, result))
           .catch((error: unknown) => reply(500, { error: String(error) }))
       })
@@ -126,9 +123,6 @@ async function readBody(req: IncomingMessage): Promise<unknown> {
 }
 
 const filesOf = (body: unknown): readonly string[] =>
-  typeof body === "object" &&
-  body !== null &&
-  "files" in body &&
-  Array.isArray(body.files)
+  typeof body === "object" && body !== null && "files" in body && Array.isArray(body.files)
     ? body.files.filter((f: unknown): f is string => typeof f === "string")
     : []

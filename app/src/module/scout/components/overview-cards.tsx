@@ -40,9 +40,7 @@ function OverviewCards(props: OverviewCardsProps) {
               <tile.Icon className="size-4" aria-hidden="true" />
               <span>{tile.label}</span>
             </div>
-            <span className="text-2xl font-semibold text-foreground tabular-nums">
-              {tile.value.toLocaleString()}
-            </span>
+            <span className="text-2xl font-semibold text-foreground tabular-nums">{tile.value.toLocaleString()}</span>
           </CardContent>
         </Card>
       ))}
