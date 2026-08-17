@@ -3,10 +3,10 @@
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
 # Skill folder names under skill/ for coding agents.
-SKILL_NAMES="job-profile-init job-profile-config job-tracker"
+SKILL_NAMES="job-profile-init job-profile-me job-list job-stories"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
-LEGACY_SKILL_NAMES="profile-init"
+LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker"
 
 # AGENT_TARGETS — space-separated ids. Dest map matches personal dotfiles:
 #   claude → $HOME/.claude/skills   (parent $HOME/.claude)
