@@ -1,19 +1,16 @@
-# Intent packs for job scout. One pack = one surface × one intent.
+# Intent packs for job scout. One pack = one site × one intent.
 # job-scout reads this file from the Profile root; the copy inside the job-scout
 # skill is a fallback used only when this file is absent.
-# impl → file stem under job-scout references/ (e.g. surface-linkedin-jobs).
+# surface → ./references/surface-{surface}.md in job-scout: the playbook to run.
+# entry = the one URL this pack starts from.
 # [role] = job_search.yaml positions. [skill:<group>] = keywords.<group>.
 # [industry] = profile card. Create the group in job_search.yaml before naming it here.
 # enabled: false keeps a pack in the file but out of the run (absent = true).
-# entry = one URL, or a list of {name, url, access, notes?} rows (SOURCES).
-# access: public | account_optional | account_required
 
 packs:
   - id: linkedin-jobs
-    impl: surface-linkedin-jobs
-    surface: linkedin_jobs
+    surface: linkedin-jobs
     entry: https://www.linkedin.com/jobs/
-    enabled: true
     formulations:
       - "[role]"
       - "[role] [skill:primary]"
@@ -21,67 +18,64 @@ packs:
       - "[role] [industry]"
 
   - id: hn-hiring
-    impl: surface-open-web
-    surface: hn
+    surface: open-web
     entry: https://hnhiring.com
-    enabled: true
     formulations:
       - "[role]"
       - "[skill:primary]"
       - "[role] [skill:hiring_model]"
 
   - id: work-at-a-startup
-    impl: surface-open-web
-    surface: waas
+    surface: open-web
     entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
-    enabled: true
     formulations:
       - "[role]"
       - "[role] [skill:primary]"
       - '(founding OR "early-stage") [role]'
 
-  - id: remote-boards
-    impl: surface-open-web
-    surface: web_boards
-    entry:
-      - name: We Work Remotely
-        url: https://weworkremotely.com
-        access: public
-      - name: Himalayas
-        url: https://himalayas.app
-        access: public
-      - name: HiringCafe
-        url: https://hiring.cafe
-        access: account_optional
-    enabled: true
+  - id: we-work-remotely
+    surface: open-web
+    entry: https://weworkremotely.com
     formulations:
       - "[role]"
       - "[skill:primary] [role]"
       - "[role] [industry]"
 
-  - id: ats-boards
-    impl: surface-open-web
-    surface: web_boards
-    entry:
-      - name: Greenhouse
-        url: https://job-boards.greenhouse.io
-        access: public
-        notes: "No browsable global index — use only as a site: restriction, never open the root"
-      - name: Lever
-        url: https://jobs.lever.co
-        access: public
-        notes: "No browsable global index — use only as a site: restriction, never open the root"
-    enabled: true
+  - id: himalayas
+    surface: open-web
+    entry: https://himalayas.app
+    formulations:
+      - "[role]"
+      - "[skill:primary] [role]"
+      - "[role] [industry]"
+
+  - id: hiring-cafe
+    surface: open-web
+    entry: https://hiring.cafe
+    formulations:
+      - "[role]"
+      - "[skill:primary] [role]"
+      - "[role] [industry]"
+
+  - id: greenhouse
+    surface: open-web
+    entry: https://job-boards.greenhouse.io
+    formulations:
+      - "[role]"
+      - "[role] [skill:primary]"
+      - "[role] [industry] [skill:hiring_model]"
+
+  - id: lever
+    surface: open-web
+    entry: https://jobs.lever.co
     formulations:
       - "[role]"
       - "[role] [skill:primary]"
       - "[role] [industry] [skill:hiring_model]"
 
   - id: linkedin-posts
-    impl: surface-social
-    surface: linkedin_posts
+    surface: social
     entry: https://www.linkedin.com/search/results/content/
-    enabled: true
     formulations:
       - '("we''re hiring" OR "now hiring") [role]'
       - '("open role" OR "join our team") [skill:primary]'

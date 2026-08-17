@@ -71,5 +71,5 @@ empties, `cv/en-us-resume.pdf`, and `data/observations.yaml`.
 
 `data/observations.yaml` is optional human-only detail storage and is never a Gap.
 
-`data/search_packs.yaml` ships every pack `enabled: true` and is runnable as
-emitted — never a Gap, including on scaffold-only.
+`data/search_packs.yaml` ships every pack enabled (absent `enabled` = on) and is
+runnable as emitted — never a Gap, including on scaffold-only.
