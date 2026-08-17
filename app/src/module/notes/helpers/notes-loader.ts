@@ -18,10 +18,7 @@ type MdxModule = {
   frontmatter: NoteMetadata
 }
 
-const modules = import.meta.glob<MdxModule>(
-  "/src/module/notes/content/**/*.{md,mdx}",
-  { eager: true }
-)
+const modules = import.meta.glob<MdxModule>("/src/module/notes/content/**/*.{md,mdx}", { eager: true })
 
 // content/index.mdx -> "/", content/guides/setup.md -> "/guides/setup"
 function getAllNotePages(): NotePage[] {

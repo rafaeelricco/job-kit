@@ -15,12 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import {
-  download,
-  toCsv,
-  toJson,
-  toMarkdown,
-} from "@/module/scout/helpers/export"
+import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
 import type { Dossier } from "@/module/scout/types"
 
 type SelectionBarProps = {
@@ -32,8 +27,7 @@ type SelectionBarProps = {
 
 // Hiding only drops rows from this list; the dossier files stay untouched.
 const HIDE_HINT = "Hide from this list — the files are not touched"
-const DELETE_HINT =
-  "Hold to move these files into scout/jobs/.trash — recoverable with mv"
+const DELETE_HINT = "Hold to move these files into scout/jobs/.trash — recoverable with mv"
 
 function SelectionBar(props: SelectionBarProps) {
   const { onClear, onDelete, onHide, rows } = props
@@ -50,9 +44,7 @@ function SelectionBar(props: SelectionBarProps) {
 
   return (
     <div className="sticky bottom-4 z-40 mx-auto flex w-fit flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
-      <span className="text-sm font-medium">
-        {count.toLocaleString()} selected
-      </span>
+      <span className="text-sm font-medium">{count.toLocaleString()} selected</span>
 
       <Separator orientation="vertical" className="h-5" />
 
@@ -66,54 +58,26 @@ function SelectionBar(props: SelectionBarProps) {
           <DropdownMenuGroup>
             <DropdownMenuLabel>Export {noun}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => exportAs("csv", "text/csv", toCsv(rows))}
-            >
-              CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => exportAs("json", "application/json", toJson(rows))}
-            >
-              JSON
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => exportAs("md", "text/markdown", toMarkdown(rows))}
-            >
+            <DropdownMenuItem onClick={() => exportAs("csv", "text/csv", toCsv(rows))}>CSV</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportAs("json", "application/json", toJson(rows))}>JSON</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportAs("md", "text/markdown", toMarkdown(rows))}>
               Markdown
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onHide}
-        title={HIDE_HINT}
-        aria-label={HIDE_HINT}
-      >
+      <Button variant="outline" size="sm" onClick={onHide} title={HIDE_HINT} aria-label={HIDE_HINT}>
         <EyeOffIcon />
         Hide
       </Button>
 
-      <HoldButton
-        variant="destructive"
-        size="sm"
-        onHold={onDelete}
-        title={DELETE_HINT}
-        aria-label={DELETE_HINT}
-      >
+      <HoldButton variant="destructive" size="sm" onHold={onDelete} title={DELETE_HINT} aria-label={DELETE_HINT}>
         <Trash2Icon />
         Hold to delete
       </HoldButton>
 
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={onClear}
-        title="Clear selection"
-        aria-label="Clear selection"
-      >
+      <Button variant="ghost" size="icon-sm" onClick={onClear} title="Clear selection" aria-label="Clear selection">
         <XIcon />
       </Button>
     </div>

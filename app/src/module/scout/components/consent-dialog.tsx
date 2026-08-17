@@ -66,33 +66,22 @@ function ConsentDialog(props: ConsentDialogProps) {
             </div>
 
             <DialogHeader className="items-center gap-0">
-              <DialogTitle className="pt-3 text-center text-xl font-semibold">
-                Read your job-kit profile
-              </DialogTitle>
-              <DialogDescription className="pt-1 text-center">
-                Nothing is read until you allow it.
-              </DialogDescription>
+              <DialogTitle className="pt-3 text-center text-xl font-semibold">Read your job-kit profile</DialogTitle>
+              <DialogDescription className="pt-1 text-center">Nothing is read until you allow it.</DialogDescription>
             </DialogHeader>
           </div>
         </div>
 
         <div className="rounded-2xl border px-4 py-2">
           {NOTES.map((note) => (
-            <div
-              key={note.lead}
-              className="flex flex-col gap-1 border-b py-2.5 last:border-b-0"
-            >
+            <div key={note.lead} className="flex flex-col gap-1 border-b py-2.5 last:border-b-0">
               <div className="text-sm font-medium">{note.lead}</div>
               <div className="text-xs text-muted-foreground">{note.body}</div>
             </div>
           ))}
         </div>
 
-        <Button
-          size="lg"
-          onClick={onAllow}
-          className="h-11 w-full rounded-full"
-        >
+        <Button size="lg" onClick={onAllow} className="h-11 w-full rounded-full">
           Allow and load dossiers
         </Button>
       </DialogContent>

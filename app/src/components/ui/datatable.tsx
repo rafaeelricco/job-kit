@@ -1,8 +1,4 @@
-import {
-  ArrowDownNarrowWide,
-  ArrowDownWideNarrow,
-  ArrowUpDown,
-} from "lucide-react"
+import { ArrowDownNarrowWide, ArrowDownWideNarrow, ArrowUpDown } from "lucide-react"
 import type { Key, KeyboardEvent, ReactNode } from "react"
 
 import {
@@ -14,14 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 
 type SortFun<T> = (a: T, b: T) => number
@@ -108,12 +97,7 @@ function SortableHeader(props: {
   return (
     <div className="inline-flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0">
       {props.label}
-      <button
-        type="button"
-        aria-label="Toggle sort"
-        className="inline-flex cursor-pointer"
-        onClick={props.onSort}
-      >
+      <button type="button" aria-label="Toggle sort" className="inline-flex cursor-pointer" onClick={props.onSort}>
         {props.state === "increasing" ? (
           <ArrowDownNarrowWide className="text-foreground" />
         ) : props.state === "decreasing" ? (
@@ -129,10 +113,7 @@ function SortableHeader(props: {
 function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
   const { columnOrder, columns, emptyMessage, onSortChange, rows, sort } = props
 
-  const onRowKeyDown = (
-    event: KeyboardEvent<HTMLTableRowElement>,
-    row: Row<T, C>
-  ) => {
+  const onRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, row: Row<T, C>) => {
     if (event.key !== "Enter" && event.key !== " ") return
     event.preventDefault()
     row.onClick?.(row.value)
@@ -158,10 +139,7 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
                 <TableHead
                   key={String(id)}
                   aria-sort={ariaSort(state)}
-                  className={cn(
-                    column.align === "right" && "text-right",
-                    column.className
-                  )}
+                  className={cn(column.align === "right" && "text-right", column.className)}
                 >
                   <SortableHeader
                     label={column.label}
@@ -176,10 +154,7 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={columnOrder.length}
-                className="h-32 text-center whitespace-normal"
-              >
+              <TableCell colSpan={columnOrder.length} className="h-32 text-center whitespace-normal">
                 {emptyMessage}
               </TableCell>
             </TableRow>
@@ -199,12 +174,7 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
                 )}
               >
                 {columnOrder.map((id) => (
-                  <TableCell
-                    key={String(id)}
-                    className={cn(
-                      columns[id]?.values.align === "right" && "text-right"
-                    )}
-                  >
+                  <TableCell key={String(id)} className={cn(columns[id]?.values.align === "right" && "text-right")}>
                     {row.contents[id]}
                   </TableCell>
                 ))}
@@ -223,15 +193,7 @@ function pageWindow(page: number, pages: number): readonly (number | null)[] {
   if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1)
   const start = Math.min(Math.max(page - 1, 2), pages - 3)
   const end = start + 2
-  return [
-    1,
-    ...(start > 2 ? [null] : []),
-    start,
-    start + 1,
-    end,
-    ...(end < pages - 1 ? [null] : []),
-    pages,
-  ]
+  return [1, ...(start > 2 ? [null] : []), start, start + 1, end, ...(end < pages - 1 ? [null] : []), pages]
 }
 
 function DataTablePagination(props: {
@@ -261,10 +223,7 @@ function DataTablePagination(props: {
               </PaginationItem>
             ) : (
               <PaginationItem key={n}>
-                <PaginationLink
-                  isActive={n === props.page}
-                  onClick={() => props.onPage(n)}
-                >
+                <PaginationLink isActive={n === props.page} onClick={() => props.onPage(n)}>
                   {n}
                 </PaginationLink>
               </PaginationItem>

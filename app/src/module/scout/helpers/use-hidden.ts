@@ -62,8 +62,5 @@ function useHidden(): {
     apply(new Set())
   }, [apply])
 
-  return useMemo(
-    () => ({ hidden, hide, restore, clear }),
-    [hidden, hide, restore, clear]
-  )
+  return useMemo(() => ({ hidden, hide, restore, clear }), [hidden, hide, restore, clear])
 }

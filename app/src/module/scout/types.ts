@@ -41,14 +41,7 @@ import type { Result } from "./result"
 
 /* -- closed vocabularies, each with a total guard ------------------------- */
 
-const LIFECYCLES = [
-  "new",
-  "applied",
-  "interview",
-  "offer",
-  "rejected",
-  "dropped",
-] as const
+const LIFECYCLES = ["new", "applied", "interview", "offer", "rejected", "dropped"] as const
 const BUCKETS = ["direct", "EOR", "EU/US-only", "unbucketed"] as const
 const CHANNELS = ["direct_email", "dm_request", "founder", "ats"] as const
 const WRITERS = ["job-scout", "job-application"] as const
@@ -91,33 +84,24 @@ const isWriter = memberOf(WRITERS)
 declare const IsoBrand: unique symbol
 type IsoDate = string & { readonly [IsoBrand]: true }
 
-const toIsoDate = (raw: string): IsoDate | null =>
-  /^\d{4}-\d{2}-\d{2}$/.test(raw) ? (raw as IsoDate) : null
+const toIsoDate = (raw: string): IsoDate | null => (/^\d{4}-\d{2}-\d{2}$/.test(raw) ? (raw as IsoDate) : null)
 
 /* -- values --------------------------------------------------------------- */
 
 // The corpus writes unknown as a literal em dash. Carrying that string into the
 // model would let it match a search, sort as text, and render as content.
-type FactValue =
-  | { readonly kind: "known"; readonly text: string }
-  | { readonly kind: "unknown" }
+type FactValue = { readonly kind: "known"; readonly text: string } | { readonly kind: "unknown" }
 
 const UNKNOWN_TEXT = "—"
 
 // The one place an unknown becomes a glyph.
-const factText = (value: FactValue): string =>
-  value.kind === "known" ? value.text : UNKNOWN_TEXT
+const factText = (value: FactValue): string => (value.kind === "known" ? value.text : UNKNOWN_TEXT)
 
-type Score =
-  | { readonly kind: "scored"; readonly value: number }
-  | { readonly kind: "unscored" }
+type Score = { readonly kind: "scored"; readonly value: number } | { readonly kind: "unscored" }
 
-type Excerpt =
-  | { readonly kind: "printed"; readonly text: string }
-  | { readonly kind: "absent" }
+type Excerpt = { readonly kind: "printed"; readonly text: string } | { readonly kind: "absent" }
 
-type Posting =
-  { readonly kind: "live" } | { readonly kind: "dead"; readonly since: IsoDate }
+type Posting = { readonly kind: "live" } | { readonly kind: "dead"; readonly since: IsoDate }
 
 type Factor = { readonly label: string; readonly points: FactValue }
 
@@ -186,13 +170,7 @@ type ParsedDossier = Result<Dossier, ParseError>
 
 // Lives here rather than beside the resolver so the browser never reaches into
 // app/server/ and drag node types into the app tsconfig project.
-type AttemptSource =
-  | "PROFILE_ROOT"
-  | "host-pointer"
-  | "aside-mirror"
-  | "job-kit-config"
-  | "host-default"
-  | "cwd-walk"
+type AttemptSource = "PROFILE_ROOT" | "host-pointer" | "aside-mirror" | "job-kit-config" | "host-default" | "cwd-walk"
 
 type AttemptOutcome =
   | { readonly kind: "passed" }

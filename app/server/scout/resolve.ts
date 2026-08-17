@@ -3,12 +3,7 @@ export { probe, resolveProfileRoot }
 import fs from "node:fs"
 import path from "node:path"
 
-import type {
-  Attempt,
-  AttemptOutcome,
-  AttemptSource,
-  Resolution,
-} from "../../src/module/scout/types"
+import type { Attempt, AttemptOutcome, AttemptSource, Resolution } from "../../src/module/scout/types"
 
 // SKILL.md lines 8-30. The reader mirrors the resolver the skill runs, so the
 // app and a scout run can never disagree about which profile is in play.
@@ -67,8 +62,7 @@ function hostHome(env: NodeJS.ProcessEnv): string {
   return home
 }
 
-const isAside = (env: NodeJS.ProcessEnv): boolean =>
-  (env.HOME ?? "").endsWith(ASIDE_SUFFIX)
+const isAside = (env: NodeJS.ProcessEnv): boolean => (env.HOME ?? "").endsWith(ASIDE_SUFFIX)
 
 type Pointer =
   | { readonly kind: "read"; readonly line: string }
@@ -84,9 +78,7 @@ function readPointer(file: string): Pointer {
   try {
     raw = fs.readFileSync(file, "utf8")
   } catch (error) {
-    return denied(errnoCode(error)) === null
-      ? { kind: "missing" }
-      : { kind: "unreadable" }
+    return denied(errnoCode(error)) === null ? { kind: "missing" } : { kind: "unreadable" }
   }
   const first = raw.split("\n")[0]
   const line = (first ?? "").trim()
@@ -99,22 +91,12 @@ function resolveProfileRoot(env: NodeJS.ProcessEnv, cwd: string): Resolution {
   const attempts: Attempt[] = []
   const tried = new Set<string>()
 
-  const record = (
-    source: AttemptSource,
-    at: string | null,
-    line: string | null,
-    outcome: AttemptOutcome
-  ): void => {
+  const record = (source: AttemptSource, at: string | null, line: string | null, outcome: AttemptOutcome): void => {
     attempts.push({ source, path: at, line, outcome })
   }
 
   // Every step reports itself, passing or not, so a STOP can name what it saw.
-  const consider = (
-    source: AttemptSource,
-    at: string,
-    candidate: string,
-    line: string | null
-  ): boolean => {
+  const consider = (source: AttemptSource, at: string, candidate: string, line: string | null): boolean => {
     if (tried.has(candidate)) {
       record(source, at, line, { kind: "skipped", reason: "already-tried" })
       return false
@@ -169,9 +151,7 @@ function resolveProfileRoot(env: NodeJS.ProcessEnv, cwd: string): Resolution {
   } else {
     const fromHost = readPointer(mirrorPointer)
     if (fromHost.kind === "read") {
-      if (
-        consider("aside-mirror", mirrorPointer, fromHost.line, fromHost.line)
-      ) {
+      if (consider("aside-mirror", mirrorPointer, fromHost.line, fromHost.line)) {
         return resolved(fromHost.line, "aside-mirror")
       }
     } else {
@@ -181,10 +161,7 @@ function resolveProfileRoot(env: NodeJS.ProcessEnv, cwd: string): Resolution {
 
   /* 4. default config dirs */
   const xdg = env.XDG_CONFIG_HOME
-  const jobKitConfig =
-    xdg !== undefined && xdg !== ""
-      ? `${xdg}/job-kit`
-      : `${env.HOME ?? ""}/.config/job-kit`
+  const jobKitConfig = xdg !== undefined && xdg !== "" ? `${xdg}/job-kit` : `${env.HOME ?? ""}/.config/job-kit`
   if (consider("job-kit-config", jobKitConfig, jobKitConfig, null)) {
     return resolved(jobKitConfig, "job-kit-config")
   }

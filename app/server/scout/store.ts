@@ -17,9 +17,7 @@ async function loadStore(env: NodeJS.ProcessEnv, cwd: string): Promise<Store> {
   const dir = path.join(resolution.root, ...JOBS)
   const names = await listJobs(dir)
   const parsed = await Promise.all(
-    names.map(async (name) =>
-      parseDossier(name, await fs.readFile(path.join(dir, name), "utf8"))
-    )
+    names.map(async (name) => parseDossier(name, await fs.readFile(path.join(dir, name), "utf8")))
   )
   const { values, errors } = partition(parsed)
 
@@ -48,7 +46,4 @@ async function listJobs(dir: string): Promise<string[]> {
 }
 
 const isMissing = (error: unknown): boolean =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  error.code === "ENOENT"
+  typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT"

@@ -9,9 +9,7 @@ function toFixPrompt(root: string, gaps: readonly ParseError[]): string {
   return [
     `${gaps.length} ${noun} in ${root}/scout/jobs failed to parse:`,
     "",
-    ...gaps.map(
-      (gap) => `- ${gap.file} — at ${gap.at} — ${describe(gap.cause)}`
-    ),
+    ...gaps.map((gap) => `- ${gap.file} — at ${gap.at} — ${describe(gap.cause)}`),
     "",
     "Repair each file in place so it parses. Keep every fact exactly as written —",
     "do not invent, guess, or fill in values. If a required value is genuinely",

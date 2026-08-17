@@ -63,9 +63,7 @@ function HoldButton({
           transitionDuration: `${holding ? holdMs : 120}ms`,
         }}
       />
-      <span className="relative inline-flex items-center gap-1.5">
-        {children}
-      </span>
+      <span className="relative inline-flex items-center gap-1.5">{children}</span>
     </Button>
   )
 }

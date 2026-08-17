@@ -11,28 +11,14 @@ import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConsentDialog } from "@/module/scout/components/consent-dialog"
-import {
-  DossierCards,
-  DossierSheet,
-  DossierTable,
-} from "@/module/scout/components/dossier"
+import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
 import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
 import { PermissionEmpty } from "@/module/scout/components/permission-empty"
 import { SelectionBar } from "@/module/scout/components/selection-bar"
-import {
-  DEFAULT_COLUMNS,
-  DEFAULT_SORT,
-  DOSSIER_COLUMNS,
-} from "@/module/scout/helpers/columns"
+import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
-import {
-  EMPTY_FILTER,
-  PAGE_SIZES,
-  matches,
-  paginate,
-  summarize,
-} from "@/module/scout/helpers/select"
+import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize } from "@/module/scout/helpers/select"
 import type { Filter } from "@/module/scout/helpers/select"
 import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
 import { trashDossiers } from "@/module/scout/helpers/trash"
@@ -53,17 +39,8 @@ function DossiersPage() {
 
   return (
     <>
-      <Body
-        state={state}
-        onAsk={() => setAsking(true)}
-        onAllow={grant}
-        onReload={reload}
-      />
-      <ConsentDialog
-        open={!granted && asking}
-        onOpenChange={setAsking}
-        onAllow={grant}
-      />
+      <Body state={state} onAsk={() => setAsking(true)} onAllow={grant} onReload={reload} />
+      <ConsentDialog open={!granted && asking} onOpenChange={setAsking} onAllow={grant} />
     </>
   )
 }
@@ -116,13 +93,7 @@ function Shell({ children }: { readonly children: ReactNode }) {
   )
 }
 
-function Loaded({
-  store,
-  onReload,
-}: {
-  readonly store: Store
-  readonly onReload: () => void
-}) {
+function Loaded({ store, onReload }: { readonly store: Store; readonly onReload: () => void }) {
   switch (store.kind) {
     case "unresolved":
       return (
@@ -152,8 +123,7 @@ function Unresolved({ attempts }: { readonly attempts: readonly Attempt[] }) {
             </li>
           ))}
         </ul>
-        Create one with <code>job-profile-init</code>, or register an existing
-        profile with Activate = Yes.
+        Create one with <code>job-profile-init</code>, or register an existing profile with Activate = Yes.
       </AlertDescription>
     </Alert>
   )
@@ -175,14 +145,8 @@ function Surface({
   const [open, setOpen] = useState<string | null>(null)
   const { hidden, hide, clear } = useHidden()
 
-  const visible = useMemo(
-    () => store.dossiers.filter(matches(filter, hidden)),
-    [store.dossiers, filter, hidden]
-  )
-  const ordered = useMemo(
-    () => visible.slice().sort(comparator(DOSSIER_COLUMNS, sort)),
-    [visible, sort]
-  )
+  const visible = useMemo(() => store.dossiers.filter(matches(filter, hidden)), [store.dossiers, filter, hidden])
+  const ordered = useMemo(() => visible.slice().sort(comparator(DOSSIER_COLUMNS, sort)), [visible, sort])
   const current = paginate(ordered, page, PAGE_SIZE)
   // Store-wide, not filter-scoped: these are a standing overview, and the
   // filtered count already has its own line under the toolbar.
@@ -281,12 +245,7 @@ function Surface({
           onHide={onHideOne}
         />
       ) : (
-        <DossierCards
-          rows={current.rows}
-          selected={selected}
-          onToggle={onToggle}
-          onOpen={setOpen}
-        />
+        <DossierCards rows={current.rows} selected={selected} onToggle={onToggle} onOpen={setOpen} />
       )}
 
       <DataTablePagination
@@ -299,17 +258,12 @@ function Surface({
       <Gaps gaps={store.gaps} root={store.root} />
 
       <footer className="font-mono text-xs text-muted-foreground">
-        {store.dossiers.length.toLocaleString()} dossiers ·{" "}
-        {store.gaps.length.toLocaleString()} gaps · view of {store.root}
+        {store.dossiers.length.toLocaleString()} dossiers · {store.gaps.length.toLocaleString()} gaps · view of{" "}
+        {store.root}
         /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar
-        rows={selectedRows}
-        onHide={onHide}
-        onDelete={onDelete}
-        onClear={() => setSelected(new Set())}
-      />
+      <SelectionBar rows={selectedRows} onHide={onHide} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </Shell>
@@ -318,20 +272,12 @@ function Surface({
 
 // A file that does not parse is named, never repaired here — the button hands
 // the repair off with every cause spelled out.
-function Gaps({
-  gaps,
-  root,
-}: {
-  readonly gaps: readonly ParseError[]
-  readonly root: string
-}) {
+function Gaps({ gaps, root }: { readonly gaps: readonly ParseError[]; readonly root: string }) {
   if (gaps.length === 0) return null
 
   return (
     <Alert>
-      <AlertTitle>
-        {gaps.length.toLocaleString()} files did not parse
-      </AlertTitle>
+      <AlertTitle>{gaps.length.toLocaleString()} files did not parse</AlertTitle>
       <AlertDescription>
         <ul className="my-2 space-y-1 font-mono text-xs">
           {gaps.map((gap) => (
@@ -340,10 +286,7 @@ function Gaps({
             </li>
           ))}
         </ul>
-        <CopyButton
-          value={() => toFixPrompt(root, gaps)}
-          label="Copy fix prompt"
-        />
+        <CopyButton value={() => toFixPrompt(root, gaps)} label="Copy fix prompt" />
       </AlertDescription>
     </Alert>
   )

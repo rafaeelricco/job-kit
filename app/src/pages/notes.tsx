@@ -28,13 +28,9 @@ function NotesPage() {
           {note ? (
             <article className="prose max-w-none prose-neutral dark:prose-invert">
               <div className="mb-8">
-                <h1 className="mb-2 text-2xl font-bold tracking-tight">
-                  {note.metadata.title}
-                </h1>
+                <h1 className="mb-2 text-2xl font-bold tracking-tight">{note.metadata.title}</h1>
                 {note.metadata.description && (
-                  <p className="text-base text-muted-foreground">
-                    {note.metadata.description}
-                  </p>
+                  <p className="text-base text-muted-foreground">{note.metadata.description}</p>
                 )}
               </div>
               <hr className="my-4 border-t border-border" />
@@ -44,12 +40,8 @@ function NotesPage() {
             </article>
           ) : (
             <div className="py-24 text-center">
-              <h1 className="text-2xl font-bold text-foreground">
-                Page not found
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                The requested page could not be found.
-              </p>
+              <h1 className="text-2xl font-bold text-foreground">Page not found</h1>
+              <p className="mt-2 text-sm text-muted-foreground">The requested page could not be found.</p>
             </div>
           )}
         </main>
