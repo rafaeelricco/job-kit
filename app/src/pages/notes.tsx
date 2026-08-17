@@ -1,8 +1,7 @@
 export default NotesPage
 
 import { MDXProvider } from "@mdx-js/react"
-import { ArrowLeft } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 
 import { mdxComponents } from "@/components/mdx/mdx-components"
 import { getNoteByPath } from "@/module/notes/helpers/notes-loader"
@@ -12,18 +11,8 @@ function NotesPage() {
   const note = getNoteByPath(pathname.replace(/^\/notes/, "") || "/")
 
   return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-3xl border-x border-dashed border-border">
-        <header className="border-b border-dashed border-border px-4 py-4 sm:px-8">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Home</span>
-          </Link>
-        </header>
-
+    <div className="flex flex-1 flex-col">
+      <div className="mx-auto w-full max-w-3xl flex-1 border-x border-dashed border-border">
         <main className="px-4 py-8 sm:px-8 md:py-12">
           {note ? (
             <article className="prose max-w-none prose-neutral dark:prose-invert">
