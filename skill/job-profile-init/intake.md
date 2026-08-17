@@ -1,7 +1,7 @@
 # Intake
 
-Named stages only — never number the questions or steps. PLAN approval precedes
-all stages. Stages run in order.
+Named stages only — never number the questions or steps. Stages run in order;
+every stage before **Approve** is read-only.
 Batch only independent enums (Route modes; on the create path, Activate ask +
 Source mode together when the harness supports multi-option tools). Dependent
 branches stay sequential. Enumerables:
@@ -133,10 +133,17 @@ Read `./questionnaire.md`. Collect every user-owned field, including explicit
 `seniority_level` and source/default confirmations. Register-existing skips this
 stage. Collect observations last.
 
-## Approve (create only)
+## Approve (create only) — the plan gate
 
-Present the target, activation choice, source mode, all field values, explicit
-skips, `seniority_level`, pack choices, and observations. Prefer the harness
-approval step when one exists; otherwise an explicit yes in chat. Silence is
-not approval. Corrections reopen only the affected questionnaire fields. On
-approval → emit-tree, then fill. **No write before this yes.**
+Enter the harness plan workflow when one exists; otherwise present the same
+plan in chat per `plan-format`. Plan what will be written, not what was asked:
+
+- `<target>`, activation choice, source mode
+- the emit tree, one line per file
+- per data file, every value fill will write and every explicit skip —
+  including `seniority_level`, pack choices, and observations
+- Gaps the fill report will carry; CV source → destination
+
+**STOP** and wait for an explicit yes. Silence, a question, or edits are not a
+yes. Edits reopen only the affected questionnaire fields, then re-present the
+plan. On yes → emit-tree, then fill. **No write before this yes.**

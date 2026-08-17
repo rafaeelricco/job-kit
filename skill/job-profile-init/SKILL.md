@@ -13,12 +13,11 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 existing profile (register-existing) is valid: pointer path only; no emit/fill;
 not an edit of that profile.
 
-Every invocation must enter **PLAN** mode before intake. Use the harness plan
-workflow when available; otherwise read `plan-format`, present a read-only plan,
-and wait for explicit approval. PLAN approval and profile **Approve** remain
-separate gates.
+Read-only until profile **Approve**, the last intake stage and the run's only
+gate: read the source of truth, ask every field, then present the plan of what
+will be written and wait. Algorithm: `./intake.md` **Approve**.
 
-1. After PLAN approval, read `./intake.md`; run its named stages (**Route** →
+1. Read `./intake.md`; run its named stages (**Route** →
    **Folder** → **Activate ask + Source** (one turn, create path) →
    **Identity** → **Profile questionnaire** → **Approve**). **Register
    existing** ends intake after a standalone **Activate ask**: skip
