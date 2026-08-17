@@ -1,27 +1,28 @@
 # job-kit
 
-Five agent skills for running a job search at volume: sweep the surfaces you
+Six agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, draft applications from profile
 facts, read back what a run saved. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
 Two install channels: scout, apply, config, and tracker run in
-[Aside Browser](https://aside.com); profile init (plus config and tracker as
-symlinks) run in coding agents (Claude Code, Codex, Grok).
+[Aside Browser](https://aside.com); profile init and stories (plus config and
+tracker as symlinks) run in coding agents (Claude Code, Codex, Grok).
 
 | Skill                | Role                                                                                   | Channel                         | Installed under                                                     |
 | -------------------- | -------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
 | `job-scout`          | Run the packs you pick from the profile deck and rank the job rows                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-application`    | Draft, stage, and after approve submit one posting                                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-apply`          | Draft, stage, and after approve submit one posting                                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
 | `job-profile-init`   | Create a data-only profile, or register/activate an existing one                       | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write      | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-me`     | Show an existing profile and edit search intent or boards; diff → confirm → write      | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-list`           | Read the profile's `scout/jobs/` store: dossiers and application status                | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-stories`        | Write and check the interview story deck at `data/stories/`; diff → confirm → write    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
 applications; a gate that blocks listing → it signs in or creates a browse account.
-job-application clicks Submit / Send / final Confirm only after an explicit review
+job-apply clicks Submit / Send / final Confirm only after an explicit review
 approve.
 
 ## Install
@@ -43,8 +44,8 @@ bash remote.sh all
 | Argument       | Installs                                                                                           |
 | -------------- | -------------------------------------------------------------------------------------------------- |
 | `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
-| `aside`        | `job-scout` + `job-application` + `job-profile-config` + `job-tracker` (fails if no Aside)         |
-| `agents`       | `job-profile-init` + `job-profile-config` + `job-tracker` (fails if no agent home)                 |
+| `aside`        | `job-scout` + `job-apply` + `job-profile-me` + `job-list` (fails if no Aside)                      |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` (fails if no agent home)        |
 | `fetch`        | Nothing — refresh the cached checkout only                                                         |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                        |
 | `-h`, `--help` | Nothing — print usage                                                                              |
@@ -103,7 +104,7 @@ Aside Browser:
 
 ```text
 /job-scout
-/job-application
+/job-apply
 ```
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
@@ -115,7 +116,7 @@ Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; the Action strip (Do this first, ranked score≥8, Gaps) stays in chat.
 `data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — job-application sets `applied` itself after submit
+dossier's frontmatter as you apply — job-apply sets `applied` itself after submit
 success (or once you confirm you submitted outside it), and records the letter, the form
 answers, and the ad under the dossier's Application log; later statuses (`interview`,
 `offer`, `rejected`, `dropped`) are yours to set. Re-running scout never overwrites
@@ -123,13 +124,13 @@ answers, and the ad under the dossier's Application log; later statuses (`interv
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
 application, or `cv/en-us-resume.pdf` as the fallback. With neither,
-job-application stops and asks you to build it.
+job-apply stops and asks you to build it.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
 
 ```text
-/job-profile-config
+/job-profile-me
 ```
 
 `show` prints the profile, `gaps` names what still blocks a useful scout, and
@@ -142,7 +143,7 @@ network calls.
 **4. Read back what scout saved.** In Aside or any coding-agent session:
 
 ```text
-/job-tracker
+/job-list
 ```
 
 Resolves your Profile root, prints `scout/jobs/`, and answers from the dossiers
@@ -195,7 +196,7 @@ you use. Channels are independent.
 
 Update never modifies profile checkouts, the default config dir contents, or
 `~/.config/profile-root`. Installs
-also clear kit-owned copies of legacy skill names (`job-discovery`, `job-apply`,
+also clear kit-owned copies of legacy skill names (`job-discovery`, `job-application`,
 `profile-scaffold`, `application-stage`, `profile-init`) and leftover kit trees
 under Aside's `skills/user/`.
 
@@ -212,8 +213,8 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 
 | Choice / target | Removes                                                                                          |
 | --------------- | ------------------------------------------------------------------------------------------------ |
-| Aside           | `job-scout` + `job-application` + `job-profile-config` + `job-tracker` kit copies                |
-| Agents          | `job-profile-init` + `job-profile-config` + `job-tracker` kit links (+ legacy `profile-init`)    |
+| Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` kit copies                             |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` kit links (+ legacy `profile-init`)        |
 | Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files |
 | Cache           | Cached checkout at `JOB_KIT_HOME`                                                                |
 | **All**         | Aside + agents + **profile** + cache                                                             |
@@ -223,8 +224,8 @@ profile or cache data requires typing `yes`; a plan of re-installable links take
 `[Y/n]`. `--yes` skips both, `--dry-run` prints the plan and stops.
 
 `--only` selects a subset instead of positional targets — by channel (`aside`,
-`agents`), by Aside skill (`job-scout`, `job-application`, `job-profile-config`,
-`job-tracker`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
+`agents`), by Aside skill (`job-scout`, `job-apply`, `job-profile-me`,
+`job-list`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
 `cache`. An Aside skill subset cannot be combined with `cache`: the unselected
 skill would still point at it.
 
@@ -279,10 +280,11 @@ multi-target install also removes legacy kit links there, which the
 | Path                        | Role                                                |
 | --------------------------- | --------------------------------------------------- |
 | `skill/job-scout/`          | Scout law, contracts, surfaces                      |
-| `skill/job-application/`    | Apply law, draft contract, approve-gated submit     |
+| `skill/job-apply/`          | Apply law, draft contract, approve-gated submit     |
 | `skill/job-profile-init/`   | Intake + templates for empty profiles               |
-| `skill/job-profile-config/` | Show + edit search intent and boards                |
-| `skill/job-tracker/`        | Read the profile's scout store; never writes        |
+| `skill/job-profile-me/`     | Show + edit search intent and boards                |
+| `skill/job-list/`           | Read the profile's scout store; never writes        |
+| `skill/job-stories/`        | Write and check the interview story deck            |
 | `scripts/install.sh`        | Single install: plan, confirm, apply (aside+agents) |
 | `scripts/aside/`            | Aside lib + thin install wrapper                    |
 | `scripts/agents/`           | Agents lib + thin install wrapper                   |
@@ -290,7 +292,7 @@ multi-target install also removes legacy kit links there, which the
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone)    |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
-`/job-profile-init` and edited by `/job-profile-config packs`. One pack = one site;
+`/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
 `surface` must match a surface reference basename — `surface-<surface>.md`, so
 `linkedin-jobs`, `open-web`, or `social`.
 `skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
