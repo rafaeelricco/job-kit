@@ -41,7 +41,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    silently stop applying. Consumed keys are exactly `work_model`,
    `seniority_level`, `job_types`, `date_posted`, `positions`, `keywords`,
    `locations`. Any other key holding a value that is not empty, `false`, or null
-   → name the file and the key, and say to migrate via `/job-profile-config`.
+   → name the file and the key, and say to migrate via `/job-profile-me`.
    Never derive a replacement value — these are operator-owned, per
    `job-profile-init/fill.md`. Keep this an allowlist rather than a list of
    dropped keys: a key scout stops consuming then fails closed here instead of
@@ -81,7 +81,7 @@ PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-sear
 Do not run a pack, and record `defect: unsupported_pack {id}` naming it under Gaps,
 when either: `surface` names no `surface-*.md` in this skill; `entry` is not one
 `http(s)` URL. A profile deck is never rewritten by an update, and
-`/job-profile-config` checks `surface` but not `entry` shape, so a deck can still
+`/job-profile-me` checks `surface` but not `entry` shape, so a deck can still
 carry a legacy source-row list, or a `from data/sources.yaml <group>` entry it no
 longer resolves. Both run silently — an unresolvable entry reports as a dry pack,
 which is the same string a healthy-but-empty pack emits. Name the migration in Gaps:

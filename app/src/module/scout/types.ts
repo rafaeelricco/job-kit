@@ -44,7 +44,9 @@ import type { Result } from "./result"
 const LIFECYCLES = ["new", "applied", "interview", "offer", "rejected", "dropped"] as const
 const BUCKETS = ["direct", "EOR", "EU/US-only", "unbucketed"] as const
 const CHANNELS = ["direct_email", "dm_request", "founder", "ats"] as const
-const WRITERS = ["job-scout", "job-application"] as const
+// `job-application` is the pre-rename spelling of `job-apply`; dossiers written
+// before the rename still carry it, so readers keep accepting it.
+const WRITERS = ["job-scout", "job-apply", "job-application"] as const
 const FACT_KEYS = [
   "status",
   "status_reason",

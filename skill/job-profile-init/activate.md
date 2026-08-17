@@ -108,7 +108,7 @@
      in a profile directory.
    - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
      file: set to **empty** (omit the line). Else set to:
-     `- If CV not placed: add cv/en-us-resume.pdf before job-application attachments.`
+     `- If CV not placed: add cv/en-us-resume.pdf before job-apply attachments.`
      Register-existing: probe the same path under `<target>`.
 
    **Resolve `KIT_ROOT` (optional):** take the real path of this skill
@@ -127,10 +127,10 @@
      `-f`, no `realpath` — mirrors `scripts/agents/lib.sh` `is_kit_skill_link`)
      against `$KIT_ROOT/skill/job-profile-init`. Installed = at least one match.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
-     Installed = for each of `job-scout`, `job-application`, `job-profile-config`,
-     `job-tracker`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
+     Installed = for each of `job-scout`, `job-apply`, `job-profile-me`,
+     `job-list`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
      `$KIT_ROOT/skill/<name>`.
-   - **Never probe by directory existence.** Legacy `skills/user/job-apply` and
+   - **Never probe by directory existence.** Legacy `skills/user/job-application` and
      `job-discovery` links from other repos are left in place by the installer
      on purpose and would false-positive.
 
@@ -155,7 +155,7 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
      checked. Commands are absolute; CWD does not matter.
 
    **If unresolved** — probe Aside repo-agnostically first: all four
-   `$ASIDE_ROOT/{job-scout,job-application,job-profile-config,job-tracker}/.job-kit`
+   `$ASIDE_ROOT/{job-scout,job-apply,job-profile-me,job-list}/.job-kit`
    exist → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):
