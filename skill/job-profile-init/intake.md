@@ -131,7 +131,7 @@ optional email and GitHub. Recommend only when grounded
 
 Read `./questionnaire.md`. Collect every user-owned field, including explicit
 `seniority_level` and source/default confirmations. Register-existing skips this
-stage. Collect observations last.
+stage. Collect story names, then observations, last.
 
 ## Approve (create only) — the plan gate
 
@@ -141,7 +141,7 @@ plan in chat per `plan-format`. Plan what will be written, not what was asked:
 - `<target>`, activation choice, source mode
 - the emit tree, one line per file
 - per data file, every value fill will write and every explicit skip —
-  including `seniority_level`, pack choices, and observations
+  including `seniority_level`, pack choices, story stubs, and observations
 - Gaps the fill report will carry; CV source → destination
 
 **STOP** and wait for an explicit yes. Silence, a question, or edits are not a
