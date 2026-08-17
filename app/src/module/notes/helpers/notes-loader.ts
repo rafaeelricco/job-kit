@@ -1,5 +1,4 @@
-export { getAllNotePages, getNoteByPath }
-export type { NoteMetadata, NotePage }
+export { getAllNotePages, getNoteByPath, type NoteMetadata, type NotePage }
 
 import type { ComponentType } from "react"
 

@@ -1,5 +1,4 @@
-export { assertNever, err, isErr, isOk, ok, partition }
-export type { Result }
+export { assertNever, err, isErr, isOk, ok, partition, type Result }
 
 type Result<T, E> =
   | { readonly kind: "ok"; readonly value: T }

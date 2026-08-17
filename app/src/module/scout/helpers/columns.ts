@@ -1,5 +1,12 @@
-export { COLUMNS, DEFAULT_COLUMNS, VIEWS, columnLabel, isView }
-export type { ColumnId, View }
+export {
+  COLUMNS,
+  DEFAULT_COLUMNS,
+  VIEWS,
+  columnLabel,
+  isView,
+  type ColumnId,
+  type View,
+}
 
 import type { SortKey } from "@/module/scout/helpers/select"
 

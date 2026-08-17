@@ -1,5 +1,4 @@
-export { OverviewCards }
-export type { OverviewCardsProps }
+export { OverviewCards, type OverviewCardsProps }
 
 import type { LucideIcon } from "lucide-react"
 import { CircleCheckBig, Files, Radio, Star } from "lucide-react"

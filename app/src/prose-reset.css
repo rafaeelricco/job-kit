@@ -3,80 +3,80 @@
 /* ========================================================================== */
 
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 pre {
-    @apply overflow-x-auto rounded-lg px-0! py-4;
+  @apply overflow-x-auto rounded-lg px-0! py-4;
 }
 
 pre [data-line] {
-    @apply px-4;
+  @apply px-4;
 }
 
 code {
-    @apply text-sm;
+  @apply text-sm;
 }
 
 /* Shiki dual-theme switching */
 pre [data-line] span {
-    color: var(--shiki-light);
+  color: var(--shiki-light);
 }
 
 .dark pre [data-line] span {
-    color: var(--shiki-dark) !important;
+  color: var(--shiki-dark) !important;
 }
 
 /* Line numbers */
 pre[data-line-numbers] {
-    display: grid;
-    counter-reset: line;
-    font-weight: 100 !important;
+  display: grid;
+  counter-reset: line;
+  font-weight: 100 !important;
 }
 
 pre[data-line-numbers] [data-line]::before {
-    counter-increment: line;
-    content: counter(line);
-    display: inline-block;
-    width: 4rem;
-    padding-right: 1.5rem;
-    text-align: right;
-    color: var(--code-line-number);
-    position: sticky;
-    left: 0;
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 4rem;
+  padding-right: 1.5rem;
+  text-align: right;
+  color: var(--code-line-number);
+  position: sticky;
+  left: 0;
 }
 
 pre[data-line-numbers-max-digits="2"] [data-line]::before {
-    width: 4.5rem;
+  width: 4.5rem;
 }
 
 pre[data-line-numbers-max-digits="3"] [data-line]::before {
-    width: 5rem;
+  width: 5rem;
 }
 
 /* Line/char highlighting */
 [data-highlighted-line] {
-    background-color: var(--code-line-highlight);
+  background-color: var(--code-line-highlight);
 }
 
 [data-highlighted-line]::after {
-    position: absolute;
-    left: 0;
-    width: 2px;
-    height: 100%;
-    content: "";
-    background-color: var(--muted-foreground);
+  position: absolute;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  content: "";
+  background-color: var(--muted-foreground);
 }
 
 [data-highlighted-chars] {
-    background-color: var(--code-char-highlight);
-    border-radius: 0.25rem;
-    padding: 0.125rem 0.25rem;
+  background-color: var(--code-char-highlight);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
 }
 
 /* ========================================================================== */
@@ -84,38 +84,38 @@ pre[data-line-numbers-max-digits="3"] [data-line]::before {
 /* ========================================================================== */
 
 .prose
-    :where(figure[data-rehype-pretty-code-figure]):not(
-        :where([class~="not-prose"], [class~="not-prose"] *)
-    ) {
-    @apply bg-muted/50 border-border relative w-full overflow-hidden rounded-[8px] border;
+  :where(figure[data-rehype-pretty-code-figure]):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ) {
+  @apply relative w-full overflow-hidden rounded-[8px] border border-border bg-muted/50;
 }
 
 /* Typography's paragraph/table margins fight the component overrides. */
 .prose {
-    :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-        margin-top: initial;
-        margin-bottom: initial;
-    }
+  :where(p):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-top: initial;
+    margin-bottom: initial;
+  }
 
-    :where(h1, h2, h3, h4, h5, h6):not(
-            :where([class~="not-prose"], [class~="not-prose"] *)
-        ) {
-        margin-bottom: 0.5em;
-    }
+  :where(h1, h2, h3, h4, h5, h6):not(
+    :where([class~="not-prose"], [class~="not-prose"] *)
+  ) {
+    margin-bottom: 0.5em;
+  }
 
-    :where(figure):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-        margin-top: 1em;
-        margin-bottom: 1em;
-    }
+  :where(figure):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
 }
 
 :where(table):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    margin-top: initial;
-    margin-bottom: 0.5em;
+  margin-top: initial;
+  margin-bottom: 0.5em;
 }
 
 /* Typography decorates inline code with backticks; the code component doesn't. */
 .prose :where(code):not(:where(pre code))::before,
 .prose :where(code):not(:where(pre code))::after {
-    content: "" !important;
+  content: "" !important;
 }
