@@ -45,7 +45,7 @@ Print **only** these — this skill's own Gaps allowlist:
 - `availability.notice_period`
 - `legal_authorization.*` when empty
 - `employment_routes.employer_of_record`
-- `job_search` `positions` / `keywords` / `locations` when empty
+- `job_search` `positions` / `keywords` when empty
 
 `keywords` counts as a gap only when **no** group holds a non-empty list. Groups are
 named by the operator and expand as `[skill:<group>]` tokens, so a profile with
@@ -54,7 +54,7 @@ group name.
 
 Never Gaps: remote / in-person prefs (`in_person_work*`),
 `direct_contractor`, `local_employment`, empty `projects.yml` / `languages.yaml` /
-experience `url.*`, CV. Nothing outstanding → `Gaps: none`.
+experience `url.*`, `job_search.locations`, CV. Nothing outstanding → `Gaps: none`.
 
 Shipped template defaults count as empty, not as answers: any keyword value
 `TODO-skill`. Name it as unset.
