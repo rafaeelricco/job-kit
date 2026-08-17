@@ -6,11 +6,13 @@ import type { ReactNode } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ConsentDialog } from "@/module/scout/components/consent-dialog"
 import { DossierCards } from "@/module/scout/components/dossier-cards"
 import { DossierSheet } from "@/module/scout/components/dossier-sheet"
 import { DossierTable } from "@/module/scout/components/dossier-table"
 import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
+import { PermissionEmpty } from "@/module/scout/components/permission-empty"
 import { SelectionBar } from "@/module/scout/components/selection-bar"
 import { DEFAULT_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
@@ -24,17 +26,45 @@ import {
   summarize,
 } from "@/module/scout/helpers/select"
 import type { Filter, Sort, SortKey } from "@/module/scout/helpers/select"
+import { useConsent } from "@/module/scout/helpers/use-consent"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
 import { useStore } from "@/module/scout/helpers/use-store"
+import type { StoreState } from "@/module/scout/helpers/use-store"
 import { assertNever } from "@/module/scout/result"
 import type { Attempt, ParseError, Store } from "@/module/scout/types"
 
 const PAGE_SIZE = PAGE_SIZES[0]
 
 function DossiersPage() {
-  const state = useStore()
+  const { granted, grant } = useConsent()
+  // Dismissing the dialog is not a dead end — the empty state reopens it.
+  const [asking, setAsking] = useState(true)
+  const state = useStore(granted)
 
+  return (
+    <>
+      <Body state={state} onAsk={() => setAsking(true)} onAllow={grant} />
+      <ConsentDialog
+        open={!granted && asking}
+        onOpenChange={setAsking}
+        onAllow={grant}
+      />
+    </>
+  )
+}
+
+function Body({
+  state,
+  onAsk,
+  onAllow,
+}: {
+  readonly state: StoreState
+  readonly onAsk: () => void
+  readonly onAllow: () => void
+}) {
   switch (state.kind) {
+    case "idle":
+      return <PermissionEmpty onAllow={onAllow} onReview={onAsk} />
     case "loading":
       return (
         <Shell>
@@ -64,15 +94,7 @@ function DossiersPage() {
 function Shell({ children }: { readonly children: ReactNode }) {
   return (
     <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
-        <header>
-          <h1 className="text-2xl font-medium">Dossiers</h1>
-          <p className="text-sm text-muted-foreground">
-            Everything job scout has saved, read straight from your profile.
-          </p>
-        </header>
-        {children}
-      </div>
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">{children}</div>
     </div>
   )
 }
