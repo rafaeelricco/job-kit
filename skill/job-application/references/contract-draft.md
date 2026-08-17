@@ -81,15 +81,18 @@ This value is not invented.
 
 ### Sponsorship, classify before answering
 
-- **Authorization / legally allowed / has permit** for a jurisdiction:
-  answer from `*_work_authorization` or `legally_allowed_to_work_*` for that jurisdiction, verbatim.
-- **Requires visa** for a jurisdiction: answer from `requires_*_visa`, verbatim.
-- **Requires sponsorship** for a jurisdiction: answer from `requires_*_sponsorship`, verbatim.
+- Every `legal_authorization` answer is scoped by `legal_authorization.countries`.
+  The jurisdiction the question names is not on that list → no answer exists.
+- **Authorization / legally allowed / has permit**: answer from
+  `legal_authorization.work_authorization` or `legally_allowed_to_work`, verbatim.
+- **Requires visa**: answer from `legal_authorization.requires_visa`, verbatim.
+- **Requires sponsorship**: answer from `legal_authorization.requires_sponsorship`, verbatim.
 - **Working remotely, or the engagement model**: answer from `employment_routes`.
 - Hard binary, no free text: answer the literal question truthfully. NEVER answer "No"
   to a sponsorship question on the grounds that EOR exists.
 - Free-text or notes field present: put the nuance there, once.
-- No field for the jurisdiction asked: do not interpolate from a neighbour. Judgment call.
+- Jurisdiction asked absent from `countries`, or the field empty: no answer exists.
+  Surface it. NEVER answer from a country that is on the list. Judgment call.
 - Ambiguous between possession and need: pick the more specific field and surface the ambiguity.
 - NEVER blend the two into a hedge. NEVER volunteer sponsorship need to a form that
   only asked about engagement model.
