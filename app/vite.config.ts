@@ -1,3 +1,4 @@
+import type { IncomingMessage } from "node:http"
 import path from "path"
 import mdx from "@mdx-js/rollup"
 import tailwindcss from "@tailwindcss/vite"
@@ -10,6 +11,7 @@ import type { ShikiTransformer } from "shiki"
 import { defineConfig, type PluginOption } from "vite"
 
 import { loadStore } from "./server/scout/store"
+import { trashDossiers } from "./server/scout/trash"
 
 // Decorates Shiki output; styled by the pre[data-line-numbers] rules in prose-reset.css
 const visualTransformers: ShikiTransformer[] = [
@@ -28,7 +30,7 @@ const visualTransformers: ShikiTransformer[] = [
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [mdxPlugin(), react(), tailwindcss(), storePlugin()],
+  plugins: [mdxPlugin(), react(), tailwindcss(), storePlugin(), trashPlugin()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -79,3 +81,48 @@ function storePlugin(): PluginOption {
     },
   }
 }
+
+// The one write path in the app. Its own mount point, not a subpath of
+// /api/store — that one is prefix-mounted and answers every method.
+function trashPlugin(): PluginOption {
+  return {
+    name: "scout-trash",
+    configureServer(server) {
+      server.middlewares.use("/api/trash", (req, res) => {
+        const reply = (status: number, body: unknown): void => {
+          res.statusCode = status
+          res.setHeader("Content-Type", "application/json")
+          res.end(JSON.stringify(body))
+        }
+
+        if (req.method !== "POST") {
+          reply(405, { error: "POST only" })
+          return
+        }
+        // A JSON content-type forces a CORS preflight, and nothing here answers
+        // one — so no other origin can reach this from a browser. The dev
+        // server has no auth, and this route deletes files.
+        if (req.headers["content-type"] !== "application/json") {
+          reply(415, { error: "expected application/json" })
+          return
+        }
+
+        readBody(req)
+          .then((body) => trashDossiers(process.env, process.cwd(), filesOf(body)))
+          .then((result) => reply(200, result))
+          .catch((error: unknown) => reply(500, { error: String(error) }))
+      })
+    },
+  }
+}
+
+async function readBody(req: IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = []
+  for await (const chunk of req) chunks.push(chunk as Buffer)
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"))
+}
+
+const filesOf = (body: unknown): readonly string[] =>
+  typeof body === "object" && body !== null && "files" in body && Array.isArray(body.files)
+    ? body.files.filter((f: unknown): f is string => typeof f === "string")
+    : []
