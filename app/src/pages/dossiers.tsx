@@ -11,9 +11,11 @@ import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConsentDialog } from "@/module/scout/components/consent-dialog"
-import { DossierCards } from "@/module/scout/components/dossier-cards"
-import { DossierSheet } from "@/module/scout/components/dossier-sheet"
-import { DossierTable } from "@/module/scout/components/dossier-table"
+import {
+  DossierCards,
+  DossierSheet,
+  DossierTable,
+} from "@/module/scout/components/dossier"
 import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
 import { PermissionEmpty } from "@/module/scout/components/permission-empty"
