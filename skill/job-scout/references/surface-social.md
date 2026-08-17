@@ -1,6 +1,6 @@
 # surface-social
 
-Surface: `linkedin_posts`. Obey CONTRACT_SEARCH.
+Obey CONTRACT_SEARCH.
 
 ## Deltas
 
