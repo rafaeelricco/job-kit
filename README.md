@@ -87,8 +87,9 @@ skill in Claude Code, Codex, or Grok:
 /job-profile-init
 ```
 
-It enters PLAN mode, routes between creating a new profile and registering an
-existing one, and asks every user-owned profile field. Source values and
+It routes between creating a new profile and registering an existing one, asks
+every user-owned profile field, then presents one plan of everything it will
+write and waits for your yes. Source values and
 template defaults require explicit confirmation, edits, or skips. Facts are
 never invented; the profile stores one confirmed `seniority_level` string and
 final extra observations in `data/observations.yaml`. Letter depth comes from
