@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { CopyButton } from "@/components/ui/copy"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConsentDialog } from "@/module/scout/components/consent-dialog"
 import { DossierCards } from "@/module/scout/components/dossier-cards"
@@ -26,6 +27,7 @@ import {
   summarize,
 } from "@/module/scout/helpers/select"
 import type { Filter, Sort, SortKey } from "@/module/scout/helpers/select"
+import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
 import { useConsent } from "@/module/scout/helpers/use-consent"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
 import { useStore } from "@/module/scout/helpers/use-store"
@@ -245,7 +247,7 @@ function Surface({
         onRestore={clear}
       />
 
-      <Gaps gaps={store.gaps} />
+      <Gaps gaps={store.gaps} root={store.root} />
 
       <footer className="font-mono text-xs text-muted-foreground">
         {store.dossiers.length.toLocaleString()} dossiers ·{" "}
@@ -315,8 +317,15 @@ function Pager({
   )
 }
 
-// A file that does not parse is named, never repaired.
-function Gaps({ gaps }: { readonly gaps: readonly ParseError[] }) {
+// A file that does not parse is named, never repaired here — the button hands
+// the repair off with every cause spelled out.
+function Gaps({
+  gaps,
+  root,
+}: {
+  readonly gaps: readonly ParseError[]
+  readonly root: string
+}) {
   if (gaps.length === 0) return null
 
   return (
@@ -332,6 +341,10 @@ function Gaps({ gaps }: { readonly gaps: readonly ParseError[] }) {
             </li>
           ))}
         </ul>
+        <CopyButton
+          value={() => toFixPrompt(root, gaps)}
+          label="Copy fix prompt"
+        />
       </AlertDescription>
     </Alert>
   )
