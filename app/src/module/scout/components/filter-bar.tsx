@@ -1,7 +1,7 @@
 export { FilterBar, type FilterBarProps }
 
 import {
-  Columns3Icon,
+  ChevronDown,
   LayoutGridIcon,
   ListFilterIcon,
   Rows3Icon,
@@ -152,8 +152,8 @@ function FilterBar(props: FilterBarProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full min-w-56 sm:w-72">
+      <div className="flex flex-wrap items-center gap-2 py-4">
+        <div className="relative w-full max-w-sm min-w-56">
           <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={filter.query}
@@ -228,11 +228,13 @@ function FilterBar(props: FilterBarProps) {
         </Popover>
 
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" />}>
-            <Columns3Icon />
+          <DropdownMenuTrigger
+            render={<Button variant="outline" className="ml-auto" />}
+          >
             Columns
+            <ChevronDown />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-52">
+          <DropdownMenuContent align="end" className="w-44">
             {/* Base UI requires a label to sit inside a group. */}
             <DropdownMenuGroup>
               <DropdownMenuLabel>Columns</DropdownMenuLabel>

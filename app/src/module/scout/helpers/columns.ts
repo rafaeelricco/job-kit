@@ -1,6 +1,8 @@
 export {
   COLUMNS,
   DEFAULT_COLUMNS,
+  DEFAULT_SORT,
+  DOSSIER_COLUMNS,
   VIEWS,
   columnLabel,
   isView,
@@ -8,7 +10,10 @@ export {
   type View,
 }
 
-import type { SortKey } from "@/module/scout/helpers/select"
+import { columnDef } from "@/components/ui/datatable"
+import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
+import { byScore, bySeen, byStatus } from "@/module/scout/helpers/select"
+import type { Dossier } from "@/module/scout/types"
 
 const COLUMNS = [
   "score",
@@ -35,12 +40,23 @@ const LABELS: Readonly<Record<ColumnId, string>> = {
 
 const columnLabel = (id: ColumnId): string => LABELS[id]
 
-// Columns the table can sort by map onto a SortKey; the rest are display only.
-export const COLUMN_SORT: Readonly<Partial<Record<ColumnId, SortKey>>> = {
-  score: "score",
-  company: "company",
-  seen: "lastSeen",
-  status: "status",
+// Order rules live on the column now; `sortFun: null` is display-only.
+// Ascending is the natural direction of each comparator — DataTable negates for
+// descending.
+const DOSSIER_COLUMNS = {
+  score: columnDef({ label: LABELS.score, sortFun: byScore }),
+  company: columnDef({ label: LABELS.company, sortFun: null }),
+  location: columnDef({ label: LABELS.location, sortFun: null }),
+  salary: columnDef({ label: LABELS.salary, sortFun: null }),
+  seen: columnDef({ label: LABELS.seen, sortFun: bySeen }),
+  status: columnDef({ label: LABELS.status, sortFun: byStatus }),
+} satisfies ColumnsConfig<Dossier>
+
+// Same landing order as before: highest score first. `satisfies ColumnId` is
+// what catches a typo here, since SortState.column is a plain string.
+const DEFAULT_SORT: SortState = {
+  sorting: "decreasing",
+  column: "score" satisfies ColumnId,
 }
 
 const VIEWS = ["table", "cards"] as const

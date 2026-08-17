@@ -1,7 +1,7 @@
 export { useStore, type StoreState }
 
 import type { Store } from "@/module/scout/types"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 type StoreState =
   | { readonly kind: "idle" }
@@ -21,8 +21,13 @@ type Settled = Exclude<StoreState, { readonly kind: "loading" }>
 
 // Nothing is fetched until `enabled`. The request is the only thing that reads
 // the profile store, so an ungranted page has touched no file on disk.
-function useStore(enabled: boolean): StoreState {
+function useStore(enabled: boolean): {
+  readonly state: StoreState
+  readonly reload: () => void
+} {
   const [state, setState] = useState<Settled>({ kind: "idle" })
+  // Bumped after a write, to refetch without dropping back to a skeleton.
+  const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
     if (!enabled) return
@@ -57,7 +62,12 @@ function useStore(enabled: boolean): StoreState {
     return () => {
       ignore = true
     }
-  }, [enabled])
+  }, [enabled, nonce])
 
-  return enabled && state.kind === "idle" ? { kind: "loading" } : state
+  const reload = useCallback(() => setNonce((n) => n + 1), [])
+
+  return {
+    state: enabled && state.kind === "idle" ? { kind: "loading" } : state,
+    reload,
+  }
 }

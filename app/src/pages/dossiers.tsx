@@ -2,10 +2,13 @@ export default DossiersPage
 
 import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
+import { toast } from "sonner"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CopyButton } from "@/components/ui/copy"
+import { DataTablePagination, comparator } from "@/components/ui/datatable"
+import type { SortState } from "@/components/ui/datatable"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConsentDialog } from "@/module/scout/components/consent-dialog"
 import { DossierCards } from "@/module/scout/components/dossier-cards"
@@ -15,19 +18,22 @@ import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
 import { PermissionEmpty } from "@/module/scout/components/permission-empty"
 import { SelectionBar } from "@/module/scout/components/selection-bar"
-import { DEFAULT_COLUMNS } from "@/module/scout/helpers/columns"
+import {
+  DEFAULT_COLUMNS,
+  DEFAULT_SORT,
+  DOSSIER_COLUMNS,
+} from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import {
-  DEFAULT_SORT,
   EMPTY_FILTER,
   PAGE_SIZES,
   matches,
   paginate,
-  sortBy,
   summarize,
 } from "@/module/scout/helpers/select"
-import type { Filter, Sort, SortKey } from "@/module/scout/helpers/select"
+import type { Filter } from "@/module/scout/helpers/select"
 import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
+import { trashDossiers } from "@/module/scout/helpers/trash"
 import { useConsent } from "@/module/scout/helpers/use-consent"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
 import { useStore } from "@/module/scout/helpers/use-store"
@@ -41,11 +47,16 @@ function DossiersPage() {
   const { granted, grant } = useConsent()
   // Dismissing the dialog is not a dead end — the empty state reopens it.
   const [asking, setAsking] = useState(true)
-  const state = useStore(granted)
+  const { state, reload } = useStore(granted)
 
   return (
     <>
-      <Body state={state} onAsk={() => setAsking(true)} onAllow={grant} />
+      <Body
+        state={state}
+        onAsk={() => setAsking(true)}
+        onAllow={grant}
+        onReload={reload}
+      />
       <ConsentDialog
         open={!granted && asking}
         onOpenChange={setAsking}
@@ -59,10 +70,12 @@ function Body({
   state,
   onAsk,
   onAllow,
+  onReload,
 }: {
   readonly state: StoreState
   readonly onAsk: () => void
   readonly onAllow: () => void
+  readonly onReload: () => void
 }) {
   switch (state.kind) {
     case "idle":
@@ -87,7 +100,7 @@ function Body({
         </Shell>
       )
     case "loaded":
-      return <Loaded store={state.store} />
+      return <Loaded store={state.store} onReload={onReload} />
     default:
       return assertNever(state)
   }
@@ -101,7 +114,13 @@ function Shell({ children }: { readonly children: ReactNode }) {
   )
 }
 
-function Loaded({ store }: { readonly store: Store }) {
+function Loaded({
+  store,
+  onReload,
+}: {
+  readonly store: Store
+  readonly onReload: () => void
+}) {
   switch (store.kind) {
     case "unresolved":
       return (
@@ -110,7 +129,7 @@ function Loaded({ store }: { readonly store: Store }) {
         </Shell>
       )
     case "ready":
-      return <Surface store={store} />
+      return <Surface store={store} onReload={onReload} />
     default:
       return assertNever(store)
   }
@@ -140,11 +159,13 @@ function Unresolved({ attempts }: { readonly attempts: readonly Attempt[] }) {
 
 function Surface({
   store,
+  onReload,
 }: {
   readonly store: Extract<Store, { kind: "ready" }>
+  readonly onReload: () => void
 }) {
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
-  const [sort, setSort] = useState<Sort>(DEFAULT_SORT)
+  const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
   const [page, setPage] = useState(1)
   const [columns, setColumns] = useState<readonly ColumnId[]>(DEFAULT_COLUMNS)
   const [view, setView] = useState<View>("table")
@@ -157,7 +178,7 @@ function Surface({
     [store.dossiers, filter, hidden]
   )
   const ordered = useMemo(
-    () => visible.slice().sort(sortBy(sort)),
+    () => visible.slice().sort(comparator(DOSSIER_COLUMNS, sort)),
     [visible, sort]
   )
   const current = paginate(ordered, page, PAGE_SIZE)
@@ -173,12 +194,10 @@ function Surface({
     setPage(1)
   }
 
-  const onSort = (key: SortKey) =>
-    setSort((prev) =>
-      prev.key === key
-        ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
-        : { key, dir: "desc" }
-    )
+  const onSort = (next: SortState) => {
+    setSort(next)
+    setPage(1)
+  }
 
   const onToggle = (file: string) =>
     setSelected((prev) => {
@@ -204,6 +223,25 @@ function Surface({
     setSelected(new Set())
   }
 
+  const onHideOne = (file: string) => hide([file])
+
+  const onDelete = () => {
+    void trashDossiers(selectedRows.map((row) => row.file)).then((result) => {
+      if (result.kind === "err") {
+        toast.error(result.error)
+        return
+      }
+      const { moved, failed } = result.value
+      const noun = moved.length === 1 ? "dossier" : "dossiers"
+      toast.success(`Moved ${moved.length} ${noun} to scout/jobs/.trash`)
+      for (const failure of failed) {
+        toast.error(`${failure.file}: ${failure.reason}`)
+      }
+      setSelected(new Set())
+      onReload()
+    })
+  }
+
   return (
     <Shell>
       <OverviewCards summary={summary} />
@@ -219,6 +257,15 @@ function Surface({
         shown={visible.length}
       />
 
+      {hidden.size === 0 ? null : (
+        <p className="text-sm text-muted-foreground">
+          {hidden.size.toLocaleString()} hidden in this browser ·{" "}
+          <Button variant="link" className="h-auto p-0" onClick={clear}>
+            Restore
+          </Button>
+        </p>
+      )}
+
       {view === "table" ? (
         <DossierTable
           rows={current.rows}
@@ -229,6 +276,7 @@ function Surface({
           onToggle={onToggle}
           onToggleAll={onToggleAll}
           onOpen={setOpen}
+          onHide={onHideOne}
         />
       ) : (
         <DossierCards
@@ -239,81 +287,30 @@ function Surface({
         />
       )}
 
-      <Pager
+      <DataTablePagination
         page={current.page}
         pages={current.pages}
         onPage={setPage}
-        hidden={hidden.size}
-        onRestore={clear}
+        status={`${selectedRows.length} of ${visible.length} row(s) selected.`}
       />
 
       <Gaps gaps={store.gaps} root={store.root} />
 
       <footer className="font-mono text-xs text-muted-foreground">
         {store.dossiers.length.toLocaleString()} dossiers ·{" "}
-        {store.gaps.length.toLocaleString()} gaps · read-only view of{" "}
-        {store.root}/scout/jobs · resolved via {store.via} · generated{" "}
-        {store.generatedAt}
+        {store.gaps.length.toLocaleString()} gaps · view of {store.root}
+        /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
 
       <SelectionBar
         rows={selectedRows}
         onHide={onHide}
+        onDelete={onDelete}
         onClear={() => setSelected(new Set())}
       />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </Shell>
-  )
-}
-
-function Pager({
-  page,
-  pages,
-  onPage,
-  hidden,
-  onRestore,
-}: {
-  readonly page: number
-  readonly pages: number
-  readonly onPage: (next: number) => void
-  readonly hidden: number
-  readonly onRestore: () => void
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">
-        {hidden === 0 ? null : (
-          <>
-            {hidden.toLocaleString()} hidden in this browser ·{" "}
-            <Button variant="link" className="h-auto p-0" onClick={onRestore}>
-              Restore
-            </Button>
-          </>
-        )}
-      </p>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          Page {page} of {pages}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page <= 1}
-          onClick={() => onPage(page - 1)}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page >= pages}
-          onClick={() => onPage(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
   )
 }
 
