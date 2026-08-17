@@ -31,6 +31,8 @@ export {
   type Resolution,
   type Score,
   type Store,
+  type TrashFailure,
+  type Trashed,
   type Verdict,
   type Writer,
 }
@@ -231,3 +233,12 @@ type Store =
       readonly gaps: readonly ParseError[]
     }
   | { readonly kind: "unresolved"; readonly attempts: readonly Attempt[] }
+
+/* -- the wire shape of POST /api/trash ------------------------------------ */
+
+type TrashFailure = { readonly file: string; readonly reason: string }
+
+type Trashed = {
+  readonly moved: readonly string[]
+  readonly failed: readonly TrashFailure[]
+}

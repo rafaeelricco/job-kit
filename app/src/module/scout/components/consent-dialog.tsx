@@ -21,7 +21,7 @@ type ConsentDialogProps = {
 const NOTES = [
   {
     lead: "You're in control",
-    body: "This page only reads. It never writes a dossier, never edits your profile, and sends nothing anywhere.",
+    body: "This page reads, and sends nothing anywhere. The one thing it changes is a dossier you delete by hand — that file moves to scout/jobs/.trash rather than being erased.",
   },
   {
     lead: "What gets read",

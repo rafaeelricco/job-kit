@@ -1,18 +1,16 @@
 export {
-  DEFAULT_SORT,
   EMPTY_FILTER,
   PAGE_SIZES,
   SEGMENTS,
-  SORT_KEYS,
-  isSortKey,
+  byScore,
+  bySeen,
+  byStatus,
+  byText,
   matches,
   paginate,
-  sortBy,
   summarize,
   type Filter,
   type Segment,
-  type Sort,
-  type SortKey,
 }
 
 import type {
@@ -26,18 +24,9 @@ import { LIFECYCLES } from "@/module/scout/types"
 import { assertNever } from "@/module/scout/result"
 
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
-const SORT_KEYS = [
-  "score",
-  "company",
-  "firstSeen",
-  "lastSeen",
-  "status",
-] as const
 const PAGE_SIZES = [25, 50, 100] as const
 
 type Segment = (typeof SEGMENTS)[number]
-type SortKey = (typeof SORT_KEYS)[number]
-type Sort = { readonly key: SortKey; readonly dir: "asc" | "desc" }
 
 type Filter = {
   readonly query: string
@@ -56,8 +45,6 @@ const EMPTY_FILTER: Filter = {
   channels: [],
   statuses: [],
 }
-
-const DEFAULT_SORT: Sort = { key: "score", dir: "desc" }
 
 /* -- filtering ------------------------------------------------------------ */
 
@@ -127,34 +114,12 @@ const byScore = (a: Dossier, b: Dossier): number => {
 
 // IsoDate is branded exactly so this lexical compare is chronological.
 const byText = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
+const bySeen = (a: Dossier, b: Dossier): number =>
+  byText(a.lastSeen, b.lastSeen)
 
 // Lifecycle order is semantic (new → dropped), not alphabetical.
 const byStatus = (a: Dossier, b: Dossier): number =>
   LIFECYCLES.indexOf(a.status) - LIFECYCLES.indexOf(b.status)
-
-const sortBy =
-  (s: Sort) =>
-  (a: Dossier, b: Dossier): number => {
-    const sign = s.dir === "desc" ? -1 : 1
-    switch (s.key) {
-      case "score":
-        return sign * byScore(a, b)
-      case "company":
-        return sign * a.company.localeCompare(b.company)
-      case "firstSeen":
-        return sign * byText(a.firstSeen, b.firstSeen)
-      case "lastSeen":
-        return sign * byText(a.lastSeen, b.lastSeen)
-      case "status":
-        return sign * byStatus(a, b)
-      default:
-        return assertNever(s.key)
-    }
-  }
-
-function isSortKey(raw: string): raw is SortKey {
-  return (SORT_KEYS as readonly string[]).includes(raw)
-}
 
 /* -- paging and totals ---------------------------------------------------- */
 

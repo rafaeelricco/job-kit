@@ -2,7 +2,6 @@ export { DossierCards, type DossierCardsProps }
 
 import type { KeyboardEvent } from "react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -26,15 +25,6 @@ type DossierCardsProps = {
 // takes the solid default.
 const scoreVariant = (value: number): "default" | "secondary" | "outline" =>
   value >= 9 ? "default" : value >= 7 ? "secondary" : "outline"
-
-const monogram = (company: string): string =>
-  company
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0))
-    .join("")
-    .toUpperCase()
 
 function DossierCards(props: DossierCardsProps) {
   const onBodyKeyDown = (
@@ -65,17 +55,12 @@ function DossierCards(props: DossierCardsProps) {
           <Card key={row.file} data-state={isSelected ? "selected" : undefined}>
             <CardHeader>
               <CardTitle>
-                <div className="flex items-center gap-3">
-                  <Avatar size="sm">
-                    <AvatarFallback>{monogram(row.company)}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-foreground">
-                      {row.company}
-                    </div>
-                    <div className="truncate text-xs font-normal text-muted-foreground">
-                      {row.title}
-                    </div>
+                <div className="min-w-0">
+                  <div className="truncate font-medium text-foreground">
+                    {row.company}
+                  </div>
+                  <div className="truncate text-xs font-normal text-muted-foreground">
+                    {row.title}
                   </div>
                 </div>
               </CardTitle>

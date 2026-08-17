@@ -1,26 +1,25 @@
 export { DossierTable, type DossierTableProps }
 
-import { ChevronDown, ChevronUp } from "lucide-react"
-import type { KeyboardEvent, ReactNode } from "react"
+import { MoreHorizontal } from "lucide-react"
+import type { ReactNode } from "react"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DataTable, columnDef } from "@/components/ui/datatable"
+import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { ColumnId } from "@/module/scout/helpers/columns"
-import {
-  COLUMNS,
-  COLUMN_SORT,
-  columnLabel,
-} from "@/module/scout/helpers/columns"
-import type { Sort, SortKey } from "@/module/scout/helpers/select"
+import { COLUMNS, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
+import { httpHref } from "@/module/scout/helpers/href"
 import { assertNever } from "@/module/scout/result"
 import type { Dossier } from "@/module/scout/types"
 import { factText } from "@/module/scout/types"
@@ -28,36 +27,19 @@ import { factText } from "@/module/scout/types"
 type DossierTableProps = {
   readonly rows: readonly Dossier[]
   readonly columns: readonly ColumnId[]
-  readonly sort: Sort
-  readonly onSort: (key: SortKey) => void
+  readonly sort: SortState
+  readonly onSort: (next: SortState) => void
   readonly selected: ReadonlySet<string>
   readonly onToggle: (file: string) => void
   readonly onToggleAll: () => void
   readonly onOpen: (file: string) => void
+  readonly onHide: (file: string) => void
 }
 
 // Variants come from badge.tsx; there is no "success" there, so 9+ takes the
 // solid default and the tint steps down from it.
 const scoreVariant = (value: number): "default" | "secondary" | "outline" =>
   value >= 9 ? "default" : value >= 7 ? "secondary" : "outline"
-
-const monogram = (company: string): string =>
-  company
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0))
-    .join("")
-    .toUpperCase()
-
-const ariaSort = (
-  sort: Sort,
-  key: SortKey | undefined
-): "ascending" | "descending" | "none" | undefined => {
-  if (key === undefined) return undefined
-  if (sort.key !== key) return "none"
-  return sort.dir === "asc" ? "ascending" : "descending"
-}
 
 function DossierTable(props: DossierTableProps) {
   // COLUMNS drives the order so a reshuffled `columns` prop cannot scramble
@@ -79,17 +61,12 @@ function DossierTable(props: DossierTableProps) {
         )
       case "company":
         return (
-          <div className="flex items-center gap-3">
-            <Avatar size="sm">
-              <AvatarFallback>{monogram(row.company)}</AvatarFallback>
-            </Avatar>
-            <div className="max-w-[18rem] min-w-0">
-              <div className="truncate font-medium text-foreground">
-                {row.company}
-              </div>
-              <div className="truncate text-xs text-muted-foreground">
-                {row.title}
-              </div>
+          <div className="max-w-[18rem] min-w-0">
+            <div className="truncate font-medium text-foreground">
+              {row.company}
+            </div>
+            <div className="truncate text-xs text-muted-foreground">
+              {row.title}
             </div>
           </div>
         )
@@ -128,104 +105,126 @@ function DossierTable(props: DossierTableProps) {
     }
   }
 
-  const onRowKeyDown = (
-    event: KeyboardEvent<HTMLTableRowElement>,
-    file: string
-  ) => {
-    if (event.key !== "Enter" && event.key !== " ") return
-    event.preventDefault()
-    props.onOpen(file)
-  }
+  const columns = {
+    select: columnDef<Dossier>({
+      className: "w-10",
+      sortFun: null,
+      label: (
+        <Checkbox
+          checked={allSelected}
+          onCheckedChange={() => props.onToggleAll()}
+          aria-label="Select all visible dossiers"
+        />
+      ),
+    }),
+    ...DOSSIER_COLUMNS,
+    actions: columnDef<Dossier>({
+      label: "",
+      sortFun: null,
+      className: "w-10",
+    }),
+  } satisfies ColumnsConfig<Dossier>
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-10">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={() => props.onToggleAll()}
-              aria-label="Select all visible dossiers"
-            />
-          </TableHead>
-          {visible.map((id) => {
-            const key = COLUMN_SORT[id]
-            return (
-              <TableHead key={id} aria-sort={ariaSort(props.sort, key)}>
-                {key === undefined ? (
-                  columnLabel(id)
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => props.onSort(key)}
-                    className="-mx-1 inline-flex items-center gap-1 rounded px-1 py-0.5 text-foreground outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
-                  >
-                    <span>{columnLabel(id)}</span>
-                    {props.sort.key === key ? (
-                      props.sort.dir === "asc" ? (
-                        <ChevronUp className="size-3.5" aria-hidden="true" />
-                      ) : (
-                        <ChevronDown className="size-3.5" aria-hidden="true" />
-                      )
-                    ) : null}
-                  </button>
-                )}
-              </TableHead>
-            )
-          })}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {props.rows.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={visible.length + 1}
-              className="h-32 text-center whitespace-normal"
+    <DataTable
+      columns={columns}
+      columnOrder={["select", ...visible, "actions"]}
+      sort={props.sort}
+      onSortChange={props.onSort}
+      emptyMessage={
+        <>
+          <p className="text-sm font-medium text-foreground">
+            No dossiers match
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Clear a filter to widen the set.
+          </p>
+        </>
+      }
+      rows={props.rows.map((row) => ({
+        key: row.file,
+        value: row,
+        selected: props.selected.has(row.file),
+        onClick: (d: Dossier) => props.onOpen(d.file),
+        contents: {
+          // The wrapper eats the click so ticking a box never also
+          // opens the dossier behind it.
+          select: (
+            <span
+              className="inline-flex"
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
             >
-              <p className="text-sm font-medium text-foreground">
-                No dossiers match
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Clear a filter to widen the set.
-              </p>
-            </TableCell>
-          </TableRow>
-        ) : (
-          props.rows.map((row) => {
-            const isSelected = props.selected.has(row.file)
-            return (
-              <TableRow
-                key={row.file}
-                tabIndex={0}
-                aria-selected={isSelected}
-                data-state={isSelected ? "selected" : undefined}
-                onClick={() => props.onOpen(row.file)}
-                onKeyDown={(event) => onRowKeyDown(event, row.file)}
-                className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              <Checkbox
+                checked={props.selected.has(row.file)}
+                onCheckedChange={() => props.onToggle(row.file)}
+                aria-label={`Select ${row.company}`}
+              />
+            </span>
+          ),
+          score: cell("score", row),
+          company: cell("company", row),
+          location: cell("location", row),
+          salary: cell("salary", row),
+          seen: cell("seen", row),
+          status: cell("status", row),
+          actions: (
+            <RowActions row={row} onOpen={props.onOpen} onHide={props.onHide} />
+          ),
+        },
+      }))}
+    />
+  )
+}
+
+function RowActions(props: {
+  readonly row: Dossier
+  readonly onOpen: (file: string) => void
+  readonly onHide: (file: string) => void
+}) {
+  const href = httpHref(props.row.url)
+  return (
+    <span
+      className="inline-flex"
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => props.onOpen(props.row.file)}>
+              Open dossier
+            </DropdownMenuItem>
+            {href === null || props.row.posting.kind === "dead" ? null : (
+              <DropdownMenuItem
+                onClick={() =>
+                  window.open(href, "_blank", "noopener,noreferrer")
+                }
               >
-                <TableCell>
-                  {/* The wrapper eats the click so ticking a box never also
-                      opens the dossier behind it. */}
-                  <span
-                    className="inline-flex"
-                    onClick={(event) => event.stopPropagation()}
-                    onKeyDown={(event) => event.stopPropagation()}
-                  >
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => props.onToggle(row.file)}
-                      aria-label={`Select ${row.company}`}
-                    />
-                  </span>
-                </TableCell>
-                {visible.map((id) => (
-                  <TableCell key={id}>{cell(id, row)}</TableCell>
-                ))}
-              </TableRow>
-            )
-          })
-        )}
-      </TableBody>
-    </Table>
+                Open posting
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={() =>
+                void navigator.clipboard.writeText(props.row.company)
+              }
+            >
+              Copy company
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => props.onHide(props.row.file)}>
+              Hide
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </span>
   )
 }
