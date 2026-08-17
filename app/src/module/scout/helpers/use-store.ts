@@ -1,10 +1,10 @@
-export { useStore }
-export type { StoreState }
+export { useStore, type StoreState }
 
 import type { Store } from "@/module/scout/types"
 import { useEffect, useState } from "react"
 
 type StoreState =
+  | { readonly kind: "idle" }
   | { readonly kind: "loading" }
   | { readonly kind: "failed"; readonly message: string }
   | { readonly kind: "loaded"; readonly store: Store }
@@ -15,10 +15,17 @@ const SERVED_BY =
   "/api/store is served by the dev server middleware — run the dev server; " +
   "a static build has no backend."
 
-function useStore(): StoreState {
-  const [state, setState] = useState<StoreState>({ kind: "loading" })
+// Loading is never stored — it is exactly "enabled, with nothing back yet", so
+// deriving it keeps the effect free of a synchronous setState.
+type Settled = Exclude<StoreState, { readonly kind: "loading" }>
+
+// Nothing is fetched until `enabled`. The request is the only thing that reads
+// the profile store, so an ungranted page has touched no file on disk.
+function useStore(enabled: boolean): StoreState {
+  const [state, setState] = useState<Settled>({ kind: "idle" })
 
   useEffect(() => {
+    if (!enabled) return
     let ignore = false
 
     const load = async (): Promise<void> => {
@@ -50,7 +57,7 @@ function useStore(): StoreState {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [enabled])
 
-  return state
+  return enabled && state.kind === "idle" ? { kind: "loading" } : state
 }
