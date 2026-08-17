@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 
 function HoldButton({
   onHold,
-  holdMs = 300,
+  holdMs = 2000,
   className,
   children,
   ...props
