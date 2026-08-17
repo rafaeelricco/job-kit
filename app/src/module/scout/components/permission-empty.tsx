@@ -9,7 +9,7 @@ type PermissionEmptyProps = {
 
 function PermissionEmpty({ onAllow, onReview }: PermissionEmptyProps) {
   return (
-    <div className="grid min-h-svh place-items-center bg-background px-6 py-12">
+    <div className="grid flex-1 place-items-center px-6 py-12">
       <div className="flex w-full max-w-100 flex-col items-center text-center">
         <img src="/permission-not-granted.png" alt="" className="size-56 object-contain" />
         <h1 className="pt-3 text-xl font-semibold">Permission not granted</h1>
