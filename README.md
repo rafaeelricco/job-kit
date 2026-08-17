@@ -12,7 +12,7 @@ symlinks) run in coding agents (Claude Code, Codex, Grok).
 
 | Skill                | Role                                                                                   | Channel                         | Installed under                                                     |
 | -------------------- | -------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| `job-scout`          | Run every enabled pack in the profile's `data/search_packs.yaml` and rank the job rows | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-scout`          | Run the packs you pick from the profile deck and rank the job rows                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
 | `job-application`    | Draft, stage, and after approve submit one posting                                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
 | `job-profile-init`   | Create a data-only profile, or register/activate an existing one                       | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 | `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write      | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
@@ -105,8 +105,8 @@ Aside Browser:
 /job-application
 ```
 
-Scout runs every enabled pack in your profile's `data/search_packs.yaml`, in file
-order, and ranks the job rows it extracts. Application drafts and stages one posting at a
+Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
+ranks the job rows it extracts. Application drafts and stages one posting at a
 time; it opens an Apply control only when that control reveals the form, stops at
 review, and on explicit yes submits (account wall, required terms, Submit).
 
@@ -132,7 +132,7 @@ or a coding agent:
 ```
 
 `show` prints the profile, `gaps` names what still blocks a useful scout, and
-`set` / `sources add` / `sources remove` change keywords, positions, locations,
+`set` / `packs add` / `packs remove` change keywords, positions, locations,
 and boards. It writes only `data/job_search.yaml`, `data/search_packs.yaml`, and
 `data/profile_card.yaml` — everything else under the profile is read-only here,
 nothing is written before it prints a diff and you say yes, and it makes no
@@ -289,8 +289,9 @@ multi-target install also removes legacy kit links there, which the
 | `scripts/remote.sh`         | Fetch to cache + install or uninstall (no clone)    |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
-`/job-profile-init` and edited by `/job-profile-config packs`. `impl` stems must
-match surface reference basenames (`surface-linkedin-jobs`, `surface-open-web`, …).
+`/job-profile-init` and edited by `/job-profile-config packs`. One pack = one site;
+`surface` must match a surface reference basename — `surface-<surface>.md`, so
+`linkedin-jobs`, `open-web`, or `social`.
 `skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
 created before the deck moved; it must stay byte-identical to
 `skill/job-profile-init/templates/data/search_packs.yaml`.
