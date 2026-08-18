@@ -14,6 +14,8 @@ GitHub, Okta). Any other host → STOP and ask the operator once before going on
 autofill identity or enter a secret there. Return to the listed URL when the pass completes.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent
 or persist a secret.
+The browser is the operator's own session — its cookies, logins, and autofill.
+A page you could not open, click, or filter is not an opened page.
 Signup identity fields (name, email, handle) come from the browser's saved autofill.
 A field autofill cannot supply → STOP and ask the operator once; never invent one.
 Still blocked after that pass → row `status=uncertain`.
