@@ -164,8 +164,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   if (body.indexOf("## Verdict") === -1) {
     const rawScore = read("score")
-    const score: Score =
-      NUMERIC.test(rawScore) ? { kind: "scored", value: Number(rawScore) } : { kind: "unscored" }
+    const score: Score = NUMERIC.test(rawScore) ? { kind: "scored", value: Number(rawScore) } : { kind: "unscored" }
     return ok({
       file,
       company: read("company"),
@@ -375,10 +374,7 @@ type LogRead =
 
 // Scan to EOF. The "scout never writes below this line" comment is not a
 // delimiter (43 files print it twice) and blank lines are not terminators.
-function readLog(
-  tail: readonly string[],
-  fail: (at: string, cause: ParseError["cause"]) => ParsedDossier
-): LogRead {
+function readLog(tail: readonly string[], fail: (at: string, cause: ParseError["cause"]) => ParsedDossier): LogRead {
   const log: LogEntry[] = []
   for (const line of tail) {
     const match = LOG_LINE.exec(line)

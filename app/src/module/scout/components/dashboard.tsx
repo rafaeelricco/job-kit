@@ -107,10 +107,7 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
   const baseline = compare && days !== null ? previous : null
 
   const trend = useMemo(() => pairedSeries(scoped, current, baseline, foundDates), [scoped, current, baseline])
-  const applications = useMemo(
-    () => pairedSeries(scoped, current, baseline, appliedDates),
-    [scoped, current, baseline]
-  )
+  const applications = useMemo(() => pairedSeries(scoped, current, baseline, appliedDates), [scoped, current, baseline])
   const sources = useMemo(() => sourceSeries(scoped, current, SOURCE_LIMIT), [scoped, current])
   const pipeline = useMemo(() => tallyBy(scoped, current, LIFECYCLES, (d) => d.status), [scoped, current])
   const total = trend.reduce((n, p) => n + p.count, 0)
@@ -293,10 +290,7 @@ function TrendCard({
                         : ""
                     return (
                       <div className="flex w-full items-center gap-2">
-                        <div
-                          className="size-2.5 shrink-0 rounded-[2px]"
-                          style={{ backgroundColor: item.color }}
-                        />
+                        <div className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
                         <span className="flex-1 text-muted-foreground">
                           {isPrior ? "Previous" : "This period"}
                           {priorDate}
@@ -336,10 +330,7 @@ function TrendCard({
         <div className="flex flex-wrap items-center justify-center gap-6">
           <Key label={rangeLabel(current)} color="var(--color-brand)" />
           {baseline === null ? null : (
-            <Key
-              label={rangeLabel(baseline)}
-              color="color-mix(in oklab, var(--color-brand) 50%, var(--color-card))"
-            />
+            <Key label={rangeLabel(baseline)} color="color-mix(in oklab, var(--color-brand) 50%, var(--color-card))" />
           )}
         </div>
       </CardContent>
