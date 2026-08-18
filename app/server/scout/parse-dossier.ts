@@ -149,6 +149,50 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   // The "# company — title" heading is never read: two titles contain " — ".
   const body = lines.slice(close + 1)
+  // job-application stubs have frontmatter + Application log and no scout body.
+  // Find the log first so a stub still parses; require the other headings only
+  // when ## Verdict is present.
+  const logHeading = "## Application log"
+  const logStart = body.indexOf(logHeading)
+  if (logStart === -1) {
+    return fail(logHeading, { kind: "section", heading: logHeading })
+  }
+
+  const logged = readLog(body.slice(logStart + 1), fail)
+  if (logged.kind === "fail") return logged.result
+  const { log, posting, applications } = logged
+
+  if (body.indexOf("## Verdict") === -1) {
+    const rawScore = read("score")
+    const score: Score =
+      NUMERIC.test(rawScore) ? { kind: "scored", value: Number(rawScore) } : { kind: "unscored" }
+    return ok({
+      file,
+      company: read("company"),
+      title: read("title"),
+      url,
+      host,
+      status,
+      firstSeen,
+      lastSeen,
+      score,
+      bucket,
+      channel,
+      verdict: { why: "", factors: [] },
+      facts: blankFacts(),
+      excerpt: { kind: "absent" },
+      provenance: {
+        source: UNKNOWN_TEXT,
+        author: { kind: "unknown" },
+        contact: { kind: "unknown" },
+        date: UNKNOWN_TEXT,
+      },
+      log,
+      posting,
+      applications,
+    })
+  }
+
   const starts: number[] = []
   let cursor = 0
   for (const heading of SECTIONS) {
@@ -298,51 +342,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
     date: seen.trim(),
   }
 
-  /* -- log, posting, applications ----------------------------------------- */
-
-  // Scan to EOF. The "scout never writes below this line" comment is not a
-  // delimiter (43 files print it twice) and blank lines are not terminators.
-  const tail = sectionAt(4)
-  const log: LogEntry[] = []
-  for (const line of tail) {
-    const match = LOG_LINE.exec(line)
-    if (match === null) continue
-    const [, stamp, event, writer] = match
-    if (stamp === undefined || event === undefined || writer === undefined) {
-      continue
-    }
-    const date = toIsoDate(stamp)
-    if (date === null) {
-      return fail("## Application log", {
-        kind: "date",
-        field: "log",
-        got: stamp,
-      })
-    }
-    if (!isWriter(writer)) {
-      return fail("## Application log", {
-        kind: "vocabulary",
-        field: "writer",
-        got: writer,
-      })
-    }
-    log.push({ date, event, writer })
-  }
-
-  // Last transition wins.
-  const posting = log.reduce<Posting>(
-    (current, entry) =>
-      entry.event.startsWith("posting dead")
-        ? { kind: "dead", since: entry.date }
-        : entry.event === "posting live again"
-          ? { kind: "live" }
-          : current,
-    { kind: "live" }
-  )
-
-  // Counted across the whole tail: one file interleaves a record between two
-  // log lines, so records are not reliably last.
-  const applications = (tail.join("\n").match(APPLICATION_LINE) ?? []).length
+  /* -- log already read above --------------------------------------------- */
 
   const dossier: Dossier = {
     file,
@@ -368,6 +368,65 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 }
 
 /* -- helpers -------------------------------------------------------------- */
+
+type LogRead =
+  | { readonly kind: "ok"; readonly log: readonly LogEntry[]; readonly posting: Posting; readonly applications: number }
+  | { readonly kind: "fail"; readonly result: ParsedDossier }
+
+// Scan to EOF. The "scout never writes below this line" comment is not a
+// delimiter (43 files print it twice) and blank lines are not terminators.
+function readLog(
+  tail: readonly string[],
+  fail: (at: string, cause: ParseError["cause"]) => ParsedDossier
+): LogRead {
+  const log: LogEntry[] = []
+  for (const line of tail) {
+    const match = LOG_LINE.exec(line)
+    if (match === null) continue
+    const [, stamp, event, writer] = match
+    if (stamp === undefined || event === undefined || writer === undefined) {
+      continue
+    }
+    const date = toIsoDate(stamp)
+    if (date === null) {
+      return {
+        kind: "fail",
+        result: fail("## Application log", { kind: "date", field: "log", got: stamp }),
+      }
+    }
+    if (!isWriter(writer)) {
+      return {
+        kind: "fail",
+        result: fail("## Application log", { kind: "vocabulary", field: "writer", got: writer }),
+      }
+    }
+    log.push({ date, event, writer })
+  }
+
+  // Last transition wins.
+  const posting = log.reduce<Posting>(
+    (current, entry) =>
+      entry.event.startsWith("posting dead")
+        ? { kind: "dead", since: entry.date }
+        : entry.event === "posting live again"
+          ? { kind: "live" }
+          : current,
+    { kind: "live" }
+  )
+
+  // Counted across the whole tail: one file interleaves a record between two
+  // log lines, so records are not reliably last.
+  const applications = (tail.join("\n").match(APPLICATION_LINE) ?? []).length
+  return { kind: "ok", log, posting, applications }
+}
+
+function blankFacts(): Readonly<Record<FactKey, FactValue>> {
+  const out: Partial<Record<FactKey, FactValue>> = {}
+  for (const key of FACT_KEYS) {
+    out[key] = { kind: "unknown" }
+  }
+  return out as Readonly<Record<FactKey, FactValue>>
+}
 
 // One leading and one trailing quote; the writer has no escape mechanism.
 function unquote(raw: string): string {
