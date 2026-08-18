@@ -63,7 +63,7 @@ allowlist only") as Gaps — never `none`, and never optional shells
 
 Non-Gap blanks that ship empty/false and require questionnaire keep/edit
 instead: `job_search.yaml` filter maps (`work_model`, `job_types`,
-`date_posted`), `seniority_level`, `keywords.hiring_model`.
+`date_posted`), `seniority_level`, `keywords.hiring_model`, `locations`.
 
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics

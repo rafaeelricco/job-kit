@@ -11,22 +11,14 @@ salary_expectations:
 # Fact card is pasted verbatim into every drafting brief.
 
 legal_authorization:
-  eu_work_authorization: ""
-  us_work_authorization: ""
-  requires_us_visa: ""
-  requires_us_sponsorship: ""
-  requires_eu_visa: ""
-  legally_allowed_to_work_in_eu: ""
-  legally_allowed_to_work_in_us: ""
-  requires_eu_sponsorship: ""
-  canada_work_authorization: ""
-  requires_canada_visa: ""
-  legally_allowed_to_work_in_canada: ""
-  requires_canada_sponsorship: ""
-  uk_work_authorization: ""
-  requires_uk_visa: ""
-  legally_allowed_to_work_in_uk: ""
-  requires_uk_sponsorship: ""
+  # The four answers below hold for every country in `countries` and for no
+  # other. A jurisdiction not listed has no stored answer — job-application
+  # surfaces it, never infers one from a country that is listed.
+  work_authorization: ""
+  legally_allowed_to_work: ""
+  requires_visa: ""
+  requires_sponsorship: ""
+  countries: [] # TODO e.g. ["br", "us", "eu"] — any country, not a fixed set
 
 employment_routes:
   employer_of_record: "" # Yes | No: gates the EOR bucket
