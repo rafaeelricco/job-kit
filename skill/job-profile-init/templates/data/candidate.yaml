@@ -2,17 +2,17 @@ availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
-  tip: "Stay inside the printed USD band. Empty ours or non-USD → surface. Job min >= our max → midpoint, or the min if no max. Else → job max, or our max if no max. No printed salary → our max. Range → high is that figure; low is job min when printed and ≤ high, else high; no job numbers → our range."
+  tip: "Answer from the job's printed USD numbers whenever it prints any; our band decides only when it prints none. Ours empty or job pay non-USD → surface, never convert. Job printed both ends: job min >= our max → midpoint of the JOB band; else job max. Job printed min only: job min >= our max → job min; else our max. Job printed max only → job max. Job printed neither → our max. A midpoint of our band is never the answer. Range → high is that figure; low is the job min when printed and ≤ high, else high; job printed nothing → our range."
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are
 # voluntary and per-employer; answer them in the ATS form at apply time.
-# job-application must never stage protected-class data from a file — the whole
+# job-apply must never stage protected-class data from a file — the whole
 # Fact card is pasted verbatim into every drafting brief.
 
 legal_authorization:
   # The four answers below hold for every country in `countries` and for no
-  # other. A jurisdiction not listed has no stored answer — job-application
+  # other. A jurisdiction not listed has no stored answer — job-apply
   # surfaces it, never infers one from a country that is listed.
   work_authorization: ""
   legally_allowed_to_work: ""
