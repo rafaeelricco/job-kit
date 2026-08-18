@@ -89,8 +89,7 @@ scripts/aside/install.sh scripts/aside/lib.sh
 scripts/install.sh
 scripts/uninstall.sh
 skill/job-profile-init/SKILL.md
-skill/job-scout/SKILL.md
-skill/job-application/SKILL.md"
+skill/job-scout/SKILL.md"
 
 # Ownership signature for caches predating the unified uninstaller: the same
 # set minus `scripts/uninstall.sh`, which those revisions never shipped. Only
@@ -99,8 +98,7 @@ skill/job-application/SKILL.md"
 KIT_LEGACY_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 skill/job-profile-init/SKILL.md
-skill/job-scout/SKILL.md
-skill/job-application/SKILL.md"
+skill/job-scout/SKILL.md"
 
 # Full layout expected after fetch / before install: ownership files plus every
 # skill this revision ships. Post-fetch validation uses this set so a wrong-ref
@@ -109,8 +107,10 @@ skill/job-application/SKILL.md"
 # without SKILL.md, and by then the cache has already been replaced — so the
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
-skill/job-profile-config/SKILL.md
-skill/job-tracker/SKILL.md"
+skill/job-apply/SKILL.md
+skill/job-profile-me/SKILL.md
+skill/job-list/SKILL.md
+skill/job-stories/SKILL.md"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a

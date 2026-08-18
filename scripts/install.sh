@@ -44,8 +44,8 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-application, job-profile-config, job-tracker) — full copy
-  agents    Coding-agent skills (job-profile-init, job-profile-config, job-tracker)
+  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list) — full copy
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list)
   all       aside + agents
 
 Options:
@@ -53,9 +53,9 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-application | job-profile-config | job-tracker
+                aside | job-scout | job-apply | job-profile-me | job-list
                 agents | claude | codex | grok
-                (job-profile-config also installs job-scout — packs mutate
+                (job-profile-me also installs job-scout — packs mutate
                 needs its surface-*.md stems)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
@@ -118,14 +118,14 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1 ;;
-      job-scout|job-application|job-profile-config|job-tracker)
+      job-scout|job-apply|job-profile-me|job-list)
         want_aside=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
       agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
       claude) want_agents=1; named_agent=1; want_claude=1 ;;
       codex)  want_agents=1; named_agent=1; want_codex=1 ;;
       grok)   want_agents=1; named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-application|job-profile-config|job-tracker|agents|claude|codex|grok)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|claude|codex|grok)" ;;
     esac
   done
   if [ "${named_agent}" -eq 1 ]; then
@@ -134,11 +134,11 @@ expand_only() {
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
-  # job-profile-config packs add/remove validates impl against job-scout's
+  # job-profile-me packs add/remove validates impl against job-scout's
   # surface-*.md stems; standalone config without scout is unusable.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
-      *" job-profile-config "*)
+      *" job-profile-me "*)
         case " ${ASIDE_ONLY} " in
           *" job-scout "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
