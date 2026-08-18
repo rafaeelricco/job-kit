@@ -49,12 +49,16 @@ function toUtc(iso: string): number {
 
 const toIso = (ms: number) => new Date(ms).toISOString().slice(0, 10)
 
-// The window is anchored to the newest dossier rather than to today: the store
+// The window is anchored to the newest activity rather than to today: the store
 // is a snapshot on disk, so a corpus generated last month would render every
-// "last 30 days" panel empty if we counted back from the wall clock.
+// "last 30 days" panel empty if we counted back from the wall clock. Log dates
+// count because an application is usually written after `firstSeen`.
 function anchorOf(all: readonly Dossier[]): string {
   let newest = ""
-  for (const d of all) if (d.firstSeen > newest) newest = d.firstSeen
+  for (const d of all) {
+    if (d.firstSeen > newest) newest = d.firstSeen
+    for (const entry of d.log) if (entry.date > newest) newest = entry.date
+  }
   return newest === "" ? toIso(Date.now()) : newest
 }
 
