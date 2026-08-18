@@ -45,9 +45,9 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
-- Legacy fallbacks (`skills-by-company.yml`, the `willing_to_*` screening answers):
-  read when present; a stored answer is never re-asked and never omitted. Absent is
-  absent, not a reason to guess.
+- Legacy fallbacks (`skills-by-company.yml`, the `willing_to_*` screening answers,
+  and the old `legal_authorization` scalars below): read when present; a stored
+  answer is never re-asked and never omitted. Absent is absent, not a reason to guess.
 - Prefer concrete technical cause + plain outcome from those files over bare counts or
   résumé statistics (see Voice law). A count alone is not letter evidence.
 - Language level: use `languages[].level` as printed (self-assessed). Pair with `name`.
@@ -116,18 +116,26 @@ The review prints this derivation before any approve (`### Salary derivation`, p
 
 ### Sponsorship, classify before answering
 
-- Every `legal_authorization` answer is scoped by `legal_authorization.countries`.
-  The jurisdiction the question names is not on that list → no answer exists.
-- **Authorization / legally allowed / has permit**: answer from
-  `legal_authorization.work_authorization` or `legally_allowed_to_work`, verbatim.
-- **Requires visa**: answer from `legal_authorization.requires_visa`, verbatim.
-- **Requires sponsorship**: answer from `legal_authorization.requires_sponsorship`, verbatim.
+- Find the `legal_authorization.jurisdictions[]` row whose `country` matches the
+  question (same code or clear synonym: `us`/`united states`, `eu`/`europe`,
+  `uk`/`united kingdom`, `br`/`brazil`). No matching row → no answer exists.
+- **Authorization / legally allowed / has permit**: that row's
+  `work_authorization` or `legally_allowed_to_work`, verbatim.
+- **Requires visa**: that row's `requires_visa`, verbatim.
+- **Requires sponsorship**: that row's `requires_sponsorship`, verbatim.
+- No `jurisdictions` list (profile still on the preceding-release scalars):
+  read only the keys for the jurisdiction asked —
+  US: `us_work_authorization`, `legally_allowed_to_work_in_us`, `requires_us_visa`, `requires_us_sponsorship`;
+  EU: `eu_work_authorization`, `legally_allowed_to_work_in_eu`, `requires_eu_visa`, `requires_eu_sponsorship`;
+  Canada: `canada_work_authorization`, `legally_allowed_to_work_in_canada`, `requires_canada_visa`, `requires_canada_sponsorship`;
+  UK: `uk_work_authorization`, `legally_allowed_to_work_in_uk`, `requires_uk_visa`, `requires_uk_sponsorship`.
+  Key missing or empty → no answer exists. Never answer a US question from an EU key.
 - **Working remotely, or the engagement model**: answer from `employment_routes`.
 - Hard binary, no free text: answer the literal question truthfully. NEVER answer "No"
   to a sponsorship question on the grounds that EOR exists.
 - Free-text or notes field present: put the nuance there, once.
-- Jurisdiction asked absent from `countries`, or the field empty: no answer exists.
-  Surface it. NEVER answer from a country that is on the list. Judgment call.
+- Jurisdiction asked has no matching row (or no legacy key), or the field empty:
+  no answer exists. Surface it. NEVER answer from a different country's row. Judgment call.
 - Ambiguous between possession and need: pick the more specific field and surface the ambiguity.
 - NEVER blend the two into a hedge. NEVER volunteer sponsorship need to a form that
   only asked about engagement model.

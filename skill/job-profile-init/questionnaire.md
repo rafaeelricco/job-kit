@@ -25,8 +25,11 @@ Template bool maps (`work_model`, `job_types`, `date_posted`) are convenience
 shells, not facts — require `keep` or `edit`; on `skip` write empty/`false`,
 never retain shipped trues.
 Never infer legal authorization or language levels.
-Ask `legal_authorization.countries` before the four authorization answers: the
-answers are scoped to that list, so an empty list makes them unanswerable.
+Ask which countries need stored answers, then ask the four authorization
+answers once per country. Write each as one `legal_authorization.jurisdictions[]`
+row (`country`, `work_authorization`, `legally_allowed_to_work`, `requires_visa`,
+`requires_sponsorship`). Never copy one country's answers onto another. An empty
+list means no stored answer for any jurisdiction.
 
 Ask one seniority value and write it as `seniority_level`, for example `entry`,
 `mid-level`, `senior`, or `director`.

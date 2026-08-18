@@ -11,14 +11,11 @@ salary_expectations:
 # Fact card is pasted verbatim into every drafting brief.
 
 legal_authorization:
-  # The four answers below hold for every country in `countries` and for no
-  # other. A jurisdiction not listed has no stored answer — job-apply
-  # surfaces it, never infers one from a country that is listed.
-  work_authorization: ""
-  legally_allowed_to_work: ""
-  requires_visa: ""
-  requires_sponsorship: ""
-  countries: [] # TODO e.g. ["br", "us", "eu"] — any country, not a fixed set
+  # One row per country. job-apply reads only the row whose `country` matches
+  # the question. A country with no row has no stored answer — never copy
+  # another row onto it. Profiles that still have the old us_*/eu_*/canada_*/uk_*
+  # scalars and no `jurisdictions` list: apply reads those keys (contract-draft).
+  jurisdictions: [] # TODO each: {country, work_authorization, legally_allowed_to_work, requires_visa, requires_sponsorship}
 
 employment_routes:
   employer_of_record: "" # Yes | No: gates the EOR bucket
