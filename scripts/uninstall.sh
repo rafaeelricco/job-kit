@@ -307,13 +307,21 @@ uninstall_aside() {
     local dest_root name dest
     dest_root="$(resolve_aside_skills_root)" || exit 1
     echo "== job-kit Aside uninstall for ${dest_root} =="
-    unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
+    if [ -n "${aside_only}" ]; then
+      unlink_legacy_skills "${dest_root}" "${repo}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
+    else
+      unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
+    fi
     for name in ${SKILL_NAMES}; do
       aside_selected "${name}" || { echo "${name}: not selected (--only)."; continue; }
       dest="$(skill_dest "${dest_root}" "${name}")"
       unlink_skill "${dest}" "${repo}" "${name}"
     done
-    remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only:-${SKILL_NAMES}}" || exit 1
+    if [ -n "${aside_only}" ]; then
+      remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
+    else
+      remove_legacy_user_skills "${repo}" "${dest_root}" "${SKILL_NAMES}" || exit 1
+    fi
     echo "Uninstall completed for ${dest_root}"
   )
 }
@@ -652,7 +660,11 @@ plan_rows_aside() {
     local dest_root user_root name
     dest_root="$(resolve_aside_skills_root)" || exit 1
     printf 'H%saside%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest_root}"
-    for name in ${LEGACY_SKILL_NAMES}; do
+    legacy_walk="${LEGACY_SKILL_NAMES}"
+    if [ -n "${ASIDE_ONLY}" ]; then
+      legacy_walk="$(legacy_names_for_selected "${ASIDE_ONLY}")"
+    fi
+    for name in ${legacy_walk}; do
       plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" legacy
     done
     for name in ${SKILL_NAMES}; do
@@ -665,7 +677,7 @@ plan_rows_aside() {
     user_root="${HOME}/.aside/u/${ASIDE_ACCOUNT_ID}/skills/user"
     [ -d "${user_root}" ] || exit 0
     printf 'H%saside (legacy user root)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${user_root}"
-    for name in ${LEGACY_SKILL_NAMES}; do
+    for name in ${legacy_walk}; do
       plan_row "$(skill_dest "${user_root}" "${name}")" "${name}" legacy
     done
     # aside/lib.sh:295 stops after legacy names when the two roots are one tree.

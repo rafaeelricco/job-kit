@@ -426,11 +426,15 @@ install_aside() {
         dest="$(skill_dest "${dest_root}" "${name}")"
         copy_skill "${source}" "${dest}" "${force}" "${repo}" || exit 1
       done
-      unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
+      unlink_legacy_skills "${dest_root}" "${repo}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
     else
       install_skills_into "${dest_root}" "${repo}" "${force}" || exit 1
     fi
-    remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only:-${SKILL_NAMES}}" || exit 1
+    if [ -n "${aside_only}" ]; then
+      remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
+    else
+      remove_legacy_user_skills "${repo}" "${dest_root}" "${SKILL_NAMES}" || exit 1
+    fi
   )
 }
 
