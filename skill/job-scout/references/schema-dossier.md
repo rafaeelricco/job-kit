@@ -1,6 +1,6 @@
 # Job scout — dossier format
 
-The output contract for `pipeline.md` Phase 6. Main-only, same as that file.
+The output contract for `flow-scout.md` Phase 6. Main-only, same as that file.
 Never paste into a worker brief. Workers never write.
 
 ## Layout (under Profile root)
@@ -58,7 +58,7 @@ status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
 score: 9
-bucket: direct # bucket_short vocab, scout-report.md
+bucket: direct # bucket_short vocab, format-report.md
 channel: ats
 ---
 
@@ -94,7 +94,7 @@ did not print it.
 | jd_date         | 2026-08-01         |
 | blocker         | —                  |
 
-`blocker` is main-derived (`pipeline.md` `## Bucket`), not a gated column — recompute
+`blocker` is main-derived (`flow-scout.md` `## Bucket`), not a gated column — recompute
 it here; never read it off a row.
 
 ## From the posting

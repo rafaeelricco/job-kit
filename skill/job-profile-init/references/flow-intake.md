@@ -6,15 +6,15 @@ Batch only independent enums (Route modes; on the create path, Activate ask +
 Source mode together when the harness supports multi-option tools). Dependent
 branches stay sequential. Enumerables:
 options, most-likely first, labelled **(Recommended)**, free-text escape.
-Never treat silence as an answer. Invent matrix + Hard refuses: `./fill.md` /
-`SKILL.md` — do not restate full invent lists here.
+Never treat silence as an answer. Invent matrix + Hard refuses: `./flow-fill.md` /
+`../SKILL.md` — do not restate full invent lists here.
 
 ## Existing Profile root (read-only pre-discovery)
 
 Before offering the Route outcomes, read the machine pointer once. Reads are not
 writes; nothing is registered here.
 
-1. Resolve `HOST_HOME` / `HOST_DEFAULT` / `JOB_KIT_CONFIG` per `./activate.md`
+1. Resolve `HOST_HOME` / `HOST_DEFAULT` / `JOB_KIT_CONFIG` per `./flow-activate.md`
    steps 3-4 (read-only; do not write pointers here).
 2. Read the one line of `$HOST_HOME/.config/profile-root` when readable. Absent or
    unreadable (sandbox `Operation not permitted`) → no pointer; continue.
@@ -66,7 +66,7 @@ Once absolute `<target>` is known, ask whether to make it the machine Profile
 root (so scout/apply can resolve it). Enum; **Yes (Recommended)** first. Silence
 is not yes. Create path: ask together with Source mode in one turn (below).
 Register-existing: this is the only remaining question — ask it alone.
-Pointer / dual-home / pure-convention mechanics: `./activate.md` only. Do not
+Pointer / dual-home / pure-convention mechanics: `./flow-activate.md` only. Do not
 market Activate as “set env for Aside.”
 
 Example prompt:
@@ -74,7 +74,7 @@ Example prompt:
 > Set `<target>` as this machine’s active Profile root so scout/apply resolve
 > your facts? **Yes (Recommended)** / **No**. Silence is not Yes.
 
-- **Yes (Recommended)** → SKILL step 4 runs `./activate.md` end-to-end.
+- **Yes (Recommended)** → SKILL step 4 runs `./flow-activate.md` end-to-end.
 - **No** → step 4 skips Activate **only** when `<target>` is **not** a path that
   skills probe by convention without a pointer. If `<target>` equals
   `JOB_KIT_CONFIG` (or canonical-equals `HOST_DEFAULT`), **No is not allowed**:
@@ -113,7 +113,7 @@ Emit tokens: `display_name`, `email`, `linkedin_username`, `github_username`.
    identity of this SoT: sorted absolute path(s), or a paste fingerprint). Build
    an identity **draft** only from the buffer (LinkedIn URL → username without
    `@`). Extract only what is printed (Hard refuses + invent matrix bind). Fill reuses
-   this buffer when the Source key is unchanged (see `./fill.md` Source gate).
+   this buffer when the Source key is unchanged (see `./flow-fill.md` Source gate).
 2. Present the draft as proposals. The Profile questionnaire must still show
    every identity field and require confirm, edit, or skip.
 3. Required before Approve: `display_name`, `linkedin_username` (no `@`).
@@ -129,7 +129,7 @@ optional email and GitHub. Recommend only when grounded
 
 ## Profile questionnaire (create and scaffold-only)
 
-Read `./questionnaire.md`. Collect every user-owned field, including explicit
+Read `./format-questionnaire.md`. Collect every user-owned field, including explicit
 `seniority_level` and source/default confirmations. Register-existing skips this
 stage. Collect story names, then observations, last.
 

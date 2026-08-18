@@ -56,7 +56,7 @@ Options:
                 aside | job-scout | job-apply | job-profile-me | job-list
                 agents | claude | codex | grok
                 (job-profile-me also installs job-scout — packs mutate
-                needs its surface-*.md stems)
+                needs its worker-search-*.md stems)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
   -h, --help    Show this help
@@ -135,7 +135,7 @@ expand_only() {
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-profile-me packs add/remove validates impl against job-scout's
-  # surface-*.md stems; standalone config without scout is unusable.
+  # worker-search-*.md stems; standalone config without scout is unusable.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-profile-me "*)

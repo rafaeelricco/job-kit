@@ -1,15 +1,15 @@
 # Job scout — report format
 
-The output contract for `pipeline.md` Phase 5. Main-only, same as that file.
+The output contract for `flow-scout.md` Phase 5. Main-only, same as that file.
 Never paste either into a worker brief.
 
 ## Report format
 
-Emit markdown **exactly** in this section order, then hand back to `pipeline.md`
+Emit markdown **exactly** in this section order, then hand back to `flow-scout.md`
 Phase 6 — the dossiers are written after this report, and the **STOP** belongs at
 the end of that phase, not here.
 Every section below is the **chat deliverable only**. Disk receives dossiers under
-`scout/jobs/` per `dossier.md` — never a run file, never a second copy of ranked
+`scout/jobs/` per `schema-dossier.md` — never a run file, never a second copy of ranked
 tables or score factors. No preamble. No apply / message / connect / open-form language.
 
 ### Header
@@ -21,7 +21,7 @@ tables or score factors. No preamble. No apply / message / connect / open-form l
   not `email`: an @handle is not an email address, and counting both under `email`
   claims addresses the run never found
 - `defects` — pack verdicts `defect: {name}` **and** `auth_gate`, which
-  `pipeline.md` counts as a pack defect
+  `flow-scout.md` counts as a pack defect
 - Never invent a run filename. Never print a write-success count.
 
 ### Do this first
@@ -31,7 +31,7 @@ score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population �
 it on all live≥7 rows would promise three picks this section is not allowed to list.
 Prefer direct over EU/US-only on ties.
 `unbucketed` rows are not eligible here or in the table — they list under Gaps only
-(`pipeline.md` `## Bucket`), because the posting printed no route to judge them by.
+(`flow-scout.md` `## Bucket`), because the posting printed no route to judge them by.
 The header's `live≥7` census stays unfiltered: every live row has a dossier, so the
 remainder line must point at the whole store.
 
@@ -40,7 +40,7 @@ remainder line must point at the whole store.
 
 ### Ranked
 
-`status=live` AND `score≥8`, excluding `unbucketed`. Sort per `pipeline.md`
+`status=live` AND `score≥8`, excluding `unbucketed`. Sort per `flow-scout.md`
 `## Channel sort`.
 Rows already named in Do this first repeat here — the two sections answer different
 questions, and a table that hid its own top rows would read as if they were missing.
@@ -88,7 +88,7 @@ disabled packs, never-live dead, and score<7 rows.
 ## Controlled vocab (spec-only; never emitted)
 
 - `bucket_short`: `direct` | `EOR` | `EU/US-only` | `unbucketed`
-  (derivation table in `pipeline.md`, under `## Bucket`)
+  (derivation table in `flow-scout.md`, under `## Bucket`)
 - `channel`: `direct_email` | `dm_request` | `founder` | `ats`
 - `verdict`: `pass`, `skipped: disabled`, `auth_gate`, or `defect: {name}`
   (`auth_gate` and `defect: {name}` both count as defects — header and Gaps)

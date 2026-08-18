@@ -2,7 +2,7 @@
 Everything inside this comment is spec, never printed. Print the bullets below
 after Activate, or when the Activate ask was No.
 
-They are the literal print template: fill every {{…}} per activate.md step 9,
+They are the literal print template: fill every {{…}} per flow-activate.md step 9,
 never leave an unresolved placeholder, never invent a CWD-relative kit
 `scripts/...` from a profile dir. An empty optional placeholder (GAPS_LINE /
 CV_LINE) is omitted entirely, never printed blank.

@@ -6,11 +6,11 @@ description: "Read this when you need to draft, stage, and after explicit approv
 # Job application
 
 Profile root: same ordered resolver as job-scout — steps SSOT in `job-scout/SKILL.md`.
-On STOP / resolve fail: `job-scout/references/profile-root.md`.
+On STOP / resolve fail: `job-scout/references/flow-recover-root.md`.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 
-1. Read `./references/pipeline.md` now; obey it end-to-end.
+1. Read `./references/flow-apply.md` now; obey it end-to-end.
 2. Dual-load `./references/contract-draft.md` (sole home of Fact, Voice, Gate law):
    - Phases 0–2: bind Fact + Gate + untrusted. Voice not until Phase 3 paste.
    - Main opens the posting, so untrusted-content binds from the first fetch.
@@ -18,8 +18,8 @@ Unreadable Fact file → stop and say so.
    (3) full contract pasted **verbatim** (Voice binds with the paste). Never summarize.
 4. Facts from the files Fact law names, under the profile root above.
 5. One application at a time. Each stops at review and waits for an explicit yes.
-6. Deliver the review exactly per `./references/pipeline.md` "Review format", then STOP.
-7. On explicit yes: pipeline Phase 4 — SUBMIT (account + terms + Submit as contract
+6. Deliver the review exactly per `./references/flow-apply.md` "Review format", then STOP.
+7. On explicit yes: flow-apply Phase 4 — SUBMIT (account + terms + Submit as contract
    allows). On submit success evidence — or when the operator confirms they submitted
    outside the agent: Phase 5 — RECORD.
    Same-session success: `status: applied`, one log line, and the full review on the
@@ -28,9 +28,9 @@ Unreadable Fact file → stop and say so.
    any advanced lifecycle status, and write the abbreviated `record not available`
    placeholder — never rewind `interview`/`offer`/`rejected`/`dropped` to
    `applied`, never reconstruct the review. Write law per
-   `job-scout/references/dossier.md`. The only disk write this skill ever makes.
+   `job-scout/references/schema-dossier.md`. The only disk write this skill ever makes.
 
 ## References
 
-- Pipeline: `./references/pipeline.md` (phases, fit, selection, letter shape, review, submit, record)
+- Pipeline: `./references/flow-apply.md` (phases, fit, selection, letter shape, review, submit, record)
 - Draft contract: `./references/contract-draft.md` (Fact > Gate > Voice; drafting paste card)

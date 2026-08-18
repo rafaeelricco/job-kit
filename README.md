@@ -293,7 +293,7 @@ multi-target install also removes legacy kit links there, which the
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
-`surface` must match a surface reference basename — `surface-<surface>.md`, so
+`surface` must match a surface reference basename — `worker-search-<surface>.md`, so
 `linkedin-jobs`, `open-web`, or `social`.
 `skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
 created before the deck moved; it must stay byte-identical to

@@ -29,7 +29,7 @@ enabled|disabled · tokens`. Absent → one line saying job-scout will use the k
 fallback deck; never print the fallback's contents as if they were the profile's.
 
 Unknown value = `—`, never invented. Card field source rules: full per-field
-table in `./profile-card-schema.md` (single SSOT — load it here too, not only
+table in `./schema-profile-card.md` (single SSOT — load it here too, not only
 for `refresh-card`). Cache present → its non-empty fields win except
 `primary_role`/`seniority`/`target_stack`, always re-derived from current
 `job_search.yaml` since `set` does not touch `profile_card.yaml`.

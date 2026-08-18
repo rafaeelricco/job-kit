@@ -112,7 +112,7 @@ and `<= job.max` when `job.max` printed. Every row satisfies this by constructio
 failure means the wrong operand was read → **STOP**, stage nothing, and name the row you
 took and the bound it broke. Posting printed no number → no bound exists; row 1 stands.
 
-The review prints this derivation before any approve (`### Salary derivation`, pipeline
+The review prints this derivation before any approve (`### Salary derivation`, flow-apply
 "Review format"). This value is read and computed, never invented.
 
 ### Sponsorship, classify before answering
@@ -175,7 +175,7 @@ The review prints this derivation before any approve (`### Salary derivation`, p
   application. Else `cv/en-us-resume.pdf` only if present and the PDF opens. NEVER a `.tex`.
   Missing PDF: stop and surface; operator builds it per `cv/README.md`.
   Do not generate LaTeX here.
-- Duplicate check: pipeline Phase 0 (SSOT). Review reprints that line. Operator
+- Duplicate check: flow-apply Phase 0 (SSOT). Review reprints that line. Operator
   confirms first contact; never assume first.
 - Surface every value you had to invent instead of deciding alone: years of X, weekly
   hours, seniority self-label. A salary value Fact law already produced is not invented.
