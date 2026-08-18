@@ -28,7 +28,7 @@ To register manually, or to switch the active profile later, re-run
 `/job-profile-init` against this path and answer **Activate: Yes**.
 
 Host-default `~/.config/job-kit` is always skill-probed, and usually needs no
-pointer. Two exceptions where Activate does register it, per `activate.md` — do
+pointer. Two exceptions where Activate does register it, per the Activate flow — do
 not delete the pointer in either, or this profile stops winning:
 
 - a valid `$XDG_CONFIG_HOME/job-kit` profile also exists, so the pointer is what

@@ -9,7 +9,7 @@ no deck yet and point at `/job-profile-init` or `add`, then STOP.
 | Column   | From                                                  |
 | -------- | ----------------------------------------------------- |
 | story    | `id`                                                  |
-| status   | derived per `./story-schema.md`, not the stored value |
+| status   | derived per `./schema-story.md`, not the stored value |
 | covers   | `covers`, comma joined                                |
 | blocking | the first thing keeping it off `ready`                |
 

@@ -27,7 +27,7 @@ Before the diff, run against the draft and the sources:
    Client names appearing only as test fixtures always land here.
 3. Every credit that belongs to someone else → `never_say`.
 4. Anything the operator would rather not be shown → `volunteer`.
-5. Derive `status` per `./story-schema.md`.
+5. Derive `status` per `./schema-story.md`.
 
 A story with an empty `never_say` after this pass means the pass did not run.
 

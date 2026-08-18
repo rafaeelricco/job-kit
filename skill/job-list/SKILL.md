@@ -44,8 +44,8 @@ path: absence means there is nothing to read, a read failure means every answer
 would be wrong. If an old `scout/runs/` directory exists, ignore it — never read
 or require it.
 
-1. Read `./references/read.md` and `./references/views.md` now, and glob
-   `scout/jobs/` in parallel; obey read.md end-to-end.
+1. Read `./references/flow-read.md` and `./references/format-views.md` now, and glob
+   `scout/jobs/` in parallel; obey flow-read.md end-to-end.
 2. Dossiers under `scout/jobs/` are current state — the only store.
 3. Print `score`, `bucket`, and posting facts as they sit on disk. Never re-score,
    never re-derive `bucket`, never open a posting URL to refresh a field.
@@ -55,5 +55,5 @@ or require it.
 
 ## References
 
-- Reading the store: `./references/read.md` (dossier anatomy, ownership, staleness)
-- Answer shapes: `./references/views.md` (all jobs, one job, status board)
+- Reading the store: `./references/flow-read.md` (dossier anatomy, ownership, staleness)
+- Answer shapes: `./references/format-views.md` (all jobs, one job, status board)
