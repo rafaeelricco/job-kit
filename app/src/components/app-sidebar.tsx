@@ -15,6 +15,7 @@ import {
   Sparkles,
   Workflow,
 } from "lucide-react"
+import { useEffect } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,6 +44,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 
@@ -84,6 +86,13 @@ const TOOLS = [
 
 function AppSidebar() {
   const { pathname } = useLocation()
+  const { setOpenMobile } = useSidebar()
+
+  // Mobile sidebar is a controlled sheet. Navigating without closing it leaves
+  // the destination under the drawer until the user dismisses it by hand.
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
 
   return (
     <Sidebar collapsible="icon">
