@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+**/.pnpm-store
+**/coverage
+.claude
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+*.backup-*

@@ -7,18 +7,17 @@ description: "Scaffold a job-search profile and fill Fact-law data from a user-p
 
 Create a **new** data-only profile checkout. Refuse non-empty targets. Never edit a
 donor profile's `data/`. Materialize shells only from `./templates/`.
-Do not copy job-scout or job-application skill trees into the profile.
+Do not copy job-scout or job-apply skill trees into the profile.
 Outside `<target>`, write only Profile-root pointer files, and only via
 **Activate** after operator **Yes** — algorithm: `./activate.md`. Activating an
 existing profile (register-existing) is valid: pointer path only; no emit/fill;
 not an edit of that profile.
 
-Every invocation must enter **PLAN** mode before intake. Use the harness plan
-workflow when available; otherwise read `plan-format`, present a read-only plan,
-and wait for explicit approval. PLAN approval and profile **Approve** remain
-separate gates.
+Read-only until profile **Approve**, the last intake stage and the run's only
+gate: read the source of truth, ask every field, then present the plan of what
+will be written and wait. Algorithm: `./intake.md` **Approve**.
 
-1. After PLAN approval, read `./intake.md`; run its named stages (**Route** →
+1. Read `./intake.md`; run its named stages (**Route** →
    **Folder** → **Activate ask + Source** (one turn, create path) →
    **Identity** → **Profile questionnaire** → **Approve**). **Register
    existing** ends intake after a standalone **Activate ask**: skip
@@ -27,7 +26,7 @@ separate gates.
    Route so a switch is chosen up front, not after emit and fill.
 2. On Approve: obey `./emit-tree.md` end-to-end (write → tokens → leak gate).
 3. After Approve, obey `./fill.md` to apply the questionnaire buffer, write
-   observations, place the CV, and run the leak/YAML gates. No post-approval
+   observations and story stubs, place the CV, and run the leak/YAML gates. No post-approval
    field questions. SoT / invent / Gaps: `./fill.md` (Hard refuses bind).
    Scaffold-only may fill from questionnaire without a SoT; all-skip → shells-only.
 4. **Activate** Profile root for absolute `<target>`, branching on the Activate
@@ -54,7 +53,7 @@ separate gates.
 - Invent salary, visa, sponsorship, EOR, relocation, employers, skills, or numbers
 - Network scrape / session harvest of LinkedIn (user-handed export **file** is OK as SoT)
 - Generate a CV PDF or LaTeX
-- Run job-scout or job-application
+- Run job-scout or job-apply
 - Edit a non-empty or donor profile
 - Run a **profile** `scripts/install.sh` (legacy/stale; kit does not emit one).
   Kit install is the checkout's `scripts/install.sh`, never under the profile.
