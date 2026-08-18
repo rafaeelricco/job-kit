@@ -5,7 +5,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
 import { AppLayout } from "@/components/app-layout"
 
-const NotesPage = lazy(() => import("@/pages/notes"))
 const DossiersPage = lazy(() => import("@/pages/dossiers"))
 const HomePage = lazy(() => import("@/pages/home"))
 
@@ -26,14 +25,6 @@ const router = createBrowserRouter([
         element: (
           <Suspense>
             <DossiersPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/notes/*",
-        element: (
-          <Suspense>
-            <NotesPage />
           </Suspense>
         ),
       },
