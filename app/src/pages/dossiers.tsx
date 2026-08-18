@@ -48,7 +48,7 @@ function Surface({ store }: { readonly store: Ready }) {
   // filtered count already has its own line under the toolbar.
   const summary = useMemo(() => summarize(store.dossiers), [store.dossiers])
 
-  const selectedRows = store.dossiers.filter((d) => selected.has(d.file))
+  const selectedRows = visible.filter((d) => selected.has(d.file))
   const openDossier = store.dossiers.find((d) => d.file === open) ?? null
 
   const onFilter = (next: Filter) => {
