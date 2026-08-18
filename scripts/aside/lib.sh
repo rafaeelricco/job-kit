@@ -3,10 +3,10 @@
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
 # Skill folder names under skill/ that Aside may load (Aside channel only).
-SKILL_NAMES="job-scout job-application job-profile-config job-tracker"
+SKILL_NAMES="job-scout job-apply job-profile-me job-list"
 # Prior Aside basenames from this kit; install/uninstall may remove orphans.
 # Predicates: kit symlink OR kit copy (.job-kit marker). Source dir need not exist for legacy links.
-LEGACY_SKILL_NAMES="job-discovery job-apply profile-scaffold application-stage profile-init"
+LEGACY_SKILL_NAMES="job-discovery job-application profile-scaffold application-stage profile-init job-profile-config job-tracker"
 
 # Marker written at DEST/.job-kit so uninstall can tell kit copies from foreign dirs.
 KIT_MARKER=".job-kit"
@@ -142,13 +142,32 @@ remove_owned_path() {
   fi
 }
 
-# unlink_legacy_skills DEST_ROOT REPO
+# legacy_names_for_selected NAMES
+# Prints the prior Aside basename for each current skill in NAMES, space-separated.
+# Immediate rename pair only. Older aliases stay on the full LEGACY_SKILL_NAMES sweep.
+# Args: NAMES — current SKILL_NAMES tokens (e.g. ASIDE_ONLY). Side effects: none.
+legacy_names_for_selected() {
+  local names="$1" name out=""
+  for name in ${names}; do
+    case "${name}" in
+      job-scout) out="${out} job-discovery" ;;
+      job-apply) out="${out} job-application" ;;
+      job-profile-me) out="${out} job-profile-config" ;;
+      job-list) out="${out} job-tracker" ;;
+    esac
+  done
+  printf '%s\n' "${out# }"
+}
+
+# unlink_legacy_skills DEST_ROOT REPO [NAMES]
 # Removes DEST_ROOT/<legacy> when kit-owned (old symlink or marked copy).
+# NAMES defaults to LEGACY_SKILL_NAMES. Pass the selected skill's old basename(s)
+# on --only so unselected siblings are left installed.
 # Source dir need not exist (post-rename orphans). Prints status lines.
 # Side effects: may rm kit-owned legacy paths. Does not touch foreign paths.
 unlink_legacy_skills() {
-  local dest_root="$1" repo="$2" name dest
-  for name in ${LEGACY_SKILL_NAMES}; do
+  local dest_root="$1" repo="$2" names="${3:-${LEGACY_SKILL_NAMES}}" name dest
+  for name in ${names}; do
     dest="$(skill_dest "${dest_root}" "${name}")"
     if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
       continue
@@ -292,16 +311,17 @@ unlink_skill() {
   echo "removed: ${dest}"
 }
 
-# remove_legacy_user_skills REPO [DEST_ROOT]
+# remove_legacy_user_skills REPO [DEST_ROOT] [NAMES] [LEGACY]
 # Drop kit-owned SKILL_NAMES + LEGACY under ~/.aside/u/<account>/skills/user
 # so reinstall does not leave stale user/ trees after the channel moves to builtin.
 # When DEST_ROOT is the same physical path as skills/user, only remove LEGACY basenames
 # (do not delete current SKILL_NAMES just installed there via ASIDE_SKILLS override).
 # Side effects: may rm kit-owned paths under skills/user.
 # NAMES (optional, 3rd arg) narrows the current-name sweep; legacy basenames are
-# always cleared, since they are orphans no selector can name.
+# LEGACY (optional, 4th arg; default LEGACY_SKILL_NAMES). On --only, pass only the
+# selected skill's old basename so unselected siblings under skills/user stay.
 remove_legacy_user_skills() {
-  local repo="$1" dest_root="${2:-}" names="${3:-${SKILL_NAMES}}"
+  local repo="$1" dest_root="${2:-}" names="${3:-${SKILL_NAMES}}" legacy="${4:-${LEGACY_SKILL_NAMES}}"
   local account="${ASIDE_ACCOUNT:-0}" user_root name dest
   local user_phys dest_phys
   user_root="${HOME}/.aside/u/${account}/skills/user"
@@ -310,12 +330,12 @@ remove_legacy_user_skills() {
   if [ -n "${dest_root}" ] && [ -d "${dest_root}" ]; then
     dest_phys="$(cd "${dest_root}" && pwd -P)"
     if [ "${user_phys}" = "${dest_phys}" ]; then
-      unlink_legacy_skills "${user_root}" "${repo}" || return 1
+      unlink_legacy_skills "${user_root}" "${repo}" "${legacy}" || return 1
       echo "skipped user skill migration: install dest is ${user_phys}"
       return 0
     fi
   fi
-  unlink_legacy_skills "${user_root}" "${repo}" || return 1
+  unlink_legacy_skills "${user_root}" "${repo}" "${legacy}" || return 1
   for name in ${names}; do
     dest="$(skill_dest "${user_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}" || return 1

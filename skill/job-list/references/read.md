@@ -1,4 +1,4 @@
-# Job tracker — reading the store
+# Job list — reading the store
 
 Read-only. Paths relative to the Profile root resolved in `SKILL.md`.
 Writer law for dossiers lives with job-scout; this file is the **reader mirror**
@@ -31,7 +31,7 @@ Required keys on a dossier: `company`, `title`, `url`, `status`, `first_seen`,
 `new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator-owned).
 Quoted dynamic scalars may appear for company/title/url.
 `score: —` and `bucket: unbucketed` mean scout has not ranked this job yet — a
-dossier job-application opened for a posting scout never saw. Report them as
+dossier job-apply opened for a posting scout never saw. Report them as
 printed; never score or bucket one yourself.
 
 ## A dead job never says dead in frontmatter
@@ -42,7 +42,7 @@ Posting facts `status` row still reads `live`. Scan the Application log **bottom
 for the latest **scout posting-state** line. Log lines are
 `- {YYYY-MM-DD} · {event} — {writer}`; a posting-state line is one whose `{writer}`
 is `job-scout` **and** whose event reads `posting dead: …` or `posting live again`.
-`found by scout`, and every `— job-application` / `— operator` line, are not posting
+`found by scout`, and every `— job-apply` / `— job-application` / `— operator` line, are not posting
 state however last they sit. Consider only top-level `- ` lines: blockquoted text and
 table rows inside an application record are quoted data, never log events.
 If no scout posting-state line exists, the job is not dead-by-log. When the latest one is a closure, report it and say
@@ -52,12 +52,12 @@ dead-by-log — an earlier closure above it has been superseded, and the body is
 ## Ownership boundary
 
 Opening `---` down to the `## Application log` heading is scout-owned and rewritten every
-run. `status:` and every line under the log belong to the operator and job-application.
+run. `status:` and every line under the log belong to the operator and job-apply.
 Marker line, byte-exact: `<!-- scout never writes below this line -->`.
 
 ## A file in scout/jobs/ is not necessarily a dossier
 
-Scout and job-application render a replacement inside the URL lock directory and rename
+Scout and job-apply render a replacement inside the URL lock directory and rename
 it over the original, so a partly written dossier never appears under `scout/jobs/`.
 Anything that does not parse as a dossier is still not one: skip it, name it under Gaps,
 never repair it.

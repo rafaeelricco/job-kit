@@ -330,20 +330,20 @@ normalized `url`:
   and `—` is the store's own word for unknown. Scout's next run on this `url`
   fills the body and those two keys in place, without touching `status:` or the log.
 - Body: `# {company} — {title}`, then `## Application log`, the byte-exact marker,
-  then `- {today} · dossier opened by application, no scout run — job-application`,
+  then `- {today} · dossier opened by application, no scout run — job-apply`,
   then the log line and record block below. No Verdict, no Posting facts, no
   Provenance: those sections are scout's to write, and inventing them here is
   fabrication.
 
 ### The log line
 
-`- {YYYY-MM-DD} · applied via {channel} — job-application`
+`- {YYYY-MM-DD} · applied via {channel} — job-apply`
 
 `{channel}` is the value `### Ad` printed. It read `—` → ask the operator which route
 they used and record their answer; never infer one. An existing dossier keeps scout's
 own frontmatter `channel` untouched — the log line carries the route actually used.
 When Phase 0 named a non-`new` status the operator released, extend with
-` · was {status}`. The `— job-application` suffix is what keeps the tracker from
+` · was {status}`. The `— job-apply` suffix is what keeps the tracker from
 reading this as posting state.
 
 ### The record block
@@ -356,7 +356,7 @@ Then, in this order, the same sections the run already produced — no
 re-derivation, no summary: `### Ad`, `### Fit`, `### Selected`, and every section
 of the emitted review — `Duplicate check` (with the operator's release line and the
 `Operator confirms first application…` line when Phase 0 printed one), `Draft`,
-`Form fields`, `Attachments`, `Gate compliance`, `Untrusted content` — then
+`Form fields`, `Salary derivation`, `Attachments`, `Gate compliance`, `Untrusted content` — then
 `Added fields` only when the operator second-yes'd that section in Phase 4 (omit it when
 Phase 4 never printed one, and when it printed but the operator finished the submit
 themselves without that yes; never invent rows). Demote each heading two levels so it
@@ -474,6 +474,19 @@ states the fit, not the interest.
 | `invented: {why no file printed it}`, or — demographic / EEO fields only — `operator`,    |
 | value blank, for the operator to finish in the form. Never `—`: any other field with no   |
 | answer is not staged.                                                                     |
+
+### Salary derivation
+
+Print whenever a salary figure is staged; nothing asked for salary → `_(none)_`.
+Five lines, from `contract-draft.md` "Salary expectation":
+
+    ours:       {ours.min} - {ours.max} USD
+    ad printed: {job.min} - {job.max} USD, or `none`
+    branch:     row {n} — {the condition as the table prints it}
+    figure:     {figure} USD
+    in-band:    PASS, or `n/a (posting printed no number)`
+
+`in-band` never prints a failure: a failed check stops the run before the review exists.
 
 ### Attachments
 
