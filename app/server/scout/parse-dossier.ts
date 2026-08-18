@@ -312,8 +312,8 @@ function parseDossier(file: string, raw: string): ParsedDossier {
       : {
           kind: "printed",
           text: quoted
-            .map((line) => line.replace(/^>\s?/, "").trim())
-            .join(" ")
+            .map((line) => line.replace(/^>\s?/, ""))
+            .join("\n")
             .trim(),
         }
 
