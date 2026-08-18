@@ -11,9 +11,17 @@ import { resolveProfileRoot } from "./resolve"
 const JOBS = ["scout", "jobs"] as const
 const TRASH = ".trash"
 
-async function trashDossiers(env: NodeJS.ProcessEnv, cwd: string, files: readonly string[]): Promise<Trashed> {
+async function trashDossiers(
+  env: NodeJS.ProcessEnv,
+  cwd: string,
+  root: string,
+  files: readonly string[]
+): Promise<Trashed> {
   const resolution = resolveProfileRoot(env, cwd)
   if (resolution.kind === "unresolved") throw new Error("no profile root")
+  // The client loaded this root. Activate can rewrite the pointer while the
+  // tab stays open — refuse rather than move the same names under a new profile.
+  if (resolution.root !== root) throw new Error("profile root changed; reload")
 
   const dir = path.resolve(path.join(resolution.root, ...JOBS))
   const trash = path.join(dir, TRASH)

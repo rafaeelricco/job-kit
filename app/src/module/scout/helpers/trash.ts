@@ -2,14 +2,15 @@ export { trashDossiers }
 
 import { err, ok } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
-import type { Trashed } from "@/module/scout/types"
+import type { TrashRequest, Trashed } from "@/module/scout/types"
 
-async function trashDossiers(files: readonly string[]): Promise<Result<Trashed, string>> {
+async function trashDossiers(root: string, files: readonly string[]): Promise<Result<Trashed, string>> {
   try {
+    const request: TrashRequest = { root, files }
     const response = await fetch("/api/trash", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ files }),
+      body: JSON.stringify(request),
     })
     if (!response.ok) {
       return err(`/api/trash responded ${response.status} ${response.statusText}`)
