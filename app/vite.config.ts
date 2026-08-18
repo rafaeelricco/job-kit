@@ -108,8 +108,14 @@ function trashPlugin(): PluginOption {
         }
 
         readBody(req)
-          .then((body) => trashDossiers(process.env, process.cwd(), filesOf(body)))
-          .then((result) => reply(200, result))
+          .then(async (body) => {
+            const parsed = trashRequestOf(body)
+            if (parsed === null) {
+              reply(400, { error: "expected { root, files }" })
+              return
+            }
+            reply(200, await trashDossiers(process.env, process.cwd(), parsed.root, parsed.files))
+          })
           .catch((error: unknown) => reply(500, { error: String(error) }))
       })
     },
@@ -122,7 +128,12 @@ async function readBody(req: IncomingMessage): Promise<unknown> {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"))
 }
 
-const filesOf = (body: unknown): readonly string[] =>
-  typeof body === "object" && body !== null && "files" in body && Array.isArray(body.files)
-    ? body.files.filter((f: unknown): f is string => typeof f === "string")
-    : []
+function trashRequestOf(body: unknown): { root: string; files: readonly string[] } | null {
+  if (typeof body !== "object" || body === null) return null
+  if (!("root" in body) || typeof body.root !== "string" || body.root === "") return null
+  if (!("files" in body) || !Array.isArray(body.files)) return null
+  return {
+    root: body.root,
+    files: body.files.filter((f: unknown): f is string => typeof f === "string"),
+  }
+}

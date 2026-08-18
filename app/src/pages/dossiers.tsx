@@ -91,7 +91,10 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
   const onHideOne = (file: string) => hide([file])
 
   const onDelete = () => {
-    void trashDossiers(selectedRows.map((row) => row.file)).then((result) => {
+    void trashDossiers(
+      store.root,
+      selectedRows.map((row) => row.file)
+    ).then((result) => {
       if (result.kind === "err") {
         toast.error(result.error)
         return

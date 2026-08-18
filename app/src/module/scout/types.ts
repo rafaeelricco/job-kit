@@ -32,6 +32,7 @@ export {
   type Score,
   type Store,
   type TrashFailure,
+  type TrashRequest,
   type Trashed,
   type Verdict,
   type Writer,
@@ -215,6 +216,11 @@ type Store =
   | { readonly kind: "unresolved"; readonly attempts: readonly Attempt[] }
 
 /* -- the wire shape of POST /api/trash ------------------------------------ */
+
+type TrashRequest = {
+  readonly root: string
+  readonly files: readonly string[]
+}
 
 type TrashFailure = { readonly file: string; readonly reason: string }
 
