@@ -1,9 +1,9 @@
 ---
-name: job-tracker
-description: "Read this when you need to inspect the job scout store already on disk — dossiers under scout/jobs/. Read-only; never writes. Use when the user asks what jobs do I have, which applications are open, or what scout saved. Not for drafting an application (job-application) or editing profile data (job-profile-config)."
+name: job-list
+description: "Read this when you need to inspect the job scout store already on disk — dossiers under scout/jobs/. Read-only; never writes. Use when the user asks what jobs do I have, which applications are open, or what scout saved. Not for drafting an application (job-apply) or editing profile data (job-profile-me)."
 ---
 
-# Job tracker
+# Job list
 
 Profile root: resolve in order; print absolute path before any read; STOP if none.
 <!-- mirror of job-scout SKILL.md resolve block (steps 1-5 verbatim) — keep in sync -->
