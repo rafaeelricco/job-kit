@@ -285,6 +285,28 @@ function TrendCard({
               content={
                 <ChartTooltipContent
                   labelFormatter={(label) => (typeof label === "string" ? shortDate(label) : label)}
+                  formatter={(value, name, item) => {
+                    const isPrior = name === "prior"
+                    const priorDate =
+                      isPrior && typeof item.payload?.priorDate === "string"
+                        ? ` · ${shortDate(item.payload.priorDate)}`
+                        : ""
+                    return (
+                      <div className="flex w-full items-center gap-2">
+                        <div
+                          className="size-2.5 shrink-0 rounded-[2px]"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="flex-1 text-muted-foreground">
+                          {isPrior ? "Previous" : "This period"}
+                          {priorDate}
+                        </span>
+                        <span className="font-mono font-medium text-foreground tabular-nums">
+                          {typeof value === "number" ? value.toLocaleString() : String(value)}
+                        </span>
+                      </div>
+                    )
+                  }}
                 />
               }
             />
