@@ -43,7 +43,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    `locations`. Any other key holding a value that is not empty, `false`, or null
    → name the file and the key, and say to migrate via `/job-profile-me`.
    Never derive a replacement value — these are operator-owned, per
-   `job-profile-init/fill.md`. Keep this an allowlist rather than a list of
+   `job-profile-init/references/flow-fill.md`. Keep this an allowlist rather than a list of
    dropped keys: a key scout stops consuming then fails closed here instead of
    going quietly unread.
 2. Pack pick (blocking). List every pack in the resolved deck whose `enabled` is
@@ -76,10 +76,10 @@ Phase 1. A surface that answers signed-out is a Phase 1 defect
 
 ## Phase 1 — SEARCH (chosen packs)
 
-For **each** chosen pack: run `./references/surface-<surface>.md` with
+For **each** chosen pack: run `./references/worker-search-<surface>.md` with
 PROFILE_CARD + CONSTRAINTS + PACK + CONTRACT_SEARCH (`./references/contract-search.md`) **verbatim**.
 Do not run a pack, and record `defect: unsupported_pack {id}` naming it under Gaps,
-when either: `surface` names no `surface-*.md` in this skill; `entry` is not one
+when either: `surface` names no `worker-search-*.md` in this skill; `entry` is not one
 `http(s)` URL. A profile deck is never rewritten by an update, and
 `/job-profile-me` checks `surface` but not `entry` shape, so a deck can still
 carry a legacy source-row list, or a `from data/sources.yaml <group>` entry it no
@@ -147,14 +147,14 @@ Bucket per `## Bucket`. A row whose factors do not sum to its printed score is
 a defect: fix the row, do not adjust the sum. Print factors only on dossier
 `## Verdict` — never a chat Score audit.
 
-Emit final markdown **exactly** per `./references/scout-report.md`. Named headings only. Then Phase 6.
+Emit final markdown **exactly** per `./references/format-report.md`. Named headings only. Then Phase 6.
 
 ## Phase 6 — PERSIST (main only) → STOP
 
 **Writable SSOT for this skill.** Main writes; a worker never does. Only these
 path shapes under Profile root: `scout/jobs/*.md`, exclusive lock directories
 `scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
-`dossier.md` concurrent writers), lock metadata `scout/jobs/*.lock/owner`, and
+`schema-dossier.md` concurrent writers), lock metadata `scout/jobs/*.lock/owner`, and
 lock-internal place staging `scout/jobs/*.lock/place-*`.
 Every other Profile-root path (`data/`, `cv/`, …) is read-only. Never create,
 write, list-require, or delete `scout/runs/` — an orphan from an older
@@ -176,10 +176,10 @@ revision is ignored.
    → print the path under Gaps and STOP, same as a failed write.
 3. One dossier per row with `status=live` that passed the Phase 4 gate — including
    `score<7` rows. A `dead` row that already has a
-   dossier goes through the `dossier.md` re-run handler so its closure log is
+   dossier goes through the `schema-dossier.md` re-run handler so its closure log is
    appended; `uncertain` rows stay in chat Gaps only and create no dossier;
    `dead` rows never seen live create no dossier and are not listed in chat.
-4. Shape, filename, and the re-run rules are owned by `./references/dossier.md`.
+4. Shape, filename, and the re-run rules are owned by `./references/schema-dossier.md`.
 5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
    A dossier that fails stops the phase; report the error in chat under Gaps.

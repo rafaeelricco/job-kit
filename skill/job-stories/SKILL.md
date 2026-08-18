@@ -46,10 +46,10 @@ Writable here: `data/stories/*.md` and their `*.md.tmp` staging siblings during
 atomic rename.
 Every other path under Profile root is read-only in this skill.
 
-1. Read `./references/story-schema.md` now; it is the field law for both verbs.
-2. `add`: obey `./references/author.md` end-to-end (evidence → four parts →
+1. Read `./references/schema-story.md` now; it is the field law for both verbs.
+2. `add`: obey `./references/flow-author.md` end-to-end (evidence → four parts →
    adversarial pass → diff → yes → write).
-3. `audit`: obey `./references/audit.md`. Read-only; never repairs a story.
+3. `audit`: obey `./references/flow-audit.md`. Read-only; never repairs a story.
 4. No verb intent → run `audit`, then STOP.
 
 ## Commands
@@ -63,9 +63,9 @@ Every other path under Profile root is read-only in this skill.
 
 ## References
 
-- Story shape: `./references/story-schema.md` (frontmatter fields, verified/kind law, body boundary)
-- Authoring: `./references/author.md` (evidence gate, four parts, adversarial pass, diff → yes → write)
-- Audit: `./references/audit.md` (read-only deck report, gaps)
+- Story shape: `./references/schema-story.md` (frontmatter fields, verified/kind law, body boundary)
+- Authoring: `./references/flow-author.md` (evidence gate, four parts, adversarial pass, diff → yes → write)
+- Audit: `./references/flow-audit.md` (read-only deck report, gaps)
 
 ## Hard refuses
 

@@ -27,7 +27,7 @@ candidate; try the next step. Do not invent a profile path.
 5. Walk session CWD upward until probe passes.
 6. else STOP. Name each attempt (env, each pointer file + line, each default
    config path, walk start).
-   Recovery detail: `./references/profile-root.md` (load on STOP or step 2–4 fail).
+   Recovery detail: `./references/flow-recover-root.md` (load on STOP or step 2–4 fail).
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required Fact file under a resolved root → stop and say so.
@@ -35,24 +35,24 @@ Skill-local files: `./references/*` only.
 Pack list: `data/search_packs.yaml` under Profile root; absent → fall back to
 `./references/search_packs.yaml` (kit deck). Never merge the two.
 
-Writable paths: Phase 6 only (`./references/pipeline.md` — Writable SSOT).
+Writable paths: Phase 6 only (`./references/flow-scout.md` — Writable SSOT).
 
-1. Read `./references/pipeline.md` now; obey it end-to-end.
+1. Read `./references/flow-scout.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
-4. Pack list, parallelism, gates, score: pipeline only. Contracts own list-only + evidence.
-5. Deliver report per `scout-report.md`.
-6. Persist one dossier per live job per `dossier.md`, then STOP.
+4. Pack list, parallelism, gates, score: flow-scout only. Contracts own list-only + evidence.
+5. Deliver report per `format-report.md`.
+6. Persist one dossier per live job per `schema-dossier.md`, then STOP.
 
 ## References
 
-- Pipeline: `./references/pipeline.md` (phases, score, bucket, gate)
-- Scout report: `./references/scout-report.md` (sections, columns, vocab; main-only)
-- Dossier: `./references/dossier.md` (scout/ layout, file format, re-run rules; main-only)
+- Pipeline: `./references/flow-scout.md` (phases, score, bucket, gate)
+- Scout report: `./references/format-report.md` (sections, columns, vocab; main-only)
+- Dossier: `./references/schema-dossier.md` (scout/ layout, file format, re-run rules; main-only)
 - Search contract: `./references/contract-search.md` (paste card; never inherited)
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
-- Search surfaces: `./references/surface-{linkedin-jobs,open-web,social}.md` (surface deltas)
+- Search surfaces: `./references/worker-search-{linkedin-jobs,open-web,social}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
 - Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`
-  (enabled packs, YAML order; chosen set: pipeline Phase 0)
-- Profile root recovery: `./references/profile-root.md` (Aside dual-home; not step SSOT)
+  (enabled packs, YAML order; chosen set: flow-scout Phase 0)
+- Profile root recovery: `./references/flow-recover-root.md` (Aside dual-home; not step SSOT)

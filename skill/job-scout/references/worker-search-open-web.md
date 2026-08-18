@@ -1,4 +1,4 @@
-# surface-open-web
+# worker-search-open-web
 
 Obey CONTRACT_SEARCH.
 

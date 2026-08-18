@@ -12,7 +12,7 @@
    `HOST_DEFAULT` **and** this process is **not** inside Aside runtime (`$HOME`
    does not end with `/.aside/runtime/home`) **and** `JOB_KIT_CONFIG` either
    equals `HOST_DEFAULT` or fails the two-file probe. Host-default needs no
-   pointer except the two exceptions in `./templates/README.md` (XDG
+   pointer except the two exceptions in `../templates/README.md` (XDG
    outranks it, or activation ran inside Aside) — see the fall-through below.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.
@@ -85,7 +85,7 @@
    equivalent). State whether export ran. **Aside will not see this export** —
    host-default path-convention probe + dual-home read + (otherwise) host
    pointer and runtime mirror cover Aside.
-9. Print `./next-steps.md` with placeholders filled, then STOP:
+9. Print `./format-next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_LINE}}` — if the fill report has any scout-critical Gaps remaining,
      set to a single line:
      `- Resolve remaining Gaps from the fill report: <gap bullets or summary>.`
@@ -93,7 +93,7 @@
      Remaining Gaps from the fill report include
      skipped **scout-critical** blockers (not optional/preference shells).
      **Scaffold-only: report the gaps the completed fill actually left**, and
-     fall back to the `./emit-tree.md` unfilled inventory only for values still
+     fall back to the `./flow-emit-tree.md` unfilled inventory only for values still
      holding their placeholder. The questionnaire now confirms positions,
      keywords, locations, and blockers during the same run, so printing the
      whole inventory would claim resolved fields still read `TODO-skill`.
@@ -111,8 +111,9 @@
      `- If CV not placed: add cv/en-us-resume.pdf before job-apply attachments.`
      Register-existing: probe the same path under `<target>`.
 
-   **Resolve `KIT_ROOT` (optional):** take the real path of this skill
-   directory (`…/skill/job-profile-init`). Parent of `skill/` is a candidate
+   **Resolve `KIT_ROOT` (optional):** take the real path of the skill root that
+   holds `SKILL.md` (`…/skill/job-profile-init`), not this file's own
+   `references/` directory. Parent of `skill/` is a candidate
    kit root if `$KIT_ROOT/scripts/install.sh` exists, **or** both channel
    wrappers exist (`$KIT_ROOT/scripts/agents/install.sh` and
    `$KIT_ROOT/scripts/aside/install.sh`) for older checkouts. Symlink installs

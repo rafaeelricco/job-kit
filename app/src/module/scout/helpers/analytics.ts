@@ -76,7 +76,7 @@ const within = (d: Dossier, w: Window) => d.firstSeen >= w.from && d.firstSeen <
 const foundDates: Stamps = (d) => [d.firstSeen]
 
 // `applied via {channel}` is the line job-apply appends — see
-// skill/job-apply/references/pipeline.md. An application is stamped on
+// skill/job-apply/references/flow-apply.md. An application is stamped on
 // the day it was sent, never on `firstSeen`: a dossier found in March and
 // applied to yesterday belongs to yesterday.
 const APPLIED = "applied via"
