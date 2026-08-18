@@ -43,6 +43,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | public portfolio projects                                | `data/projects.yml`                                                               |
 | skills / stack inventory                                 | `data/skills.yaml`, then legacy `data/skills-by-company.yml` when present         |
 | project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
+| claims, verified outcomes from the story deck            | `data/stories/*.md` frontmatter (`claim`, `evidence.*`, `impact_numbers` that are not `unverified` / `kind: process`); never the body |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
 - Legacy fallbacks (`skills-by-company.yml`, the `willing_to_*` screening answers,
