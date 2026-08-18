@@ -1,20 +1,6 @@
 export { AppSidebar }
 
-import {
-  BadgeCheck,
-  Bell,
-  Briefcase,
-  ChartNoAxesColumn,
-  ChevronsUpDown,
-  CreditCard,
-  FileText,
-  Grid2x2Plus,
-  LayoutGrid,
-  LogOut,
-  Megaphone,
-  Sparkles,
-  Workflow,
-} from "lucide-react"
+import { BadgeCheck, Bell, Briefcase, ChevronsUpDown, CreditCard, LayoutGrid, LogOut, Sparkles } from "lucide-react"
 import { useEffect } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 
@@ -34,27 +20,18 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
 
 // Taller and larger than the shadcn default, and the label sits at #777777
 // (--muted-foreground) rather than near-black; only the active row goes dark.
 const ITEM = "h-9 gap-2.5 rounded-lg px-2.5 text-[15px] font-normal text-muted-foreground data-active:text-foreground"
-const SUB_ITEM = "h-8 rounded-lg px-2 text-[15px] font-normal text-muted-foreground data-active:text-foreground"
-// Sub-rows align to the parent label, and the reference draws no rail line.
-const SUB_LIST = "mx-0 border-l-0 px-0 pl-[30px]"
-const LABEL = "h-8 px-2.5 text-[13px] font-normal text-sidebar-foreground/50"
 // Placeholder: job-kit has no auth, so nothing here is wired to an identity.
 const USER = { name: "shadcn", email: "m@example.com" } as const
 
@@ -66,22 +43,9 @@ function initialsOf(name: string): string {
   return letters.slice(0, 2).toUpperCase()
 }
 
-// `to` is what separates a wired item from the reference's visual filler.
 const MAIN = [
   { label: "Home", Icon: LayoutGrid, to: "/" },
   { label: "Dossiers", Icon: Briefcase, to: "/dossiers" },
-  { label: "Analytics", Icon: ChartNoAxesColumn, sub: true },
-  { label: "Plan", Icon: Workflow },
-  { label: "Apps", Icon: Grid2x2Plus },
-] as const
-
-const ANALYTICS_SUB = ["Reports", "Live view"] as const
-
-const TOOLS = [
-  { label: "Campaign", Icon: Megaphone, tint: "from-orange-400 to-red-500" },
-  { label: "Creatives", Icon: Sparkles, tint: "from-sky-400 to-blue-600" },
-  { label: "Briefs", Icon: FileText, tint: "from-emerald-400 to-green-600" },
-  { label: "Workflows", Icon: Workflow, tint: "from-fuchsia-400 to-purple-600" },
 ] as const
 
 function AppSidebar() {
@@ -114,48 +78,13 @@ function AppSidebar() {
               {MAIN.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
-                    isActive={"to" in item && pathname === item.to}
+                    isActive={pathname === item.to}
                     tooltip={item.label}
                     className={ITEM}
-                    {...("to" in item ? { render: <NavLink to={item.to} /> } : {})}
+                    render={<NavLink to={item.to} />}
                   >
                     <item.Icon aria-hidden="true" />
                     <span>{item.label}</span>
-                  </SidebarMenuButton>
-
-                  {"sub" in item ? (
-                    <SidebarMenuSub className={SUB_LIST}>
-                      {ANALYTICS_SUB.map((sub) => (
-                        <SidebarMenuSubItem key={sub}>
-                          <SidebarMenuSubButton className={SUB_ITEM}>
-                            <span>{sub}</span>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  ) : null}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="py-1">
-          <SidebarGroupLabel className={LABEL}>Tools</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {TOOLS.map((tool) => (
-                <SidebarMenuItem key={tool.label}>
-                  <SidebarMenuButton tooltip={tool.label} className={ITEM}>
-                    <span
-                      className={cn(
-                        "flex size-[18px] shrink-0 items-center justify-center rounded-[5px] bg-gradient-to-b",
-                        tool.tint
-                      )}
-                    >
-                      <tool.Icon className="size-2.5! text-white" strokeWidth={2.5} aria-hidden="true" />
-                    </span>
-                    <span>{tool.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
