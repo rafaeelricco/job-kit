@@ -1,4 +1,4 @@
-# surface-linkedin-jobs
+# worker-search-linkedin-jobs
 
 Obey CONTRACT_SEARCH.
 

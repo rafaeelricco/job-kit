@@ -3,7 +3,7 @@
 Runs only after emit-tree succeeds and profile Approve is explicit (or on an
 already scaffolded target when the operator says "continue fill"). Applies the
 in-memory questionnaire buffer; it does not ask new profile questions.
-Hard refuses: `SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent.
+Hard refuses: `../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent.
 
 ## Source gate
 
@@ -79,7 +79,7 @@ were confirmed before Approve. Apply them here without re-asking.
 1. If SoT includes a PDF resume/export: copy to `cv/en-us-resume.pdf` by path
    (overwrite only if user confirms when a different PDF already exists). Do not
    re-parse PDF text when the SoT buffer already holds facts.
-2. PDF/LaTeX generation is a Hard refuse (`SKILL.md`). Non-PDF SoT → report under **### CV** only (not Gaps).
+2. PDF/LaTeX generation is a Hard refuse (`../SKILL.md`). Non-PDF SoT → report under **### CV** only (not Gaps).
 
 ## Post-fill leak gate
 

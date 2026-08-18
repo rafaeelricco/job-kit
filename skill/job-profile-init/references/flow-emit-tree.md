@@ -1,6 +1,6 @@
 # Emit tree
 
-Source = `./templates/` only. Destination = intake target path.
+Source = `../templates/` only. Destination = intake target path.
 
 ## Tree to write
 
@@ -14,7 +14,7 @@ Source = `./templates/` only. Destination = intake target path.
 
 No skill pack trees inside the profile. Skills come from job-kit install (agents: profile init + config + tracker; Aside: scout + apply + config + tracker).
 
-Copy the entire `./templates/` tree into the target (preserving structure), then
+Copy the entire `../templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
 
 | Token                   | Approved identity |
@@ -46,7 +46,7 @@ After substitution, no `{{…}}` tokens may remain. Target must not contain skil
 
 ## After fill
 
-`fill.md` overwrites Fact-law files under `data/`, writes `data/stories/*.md`
+`flow-fill.md` overwrites Fact-law files under `data/`, writes `data/stories/*.md`
 stubs, and may place `cv/en-us-resume.pdf`.
 It must not write skill trees or any path outside the emitted layout (`data/`, `cv/`,
 root README). Re-run this leak gate after fill.
@@ -56,12 +56,12 @@ emitted here and never a Gap; this flow neither creates nor reads it.
 
 ## Unfilled inventory (what the template ships blank)
 
-`fill.md` applies the questionnaire buffer. Scaffold-only still runs the
-questionnaire; if every field is skipped, the `./fill.md` Gap report lists
-**only the scout-critical lines** (allowlist owned by `./fill.md` "Gaps
+`flow-fill.md` applies the questionnaire buffer. Scaffold-only still runs the
+questionnaire; if every field is skipped, the `./flow-fill.md` Gap report lists
+**only the scout-critical lines** (allowlist owned by `./flow-fill.md` "Gaps
 allowlist only") as Gaps — never `none`, and never optional shells
 (preferences, projects, languages, stories, CV). Handoff injects that report via
-`./activate.md` step 9 → `./next-steps.md`.
+`./flow-activate.md` step 9 → `./format-next-steps.md`.
 
 Non-Gap blanks that ship empty/false and require questionnaire keep/edit
 instead: `job_search.yaml` filter maps (`work_model`, `job_types`,

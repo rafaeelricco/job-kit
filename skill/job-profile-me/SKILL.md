@@ -46,12 +46,12 @@ Writable here: `data/job_search.yaml`, `data/profile_card.yaml`,
 rename.
 Every other path under Profile root is read-only in this skill.
 
-1. Read `./references/show.md` now; obey it for `show` and `gaps`. Card
+1. Read `./references/flow-show.md` now; obey it for `show` and `gaps`. Card
    derivation (cache absent or hybrid) also needs
-   `./references/profile-card-schema.md` — load it then, not only for
+   `./references/schema-profile-card.md` — load it then, not only for
    `refresh-card`.
-2. Any mutation: obey `./references/mutate.md` end-to-end (parse → diff → yes → write).
-3. `refresh-card` writes the shape in `./references/profile-card-schema.md`.
+2. Any mutation: obey `./references/flow-mutate.md` end-to-end (parse → diff → yes → write).
+3. `refresh-card` writes the shape in `./references/schema-profile-card.md`.
 4. No mutation intent → run `show`, then STOP.
 
 ## Commands
@@ -69,9 +69,9 @@ Every other path under Profile root is read-only in this skill.
 
 ## References
 
-- Show: `./references/show.md` (read set, card + constraints + packs blocks, gaps)
-- Mutate: `./references/mutate.md` (writable keys, diff → confirm → write, refuses)
-- Card schema: `./references/profile-card-schema.md` (`profile_card.yaml` shape + derivation)
+- Show: `./references/flow-show.md` (read set, card + constraints + packs blocks, gaps)
+- Mutate: `./references/flow-mutate.md` (writable keys, diff → confirm → write, refuses)
+- Card schema: `./references/schema-profile-card.md` (`profile_card.yaml` shape + derivation)
 
 ## Hard refuses
 

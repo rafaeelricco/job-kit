@@ -1,4 +1,4 @@
-# surface-social
+# worker-search-social
 
 Obey CONTRACT_SEARCH.
 
