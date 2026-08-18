@@ -17,8 +17,7 @@ ASIDE_ACCOUNT_ID="${ASIDE_ACCOUNT:-0}"
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 skill/job-profile-init/SKILL.md
-skill/job-scout/SKILL.md
-skill/job-application/SKILL.md"
+skill/job-scout/SKILL.md"
 
 YES=0
 SKIP_CLAUDE=0
@@ -270,8 +269,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-application, job-profile-config, job-tracker)
-  agents    Coding-agent skills (job-profile-init, job-profile-config, job-tracker)
+  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list)
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories)
   profile   Delete profile root(s) + matching profile-root pointers
   cache     Remove kit checkout cache (JOB_KIT_HOME), kit-owned only
   all       aside + agents + profile + cache
@@ -280,7 +279,7 @@ Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-application | job-profile-config | job-tracker
+                aside | job-scout | job-apply | job-profile-me | job-list
                 agents | claude | codex | grok
                 profile | cache
   --skip-claude|--skip-codex|--skip-grok
@@ -976,7 +975,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1 ;;
-      job-scout|job-application|job-profile-config|job-tracker)
+      job-scout|job-apply|job-profile-me|job-list)
         want_aside=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
       agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
@@ -985,7 +984,7 @@ expand_only() {
       grok)   want_agents=1; named_agent=1; want_grok=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-application|job-profile-config|job-tracker|agents|claude|codex|grok|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|claude|codex|grok|profile|cache)" ;;
     esac
   done
   if [ "${named_agent}" -eq 1 ]; then

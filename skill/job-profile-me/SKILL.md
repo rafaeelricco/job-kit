@@ -1,9 +1,9 @@
 ---
-name: job-profile-config
-description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Never create a profile, never run a search, never write without an explicit yes. Never invent salary, visa, sponsorship, EOR, employers, or numbers. Use when the user runs /job-profile-config, asks to show their profile or search config, change keywords / positions / locations, add or remove a job board, or asks what is missing for scout."
+name: job-profile-me
+description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Never create a profile, never run a search, never write without an explicit yes. Never invent salary, visa, sponsorship, EOR, employers, or numbers. Use when the user runs /job-profile-me, asks to show their profile or search config, change keywords / positions / locations, add or remove a job board, or asks what is missing for scout."
 ---
 
-# Job profile config
+# Job profile me
 
 Day-2 edits on a profile that already passes the probe. Creating a profile is
 `job-profile-init`; running discovery is `job-scout`. No network of any kind.
@@ -79,6 +79,6 @@ Every other path under Profile root is read-only in this skill.
 - Write `data/candidate.yaml` or any Fact file (experiences, skills, languages, basics)
 - Write anything before printing the diff and receiving an explicit yes
 - Network: no board lookup, no keyword research, no scrape, no sign-up
-- Run job-scout or job-application; edit the kit fallback deck inside the job-scout
+- Run job-scout or job-apply; edit the kit fallback deck inside the job-scout
   skill (that copy is overwritten on reinstall — edit the profile deck instead)
 - Copy another profile's data

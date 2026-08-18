@@ -66,30 +66,68 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 
 ### Salary expectation
 
-`salary_expectations.salary_range_usd` is our band, not the answer.
-Apply `salary_expectations.tip` when present. Never paste the tip onto a form.
-When tip is absent:
-Empty ours → surface; do not invent a band.
-Job salary not USD → surface; do not convert; do not compare raw figures.
-No printed job salary → our max.
-USD both ends: job min >= our max → midpoint. Else → job max.
-USD min only: job min >= our max → job min. Else → our max.
-USD max only: job max.
-Ad or form asks for one figure → the figure above.
-Asks for a range → high is that figure; low is job min when printed and ≤ high, else high. No printed job salary → our stored range.
-This value is not invented.
+Two bands, never mixed:
+
+- `ours` = `salary_expectations.salary_range_usd` → `ours.min`, `ours.max`. The band we
+  accept, never the answer.
+- `job` = the USD figures this posting printed → `job.min`, `job.max`. Either end may be
+  absent.
+
+Apply `salary_expectations.tip` when present; never paste the tip onto a form. The table
+below is that tip expanded. Tip and table state one rule — they disagree, surface it, do
+not pick between them.
+
+Every `job.*` operand is read off the posting. Substituting an `ours.*` figure for a
+`job.*` operand is the one error this section exists to stop.
+
+Surface instead of computing when `ours` is empty, or the posting prints pay in a
+currency other than USD: never convert, never compare figures across currencies.
+
+Otherwise, first match wins:
+
+| #   | Condition                             | Figure                    |
+| --- | ------------------------------------- | ------------------------- |
+| 1   | no `job.min`, no `job.max`            | `ours.max`                |
+| 2   | both printed, `job.min >= ours.max`   | `(job.min + job.max) / 2` |
+| 3   | both printed                          | `job.max`                 |
+| 4   | `job.min` only, `job.min >= ours.max` | `job.min`                 |
+| 5   | `job.min` only                        | `ours.max`                |
+| 6   | `job.max` only                        | `job.max`                 |
+
+Rows 2 and 4 are the posting outpaying us. The figure rises to meet what the posting
+printed; it never retreats to our band. A midpoint of `ours` answers no row.
+
+Ad or form asks for one figure → the figure above. Asks for a range → high is that
+figure; low is `job.min` when printed and ≤ high, else high. Posting printed nothing →
+our stored range.
+
+Worked row (ad printed $224,000–$263,000, `ours` 90,000–120,000):
+`job.min 224000 >= ours.max 120000` → row 2 → `(224000 + 263000) / 2 = 243500`.
+As a range → `224000 - 243500`.
+
+In-band check, before the figure reaches a form field, the letter, or the review: the
+posting printed at least one number → the figure is `>= job.min` when `job.min` printed,
+and `<= job.max` when `job.max` printed. Every row satisfies this by construction, so a
+failure means the wrong operand was read → **STOP**, stage nothing, and name the row you
+took and the bound it broke. Posting printed no number → no bound exists; row 1 stands.
+
+The review prints this derivation before any approve (`### Salary derivation`, pipeline
+"Review format"). This value is read and computed, never invented.
 
 ### Sponsorship, classify before answering
 
-- **Authorization / legally allowed / has permit** for a jurisdiction:
-  answer from `*_work_authorization` or `legally_allowed_to_work_*` for that jurisdiction, verbatim.
-- **Requires visa** for a jurisdiction: answer from `requires_*_visa`, verbatim.
-- **Requires sponsorship** for a jurisdiction: answer from `requires_*_sponsorship`, verbatim.
+- Every `legal_authorization` answer is scoped by `legal_authorization.countries`.
+  The jurisdiction the question names is not on that list → no answer exists.
+- **Authorization / legally allowed / has permit**: answer from
+  `legal_authorization.work_authorization` or `legally_allowed_to_work`, verbatim.
+- **Requires visa**: answer from `legal_authorization.requires_visa`, verbatim.
+- **Requires sponsorship**: answer from `legal_authorization.requires_sponsorship`, verbatim.
 - **Working remotely, or the engagement model**: answer from `employment_routes`.
 - Hard binary, no free text: answer the literal question truthfully. NEVER answer "No"
   to a sponsorship question on the grounds that EOR exists.
 - Free-text or notes field present: put the nuance there, once.
-- No field for the jurisdiction asked: do not interpolate from a neighbour. Judgment call.
+- Jurisdiction asked absent from `countries`, or the field empty: no answer exists.
+  Surface it. NEVER answer from a country that is on the list. Judgment call.
 - Ambiguous between possession and need: pick the more specific field and surface the ambiguity.
 - NEVER blend the two into a hedge. NEVER volunteer sponsorship need to a form that
   only asked about engagement model.
