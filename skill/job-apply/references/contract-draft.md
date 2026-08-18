@@ -31,18 +31,18 @@ Every application stops at review, one at a time, and waits for an explicit yes 
 
 Facts are read, never recalled. Read the file, use what it prints, stop if you cannot.
 
-| Fact                                                     | Read from                                                                         |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| language level                                           | `data/languages.yaml` `languages[].level` (printed string; with `name`)           |
-| salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                             |
-| remote / in-person, relocation preference                | `data/candidate.yaml` `work_preferences_from_resume`                              |
-| assessments, drug tests, background checks               | `data/candidate.yaml` `work_preferences_from_resume`, legacy keys still readable  |
-| name, email, phone, site                                 | `data/basics.yaml`                                                                |
-| LinkedIn, GitHub                                         | `data/profiles.yaml`                                                              |
-| roles, employers, dates, public work bullets             | `data/experiences.yml`                                                            |
-| public portfolio projects                                | `data/projects.yml`                                                               |
-| skills / stack inventory                                 | `data/skills.yaml`, then legacy `data/skills-by-company.yml` when present         |
-| project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints) |
+| Fact                                                     | Read from                                                                                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                           | `data/languages.yaml` `languages[].level` (printed string; with `name`)                                                               |
+| salary, notice, work auth, employment routes, relocation | `data/candidate.yaml`                                                                                                                 |
+| remote / in-person, relocation preference                | `data/candidate.yaml` `work_preferences_from_resume`                                                                                  |
+| assessments, drug tests, background checks               | `data/candidate.yaml` `work_preferences_from_resume`, legacy keys still readable                                                      |
+| name, email, phone, site                                 | `data/basics.yaml`                                                                                                                    |
+| LinkedIn, GitHub                                         | `data/profiles.yaml`                                                                                                                  |
+| roles, employers, dates, public work bullets             | `data/experiences.yml`                                                                                                                |
+| public portfolio projects                                | `data/projects.yml`                                                                                                                   |
+| skills / stack inventory                                 | `data/skills.yaml`, then legacy `data/skills-by-company.yml` when present                                                             |
+| project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints)                                                     |
 | claims, verified outcomes from the story deck            | `data/stories/*.md` frontmatter (`claim`, `evidence.*`, `impact_numbers` that are not `unverified` / `kind: process`); never the body |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
