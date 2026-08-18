@@ -10,6 +10,8 @@ Gate blocks listing or opening a JD for extract → sign in, create a browse acc
 accept the login/signup terms. A gate-pass buys listing and extract, nothing else.
 Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent a
 secret; never write any secret into dossiers or the report.
+The browser is the operator's own session — its cookies, logins, and autofill.
+A page you could not open, click, or filter is not a searched page.
 Signup identity fields (name, email, handle) come from the browser's saved autofill.
 A field autofill cannot supply → STOP and ask the operator once; never invent one and
 never fill it from memory.

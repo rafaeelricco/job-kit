@@ -6,18 +6,20 @@ facts, read back what a run saved. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
-Two install channels: scout, apply, config, and tracker run in
-[Aside Browser](https://aside.com); profile init and stories (plus config and
-tracker as symlinks) run in coding agents (Claude Code, Codex, Grok).
+Three install channels. Scout and apply need a browser: run them in
+[Aside Browser](https://aside.com), or in a coding agent driving your own Chrome
+through the local [browser-use](https://docs.browser-use.com) CLI. Profile init
+and stories (plus config and tracker as symlinks) run in coding agents
+(Claude Code, Codex, Grok).
 
-| Skill              | Role                                                                                | Channel                         | Installed under                                                     |
-| ------------------ | ----------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| `job-scout`        | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-apply`        | Draft, stage, and after approve submit one posting                                  | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| Skill              | Role                                                                                | Channel                              | Installed under                                                     |
+| ------------------ | ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- |
+| `job-scout`        | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-apply`        | Draft, stage, and after approve submit one posting                                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
@@ -41,14 +43,15 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                           |
-| -------------- | -------------------------------------------------------------------------------------------------- |
-| `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default) |
-| `aside`        | `job-scout` + `job-apply` + `job-profile-me` + `job-list` (fails if no Aside)                      |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` (fails if no agent home)        |
-| `fetch`        | Nothing — refresh the cached checkout only                                                         |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                        |
-| `-h`, `--help` | Nothing — print usage                                                                              |
+| Argument       | Installs                                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                  |
+| `aside`        | `job-scout` + `job-apply` + `job-profile-me` + `job-list` (fails if no Aside)                                           |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` (fails if no agent home)                             |
+| `browser-use`  | `job-scout` + `job-apply` into agent homes, driven by the local browser-use CLI; missing CLI or browser prints an offer |
+| `fetch`        | Nothing — refresh the cached checkout only                                                                              |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                             |
+| `-h`, `--help` | Nothing — print usage                                                                                                   |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -99,13 +102,20 @@ final extra observations in `data/observations.yaml`. Letter depth comes from
 No demographic or EEO self-identification is stored — those questions are
 voluntary and per-employer, so you answer them in the ATS form.
 
-**2. Scout and apply.** Install the Aside channel, then run either skill in
-Aside Browser:
+**2. Scout and apply.** Pick a runtime for the two browser skills: install the
+Aside channel and run them in Aside Browser, or install the `browser-use`
+channel and run them in Claude Code, Codex, or Grok, where the local
+browser-use CLI drives your own Chrome. Either way:
 
 ```text
 /job-scout
 /job-apply
 ```
+
+The browser-use channel is local only: your own signed-in browser over CDP —
+no Browser Use account, no cloud browser, no API key. It needs an agent home,
+the `browser-use` CLI, and a Chromium-family browser; the installer flags
+whichever is missing and offers the command that fixes it.
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
 ranks the job rows it extracts. Application drafts and stages one posting at a
@@ -211,23 +221,24 @@ bash scripts/uninstall.sh
 bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Choice / target | Removes                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------ |
-| Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` kit copies                                   |
-| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` kit links (+ legacy `profile-init`) |
-| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files       |
-| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                      |
-| **All**         | Aside + agents + **profile** + cache                                                                   |
+| Choice / target | Removes                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` kit copies                                                                                  |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` kit links (+ legacy `profile-init`)                                                |
+| browser-use     | `job-scout` + `job-apply` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser |
+| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                      |
+| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                     |
+| **All**         | Aside + agents + browser-use + **profile** + cache                                                                                                    |
 
 Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
 profile or cache data requires typing `yes`; a plan of re-installable links takes
 `[Y/n]`. `--yes` skips both, `--dry-run` prints the plan and stops.
 
 `--only` selects a subset instead of positional targets — by channel (`aside`,
-`agents`), by Aside skill (`job-scout`, `job-apply`, `job-profile-me`,
-`job-list`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
-`cache`. An Aside skill subset cannot be combined with `cache`: the unselected
-skill would still point at it.
+`agents`, `browser-use`), by Aside skill (`job-scout`, `job-apply`,
+`job-profile-me`, `job-list`), or by agent home (`claude`, `codex`, `grok`),
+plus `profile` and `cache`. An Aside skill subset cannot be combined with
+`cache`: the unselected skill would still point at it.
 
 ```bash
 bash scripts/uninstall.sh --only claude,job-scout --dry-run
@@ -241,9 +252,10 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
 ```
 
-`uninstall agents` via remote still accepts `--skip-claude` / `--skip-codex` /
-`--skip-grok`. `--purge` is full-skills uninstall only (refused on partial
-targets or while `CLAUDE_SKILLS` / `ASIDE_SKILLS` narrow a channel).
+`uninstall agents` and `uninstall browser-use` via remote still accept
+`--skip-claude` / `--skip-codex` / `--skip-grok`. `--purge` is full-skills
+uninstall only (refused on partial targets or while `CLAUDE_SKILLS` /
+`ASIDE_SKILLS` narrow a channel).
 
 ## Work locally
 
@@ -253,14 +265,18 @@ agents channel symlinks, so edits in the checkout are live:
 ```bash
 git clone https://github.com/rafaeelricco/job-kit.git
 cd job-kit
-bash scripts/install.sh          # interactive menu, or: all | aside | agents
+bash scripts/install.sh   # interactive menu, or: all | aside | agents | browser-use
 ```
 
 Prerequisites: Bash, plus the target for whichever channel you install — at
 least one agent home (`~/.claude`, `~/.agents`, or `~/.grok`; open that agent
 once if missing), and an Aside account profile (`~/.aside/u/0`, including a
-`skills` parent). Private clone: use whatever auth your host requires (`gh repo
-clone rafaeelricco/job-kit`, HTTPS token, or SSH remote).
+`skills` parent). For `browser-use`: an agent home, the `browser-use` CLI, and
+a Chromium-family browser you are signed into — all local, no Browser Use
+account, no cloud browser, no API key. The installer flags a missing CLI or
+browser and offers the command that fixes it. Private clone: use whatever auth
+your host requires (`gh repo clone rafaeelricco/job-kit`, HTTPS token, or SSH
+remote).
 
 Run the installer from **this** checkout, or pass an absolute path to it. It
 never clones for you and never runs from a profile directory. Channel wrappers
@@ -277,19 +293,19 @@ Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
 multi-target install also removes legacy kit links there, which the
 `CLAUDE_SKILLS` single-dest escape hatch skips.
 
-| Path                      | Role                                                |
-| ------------------------- | --------------------------------------------------- |
-| `skill/job-scout/`        | Scout law, contracts, surfaces                      |
-| `skill/job-apply/`        | Apply law, draft contract, approve-gated submit     |
-| `skill/job-profile-init/` | Intake + templates for empty profiles               |
-| `skill/job-profile-me/`   | Show + edit search intent and boards                |
-| `skill/job-list/`         | Read the profile's scout store; never writes        |
-| `skill/job-stories/`      | Write and check the interview story deck            |
-| `scripts/install.sh`      | Single install: plan, confirm, apply (aside+agents) |
-| `scripts/aside/`          | Aside lib + thin install wrapper                    |
-| `scripts/agents/`         | Agents lib + thin install wrapper                   |
-| `scripts/uninstall.sh`    | Single uninstall: plan, confirm, apply              |
-| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone)    |
+| Path                      | Role                                                            |
+| ------------------------- | --------------------------------------------------------------- |
+| `skill/job-scout/`        | Scout law, contracts, surfaces                                  |
+| `skill/job-apply/`        | Apply law, draft contract, approve-gated submit                 |
+| `skill/job-profile-init/` | Intake + templates for empty profiles                           |
+| `skill/job-profile-me/`   | Show + edit search intent and boards                            |
+| `skill/job-list/`         | Read the profile's scout store; never writes                    |
+| `skill/job-stories/`      | Write and check the interview story deck                        |
+| `scripts/install.sh`      | Single install: plan, confirm, apply (aside+agents+browser-use) |
+| `scripts/aside/`          | Aside lib + thin install wrapper                                |
+| `scripts/agents/`         | Agents lib + thin install wrapper                               |
+| `scripts/uninstall.sh`    | Single uninstall: plan, confirm, apply                          |
+| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone)                |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;

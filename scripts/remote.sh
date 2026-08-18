@@ -33,16 +33,20 @@ Usage: remote.sh [channel] [options…]
        remote.sh uninstall [target] [options…]
 
 Install channels:
-  all       Aside + coding agents, skipping absent targets (default)
-  aside     Aside only (fails when Aside is not set up)
-  agents    Coding agents only (fails when no agent home exists)
-  fetch     Refresh the cached checkout, install nothing
+  all          Aside + coding agents + browser-use, skipping absent (default)
+  aside        Aside only (fails when Aside is not set up)
+  agents       Coding agents only (fails when no agent home exists)
+  browser-use  job-scout + job-apply into coding-agent homes (needs an agent
+               home), driven by the local browser-use CLI over your own browser
+  fetch        Refresh the cached checkout, install nothing
 
 Uninstall:
-  uninstall           Aside + agent skills (default target: all)
-  uninstall all       Same
-  uninstall aside     Aside only
-  uninstall agents    Coding agents only
+  uninstall              Aside + agent + browser-use skills (default: all)
+  uninstall all          Same
+  uninstall aside        Aside only
+  uninstall agents       Coding agents only
+  uninstall browser-use  job-scout + job-apply links, the browser-use driver
+                         skill, the CLI, and its state (never your browser)
 
   Interactive (profile data + menu): bash scripts/uninstall.sh
   from a local or cached checkout. Remote uninstall never deletes
@@ -55,9 +59,10 @@ Install options after the channel are forwarded to the installer, e.g.
 
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
-                      (refused with `uninstall aside` or `uninstall agents`,
+                      (refused on a partial target such as `uninstall aside`,
                       and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
-  --skip-claude|codex|grok  Forwarded only with `uninstall agents`
+  --skip-claude|codex|grok  Forwarded only with `uninstall agents` or
+                      `uninstall browser-use`
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME/job-kit)
@@ -435,10 +440,10 @@ main() {
         mode="uninstall"
         shift
         case "${1:-}" in
-          all|aside|agents) target="$1"; shift ;;
+          all|aside|agents|browser-use) target="$1"; shift ;;
         esac
         ;;
-      all|aside|agents|fetch) channel="$1"; shift ;;
+      all|aside|agents|browser-use|fetch) channel="$1"; shift ;;
       -h|--help) usage; exit 0 ;;
     esac
   fi
@@ -465,6 +470,17 @@ main() {
               ;;
             *)
               die "unknown uninstall agents option: ${arg} (expected --skip-* or --purge)"
+              ;;
+          esac
+          ;;
+        browser-use)
+          # Same agent homes as `agents`, so the same skip flags apply.
+          case "${arg}" in
+            --skip-claude|--skip-codex|--skip-grok)
+              agent_flags[${#agent_flags[@]}]="${arg}"
+              ;;
+            *)
+              die "unknown uninstall browser-use option: ${arg} (expected --skip-* or --purge)"
               ;;
           esac
           ;;
@@ -505,15 +521,22 @@ main() {
           bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents "${agent_flags[@]}"
         fi
         ;;
+      browser-use)
+        if [ "${#agent_flags[@]}" -eq 0 ]; then
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes browser-use
+        else
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes browser-use "${agent_flags[@]}"
+        fi
+        ;;
       all)
         # Skills only over curl — never deletes profile data (~/.config/job-kit).
         # With --purge, `cache` joins the same invocation so the composite
         # preflight runs before anything is unlinked: a survivor found after the
         # unlink pass would otherwise leave a failed, half-finished uninstall.
         if [ "${purge}" -eq 1 ]; then
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents cache
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents browser-use cache
         else
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents browser-use
         fi
         ;;
     esac
@@ -544,10 +567,16 @@ main() {
       bash "${JOB_KIT_HOME}/scripts/agents/install.sh" "$@"
       ran=1
       ;;
+    browser-use)
+      # No scripts/browser-use/ wrapper: the channel is a target of the single
+      # installer, reusing the agents lib and its symlink mechanics.
+      bash "${JOB_KIT_HOME}/scripts/install.sh" browser-use "$@"
+      ran=1
+      ;;
     all)
       for arg in "$@"; do
         [ "${arg}" = "--force" ] || die \
-          "channel 'all' forwards only --force (got: ${arg}); use 'aside' or 'agents' for target flags"
+          "channel 'all' forwards only --force (got: ${arg}); use 'aside', 'agents', or 'browser-use' for target flags"
       done
       if aside_ready; then
         bash "${JOB_KIT_HOME}/scripts/aside/install.sh" "$@"
@@ -560,6 +589,12 @@ main() {
         ran=1
       else
         echo "Coding agents: no agent home (~/.claude, ~/.agents, ~/.grok); skipping."
+      fi
+      # Browser channel lands in the same agent homes, so it rides the same
+      # gate. A missing browser-use CLI or browser is an offer, not a failure.
+      if agents_ready; then
+        bash "${JOB_KIT_HOME}/scripts/install.sh" browser-use "$@"
+        ran=1
       fi
       [ "${ran}" -eq 1 ] || die "nothing installed: no Aside profile and no coding-agent home"
       ;;
