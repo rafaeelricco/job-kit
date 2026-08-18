@@ -1,17 +1,18 @@
 # surface-open-web
 
-Surface: `hn`, `waas`, `web_boards`. Obey CONTRACT_SEARCH.
+Obey CONTRACT_SEARCH.
 
 ## Deltas
 
-1. Start from pack `entry`. When `entry` is a source-row list: sweep those
-   rows; dry source → log; `access: account_required` or a runtime gate on that
-   row’s host → public-first, then pass the gate per CONTRACT_SEARCH step 1; still
-   blocked → log+skip into `sources_skipped` (not pack `auth_gate` unless every row
-   fails). Same as CONTRACT_SEARCH step 1 per-row.
+1. Start from pack `entry` — one URL, one host. Dry → log; a runtime gate on that
+   host → public-first, then pass the gate per CONTRACT_SEARCH step 1; still blocked
+   → zero candidates, pack verdict `auth_gate`. Same as CONTRACT_SEARCH step 1.
 2. Prefer channels `direct_email` / `dm_request` / `founder` over pure ATS when printed.
-3. Row `url` host as `site:` only for that row’s host.
-4. WaaS: company card is intermediate; `url` must be the role page.
+3. Pack `entry` host as `site:` only for that host. ATS hosts with no browsable
+   global index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`):
+   `site:` only — never open the root. A query surface (a search engine such as
+   `google.com/search`) is never a `site:` host — run the formulation as a plain search.
+4. `work-at-a-startup`: company card is intermediate; `url` must be the role page.
 5. Geo UI (modes: CONTRACT_SEARCH step 4). Named mode: if a location control
    exists, set/cycle named CONSTRAINTS locations (incl. Remote when listed); if
    no control, OR-suffix named locations into the query. Never invent locations.

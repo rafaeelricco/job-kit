@@ -56,21 +56,20 @@ Every other path under Profile root is read-only in this skill.
 
 ## Commands
 
-| Utterance                                                | Do                                | Writes                   |
-| -------------------------------------------------------- | --------------------------------- | ------------------------ |
-| show my profile / profile card / what's my search config | `show`                            | —                        |
-| what's missing for scout                                 | `gaps`                            | —                        |
-| list my boards                                           | `sources list`                    | —                        |
-| change keywords / set positions / add location           | `set`                             | `data/job_search.yaml`   |
-| add board / remove HiringCafe                            | `sources add` / `sources remove`  | `data/search_packs.yaml` |
-| refresh profile card from data                           | `refresh-card`                    | `data/profile_card.yaml` |
-| list my packs / disable a pack / edit a formulation      | `packs`                           | `data/search_packs.yaml` |
-| create a profile / set one up from my CV                 | hand off `job-profile-init`, STOP | —                        |
-| find jobs / scout openings                               | hand off `job-scout`, STOP        | —                        |
+| Utterance                                                            | Do                                | Writes                   |
+| -------------------------------------------------------------------- | --------------------------------- | ------------------------ |
+| show my profile / profile card / what's my search config             | `show`                            | —                        |
+| what's missing for scout                                             | `gaps`                            | —                        |
+| change keywords / set positions / add location                       | `set`                             | `data/job_search.yaml`   |
+| add a board / remove HiringCafe                                      | `packs add` / `packs remove`      | `data/search_packs.yaml` |
+| refresh profile card from data                                       | `refresh-card`                    | `data/profile_card.yaml` |
+| list my boards / list my packs / disable a pack / edit a formulation | `packs`                           | `data/search_packs.yaml` |
+| create a profile / set one up from my CV                             | hand off `job-profile-init`, STOP | —                        |
+| find jobs / scout openings                                           | hand off `job-scout`, STOP        | —                        |
 
 ## References
 
-- Show: `./references/show.md` (read set, card + constraints + sources blocks, gaps)
+- Show: `./references/show.md` (read set, card + constraints + packs blocks, gaps)
 - Mutate: `./references/mutate.md` (writable keys, diff → confirm → write, refuses)
 - Card schema: `./references/profile-card-schema.md` (`profile_card.yaml` shape + derivation)
 

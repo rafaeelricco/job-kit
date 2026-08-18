@@ -10,7 +10,7 @@ Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
 | `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*` |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                              |
 | `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                        |
-| `data/search_packs.yaml`                                | deck: pack ids, `enabled`, tokens; list-`entry` rows are the boards                                               |
+| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, tokens — one pack is one board                                                |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
 An unreadable file → stop and name it.
@@ -24,11 +24,7 @@ job-scout Phase 0, so the two never disagree:
 - Constraints: work model · seniority level · job types · positions · keywords · locations ·
   date_posted · salary_range_usd · work auth · employment_routes · relocation
 
-`### Sources` third when `data/search_packs.yaml` is readable: one line per pack
-whose `entry` is a source-row list, then `name — url (access)` rows. No list-entry
-pack → omit the heading.
-
-`### Packs` fourth when `data/search_packs.yaml` is readable: `id · surface ·
+`### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
 enabled|disabled · tokens`. Absent → one line saying job-scout will use the kit
 fallback deck; never print the fallback's contents as if they were the profile's.
 

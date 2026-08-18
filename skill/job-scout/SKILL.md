@@ -1,6 +1,6 @@
 ---
 name: job-scout
-description: "Read this when you need to find job openings across every search pack and produce a scout report plus one dossier per live job. Use when the user asks to find jobs, scout openings, look for roles, see what is hiring, run job scout, refresh the job search, or produce a scout report. List-only: it never applies, messages, or connects, and writes only the profile's scout/ tree. Not for drafting or submitting an application (job-application), reading dossiers already on disk (job-tracker), or changing search config (job-profile-config)."
+description: "Read this when you need to find job openings across operator-chosen search packs and produce a scout report plus one dossier per live job. Use when the user asks to find jobs, scout openings, look for roles, see what is hiring, run job scout, refresh the job search, or produce a scout report. List-only: it never applies, messages, or connects, and writes only the profile's scout/ tree. Not for drafting or submitting an application (job-application), reading dossiers already on disk (job-tracker), or changing search config (job-profile-config)."
 ---
 
 # Job scout
@@ -54,5 +54,5 @@ Writable paths: Phase 6 only (`./references/pipeline.md` — Writable SSOT).
 - Search surfaces: `./references/surface-{linkedin-jobs,open-web,social}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
 - Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`
-  (every enabled pack, YAML order)
+  (enabled packs, YAML order; chosen set: pipeline Phase 0)
 - Profile root recovery: `./references/profile-root.md` (Aside dual-home; not step SSOT)
