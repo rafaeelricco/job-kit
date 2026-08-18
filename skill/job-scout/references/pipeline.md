@@ -18,13 +18,13 @@ must → **STOP**.
 
 ## Inputs (read-only)
 
-| Path                                                            | Supplies                                                        |
-| --------------------------------------------------------------- | --------------------------------------------------------------- |
-| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                |
-| `data/job_search.yaml`                                          | positions, keywords, filters                                    |
+| Path                                                            | Supplies                                                                               |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                                       |
+| `data/job_search.yaml`                                          | positions, keywords, filters                                                           |
 | `data/search_packs.yaml`, else `./references/search_packs.yaml` | enabled packs, YAML order; chosen set is Phase 0 pick; whichever file wins, wins whole |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                            |
-| legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                  |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                                                   |
+| legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                                         |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
 

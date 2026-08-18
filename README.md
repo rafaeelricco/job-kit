@@ -10,13 +10,13 @@ Two install channels: scout, apply, config, and tracker run in
 [Aside Browser](https://aside.com); profile init (plus config and tracker as
 symlinks) run in coding agents (Claude Code, Codex, Grok).
 
-| Skill                | Role                                                                                   | Channel                         | Installed under                                                     |
-| -------------------- | -------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
-| `job-scout`          | Run the packs you pick from the profile deck and rank the job rows                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-application`    | Draft, stage, and after approve submit one posting                                     | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
-| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                       | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write      | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status                | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| Skill                | Role                                                                              | Channel                         | Installed under                                                     |
+| -------------------- | --------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
+| `job-scout`          | Run the packs you pick from the profile deck and rank the job rows                | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-application`    | Draft, stage, and after approve submit one posting                                | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
+| `job-profile-init`   | Create a data-only profile, or register/activate an existing one                  | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-config` | Show an existing profile and edit search intent or boards; diff → confirm → write | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-tracker`        | Read the profile's `scout/jobs/` store: dossiers and application status           | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
