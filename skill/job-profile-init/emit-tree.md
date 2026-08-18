@@ -8,6 +8,7 @@ Source = `./templates/` only. Destination = intake target path.
 <target>/
   README.md
   data/                 # Fact-law shells, search deck + observations
+    stories/            # README + one .md stub per confirmed story
   cv/README.md
 ```
 
@@ -45,7 +46,8 @@ After substitution, no `{{…}}` tokens may remain. Target must not contain skil
 
 ## After fill
 
-`fill.md` overwrites Fact-law files under `data/` and may place `cv/en-us-resume.pdf`.
+`fill.md` overwrites Fact-law files under `data/`, writes `data/stories/*.md`
+stubs, and may place `cv/en-us-resume.pdf`.
 It must not write skill trees or any path outside the emitted layout (`data/`, `cv/`,
 root README). Re-run this leak gate after fill.
 
@@ -58,16 +60,16 @@ emitted here and never a Gap; this flow neither creates nor reads it.
 questionnaire; if every field is skipped, the `./fill.md` Gap report lists
 **only the scout-critical lines** (allowlist owned by `./fill.md` "Gaps
 allowlist only") as Gaps — never `none`, and never optional shells
-(preferences, projects, languages, CV). Handoff injects that report via
+(preferences, projects, languages, stories, CV). Handoff injects that report via
 `./activate.md` step 9 → `./next-steps.md`.
 
 Non-Gap blanks that ship empty/false and require questionnaire keep/edit
 instead: `job_search.yaml` filter maps (`work_model`, `job_types`,
-`date_posted`), `seniority_level`, `keywords.hiring_model`.
+`date_posted`), `seniority_level`, `keywords.hiring_model`, `locations`.
 
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
-empties, `cv/en-us-resume.pdf`, and `data/observations.yaml`.
+empties, `cv/en-us-resume.pdf`, `data/stories/`, and `data/observations.yaml`.
 
 `data/observations.yaml` is optional human-only detail storage and is never a Gap.
 

@@ -1,19 +1,21 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout; passes login gates to list)
-and **job-application** (draft → approve → submit → record),
-read back by **job-tracker** (read-only).
+and **job-apply** (draft → approve → submit → record),
+read back by **job-list** (read-only).
 Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder   | What's in it                                                                                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data/`  | Canonical YAML about you. Edit here first.                                                                                                                                |
-| `cv/`    | Compiled resume PDF(s) for attachments                                                                                                                                    |
-| `scout/` | Written by job-scout, plus `status:` and Application-log records by job-application; read by job-tracker: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
+| Folder          | What's in it                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data/`         | Canonical YAML about you. Edit here first.                                                                                                                       |
+| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, the body is not                                                                         |
+| `cv/`           | Compiled resume PDF(s) for attachments                                                                                                                           |
+| `scout/`        | Written by job-scout, plus `status:` and Application-log records by job-apply; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
-`data/` may mix `.yaml` and `.yml`.
+`data/` may mix `.yaml` and `.yml`. `data/stories/` holds markdown files with
+YAML frontmatter.
 
 ## Register Profile root
 
@@ -43,19 +45,22 @@ roots stay active until the tree is deleted.
 
 ## Fill before a useful run
 
-1. Run `/job-profile-init`; it enters PLAN mode and asks every user-owned field.
-   Source values and defaults require explicit confirmation, edits, or skips.
+1. Run `/job-profile-init`; it asks every user-owned field, then plans every
+   write for one approval. Source values and defaults require explicit
+   confirmation, edits, or skips.
 2. Review Gaps in the fill report; fix any empty fields scout needs.
-3. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
+3. `cv/en-us-resume.pdf` for job-apply attachments when not already placed.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
-   there or via `/job-profile-config packs`.
+   there or via `/job-profile-me packs`.
 5. Free-form details are stored in `data/observations.yaml`.
+6. Story stubs are created empty under `data/stories/`; fill them with
+   `/job-stories add`.
 
 ## Rules
 
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only (never apply/message/connect); a gate that blocks listing →
-  it signs in or creates a browse account. job-application stops at review, waits for
+  it signs in or creates a browse account. job-apply stops at review, waits for
   an explicit yes, then clears whatever the form puts in the path — account, terms,
   Submit; records to `scout/jobs/` on submit success (or when you confirm you
   submitted outside it).
