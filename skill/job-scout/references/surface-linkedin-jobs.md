@@ -1,6 +1,6 @@
 # surface-linkedin-jobs
 
-Surface: `linkedin_jobs`. Obey CONTRACT_SEARCH.
+Obey CONTRACT_SEARCH.
 
 ## Deltas
 
