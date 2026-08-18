@@ -25,6 +25,8 @@ Template bool maps (`work_model`, `job_types`, `date_posted`) are convenience
 shells, not facts — require `keep` or `edit`; on `skip` write empty/`false`,
 never retain shipped trues.
 Never infer legal authorization or language levels.
+Ask `legal_authorization.countries` before the four authorization answers: the
+answers are scoped to that list, so an empty list makes them unanswerable.
 
 Ask one seniority value and write it as `seniority_level`, for example `entry`,
 `mid-level`, `senior`, or `director`.

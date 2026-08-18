@@ -43,8 +43,9 @@ roots stay active until the tree is deleted.
 
 ## Fill before a useful run
 
-1. Run `/job-profile-init`; it enters PLAN mode and asks every user-owned field.
-   Source values and defaults require explicit confirmation, edits, or skips.
+1. Run `/job-profile-init`; it asks every user-owned field, then plans every
+   write for one approval. Source values and defaults require explicit
+   confirmation, edits, or skips.
 2. Review Gaps in the fill report; fix any empty fields scout needs.
 3. `cv/en-us-resume.pdf` for job-application attachments when not already placed.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
