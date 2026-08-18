@@ -4,13 +4,12 @@ import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { CopyButton } from "@/components/ui/copy"
 import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
 import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
 import { FilterBar } from "@/module/scout/components/filter-bar"
+import { Gaps } from "@/module/scout/components/gaps"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
 import { SelectionBar } from "@/module/scout/components/selection-bar"
 import { StoreGate } from "@/module/scout/components/store-gate"
@@ -19,10 +18,8 @@ import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/h
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize } from "@/module/scout/helpers/select"
 import type { Filter } from "@/module/scout/helpers/select"
-import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
 import { trashDossiers } from "@/module/scout/helpers/trash"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
-import type { ParseError } from "@/module/scout/types"
 
 const PAGE_SIZE = PAGE_SIZES[0]
 
@@ -169,27 +166,5 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>
-  )
-}
-
-// A file that does not parse is named, never repaired here — the button hands
-// the repair off with every cause spelled out.
-function Gaps({ gaps, root }: { readonly gaps: readonly ParseError[]; readonly root: string }) {
-  if (gaps.length === 0) return null
-
-  return (
-    <Alert>
-      <AlertTitle>{gaps.length.toLocaleString()} files did not parse</AlertTitle>
-      <AlertDescription>
-        <ul className="my-2 space-y-1 font-mono text-xs">
-          {gaps.map((gap) => (
-            <li key={gap.file}>
-              {gap.file} · {gap.cause.kind} at {gap.at}
-            </li>
-          ))}
-        </ul>
-        <CopyButton value={() => toFixPrompt(root, gaps)} label="Copy fix prompt" />
-      </AlertDescription>
-    </Alert>
   )
 }
