@@ -31,6 +31,8 @@ function describe(cause: ParseError["cause"]): string {
       return `date: ${cause.field} got "${cause.got}"`
     case "score-mismatch":
       return `score mismatch: frontmatter ${cause.frontmatter}, table ${cause.table}`
+    case "unreadable":
+      return `unreadable: ${cause.detail}`
     default:
       return assertNever(cause)
   }

@@ -3,7 +3,7 @@ export { loadStore }
 import fs from "node:fs/promises"
 import path from "node:path"
 
-import { partition } from "../../src/module/scout/result"
+import { err, partition } from "../../src/module/scout/result"
 import type { Store } from "../../src/module/scout/types"
 import { parseDossier } from "./parse-dossier"
 import { resolveProfileRoot } from "./resolve"
@@ -17,7 +17,17 @@ async function loadStore(env: NodeJS.ProcessEnv, cwd: string): Promise<Store> {
   const dir = path.join(resolution.root, ...JOBS)
   const names = await listJobs(dir)
   const parsed = await Promise.all(
-    names.map(async (name) => parseDossier(name, await fs.readFile(path.join(dir, name), "utf8")))
+    names.map(async (name) => {
+      try {
+        return parseDossier(name, await fs.readFile(path.join(dir, name), "utf8"))
+      } catch (error) {
+        return err({
+          file: name,
+          at: "read",
+          cause: { kind: "unreadable", detail: String(error) },
+        })
+      }
+    })
   )
   const { values, errors } = partition(parsed)
 

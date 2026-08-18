@@ -164,6 +164,7 @@ type ParseError = {
         readonly frontmatter: string
         readonly table: string
       }
+    | { readonly kind: "unreadable"; readonly detail: string }
 }
 
 type ParsedDossier = Result<Dossier, ParseError>
