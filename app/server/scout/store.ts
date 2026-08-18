@@ -24,7 +24,7 @@ async function loadStore(env: NodeJS.ProcessEnv, cwd: string): Promise<Store> {
         return err({
           file: name,
           at: "read",
-          cause: { kind: "unreadable", detail: String(error) },
+          cause: { kind: "unreadable" as const, detail: String(error) },
         })
       }
     })
