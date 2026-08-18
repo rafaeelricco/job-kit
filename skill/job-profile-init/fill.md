@@ -54,8 +54,10 @@ re-read after the Source gate.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
 - The questionnaire must request story names, then observations, after every other
   field and before Approve. Write one `data/stories/<slug>.md` stub per confirmed
-  story name — `status: draft`, every other field empty, no prose — and write the
-  final observations response to `data/observations.yaml`.
+  story name — `status: draft`, `company` set to the confirmed employer when it
+  matches `data/experiences.yml`, else `""` for a confirmed project; every other
+  field empty, no prose — and write the final observations response to
+  `data/observations.yaml`.
 - Do not rewrite identity tokens unless the operator corrects approved values.
 - Do not rewrite `salary_expectations.tip`. Keep the emitted template string. It is not a fact, not skippable, not a Gap.
 

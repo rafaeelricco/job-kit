@@ -43,8 +43,11 @@ name and the employer or project it belongs to. Names only. Never ask for the
 narrative, never draft one, never propose a moment the source of truth does not
 print.
 
-Each confirmed name becomes a `data/stories/<slug>.md` stub, `status: draft`,
-every other field empty. `skip` writes no stub and is never a Gap.
+Each confirmed name becomes a `data/stories/<slug>.md` stub, `status: draft`.
+Set `company` to the confirmed employer when it matches a `company` in
+`data/experiences.yml`; set `company: ""` when the confirmed link is a project
+(or matches no experience). Every other field empty. `skip` writes no stub and
+is never a Gap.
 
 Do not ask for `claim`, `evidence.*`, `impact_numbers`, `never_say`, or any
 prose. Those need evidence this flow does not read; `/job-stories add` collects
