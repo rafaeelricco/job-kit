@@ -2,6 +2,7 @@ export default DossiersPage
 
 import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import type { SortState } from "@/components/ui/datatable"
 import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
 import { FilterBar } from "@/module/scout/components/filter-bar"
 import { OverviewCards } from "@/module/scout/components/overview-cards"
+import { SelectionBar } from "@/module/scout/components/selection-bar"
 import { StoreGate } from "@/module/scout/components/store-gate"
 import type { Ready } from "@/module/scout/components/store-gate"
 import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
@@ -18,6 +20,7 @@ import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize } from "@/module/scout/helpers/select"
 import type { Filter } from "@/module/scout/helpers/select"
 import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
+import { trashDossiers } from "@/module/scout/helpers/trash"
 import { useHidden } from "@/module/scout/helpers/use-hidden"
 import type { ParseError } from "@/module/scout/types"
 
@@ -26,12 +29,12 @@ const PAGE_SIZE = PAGE_SIZES[0]
 function DossiersPage() {
   return (
     <StoreGate title="Dossiers" Icon={Briefcase}>
-      {(store) => <Surface store={store} />}
+      {(store, reload) => <Surface store={store} onReload={reload} />}
     </StoreGate>
   )
 }
 
-function Surface({ store }: { readonly store: Ready }) {
+function Surface({ store, onReload }: { readonly store: Ready; readonly onReload: () => void }) {
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
   const [page, setPage] = useState(1)
@@ -80,7 +83,32 @@ function Surface({ store }: { readonly store: Ready }) {
       return next
     })
 
+  const onHide = () => {
+    hide(selectedRows.map((row) => row.file))
+    setSelected(new Set())
+  }
+
   const onHideOne = (file: string) => hide([file])
+
+  const onDelete = () => {
+    void trashDossiers(
+      store.root,
+      selectedRows.map((row) => row.file)
+    ).then((result) => {
+      if (result.kind === "err") {
+        toast.error(result.error)
+        return
+      }
+      const { moved, failed } = result.value
+      const noun = moved.length === 1 ? "dossier" : "dossiers"
+      toast.success(`Moved ${moved.length} ${noun} to scout/jobs/.trash`)
+      for (const failure of failed) {
+        toast.error(`${failure.file}: ${failure.reason}`)
+      }
+      setSelected(new Set())
+      onReload()
+    })
+  }
 
   return (
     <>
@@ -136,6 +164,8 @@ function Surface({ store }: { readonly store: Ready }) {
         {store.root}
         /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
+
+      <SelectionBar rows={selectedRows} onHide={onHide} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>
