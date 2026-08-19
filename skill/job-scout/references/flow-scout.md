@@ -14,7 +14,7 @@ rule a worker needs.
 Finds and reports jobs. Never applies, messages, or connects. A login / signup gate
 that blocks listing or extract → pass it; listing and extract are the only things a
 gate-pass buys. Done when the Report ships and Phase 6 has written every dossier it
-must → **STOP**.
+must and printed its loop line → **STOP**.
 
 ## Inputs (read-only)
 
@@ -189,6 +189,17 @@ revision is ignored.
 5. Unwritable path (permission, read-only FS) → print the error and the path under
    Gaps and STOP. Never fall back to another directory. A failed write is never silent.
    A dossier that fails stops the phase; report the error in chat under Gaps.
+6. Loop line, printed last, after every dossier has landed:
+
+   `Next: /job-apply {url of the top Do-this-first row}`
+
+   Top row = the first row `format-report.md` `### Do this first` printed. That
+   section printed nothing eligible → `Next: /job-profile-me` instead; there is
+   no row to apply to, and the search config is what has to move.
+   A printed pointer, never a question and never a handoff: this skill does not
+   load `job-apply`, does not reopen the posting, and does not wait for a reply.
+   Scout cannot judge which ranked row is worth an application, and apply is one
+   posting at a time behind its own review gate.
 
 Then **STOP**.
 

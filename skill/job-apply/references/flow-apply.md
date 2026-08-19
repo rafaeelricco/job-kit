@@ -423,7 +423,29 @@ plus any Phase 4 `### Added fields` the operator second-yes'd — never invented
 
 ### Close
 
-Print the dossier's filename, the log line written, and the new `status:`. Then done.
+Print the dossier's filename, the log line written, and the new `status:`.
+
+Then run the **inbox leg** in this same session — the reason a reply sweep no
+longer needs a session of its own. Load the `job-inbox` skill and obey it
+end-to-end on its default candidate set. The dossier this phase just wrote is
+`status: applied`, so it is already in that set, and every other open
+application comes with it — which is where the replies actually are. Never
+narrow inbox to the job just filed: nobody answers a form in the seconds since
+you submitted it.
+
+Bounds on the leg:
+
+- It runs after the write, never before. A RECORD that failed or never opened
+  ends the run here — there is nothing this session changed to sweep against.
+- Inbox's own law is untouched. Read-only on mail, no gate, no question, and it
+  writes only what `contract-classify.md` marks writable. This phase grants it
+  nothing extra, and the leg's dossier writes are `job-inbox`'s, not this
+  skill's.
+- An inbox **STOP** is not an apply failure. No Gmail transport, no
+  `scout/jobs/`, or zero candidates → print inbox's own stop line, say the
+  application is still recorded, and end. Submit and record already shipped.
+
+The inbox report is the last thing this run prints. Then done.
 
 ## Letter shape
 
