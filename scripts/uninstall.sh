@@ -448,6 +448,13 @@ uninstall_browser_use() {
     # what the plan listed, and never a browser.
     echo "== browser-use · driver (not kit-owned) =="
     for target in ${AGENT_TARGETS}; do
+      # A skipped home is excluded whole: the driver there is not even kit-owned,
+      # so removing it would take files from the one target the user named.
+      case "${target}" in
+        claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: driver skipped (--skip-claude)."; continue; } ;;
+        codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: driver skipped (--skip-codex)."; continue; } ;;
+        grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: driver skipped (--skip-grok)."; continue; } ;;
+      esac
       dest="$(agent_skills_root "${target}")/browser-use"
       if [ -e "${dest}" ] || [ -L "${dest}" ]; then
         rm -rf "${dest}" || {
@@ -869,7 +876,7 @@ plan_rows_browser_use() {
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override target root parent label name dest bin
+    local override target root parent label name dest bin skipped
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       printf 'H%sbrowser-use (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
@@ -904,7 +911,22 @@ plan_rows_browser_use() {
     for target in ${AGENT_TARGETS}; do
       root="$(agent_skills_root "${target}")"
       dest="${root}/browser-use"
-      if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+      # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
+      # inside command substitutions. Mirrors the skip guard in
+      # uninstall_browser_use so the plan names exactly what will be removed.
+      skipped=""
+      if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
+        skipped="--skip-claude"
+      elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
+        skipped="--skip-codex"
+      elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
+        skipped="--skip-grok"
+      fi
+      if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
+        continue
+      elif [ -n "${skipped}" ]; then
+        printf 'N%sdriver skipped (%s)%s%s\n' "${ROW_FS}" "${skipped}" "${ROW_FS}" "${dest}"
+      else
         printf 'I%sremove driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
       fi
     done
