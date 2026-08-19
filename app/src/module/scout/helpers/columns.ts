@@ -2,10 +2,10 @@ export { COLUMNS, DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS, VIEWS, columnL
 
 import { ColumnDef } from "@/components/ui/datatable"
 import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
-import { byScore, bySeen, byStatus } from "@/module/scout/helpers/select"
+import { byScore, byStatus, bySource } from "@/module/scout/helpers/select"
 import type { Dossier } from "@/module/scout/types"
 
-const COLUMNS = ["score", "company", "location", "salary", "seen", "status"] as const
+const COLUMNS = ["score", "company", "location", "salary", "source", "status"] as const
 
 type ColumnId = (typeof COLUMNS)[number]
 
@@ -17,7 +17,7 @@ const LABELS: Readonly<Record<ColumnId, string>> = {
   company: "Company and role",
   location: "Location",
   salary: "Salary",
-  seen: "Seen",
+  source: "Source",
   status: "Status",
 }
 
@@ -31,7 +31,7 @@ const DOSSIER_COLUMNS = {
   company: new ColumnDef({ label: LABELS.company, sortFun: null }),
   location: new ColumnDef({ label: LABELS.location, sortFun: null }),
   salary: new ColumnDef({ label: LABELS.salary, sortFun: null }),
-  seen: new ColumnDef({ label: LABELS.seen, sortFun: bySeen }),
+  source: new ColumnDef({ label: LABELS.source, sortFun: bySource }),
   status: new ColumnDef({ label: LABELS.status, sortFun: byStatus }),
 } satisfies ColumnsConfig<Dossier>
 

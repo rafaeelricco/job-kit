@@ -208,6 +208,7 @@ type Store =
   | {
       readonly kind: "ready"
       readonly root: string
+      readonly skillsRoot: string
       readonly via: AttemptSource
       readonly attempts: readonly Attempt[]
       readonly generatedAt: string

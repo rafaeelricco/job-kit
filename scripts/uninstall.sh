@@ -110,6 +110,22 @@ job_kit_config() {
   fi
 }
 
+# browser_harness_state — the browser-use driver's state dir (may be absent).
+# Same XDG rule job_kit_config applies, and for the same reason: this path is
+# handed to `rm -rf`, and a relative XDG_CONFIG_HOME names whatever happens to
+# sit under the caller's CWD. Refuse rather than resolve.
+browser_harness_state() {
+  if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+    case "${XDG_CONFIG_HOME}" in
+      /*) ;;
+      *) die "XDG_CONFIG_HOME must be an absolute path (got: ${XDG_CONFIG_HOME}); unset it to use the host default" ;;
+    esac
+    printf '%s/browser-harness\n' "${XDG_CONFIG_HOME}"
+  else
+    printf '%s/.config/browser-harness\n' "${HOME}"
+  fi
+}
+
 # profile_pointer_files — host + Aside-mirror profile-root paths (may be absent).
 profile_pointer_files() {
   local host_home
@@ -271,19 +287,24 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
 Targets:
   aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-inbox, job-profile-root)
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-inbox, job-profile-root)
+  browser-use  Browser skills (job-scout, job-apply) in coding-agent homes, plus
+               the browser-use driver: its skill, its CLI, its state directory.
+               Never a browser app bundle
   profile   Delete profile root(s) + matching profile-root pointers
   cache     Remove kit checkout cache (JOB_KIT_HOME), kit-owned only
-  all       aside + agents + profile + cache
+  all       aside + agents + browser-use + profile + cache
 
 Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-apply | job-profile-me | job-list | job-inbox | job-profile-root
-                agents | claude | codex | grok
+                agents | browser-use | claude | codex | grok
                 profile | cache
+                (claude|codex|grok narrow a channel named alongside them;
+                alone they mean the agents channel)
   --skip-claude|--skip-codex|--skip-grok
-                Applied only when agents runs
+                Applied only when agents or browser-use runs
 
 Every run prints a plan first. A plan holding profile or cache data requires
 typing yes; anything re-installable takes [Y/n]. --yes skips both.
@@ -363,6 +384,113 @@ uninstall_agents() {
     done
 
     remove_legacy_codex_skills_dir "${repo}" || exit 1
+    echo "Uninstall completed"
+  )
+}
+
+# uninstall_browser_use — remove kit-owned browser skill links, then the
+# browser-use driver artifacts plan_rows_browser_use listed (subshell).
+# Two different ownership stories in one target: the job-scout / job-apply links
+# are kit-owned and go through unlink_skill's readlink predicate exactly as the
+# agents channel does; the driver is browser-use's own installation, so only the
+# three artifacts the plan named are touched — never a browser app bundle.
+uninstall_browser_use() {
+  local repo="${REPO_ROOT}" state
+  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  state="$(browser_harness_state)"
+  (
+    # shellcheck source=agents/lib.sh
+    . "${repo}/scripts/agents/lib.sh"
+    local override dest_root target parent label name dest
+    local cli_failed=0
+
+    # unlink_browser_skills_from ROOT — uninstall_skills_from narrowed to
+    # BROWSER_SKILL_NAMES, so this target never reaches an agents-channel link.
+    # No legacy sweep: these two names have never lived under an agent home
+    # under any other basename.
+    unlink_browser_skills_from() {
+      local root="$1" n d
+      for n in ${BROWSER_SKILL_NAMES}; do
+        d="$(skill_dest "${root}" "${n}")"
+        unlink_skill "${d}" "${repo}" "${n}"
+      done
+    }
+
+    override="$(resolve_override_skills)" || exit 1
+
+    echo "== job-kit browser-use uninstall =="
+
+    if [ -n "${override}" ]; then
+      # Mirrors uninstall_agents' override branch for the kit links only. The
+      # driver section below still runs: `browser-use skill install` writes to
+      # the agents' own homes and never consults CLAUDE_SKILLS, so an override
+      # moves the kit links without moving the driver.
+      echo "== override (${override}) =="
+      unlink_browser_skills_from "${override}" || exit 1
+      echo "Uninstall completed for ${override}"
+    else
+      for target in ${AGENT_TARGETS}; do
+        case "${target}" in
+          claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
+          codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
+          grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
+        esac
+        parent="$(agent_parent_dir "${target}")"
+        dest_root="$(agent_skills_root "${target}")"
+        label="$(agent_label "${target}")"
+        if [ ! -d "${parent}" ] && [ ! -d "${dest_root}" ]; then
+          echo "${label}: nothing to uninstall (${dest_root})."
+          continue
+        fi
+        echo "== ${label} (${dest_root}) =="
+        unlink_browser_skills_from "${dest_root}" || exit 1
+      done
+    fi
+
+    # Driver artifacts are browser-use's own files, not kit-owned: remove only
+    # what the plan listed, and never a browser.
+    echo "== browser-use · driver (not kit-owned) =="
+    for target in ${AGENT_TARGETS}; do
+      # A skipped home is excluded whole: the driver there is not even kit-owned,
+      # so removing it would take files from the one target the user named.
+      case "${target}" in
+        claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: driver skipped (--skip-claude)."; continue; } ;;
+        codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: driver skipped (--skip-codex)."; continue; } ;;
+        grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: driver skipped (--skip-grok)."; continue; } ;;
+      esac
+      dest="$(agent_skills_root "${target}")/browser-use"
+      if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+        rm -rf "${dest}" || {
+          echo "error: failed to remove driver skill: ${dest}" >&2
+          exit 1
+        }
+        echo "removed driver skill: ${dest}"
+      else
+        echo "skipped (missing): ${dest}"
+      fi
+    done
+    if command -v browser-use >/dev/null 2>&1; then
+      # The plan counted the CLI as a removal, so a miss here is a failure, not
+      # a note: keep cleaning up the rest, then refuse to report success.
+      if command -v uv >/dev/null 2>&1; then
+        uv tool uninstall browser-use || {
+          echo "error: uv tool uninstall browser-use failed; remove it yourself" >&2
+          cli_failed=1
+        }
+      else
+        echo "error: browser-use CLI left installed (uv not found): $(command -v browser-use)" >&2
+        cli_failed=1
+      fi
+    fi
+    if [ -d "${state}" ]; then
+      rm -rf "${state}" || {
+        echo "error: failed to remove driver state: ${state}" >&2
+        exit 1
+      }
+      echo "removed driver state: ${state}"
+    fi
+    echo "Google Chrome left installed (uninstall it yourself if you want it gone)."
+    [ "${cli_failed}" -eq 0 ] || exit 1
     echo "Uninstall completed"
   )
 }
@@ -740,6 +868,90 @@ plan_rows_agents() {
   )
 }
 
+# plan_rows_browser_use — rows for the browser-use target. No mutation.
+# Mirrors plan_rows_agents over BROWSER_SKILL_NAMES, then adds the driver
+# section. Two deliberate differences from that mirror:
+#   - no legacy rows: job-scout and job-apply have never lived under an agent
+#     home under another basename, so there is no orphan to sweep, and no legacy
+#     Codex root either — this channel never installed there;
+#   - the override branch does not end the walk. `browser-use skill install`
+#     writes to the agents' own homes and never reads CLAUDE_SKILLS, so the
+#     driver is still there when an override has moved the kit links.
+# link_only=1 throughout: this channel only ever symlinks (agents/lib.sh:300).
+plan_rows_browser_use() {
+  local repo="${REPO_ROOT}" state
+  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  state="$(browser_harness_state)"
+  (
+    # shellcheck source=agents/lib.sh
+    . "${repo}/scripts/agents/lib.sh"
+    local override target root parent label name dest bin skipped
+    override="$(resolve_override_skills)" || exit 1
+    if [ -n "${override}" ]; then
+      printf 'H%sbrowser-use (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
+      for name in ${BROWSER_SKILL_NAMES}; do
+        plan_row "$(skill_dest "${override}" "${name}")" "${name}" current 1
+      done
+    else
+      for target in ${AGENT_TARGETS}; do
+        root="$(agent_skills_root "${target}")"
+        label="$(agent_label "${target}")"
+        if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
+          printf 'N%sskipped (--skip-claude)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+        elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
+          printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+        elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
+          printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+        fi
+        parent="$(agent_parent_dir "${target}")"
+        if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
+          printf 'N%snothing to uninstall%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+        fi
+        printf 'H%sbrowser-use · %s%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${root}"
+        for name in ${BROWSER_SKILL_NAMES}; do
+          plan_row "$(skill_dest "${root}" "${name}")" "${name}" current 1
+        done
+      done
+    fi
+    # The driver is browser-use's own installation, not kit-owned, so there is no
+    # ownership predicate to state — a row appears only when the artifact is
+    # actually on disk, and uninstall_browser_use removes exactly this set.
+    printf 'H%sbrowser-use · driver (not kit-owned)%s%s\n' "${ROW_FS}" "${ROW_FS}" "browser-use"
+    for target in ${AGENT_TARGETS}; do
+      root="$(agent_skills_root "${target}")"
+      dest="${root}/browser-use"
+      # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
+      # inside command substitutions. Mirrors the skip guard in
+      # uninstall_browser_use so the plan names exactly what will be removed.
+      skipped=""
+      if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
+        skipped="--skip-claude"
+      elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
+        skipped="--skip-codex"
+      elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
+        skipped="--skip-grok"
+      fi
+      if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
+        continue
+      elif [ -n "${skipped}" ]; then
+        printf 'N%sdriver skipped (%s)%s%s\n' "${ROW_FS}" "${skipped}" "${ROW_FS}" "${dest}"
+      else
+        printf 'I%sremove driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+      fi
+    done
+    bin="$(command -v browser-use 2>/dev/null || true)"
+    if [ -n "${bin}" ]; then
+      printf 'I%sremove CLI%s%s\n' "${ROW_FS}" "${ROW_FS}" "${bin}"
+    fi
+    if [ -d "${state}" ]; then
+      printf 'I%sremove state%s%s\n' "${ROW_FS}" "${ROW_FS}" "${state}"
+    fi
+    # A browser predates and outlives this kit; say so in the plan rather than
+    # leave its absence looking like an oversight.
+    printf 'N%sleft installed%s%s\n' "${ROW_FS}" "${ROW_FS}" "Google Chrome (this kit never removes a browser)"
+  )
+}
+
 # plan_rows_profile — rows for the profile target. No mutation, and no refusal:
 # refuse_profile_path and the removability walks stay in preflight_targets,
 # which runs after the render. Resolves a symlinked candidate exactly as
@@ -809,6 +1021,7 @@ build_plan() {
     case "${t}" in
       aside) plan_rows_aside ;;
       agents) plan_rows_agents ;;
+      browser-use) plan_rows_browser_use ;;
       profile) plan_rows_profile ;;
       cache) plan_rows_cache ;;
     esac
@@ -966,6 +1179,12 @@ plan_preflight() {
     elif [ "${t}" = agents ]; then
       ( . "${REPO_ROOT}/scripts/agents/lib.sh"; resolve_override_skills >/dev/null ) \
         || die "refusing to start: the agents target cannot resolve its skills root"
+    elif [ "${t}" = browser-use ]; then
+      ( . "${REPO_ROOT}/scripts/agents/lib.sh"; resolve_override_skills >/dev/null ) \
+        || die "refusing to start: the browser-use target cannot resolve its skills root"
+      # Prove the driver state path here, at this shell: `die` inside the row
+      # builder's command substitution would only kill that subshell.
+      browser_harness_state >/dev/null
     elif [ "${t}" = profile ]; then
       validate_profile_inputs
     elif [ "${t}" = cache ]; then
@@ -982,23 +1201,33 @@ plan_preflight() {
 # reading the flags it already reads.
 expand_only() {
   local list="$1" tok
-  local want_aside=0 want_agents=0 want_profile=0 want_cache=0
+  local want_aside=0 want_agents=0 want_profile=0 want_cache=0 want_browser=0
   local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
+  local channel_named=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
-      aside) want_aside=1; whole_aside=1 ;;
+      aside) want_aside=1; whole_aside=1; channel_named=1 ;;
       job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root)
         want_aside=1
+        channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
-      claude) want_agents=1; named_agent=1; want_claude=1 ;;
-      codex)  want_agents=1; named_agent=1; want_codex=1 ;;
-      grok)   want_agents=1; named_agent=1; want_grok=1 ;;
+      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      browser-use) want_browser=1; channel_named=1 ;;
+      claude) named_agent=1; want_claude=1 ;;
+      codex)  named_agent=1; want_codex=1 ;;
+      grok)   named_agent=1; want_grok=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root|agents|claude|codex|grok|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
     esac
   done
+  # Matches the installer: a bare agent-home token still means the agents
+  # channel, but alongside a named channel it only narrows that channel. Neither
+  # `profile` nor `cache` is an agent-home channel, so `--only claude,profile`
+  # keeps meaning the agents channel plus the profile.
+  if [ "${named_agent}" -eq 1 ] && [ "${channel_named}" -eq 0 ]; then
+    want_agents=1
+  fi
   if [ "${named_agent}" -eq 1 ]; then
     [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
@@ -1015,6 +1244,7 @@ expand_only() {
   fi
   [ "${want_aside}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} aside"
   [ "${want_agents}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} agents"
+  [ "${want_browser}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} browser-use"
   [ "${want_profile}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} profile"
   [ "${want_cache}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} cache"
   [ -n "${ONLY_TARGETS}" ] || die "--only selected nothing"
@@ -1087,7 +1317,10 @@ links_owned_by() {
         printf '%s\n' "${blocker} (exists but cannot be inspected)"
         return 0
       fi
-      for n in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+      # The union, not SKILL_NAMES: a browser-channel link under an agent home
+      # is just as stranded by a purge as a profile one, whichever target
+      # installed it.
+      for n in ${ALL_SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
     }
@@ -1373,7 +1606,10 @@ preflight_targets() {
   local t roots root blocker pointer
   for t in "$@"; do
     case "${t}" in
-      agents)
+      # browser-use shares this resolver: same libs, same agent homes, same
+      # override rule — only the name set it will unlink differs, and that is
+      # unremovable_skill_entries' business.
+      agents|browser-use)
         # The resolve check stays its own subshell: `set -e` does not abort a
         # command substitution that sits in a `||` list, so folding it into the
         # roots capture below would silently drop it.
@@ -1381,7 +1617,7 @@ preflight_targets() {
           # shellcheck source=agents/lib.sh
           . "${REPO_ROOT}/scripts/agents/lib.sh"
           resolve_override_skills >/dev/null
-        ) || die "refusing to start: the agents target cannot resolve its skills root"
+        ) || die "refusing to start: the ${t} target cannot resolve its skills root"
         roots="$(
           # shellcheck source=agents/lib.sh
           . "${REPO_ROOT}/scripts/agents/lib.sh"
@@ -1403,12 +1639,17 @@ preflight_targets() {
               fi
               agent_skills_root "${target}"
             done
-            # Legacy Codex root is still walked even with --skip-codex.
-            printf '%s\n' "${HOME}/.codex/skills"
+            # Legacy Codex root is still walked even with --skip-codex — by the
+            # agents target only: uninstall_browser_use never calls
+            # remove_legacy_codex_skills_dir, so refusing on that root would
+            # block a target that cannot touch it.
+            if [ "${t}" = agents ]; then
+              printf '%s\n' "${HOME}/.codex/skills"
+            fi
           fi
         )"
-        unwritable_roots "${roots}" agents
-        unremovable_skill_entries "${roots}" agents
+        unwritable_roots "${roots}" "${t}"
+        unremovable_skill_entries "${roots}" "${t}"
         ;;
       aside)
         (
@@ -1518,6 +1759,12 @@ unremovable_skill_entries() {
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
     names="${SKILL_NAMES} ${LEGACY_SKILL_NAMES}"
+  elif [ "${target}" = browser-use ]; then
+    # Its own set, not the union: refusing on an agents-channel link this target
+    # will never unlink would block a run that was always going to succeed.
+    # shellcheck source=agents/lib.sh
+    . "${REPO_ROOT}/scripts/agents/lib.sh"
+    names="${BROWSER_SKILL_NAMES}"
   elif [ "${target}" = aside ]; then
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
@@ -1581,14 +1828,16 @@ run_target() {
   case "$1" in
     aside) uninstall_aside ;;
     agents) uninstall_agents ;;
+    browser-use) uninstall_browser_use ;;
     profile) remove_profile ;;
     cache) purge_cache ;;
-    *) die "unknown target: $1 (aside|agents|profile|cache|all)" ;;
+    *) die "unknown target: $1 (aside|agents|browser-use|profile|cache|all)" ;;
   esac
 }
 
 # plan_order TARGET… — dedup, and force cache last. `cache` can delete REPO_ROOT
-# (purge_cache) and every other target sources its channel library from there.
+# (purge_cache) and every other target sources its channel library from there —
+# browser-use included, so pinning cache last is what orders it before cache.
 plan_order() {
   local t has_cache=0 out=""
   for t in "$@"; do
@@ -1610,13 +1859,14 @@ plan_order() {
 # thing between the user and rm.
 run_plan() {
   local ordered rows removals irreversible t
-  local seen_aside=0 seen_agents=0 has_cache=0 scope=all
+  local seen_aside=0 seen_agents=0 seen_browser=0 has_cache=0 scope=all
   ordered="$(plan_order "$@")"
   [ -n "${ordered}" ] || die "no targets selected"
   for t in ${ordered}; do
     case "${t}" in
       aside) seen_aside=1 ;;
       agents) seen_agents=1 ;;
+      browser-use) seen_browser=1 ;;
       cache) has_cache=1 ;;
     esac
   done
@@ -1632,7 +1882,11 @@ run_plan() {
 
   preflight_targets ${ordered}
   if [ "${has_cache}" -eq 1 ]; then
-    if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ]; then
+    # browser-use joins the test: the survivor scan now enumerates
+    # ALL_SKILL_NAMES under an agent home, and only this target unlinks the
+    # browser half of that union. Without it, an aside+agents+cache run would
+    # exempt roots whose job-scout / job-apply links nothing has removed.
+    if [ "${seen_aside}" -eq 1 ] && [ "${seen_agents}" -eq 1 ] && [ "${seen_browser}" -eq 1 ]; then
       scope=survivors
     fi
     purge_preflight "${scope}"
@@ -1664,6 +1918,7 @@ interactive_menu() {
   select choice in \
     "Aside skills" \
     "Coding-agent skills" \
+    "browser-use skills + driver" \
     "Profile data (~/.config/job-kit)" \
     "Kit cache (JOB_KIT_HOME)" \
     "All of the above" \
@@ -1674,10 +1929,11 @@ interactive_menu() {
     case "${REPLY}" in
       1) run_plan aside; return 0 ;;
       2) run_plan agents; return 0 ;;
-      3) run_plan profile; return 0 ;;
-      4) run_plan cache; return 0 ;;
-      5) run_plan aside agents profile cache; return 0 ;;
-      6) echo "quit"; return 0 ;;
+      3) run_plan browser-use; return 0 ;;
+      4) run_plan profile; return 0 ;;
+      5) run_plan cache; return 0 ;;
+      6) run_plan aside agents browser-use profile cache; return 0 ;;
+      7) echo "quit"; return 0 ;;
       *) echo "invalid choice" >&2 ;;
     esac
   done
@@ -1711,7 +1967,7 @@ main() {
       --skip-claude) SKIP_CLAUDE=1 ;;
       --skip-codex) SKIP_CODEX=1 ;;
       --skip-grok) SKIP_GROK=1 ;;
-      aside|agents|profile|cache|all)
+      aside|agents|browser-use|profile|cache|all)
         targets[${#targets[@]}]="$1"
         ;;
       *)
@@ -1730,7 +1986,7 @@ main() {
       interactive_menu
       return 0
     fi
-    die "need a target (aside|agents|profile|cache|all) when stdin is not a TTY"
+    die "need a target (aside|agents|browser-use|profile|cache|all) when stdin is not a TTY"
   fi
   [ -z "${ONLY_TARGETS}" ] \
     || die "--only cannot be combined with positional targets (see --help)"
@@ -1742,7 +1998,7 @@ main() {
   if [ "${has_all}" -eq 1 ]; then
     [ "${#targets[@]}" -eq 1 ] \
       || die "'all' cannot be combined with other targets"
-    run_plan aside agents profile cache
+    run_plan aside agents browser-use profile cache
     return 0
   fi
 
