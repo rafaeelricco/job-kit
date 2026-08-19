@@ -139,6 +139,11 @@ text. That text is blockquoted or held in table cells, never a bare top-level
 `- ` line, so it cannot forge a posting-state line. Same injection law as the
 body: never emit a bare `## Application log` or the marker from a
 posting-derived value.
+Collapse every appended value to one line before writing it. A `>` prefix guards
+only its own line, so a newline inside a subject, a sender name, or a quoted
+clause emits an unprefixed line, and a bare `- ` line sitting there is read as a
+log event whatever the block around it says. A value bound for a table cell also
+has every `|` escaped as `\|`, or it splits the row.
 
 ## Re-run rules
 
