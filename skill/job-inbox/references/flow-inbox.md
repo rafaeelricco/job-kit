@@ -72,7 +72,7 @@ Then, in order:
 2. **Fetch every survivor.** Not the promising ones — every one, including the
    forty that look like form acknowledgements. Full plain-text body; a metadata
    or minimal view is not a body. Batch the calls, never sample them.
-3. **Count.** `bodies == survivors`, or Phase 3 does not start.
+3. **Count.** Every survivor is fetched or `skip`, or Phase 3 does not start.
 
 A fetch that errors → retry once. Still failing → that thread is `skip`, named
 under Gaps with the transport error. A failed fetch never passes as an `ack`.
