@@ -80,6 +80,11 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
       return next
     })
 
+  // Ticking the header box takes the page, not the filter — the offer to widen
+  // it to every match only appears once the page itself is fully ticked.
+  const pageFull = current.rows.length > 0 && current.rows.every((row) => selected.has(row.file))
+  const onSelectMatching = () => setSelected(new Set(visible.map((row) => row.file)))
+
   const onHide = () => {
     hide(selectedRows.map((row) => row.file))
     setSelected(new Set())
@@ -151,7 +156,16 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         page={current.page}
         pages={current.pages}
         onPage={setPage}
-        status={`${selectedRows.length} of ${visible.length} row(s) selected.`}
+        status={
+          <span className="flex flex-wrap items-center gap-1">
+            {selectedRows.length.toLocaleString()} of {visible.length.toLocaleString()} row(s) selected.
+            {pageFull && selectedRows.length < visible.length ? (
+              <Button variant="link" className="h-auto p-0" onClick={onSelectMatching}>
+                Select all {visible.length.toLocaleString()} matching
+              </Button>
+            ) : null}
+          </span>
+        }
       />
 
       <Gaps gaps={store.gaps} root={store.root} />
