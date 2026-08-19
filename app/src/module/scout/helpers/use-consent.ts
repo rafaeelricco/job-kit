@@ -2,8 +2,8 @@ export { useConsent }
 
 import { useCallback, useState } from "react"
 
-// Same browser-local store as use-hidden. Only a grant is ever written: a
-// decline leaves nothing behind, so the next visit asks again.
+// Browser-local. Only a grant is ever written: a decline leaves nothing
+// behind, so the next visit asks again.
 const KEY = "job-kit:store-consent"
 const GRANTED = "granted"
 

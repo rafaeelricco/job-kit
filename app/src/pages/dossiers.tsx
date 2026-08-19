@@ -16,10 +16,9 @@ import { StoreGate } from "@/module/scout/components/store-gate"
 import type { Ready } from "@/module/scout/components/store-gate"
 import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
-import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize } from "@/module/scout/helpers/select"
+import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize, tallySources } from "@/module/scout/helpers/select"
 import type { Filter } from "@/module/scout/helpers/select"
 import { trashDossiers } from "@/module/scout/helpers/trash"
-import { useHidden } from "@/module/scout/helpers/use-hidden"
 
 const PAGE_SIZE = PAGE_SIZES[0]
 
@@ -39,14 +38,14 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
   const [view, setView] = useState<View>("table")
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const [open, setOpen] = useState<string | null>(null)
-  const { hidden, hide, clear } = useHidden()
 
-  const visible = useMemo(() => store.dossiers.filter(matches(filter, hidden)), [store.dossiers, filter, hidden])
+  const visible = useMemo(() => store.dossiers.filter(matches(filter)), [store.dossiers, filter])
   const ordered = useMemo(() => visible.slice().sort(comparator(DOSSIER_COLUMNS, sort)), [visible, sort])
   const current = paginate(ordered, page, PAGE_SIZE)
   // Store-wide, not filter-scoped: these are a standing overview, and the
   // filtered count already has its own line under the toolbar.
   const summary = useMemo(() => summarize(store.dossiers), [store.dossiers])
+  const sources = useMemo(() => tallySources(store.dossiers), [store.dossiers])
 
   const selectedRows = visible.filter((d) => selected.has(d.file))
   const openDossier = store.dossiers.find((d) => d.file === open) ?? null
@@ -80,18 +79,15 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
       return next
     })
 
-  const onHide = () => {
-    hide(selectedRows.map((row) => row.file))
-    setSelected(new Set())
-  }
+  // Ticking the header box takes the page, not the filter — the offer to widen
+  // it to every match only appears once the page itself is fully ticked.
+  const pageFull = current.rows.length > 0 && current.rows.every((row) => selected.has(row.file))
+  const onSelectMatching = () => setSelected(new Set(visible.map((row) => row.file)))
 
-  const onHideOne = (file: string) => hide([file])
-
-  const onDelete = () => {
-    void trashDossiers(
-      store.root,
-      selectedRows.map((row) => row.file)
-    ).then((result) => {
+  // One request for both callers: the toolbar sends the selection, the row menu
+  // sends a single file.
+  const trash = (files: readonly string[]) => {
+    void trashDossiers(store.root, files).then((result) => {
       if (result.kind === "err") {
         toast.error(result.error)
         return
@@ -107,6 +103,9 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
     })
   }
 
+  const onDelete = () => trash(selectedRows.map((row) => row.file))
+  const onDeleteOne = (file: string) => trash([file])
+
   return (
     <>
       <OverviewCards summary={summary} />
@@ -118,22 +117,16 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         onView={setView}
         columns={columns}
         onColumns={setColumns}
+        sources={sources}
         total={store.dossiers.length}
         shown={visible.length}
       />
 
-      {hidden.size === 0 ? null : (
-        <p className="text-sm text-muted-foreground">
-          {hidden.size.toLocaleString()} hidden in this browser ·{" "}
-          <Button variant="link" className="h-auto p-0" onClick={clear}>
-            Restore
-          </Button>
-        </p>
-      )}
-
       {view === "table" ? (
         <DossierTable
           rows={current.rows}
+          root={store.root}
+          skillsRoot={store.skillsRoot}
           columns={columns}
           sort={sort}
           onSort={onSort}
@@ -141,7 +134,7 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
           onToggle={onToggle}
           onToggleAll={onToggleAll}
           onOpen={setOpen}
-          onHide={onHideOne}
+          onDelete={onDeleteOne}
         />
       ) : (
         <DossierCards rows={current.rows} selected={selected} onToggle={onToggle} onOpen={setOpen} />
@@ -151,7 +144,16 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         page={current.page}
         pages={current.pages}
         onPage={setPage}
-        status={`${selectedRows.length} of ${visible.length} row(s) selected.`}
+        status={
+          <span className="flex flex-wrap items-center gap-1">
+            {selectedRows.length.toLocaleString()} of {visible.length.toLocaleString()} row(s) selected.
+            {pageFull && selectedRows.length < visible.length ? (
+              <Button variant="link" className="h-auto p-0" onClick={onSelectMatching}>
+                Select all {visible.length.toLocaleString()} matching
+              </Button>
+            ) : null}
+          </span>
+        }
       />
 
       <Gaps gaps={store.gaps} root={store.root} />
@@ -162,7 +164,13 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar rows={selectedRows} onHide={onHide} onDelete={onDelete} onClear={() => setSelected(new Set())} />
+      <SelectionBar
+        root={store.root}
+        skillsRoot={store.skillsRoot}
+        rows={selectedRows}
+        onDelete={onDelete}
+        onClear={() => setSelected(new Set())}
+      />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>

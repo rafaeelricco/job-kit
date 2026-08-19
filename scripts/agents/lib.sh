@@ -4,6 +4,13 @@
 
 # Skill folder names under skill/ for coding agents.
 SKILL_NAMES="job-profile-init job-profile-me job-list job-stories job-inbox job-profile-root"
+# Browser-channel skills: same agent homes, installed only by the `browser-use`
+# target, which needs the browser-use CLI to drive a real browser.
+BROWSER_SKILL_NAMES="job-scout job-apply"
+# Every basename this channel may own under an agent home. Removal and the
+# cache-purge survivor scan use the union, so an agents uninstall reaches
+# browser-channel links no matter which target installed them.
+ALL_SKILL_NAMES="${SKILL_NAMES} ${BROWSER_SKILL_NAMES}"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
 LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker"
@@ -183,12 +190,13 @@ ensure_skills_dir() {
   }
 }
 
-# install_skills_into DEST_ROOT REPO FORCE
-# Links every SKILL_NAMES entry into DEST_ROOT; then unlinks legacy names there.
+# install_skills_into DEST_ROOT REPO FORCE [NAMES]
+# Links every NAMES entry (default SKILL_NAMES) into DEST_ROOT; then unlinks
+# legacy names there.
 install_skills_into() {
-  local dest_root="$1" repo="$2" force="$3" name source dest
+  local dest_root="$1" repo="$2" force="$3" names="${4:-${SKILL_NAMES}}" name source dest
   ensure_skills_dir "${dest_root}" || return 1
-  for name in ${SKILL_NAMES}; do
+  for name in ${names}; do
     source="$(skill_source "${repo}" "${name}")"
     dest="$(skill_dest "${dest_root}" "${name}")"
     link_skill "${source}" "${dest}" "${force}" || return 1
@@ -196,12 +204,14 @@ install_skills_into() {
   unlink_legacy_skills "${dest_root}" "${repo}" || return 1
 }
 
-# uninstall_skills_from DEST_ROOT REPO
-# Removes kit-owned legacy + SKILL_NAMES links under DEST_ROOT only.
+# uninstall_skills_from DEST_ROOT REPO [NAMES]
+# Removes kit-owned legacy + NAMES links (default SKILL_NAMES) under DEST_ROOT.
+# NAMES is never the union: each target removes only what its own plan printed,
+# so `all` cannot list one path under two targets.
 uninstall_skills_from() {
-  local dest_root="$1" repo="$2" name dest
+  local dest_root="$1" repo="$2" names="${3:-${SKILL_NAMES}}" name dest
   unlink_legacy_skills "${dest_root}" "${repo}" || return 1
-  for name in ${SKILL_NAMES}; do
+  for name in ${names}; do
     dest="$(skill_dest "${dest_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}"
   done
@@ -213,7 +223,7 @@ uninstall_skills_from() {
 remove_legacy_codex_skills_dir() {
   local repo="$1" legacy_root="${HOME}/.codex/skills" name dest
   [ -d "${legacy_root}" ] || [ -L "${legacy_root}" ] || return 0
-  for name in ${SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
+  for name in ${ALL_SKILL_NAMES} ${LEGACY_SKILL_NAMES}; do
     dest="$(skill_dest "${legacy_root}" "${name}")"
     if is_kit_skill_link "${dest}" "${repo}" "${name}"; then
       rm -f "${dest}" || {
