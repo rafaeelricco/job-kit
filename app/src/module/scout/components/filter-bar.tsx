@@ -1,6 +1,6 @@
 export { FilterBar, type FilterBarProps }
 
-import { ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
+import { BanIcon, ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,8 +20,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { Filter, Segment } from "@/module/scout/helpers/select"
-import { SEGMENTS } from "@/module/scout/helpers/select"
+import type { Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+import { SCORE_BANDS, SCORE_BAND_LABELS, SEGMENTS, cycleSource, sourceState } from "@/module/scout/helpers/select"
 import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
 
@@ -32,12 +32,10 @@ type FilterBarProps = {
   readonly onView: (next: View) => void
   readonly columns: readonly ColumnId[]
   readonly onColumns: (next: readonly ColumnId[]) => void
+  readonly sources: readonly SourceRow[]
   readonly total: number
   readonly shown: number
 }
-
-// The one score threshold the toolbar offers; the model keeps a full number.
-const HIGH_SCORE = 8
 
 const SEGMENT_LABELS: Readonly<Record<Segment, string>> = {
   all: "All",
@@ -67,14 +65,13 @@ type Chip = {
 }
 
 function FilterBar(props: FilterBarProps) {
-  const { columns, filter, onColumns, onFilter, onView, shown, total, view } = props
+  const { columns, filter, onColumns, onFilter, onView, shown, sources, total, view } = props
 
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
-  const setMinScore = (value: number) => onFilter({ ...filter, minScore: value })
-
-  const highOnly = filter.minScore >= HIGH_SCORE
+  const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
+  const setSource = (value: string) => onFilter(cycleSource(filter, value))
 
   // Rebuilt from COLUMNS so re-adding a column restores its table position.
   const toggleColumn = (id: ColumnId) => {
@@ -101,24 +98,34 @@ function FilterBar(props: FilterBarProps) {
       label: `Status: ${value}`,
       remove: () => setStatuses(value),
     })),
-    ...(filter.minScore > 0
-      ? [
-          {
-            key: "min-score",
-            label: `Score ${filter.minScore}+`,
-            remove: () => setMinScore(0),
-          },
-        ]
-      : []),
+    ...filter.bands.map((value) => ({
+      key: `band:${value}`,
+      label: `Score: ${SCORE_BAND_LABELS[value]}`,
+      remove: () => setBands(value),
+    })),
+    ...filter.sources.map((value) => ({
+      key: `source:${value}`,
+      label: `Source: ${value}`,
+      // Removing has to clear the state, not advance the cycle — from "only"
+      // one more click would exclude, which is not what an × means.
+      remove: () => onFilter({ ...filter, sources: filter.sources.filter((one) => one !== value) }),
+    })),
+    ...filter.excluded.map((value) => ({
+      key: `excluded:${value}`,
+      label: `Not: ${value}`,
+      remove: () => onFilter({ ...filter, excluded: filter.excluded.filter((one) => one !== value) }),
+    })),
   ]
 
   const clearAll = () =>
     onFilter({
       ...filter,
-      minScore: 0,
+      bands: [],
       buckets: [],
       channels: [],
       statuses: [],
+      sources: [],
+      excluded: [],
     })
 
   return (
@@ -182,14 +189,42 @@ function FilterBar(props: FilterBarProps) {
                   ))}
                 </CommandGroup>
                 <CommandSeparator />
+                {/* Click cycles: narrow to this source, then banish it, then
+                    clear. The count is store-wide, so it does not move as you
+                    filter with it. */}
+                <CommandGroup heading="Source">
+                  {sources.map((row) => {
+                    const state = sourceState(filter, row.source)
+                    return (
+                      <CommandItem
+                        key={row.source}
+                        value={`source ${row.source}`}
+                        data-checked={state === "only"}
+                        onSelect={() => setSource(row.source)}
+                      >
+                        {state === "not" ? <BanIcon className="text-destructive" /> : null}
+                        <span className={state === "not" ? "text-muted-foreground line-through" : undefined}>
+                          {row.source}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                          {row.count.toLocaleString()}
+                        </span>
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+                <CommandSeparator />
                 <CommandGroup heading="Score">
-                  <CommandItem
-                    value="score 8 plus"
-                    data-checked={highOnly}
-                    onSelect={() => setMinScore(highOnly ? 0 : HIGH_SCORE)}
-                  >
-                    Score 8+
-                  </CommandItem>
+                  {SCORE_BANDS.map((value) => (
+                    <CommandItem
+                      key={value}
+                      value={`score ${SCORE_BAND_LABELS[value]}`}
+                      data-checked={filter.bands.includes(value)}
+                      onSelect={() => setBands(value)}
+                    >
+                      {SCORE_BAND_LABELS[value]}
+                    </CommandItem>
+                  ))}
                 </CommandGroup>
               </CommandList>
             </Command>
