@@ -1,6 +1,6 @@
 # Application stage — pipeline
 
-Profile root: ordered resolver SSOT in `job-scout/SKILL.md` (this skill’s SKILL points there).
+Profile root: ordered resolver SSOT is the `job-profile-root` skill.
 Paths here are relative to that absolute root (after symlink resolve).
 Skill-local files: `./references/`. You read the ad, select evidence, then draft.
 

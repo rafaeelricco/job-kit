@@ -1,6 +1,6 @@
 # Job scout — pipeline
 
-Paths are relative to the Profile root from `SKILL.md` (ordered resolver in SKILL.md).
+Paths are relative to the Profile root from the `job-profile-root` skill.
 Resolve every `data/*` path against that root, not session CWD.
 Skill-local files live under `./references/` next to `SKILL.md`.
 You sequence phases. Workers search/extract only. You merge, gate, rank, report.
@@ -30,7 +30,7 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
 
 ## Phase 0 — preflight + context (main)
 
-1. Resolve Profile root per `SKILL.md` (ordered probe); print
+1. Resolve Profile root via the `job-profile-root` skill; print
    `Profile root: /abs/path`. Probe the deck: `data/search_packs.yaml` under
    Profile root, else `./references/search_packs.yaml` next to this skill.
    Print `Deck: <abs path>`.

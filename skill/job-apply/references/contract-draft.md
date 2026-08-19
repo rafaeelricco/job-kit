@@ -3,7 +3,7 @@
 Paste this file **verbatim** into every **Phase 3 drafting brief**. Drafts inherit nothing.
 This file is the sole home of Fact, Voice and Gate law.
 Main Phases 0–2 bind Fact + Gate + untrusted without pasting Voice; Phase 3 full paste binds Voice.
-Paths: Profile root per `../SKILL.md` (ordered steps in `job-scout/SKILL.md`), not session CWD.
+Paths: Profile root per `../SKILL.md` (ordered steps in the `job-profile-root` skill), not session CWD.
 
 === APPROVE BEFORE SUBMIT ===
 ALLOWED: draft letters, fill form fields, stage attachments.

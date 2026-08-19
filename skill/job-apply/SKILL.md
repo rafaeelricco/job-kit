@@ -5,8 +5,7 @@ description: "Read this when you need to draft, stage, and after explicit approv
 
 # Job application
 
-Profile root: same ordered resolver as job-scout — steps SSOT in `job-scout/SKILL.md`.
-On STOP / resolve fail: `job-scout/references/flow-recover-root.md`.
+Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 

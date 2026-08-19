@@ -5,10 +5,10 @@ description: "Read this when you need to check Gmail for replies to tracked appl
 
 # Job inbox
 
-Profile root: same ordered resolver as job-scout — steps SSOT in `job-scout/SKILL.md`.
-On STOP / resolve fail: `job-scout/references/flow-recover-root.md`.
-Resolve `scout/` and `data/basics.yaml` against that root, not session CWD.
-Unreadable Fact file → stop and say so.
+Profile root: load the `job-profile-root` skill now; obey it end-to-end.
+
+Resolve `scout/` and every `data/*` path against Profile root (not CWD, not skill dir).
+Unreadable required file under a resolved root → stop and say so.
 
 1. Read `./references/flow-inbox.md` now; obey it end-to-end.
 2. Dual-load `./references/contract-classify.md` before Phase 3 (write-eligibility
