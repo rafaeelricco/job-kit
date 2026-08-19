@@ -1,6 +1,6 @@
 export { FilterBar, type FilterBarProps }
 
-import { ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
+import { BanIcon, ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,8 +20,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { Filter, ScoreBand, Segment } from "@/module/scout/helpers/select"
-import { SCORE_BANDS, SCORE_BAND_LABELS, SEGMENTS } from "@/module/scout/helpers/select"
+import type { Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+import { SCORE_BANDS, SCORE_BAND_LABELS, SEGMENTS, cycleSource, sourceState } from "@/module/scout/helpers/select"
 import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
 
@@ -32,6 +32,7 @@ type FilterBarProps = {
   readonly onView: (next: View) => void
   readonly columns: readonly ColumnId[]
   readonly onColumns: (next: readonly ColumnId[]) => void
+  readonly sources: readonly SourceRow[]
   readonly total: number
   readonly shown: number
 }
@@ -64,12 +65,13 @@ type Chip = {
 }
 
 function FilterBar(props: FilterBarProps) {
-  const { columns, filter, onColumns, onFilter, onView, shown, total, view } = props
+  const { columns, filter, onColumns, onFilter, onView, shown, sources, total, view } = props
 
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
   const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
+  const setSource = (value: string) => onFilter(cycleSource(filter, value))
 
   // Rebuilt from COLUMNS so re-adding a column restores its table position.
   const toggleColumn = (id: ColumnId) => {
@@ -101,6 +103,18 @@ function FilterBar(props: FilterBarProps) {
       label: `Score: ${SCORE_BAND_LABELS[value]}`,
       remove: () => setBands(value),
     })),
+    ...filter.sources.map((value) => ({
+      key: `source:${value}`,
+      label: `Source: ${value}`,
+      // Removing has to clear the state, not advance the cycle — from "only"
+      // one more click would exclude, which is not what an × means.
+      remove: () => onFilter({ ...filter, sources: filter.sources.filter((one) => one !== value) }),
+    })),
+    ...filter.excluded.map((value) => ({
+      key: `excluded:${value}`,
+      label: `Not: ${value}`,
+      remove: () => onFilter({ ...filter, excluded: filter.excluded.filter((one) => one !== value) }),
+    })),
   ]
 
   const clearAll = () =>
@@ -110,6 +124,8 @@ function FilterBar(props: FilterBarProps) {
       buckets: [],
       channels: [],
       statuses: [],
+      sources: [],
+      excluded: [],
     })
 
   return (
@@ -171,6 +187,31 @@ function FilterBar(props: FilterBarProps) {
                       {value}
                     </CommandItem>
                   ))}
+                </CommandGroup>
+                <CommandSeparator />
+                {/* Click cycles: narrow to this source, then banish it, then
+                    clear. The count is store-wide, so it does not move as you
+                    filter with it. */}
+                <CommandGroup heading="Source">
+                  {sources.map((row) => {
+                    const state = sourceState(filter, row.source)
+                    return (
+                      <CommandItem
+                        key={row.source}
+                        value={`source ${row.source}`}
+                        data-checked={state === "only"}
+                        onSelect={() => setSource(row.source)}
+                      >
+                        {state === "not" ? <BanIcon className="text-destructive" /> : null}
+                        <span className={state === "not" ? "text-muted-foreground line-through" : undefined}>
+                          {row.source}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                          {row.count.toLocaleString()}
+                        </span>
+                      </CommandItem>
+                    )
+                  })}
                 </CommandGroup>
                 <CommandSeparator />
                 <CommandGroup heading="Score">
