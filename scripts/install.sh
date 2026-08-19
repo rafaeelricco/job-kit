@@ -263,7 +263,7 @@ plan_rows_agent_home() {
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
     local override target root parent agent_label_s name source dest names
-    local drivers driver_target
+    local drivers driver_path driver_fix
     if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
     # Requirement rows sit under their own header, or under `all` they would
     # read as the tail of the preceding channel's section.
@@ -277,9 +277,13 @@ plan_rows_agent_home() {
         if ! have_chromium; then
           printf 'N%smissing browser%s%s\n' "${ROW_FS}" "${ROW_FS}" "brew install --cask google-chrome"
         fi
-        for driver_target in ${drivers}; do
-          printf 'N%smissing driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "browser-use skill install --target ${driver_target}"
-        done
+        while IFS="${ROW_FS}" read -r driver_path driver_fix; do
+          [ -n "${driver_path}" ] || continue
+          printf 'N%smissing driver%s%s\n' "${ROW_FS}" "${ROW_FS}" \
+            "${driver_fix:-supply ${driver_path} yourself (no browser-use --target)}"
+        done <<EOF
+${drivers}
+EOF
       fi
     fi
     override="$(resolve_override_skills)" || exit 1
@@ -444,32 +448,38 @@ confirm_plan() {
   esac
 }
 
-# browser_use_missing_drivers — `browser-use skill install --target` names whose
-# agent home is installed but carries no driver skill. Args: none; prints one
-# target per line. Grok is never probed: `browser-use skill install` has no
-# `--target` for it, so there is no command to name. A home the kit does not
-# install into is skipped too — a driver missing there is not a gap this
-# channel can close.
+# browser_use_missing_drivers — agent homes this channel installs into that
+# carry no driver skill. Args: none; prints one `PATH<ROW_FS>FIX` row per gap.
+# PATH is the driver path in display form; FIX is the command that installs it
+# there, empty when `browser-use skill install` has no `--target` for that home
+# (Grok). An empty FIX still reports the gap — the channel links job-scout and
+# job-apply into that home, and their Phase 0 STOPs without a driver — but the
+# callers name the path instead of offering a command the CLI cannot run.
+# A home the kit does not install into is skipped: a driver missing there is
+# not a gap this channel can close.
 browser_use_missing_drivers() {
   local repo="${REPO_ROOT}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local target driver_target root
-    for target in claude codex; do
+    local target fix root
+    for target in ${AGENT_TARGETS}; do
       # if/else (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
       # inside command substitutions.
       if [ "${target}" = claude ]; then
         [ "${SKIP_CLAUDE}" -eq 0 ] || continue
-        driver_target=claude
-      else
+        fix="browser-use skill install --target claude"
+      elif [ "${target}" = codex ]; then
         [ "${SKIP_CODEX}" -eq 0 ] || continue
-        driver_target=agents
+        fix="browser-use skill install --target agents"
+      else
+        [ "${SKIP_GROK}" -eq 0 ] || continue
+        fix=""
       fi
       root="$(agent_skills_root "${target}")"
       [ -d "$(agent_parent_dir "${target}")" ] || [ -d "${root}" ] || continue
       [ -e "${root}/browser-use" ] || [ -L "${root}/browser-use" ] \
-        || printf '%s\n' "${driver_target}"
+        || printf '%s%s%s\n' "$(path_display "${root}/browser-use")" "${ROW_FS}" "${fix}"
     done
   )
 }
@@ -498,7 +508,7 @@ browser_use_offer() {
 # Never blocks: the skills are already installed and job-scout Phase 0 STOPs on
 # its own when no driver answers.
 browser_use_preflight() {
-  local need_cli=0 need_browser=0 drivers driver_target
+  local need_cli=0 need_browser=0 drivers driver_path driver_fix
   command -v browser-use >/dev/null 2>&1 || need_cli=1
   have_chromium || need_browser=1
   # Probed separately: a CLI and a browser that are both already present say
@@ -528,18 +538,24 @@ browser_use_preflight() {
     fi
   fi
   if [ -n "${drivers}" ]; then
-    if command -v browser-use >/dev/null 2>&1; then
-      for driver_target in ${drivers}; do
-        browser_use_offer "browser-use driver skill (--target ${driver_target})" \
-          "browser-use skill install --target ${driver_target}"
-      done
-    else
-      # No CLI to run it with yet; name the command for after the CLI lands.
-      for driver_target in ${drivers}; do
-        echo "  missing: browser-use driver skill (--target ${driver_target})"
-        echo "    fix: browser-use skill install --target ${driver_target}"
-      done
-    fi
+    while IFS="${ROW_FS}" read -r driver_path driver_fix; do
+      [ -n "${driver_path}" ] || continue
+      if [ -z "${driver_fix}" ]; then
+        # No `--target` reaches this home, so there is nothing to offer: name
+        # the gap and the path, never a command the CLI cannot run.
+        echo "  missing: browser-use driver skill (${driver_path})"
+        echo "    fix: supply ${driver_path} yourself —"
+        echo "         browser-use skill install has no --target for this home"
+      elif command -v browser-use >/dev/null 2>&1; then
+        browser_use_offer "browser-use driver skill (${driver_path})" "${driver_fix}"
+      else
+        # No CLI to run it with yet; name the command for after the CLI lands.
+        echo "  missing: browser-use driver skill (${driver_path})"
+        echo "    fix: ${driver_fix}"
+      fi
+    done <<EOF
+${drivers}
+EOF
   fi
   echo "  then, once in the browser: open chrome://inspect/#remote-debugging and"
   echo "  tick 'Allow remote debugging', and sign in to the sites you scout."

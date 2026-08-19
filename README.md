@@ -114,8 +114,10 @@ browser-use CLI drives your own Chrome. Either way:
 
 The browser-use channel is local only: your own signed-in browser over CDP —
 no Browser Use account, no cloud browser, no API key. It needs an agent home,
-the `browser-use` CLI, and a Chromium-family browser; the installer flags
-whichever is missing and offers the command that fixes it.
+the `browser-use` CLI, a Chromium-family browser, and the browser-use driver
+skill in that home; the installer flags whichever is missing, and offers the
+command that fixes it wherever the CLI has one — `browser-use skill install`
+has no `--target` for Grok, so a Grok home is flagged for you to fill.
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
 ranks the job rows it extracts. Application drafts and stages one posting at a
