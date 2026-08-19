@@ -301,6 +301,8 @@ Options:
                 aside | job-scout | job-apply | job-profile-me | job-list
                 agents | browser-use | claude | codex | grok
                 profile | cache
+                (claude|codex|grok narrow a channel named alongside them;
+                alone they mean the agents channel)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents or browser-use runs
 
@@ -1194,22 +1196,31 @@ expand_only() {
   local list="$1" tok
   local want_aside=0 want_agents=0 want_profile=0 want_cache=0 want_browser=0
   local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
+  local channel_named=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
-      aside) want_aside=1; whole_aside=1 ;;
+      aside) want_aside=1; whole_aside=1; channel_named=1 ;;
       job-scout|job-apply|job-profile-me|job-list)
         want_aside=1
+        channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
-      browser-use) want_browser=1 ;;
-      claude) want_agents=1; named_agent=1; want_claude=1 ;;
-      codex)  want_agents=1; named_agent=1; want_codex=1 ;;
-      grok)   want_agents=1; named_agent=1; want_grok=1 ;;
+      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      browser-use) want_browser=1; channel_named=1 ;;
+      claude) named_agent=1; want_claude=1 ;;
+      codex)  named_agent=1; want_codex=1 ;;
+      grok)   named_agent=1; want_grok=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
       *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|browser-use|claude|codex|grok|profile|cache)" ;;
     esac
   done
+  # Matches the installer: a bare agent-home token still means the agents
+  # channel, but alongside a named channel it only narrows that channel. Neither
+  # `profile` nor `cache` is an agent-home channel, so `--only claude,profile`
+  # keeps meaning the agents channel plus the profile.
+  if [ "${named_agent}" -eq 1 ] && [ "${channel_named}" -eq 0 ]; then
+    want_agents=1
+  fi
   if [ "${named_agent}" -eq 1 ]; then
     [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1

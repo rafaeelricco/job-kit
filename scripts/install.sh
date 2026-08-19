@@ -57,6 +57,8 @@ Options:
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-apply | job-profile-me | job-list
                 agents | browser-use | claude | codex | grok
+                (claude|codex|grok narrow a channel named alongside them;
+                alone they mean the agents channel)
                 (job-profile-me also installs job-scout — packs mutate
                 needs its worker-search-*.md stems)
   --skip-claude|--skip-codex|--skip-grok
