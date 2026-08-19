@@ -123,10 +123,20 @@
    **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
    that cannot run reports _unknown_, never _installed_.
 
-   - Agents: for each of `$HOST_HOME/{.claude,.agents,.grok}` that is a
-     directory, compare bare `readlink "<home>/skills/job-profile-init"` (no
-     `-f`, no `realpath` — mirrors `scripts/agents/lib.sh` `is_kit_skill_link`)
-     against `$KIT_ROOT/skill/job-profile-init`. Installed = at least one match.
+   - Agents: the channel links six skills — `job-profile-init`,
+     `job-profile-me`, `job-list`, `job-stories`, `job-inbox`, and
+     `job-profile-root` (`SKILL_NAMES` in `scripts/agents/lib.sh`). For each of
+     `$HOST_HOME/{.claude,.agents,.grok}` that is a directory, compare bare
+     `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
+     `scripts/agents/lib.sh` `is_kit_skill_link`) against
+     `$KIT_ROOT/skill/<name>` for **every** one of the six. A home counts
+     installed only when the whole set matches; matching some is _partial_, and
+     partial is not installed. Installed = at least one complete home.
+     Probing `job-profile-init` alone is what reports an upgraded checkout
+     installed: that link still matches while the newly added `job-inbox` and
+     `job-profile-root` are absent, and every other skill in the set loads
+     `job-profile-root` on its first step — so Activate would print "Nothing to
+     run" over a broken `/job-list`, `/job-profile-me`, and `/job-stories`.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
      Installed = for each of `job-scout`, `job-apply`, `job-profile-me`,
      `job-list`, `job-inbox`, `job-profile-root`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
@@ -145,13 +155,15 @@ Nothing to run.`
 bash "<KIT_ROOT>/scripts/install.sh" aside`
      Fall back to `bash "<KIT_ROOT>/scripts/aside/install.sh"` when
      `scripts/install.sh` is missing (older checkout).
-   - Agents probe matched no eligible home → prefer:
-     `Link job-profile-init into your agent homes:
+   - Agents probe matched no complete home → prefer:
+     `Link the agent skills into your agent homes:
 bash "<KIT_ROOT>/scripts/install.sh" agents`
      Fall back to `bash "<KIT_ROOT>/scripts/agents/install.sh"` when
      `scripts/install.sh` is missing.
-   - Agents probe matched some but not all eligible homes → name the homes that
-     are missing it, then the same absolute command.
+   - Agents probe matched some homes but not all, or matched a home only
+     partially → name each home and the skills it is missing, then the same
+     absolute command. A partial home is named here, never passed over as
+     installed.
    - Any probe _unknown_ → print its command with the reason it could not be
      checked. Commands are absolute; CWD does not matter.
 
