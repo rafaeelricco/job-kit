@@ -448,21 +448,29 @@ confirm_plan() {
   esac
 }
 
-# browser_use_missing_drivers — agent homes this channel installs into that
+# browser_use_missing_drivers — dests this channel installs into that
 # carry no driver skill. Args: none; prints one `PATH<ROW_FS>FIX` row per gap.
 # PATH is the driver path in display form; FIX is the command that installs it
-# there, empty when `browser-use skill install` has no `--target` for that home
-# (Grok). An empty FIX still reports the gap — the channel links job-scout and
-# job-apply into that home, and their Phase 0 STOPs without a driver — but the
-# callers name the path instead of offering a command the CLI cannot run.
-# A home the kit does not install into is skipped: a driver missing there is
-# not a gap this channel can close.
+# there, empty when `browser-use skill install` has no `--target` for that dest
+# (Grok, or a CLAUDE_SKILLS override). An empty FIX still reports the gap —
+# the channel links job-scout and job-apply there, and their Phase 0 STOPs
+# without a driver — but the callers name the path instead of offering a
+# command the CLI cannot run.
+# A dest the kit does not install into is skipped: a driver missing there is
+# not a gap this channel can close. When CLAUDE_SKILLS is set, that dest is
+# exclusive (same as install_agent_home) and AGENT_TARGETS are not walked.
 browser_use_missing_drivers() {
   local repo="${REPO_ROOT}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local target fix root
+    local target fix root override
+    override="$(resolve_override_skills)" || exit 1
+    if [ -n "${override}" ]; then
+      [ -e "${override}/browser-use" ] || [ -L "${override}/browser-use" ] \
+        || printf '%s%s%s\n' "$(path_display "${override}/browser-use")" "${ROW_FS}" ""
+      exit 0
+    fi
     for target in ${AGENT_TARGETS}; do
       # if/else (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
       # inside command substitutions.
