@@ -20,8 +20,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { Filter, Segment } from "@/module/scout/helpers/select"
-import { SEGMENTS } from "@/module/scout/helpers/select"
+import type { Filter, ScoreBand, Segment } from "@/module/scout/helpers/select"
+import { SCORE_BANDS, SCORE_BAND_LABELS, SEGMENTS } from "@/module/scout/helpers/select"
 import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
 
@@ -35,9 +35,6 @@ type FilterBarProps = {
   readonly total: number
   readonly shown: number
 }
-
-// The one score threshold the toolbar offers; the model keeps a full number.
-const HIGH_SCORE = 8
 
 const SEGMENT_LABELS: Readonly<Record<Segment, string>> = {
   all: "All",
@@ -72,9 +69,7 @@ function FilterBar(props: FilterBarProps) {
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
-  const setMinScore = (value: number) => onFilter({ ...filter, minScore: value })
-
-  const highOnly = filter.minScore >= HIGH_SCORE
+  const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
 
   // Rebuilt from COLUMNS so re-adding a column restores its table position.
   const toggleColumn = (id: ColumnId) => {
@@ -101,21 +96,17 @@ function FilterBar(props: FilterBarProps) {
       label: `Status: ${value}`,
       remove: () => setStatuses(value),
     })),
-    ...(filter.minScore > 0
-      ? [
-          {
-            key: "min-score",
-            label: `Score ${filter.minScore}+`,
-            remove: () => setMinScore(0),
-          },
-        ]
-      : []),
+    ...filter.bands.map((value) => ({
+      key: `band:${value}`,
+      label: `Score: ${SCORE_BAND_LABELS[value]}`,
+      remove: () => setBands(value),
+    })),
   ]
 
   const clearAll = () =>
     onFilter({
       ...filter,
-      minScore: 0,
+      bands: [],
       buckets: [],
       channels: [],
       statuses: [],
@@ -183,13 +174,16 @@ function FilterBar(props: FilterBarProps) {
                 </CommandGroup>
                 <CommandSeparator />
                 <CommandGroup heading="Score">
-                  <CommandItem
-                    value="score 8 plus"
-                    data-checked={highOnly}
-                    onSelect={() => setMinScore(highOnly ? 0 : HIGH_SCORE)}
-                  >
-                    Score 8+
-                  </CommandItem>
+                  {SCORE_BANDS.map((value) => (
+                    <CommandItem
+                      key={value}
+                      value={`score ${SCORE_BAND_LABELS[value]}`}
+                      data-checked={filter.bands.includes(value)}
+                      onSelect={() => setBands(value)}
+                    >
+                      {SCORE_BAND_LABELS[value]}
+                    </CommandItem>
+                  ))}
                 </CommandGroup>
               </CommandList>
             </Command>
