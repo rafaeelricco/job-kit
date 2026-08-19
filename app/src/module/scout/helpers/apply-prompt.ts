@@ -23,16 +23,26 @@ function classify(row: Dossier): Classified {
   return reasons.length === 0 ? { kind: "apply", row } : { kind: "skip", row, reasons }
 }
 
+// Skills are addressed by absolute path, not by slash command: the prompt is
+// pasted into a chat that has no notion of this app's working directory.
+const SKILLS = "/Users/rafaelricco/.aside/u/0/skills/builtin"
+const APPLY_SKILL = `[$Job Apply](${SKILLS}/job-apply/SKILL.md)`
+const LIST_SKILL = `[$Job List](${SKILLS}/job-list/SKILL.md)`
+const PROFILE_SKILL = `[$Job Profile Me](${SKILLS}/job-profile-me/SKILL.md)`
+
+const CLOSER =
+  `use the ${LIST_SKILL} to consult the data of each and also the ${PROFILE_SKILL} ` +
+  "and make sure to write concise and high signal texts/histories to increase the chance for I get return from the job."
+
 function applyBlock(jobs: string, selected: number, apply: readonly Apply[]): readonly string[] {
   return apply.length === 0
     ? [`0 of ${selected} selected jobs under ${jobs} are apply-ready.`]
     : [
-        "Use /job-apply for each Apply job, in listed order. Start the next job",
-        "only after the current one is recorded, or after I say skip. Do not",
-        "apply to Skip. Do not add a job that is not listed.",
+        `Use the ${APPLY_SKILL} skill to apply for all of these jobs:`,
         "",
-        "Apply:",
         ...apply.map((item) => line(item.row)),
+        "",
+        CLOSER,
       ]
 }
 
