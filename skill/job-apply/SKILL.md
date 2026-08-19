@@ -28,6 +28,11 @@ Unreadable Fact file → stop and say so.
    placeholder — never rewind `interview`/`offer`/`rejected`/`dropped` to
    `applied`, never reconstruct the review. Write law per
    `job-scout/references/schema-dossier.md`. The only disk write this skill ever makes.
+8. After Phase 5 closes, flow-apply `### Close` runs the **inbox leg**: load the
+   `job-inbox` skill in this session and obey it end-to-end on its default
+   candidate set. Its Phase 6 report is this run's last output. An inbox STOP
+   (no transport, no store, no candidates) is not an apply failure — the record
+   already landed. The leg's writes are `job-inbox`'s, under its own law.
 
 ## References
 
