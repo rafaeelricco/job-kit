@@ -33,6 +33,12 @@ submits in the browser only — no Profile-root writes until Phase 5.
 
 ## Phase 0 — read the ad
 
+Print `Browser: <driver>` before opening anything — the tool that will open the
+posting, upload the CV, and click Submit. Native in an agentic browser (Aside);
+the `browser-use` skill in a coding agent. No driver that can open a page, fill
+a form, attach a file, and hold a logged-in session → **STOP** and name what is
+missing. A text fetcher is not a driver.
+
 Open the posting, or take the text the operator pasted. No posting → no fit → no letter.
 A recruiter's summary is not the ad: when the post links a fuller listing, open that.
 

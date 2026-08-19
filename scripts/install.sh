@@ -46,7 +46,9 @@ Usage: install.sh                 # interactive menu (TTY required)
 Targets:
   aside     Aside skills (job-scout, job-apply, job-profile-me, job-list) — full copy
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories)
-  all       aside + agents
+  browser-use  Browser skills (job-scout, job-apply) into coding-agent homes;
+               driven by the local browser-use CLI (docs.browser-use.com)
+  all       aside + agents + browser-use
 
 Options:
   -y, --yes     Skip confirmations (TTY plan gate)
@@ -54,7 +56,9 @@ Options:
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-apply | job-profile-me | job-list
-                agents | claude | codex | grok
+                agents | browser-use | claude | codex | grok
+                (claude|codex|grok narrow a channel named alongside them;
+                alone they mean the agents channel)
                 (job-profile-me also installs job-scout — packs mutate
                 needs its worker-search-*.md stems)
   --skip-claude|--skip-codex|--skip-grok
@@ -101,6 +105,18 @@ skill_leaf() {
   esac
 }
 
+# have_chromium — 0 when a browser-harness-discoverable browser is installed.
+# Args: none. Side effects: none (probes app bundles and PATH only).
+have_chromium() {
+  local app
+  for app in "Google Chrome" "Google Chrome Canary" "Chromium" "Brave Browser" \
+    "Microsoft Edge" "Arc" "Comet" "Dia"; do
+    if [ -d "/Applications/${app}.app" ]; then return 0; fi
+    if [ -d "${HOME}/Applications/${app}.app" ]; then return 0; fi
+  done
+  command -v google-chrome >/dev/null 2>&1 || command -v chromium >/dev/null 2>&1
+}
+
 # aside_selected NAME — 0 when --only keeps NAME in the aside walk.
 aside_selected() {
   [ -n "${ASIDE_ONLY}" ] || return 0
@@ -114,20 +130,28 @@ aside_selected() {
 expand_only() {
   local list="$1" tok
   local want_aside=0 want_agents=0
+  local want_browser=0 channel_named=0
   local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
-      aside) want_aside=1; whole_aside=1 ;;
+      aside) want_aside=1; whole_aside=1; channel_named=1 ;;
       job-scout|job-apply|job-profile-me|job-list)
         want_aside=1
+        channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
-      claude) want_agents=1; named_agent=1; want_claude=1 ;;
-      codex)  want_agents=1; named_agent=1; want_codex=1 ;;
-      grok)   want_agents=1; named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|claude|codex|grok)" ;;
+      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      browser-use) want_browser=1; channel_named=1 ;;
+      claude) named_agent=1; want_claude=1 ;;
+      codex)  named_agent=1; want_codex=1 ;;
+      grok)   named_agent=1; want_grok=1 ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|browser-use|claude|codex|grok)" ;;
     esac
   done
+  # A bare agent-home token still means the agents channel, as it always has —
+  # but only when no channel was named alongside it.
+  if [ "${named_agent}" -eq 1 ] && [ "${channel_named}" -eq 0 ]; then
+    want_agents=1
+  fi
   if [ "${named_agent}" -eq 1 ]; then
     [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
@@ -148,6 +172,7 @@ expand_only() {
   fi
   [ "${want_aside}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} aside"
   [ "${want_agents}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} agents"
+  [ "${want_browser}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} browser-use"
   [ -n "${ONLY_TARGETS}" ] || die "--only selected nothing"
 }
 
@@ -228,18 +253,43 @@ plan_rows_aside() {
   )
 }
 
-# plan_rows_agents — rows for the agents target. No mutation.
-plan_rows_agents() {
-  local repo="${REPO_ROOT}" force="${FORCE}"
+# plan_rows_agent_home SEL LABEL — rows for one agent-home channel. No mutation.
+# SEL is profile (SKILL_NAMES) or browser (BROWSER_SKILL_NAMES); LABEL heads
+# every section this channel prints.
+plan_rows_agent_home() {
+  local sel="$1" label="$2" repo="${REPO_ROOT}" force="${FORCE}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override target root parent label name source dest
+    local override target root parent agent_label_s name source dest names
+    local drivers driver_path driver_fix
+    if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
+    # Requirement rows sit under their own header, or under `all` they would
+    # read as the tail of the preceding channel's section.
+    if [ "${sel}" = browser ]; then
+      drivers="$(browser_use_missing_drivers)"
+      if ! command -v browser-use >/dev/null 2>&1 || ! have_chromium || [ -n "${drivers}" ]; then
+        printf 'H%s%s · requirements%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "offered after install"
+        if ! command -v browser-use >/dev/null 2>&1; then
+          printf 'N%smissing CLI%s%s\n' "${ROW_FS}" "${ROW_FS}" "uv tool install --python 3.12 browser-use"
+        fi
+        if ! have_chromium; then
+          printf 'N%smissing browser%s%s\n' "${ROW_FS}" "${ROW_FS}" "brew install --cask google-chrome"
+        fi
+        while IFS="${ROW_FS}" read -r driver_path driver_fix; do
+          [ -n "${driver_path}" ] || continue
+          printf 'N%smissing driver%s%s\n' "${ROW_FS}" "${ROW_FS}" \
+            "${driver_fix:-supply ${driver_path} yourself (no browser-use --target)}"
+        done <<EOF
+${drivers}
+EOF
+      fi
+    fi
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
-      printf 'H%sagents (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
-      for name in ${SKILL_NAMES}; do
+      printf 'H%s%s (override)%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${override}"
+      for name in ${names}; do
         source="$(skill_source "${repo}" "${name}")"
         dest="$(skill_dest "${override}" "${name}")"
         plan_row_agent "${dest}" "${name}" "${source}" "${force}"
@@ -248,7 +298,7 @@ plan_rows_agents() {
     fi
     for target in ${AGENT_TARGETS}; do
       root="$(agent_skills_root "${target}")"
-      label="$(agent_label "${target}")"
+      agent_label_s="$(agent_label "${target}")"
       if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
         printf 'N%sskipped (--skip-claude)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"
         continue
@@ -261,12 +311,12 @@ plan_rows_agents() {
       fi
       parent="$(agent_parent_dir "${target}")"
       if [ ! -d "${parent}" ]; then
-        printf 'H%sagents · %s%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${root}"
+        printf 'H%s%s · %s%s%s\n' "${ROW_FS}" "${label}" "${agent_label_s}" "${ROW_FS}" "${root}"
         printf 'N%sparent missing%s%s\n' "${ROW_FS}" "${ROW_FS}" "${parent}"
         continue
       fi
-      printf 'H%sagents · %s%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${root}"
-      for name in ${SKILL_NAMES}; do
+      printf 'H%s%s · %s%s%s\n' "${ROW_FS}" "${label}" "${agent_label_s}" "${ROW_FS}" "${root}"
+      for name in ${names}; do
         source="$(skill_source "${repo}" "${name}")"
         dest="$(skill_dest "${root}" "${name}")"
         plan_row_agent "${dest}" "${name}" "${source}" "${force}"
@@ -281,7 +331,8 @@ build_plan() {
   for t in "$@"; do
     case "${t}" in
       aside) plan_rows_aside ;;
-      agents) plan_rows_agents ;;
+      agents) plan_rows_agent_home profile agents ;;
+      browser-use) plan_rows_agent_home browser browser-use ;;
     esac
   done
 }
@@ -397,6 +448,128 @@ confirm_plan() {
   esac
 }
 
+# browser_use_missing_drivers — dests this channel installs into that
+# carry no driver skill. Args: none; prints one `PATH<ROW_FS>FIX` row per gap.
+# PATH is the driver path in display form; FIX is the command that installs it
+# there, empty when `browser-use skill install` has no `--target` for that dest
+# (Grok, or a CLAUDE_SKILLS override). An empty FIX still reports the gap —
+# the channel links job-scout and job-apply there, and their Phase 0 STOPs
+# without a driver — but the callers name the path instead of offering a
+# command the CLI cannot run.
+# A dest the kit does not install into is skipped: a driver missing there is
+# not a gap this channel can close. When CLAUDE_SKILLS is set, that dest is
+# exclusive (same as install_agent_home) and AGENT_TARGETS are not walked.
+browser_use_missing_drivers() {
+  local repo="${REPO_ROOT}"
+  (
+    # shellcheck source=agents/lib.sh
+    . "${repo}/scripts/agents/lib.sh"
+    local target fix root override
+    override="$(resolve_override_skills)" || exit 1
+    if [ -n "${override}" ]; then
+      [ -e "${override}/browser-use" ] || [ -L "${override}/browser-use" ] \
+        || printf '%s%s%s\n' "$(path_display "${override}/browser-use")" "${ROW_FS}" ""
+      exit 0
+    fi
+    for target in ${AGENT_TARGETS}; do
+      # if/else (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
+      # inside command substitutions.
+      if [ "${target}" = claude ]; then
+        [ "${SKIP_CLAUDE}" -eq 0 ] || continue
+        fix="browser-use skill install --target claude"
+      elif [ "${target}" = codex ]; then
+        [ "${SKIP_CODEX}" -eq 0 ] || continue
+        fix="browser-use skill install --target agents"
+      else
+        [ "${SKIP_GROK}" -eq 0 ] || continue
+        fix=""
+      fi
+      root="$(agent_skills_root "${target}")"
+      [ -d "$(agent_parent_dir "${target}")" ] || [ -d "${root}" ] || continue
+      [ -e "${root}/browser-use" ] || [ -L "${root}/browser-use" ] \
+        || printf '%s%s%s\n' "$(path_display "${root}/browser-use")" "${ROW_FS}" "${fix}"
+    done
+  )
+}
+
+# browser_use_offer LABEL COMMAND — flag one missing requirement, offer to run it.
+# COMMAND is a fixed literal from the caller below — at most an install target
+# from a closed two-value map — never operator input.
+# Prints the flag always; prompts only on a TTY. --yes never auto-installs a
+# third-party tool: the kit's own law is that it installs skill trees and
+# nothing else, so this stays an explicit, per-item yes.
+browser_use_offer() {
+  local label="$1" cmd="$2" reply
+  echo "  missing: ${label}"
+  echo "    fix: ${cmd}"
+  [ -t 0 ] || return 0
+  printf '    run it now? [y/N] ' >&2
+  read -r reply || true
+  case "${reply}" in
+    y|Y|yes|YES)
+      eval "${cmd}" || echo "    failed, run it yourself: ${cmd}" >&2 ;;
+  esac
+}
+
+# browser_use_preflight — flag every missing browser-use requirement + offer fixes.
+# Args: none. Side effects: may run one offered install command per yes answer.
+# Never blocks: the skills are already installed and job-scout Phase 0 STOPs on
+# its own when no driver answers.
+browser_use_preflight() {
+  local need_cli=0 need_browser=0 drivers driver_path driver_fix
+  command -v browser-use >/dev/null 2>&1 || need_cli=1
+  have_chromium || need_browser=1
+  # Probed separately: a CLI and a browser that are both already present say
+  # nothing about the driver skill, and job-scout/job-apply Phase 0 needs it.
+  drivers="$(browser_use_missing_drivers)"
+  [ "${need_cli}" -eq 1 ] || [ "${need_browser}" -eq 1 ] || [ -n "${drivers}" ] || return 0
+
+  echo
+  echo "browser-use · requirements not met"
+  if [ "${need_cli}" -eq 1 ]; then
+    if command -v uv >/dev/null 2>&1; then
+      browser_use_offer "browser-use CLI" "uv tool install --python 3.12 browser-use"
+    elif command -v brew >/dev/null 2>&1; then
+      browser_use_offer "uv (needed to install browser-use)" "brew install uv"
+    else
+      echo "  missing: browser-use CLI"
+      echo "    fix: install uv (https://docs.astral.sh/uv/), then:"
+      echo "         uv tool install --python 3.12 browser-use"
+    fi
+  fi
+  if [ "${need_browser}" -eq 1 ]; then
+    if command -v brew >/dev/null 2>&1; then
+      browser_use_offer "a Chromium-family browser" "brew install --cask google-chrome"
+    else
+      echo "  missing: a Chromium-family browser"
+      echo "    fix: install Google Chrome (https://www.google.com/chrome/)"
+    fi
+  fi
+  if [ -n "${drivers}" ]; then
+    while IFS="${ROW_FS}" read -r driver_path driver_fix; do
+      [ -n "${driver_path}" ] || continue
+      if [ -z "${driver_fix}" ]; then
+        # No `--target` reaches this home, so there is nothing to offer: name
+        # the gap and the path, never a command the CLI cannot run.
+        echo "  missing: browser-use driver skill (${driver_path})"
+        echo "    fix: supply ${driver_path} yourself —"
+        echo "         browser-use skill install has no --target for this home"
+      elif command -v browser-use >/dev/null 2>&1; then
+        browser_use_offer "browser-use driver skill (${driver_path})" "${driver_fix}"
+      else
+        # No CLI to run it with yet; name the command for after the CLI lands.
+        echo "  missing: browser-use driver skill (${driver_path})"
+        echo "    fix: ${driver_fix}"
+      fi
+    done <<EOF
+${drivers}
+EOF
+  fi
+  echo "  then, once in the browser: open chrome://inspect/#remote-debugging and"
+  echo "  tick 'Allow remote debugging', and sign in to the sites you scout."
+  echo
+}
+
 # install_aside — apply Aside channel. No plan.
 install_aside() {
   local repo="${REPO_ROOT}" force="${FORCE}" aside_only="${ASIDE_ONLY}" soft="${SOFT_SKIP}"
@@ -438,19 +611,22 @@ install_aside() {
   )
 }
 
-# install_agents — apply agents channel. No plan.
+# install_agent_home SEL LABEL — apply one agent-home channel. No plan.
+# SEL is profile (SKILL_NAMES) or browser (BROWSER_SKILL_NAMES); LABEL names the
+# channel in messages.
 # soft=1: missing parents skip; zero installs OK if soft. soft=0: need ≥1 linked.
-install_agents() {
-  local repo="${REPO_ROOT}" force="${FORCE}" soft="${SOFT_SKIP}"
+install_agent_home() {
+  local sel="$1" label="$2" repo="${REPO_ROOT}" force="${FORCE}" soft="${SOFT_SKIP}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override dest_root target parent label linked=0 attempted=0
+    local override dest_root target parent agent_label_s linked=0 attempted=0 names
+    if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
-      install_skills_into "${override}" "${repo}" "${force}" || exit 1
+      install_skills_into "${override}" "${repo}" "${force}" "${names}" || exit 1
       echo "Install completed -> ${override}"
       exit 0
     fi
@@ -462,14 +638,14 @@ install_agents() {
       esac
       parent="$(agent_parent_dir "${target}")"
       dest_root="$(agent_skills_root "${target}")"
-      label="$(agent_label "${target}")"
+      agent_label_s="$(agent_label "${target}")"
       if [ ! -d "${parent}" ]; then
-        echo "${label}: parent missing (${parent}); skipping."
+        echo "${agent_label_s}: parent missing (${parent}); skipping."
         continue
       fi
       attempted=$((attempted + 1))
-      echo "== ${label} (${dest_root}) =="
-      if install_skills_into "${dest_root}" "${repo}" "${force}"; then
+      echo "== ${agent_label_s} (${dest_root}) =="
+      if install_skills_into "${dest_root}" "${repo}" "${force}" "${names}"; then
         linked=$((linked + 1))
       else
         exit 1
@@ -493,23 +669,26 @@ install_agents() {
 run_target() {
   case "$1" in
     aside) install_aside ;;
-    agents) install_agents ;;
+    agents) install_agent_home profile agents ;;
+    browser-use) install_agent_home browser browser-use ;;
     *) die "unknown target: $1" ;;
   esac
 }
 
-# plan_order TARGET… — dedup, preserve aside then agents when both present.
+# plan_order TARGET… — dedup, preserve aside, agents, browser-use order.
 plan_order() {
-  local t out="" has_aside=0 has_agents=0
+  local t out="" has_aside=0 has_agents=0 has_browser=0
   for t in "$@"; do
     case "${t}" in
       aside) has_aside=1 ;;
       agents) has_agents=1 ;;
+      browser-use) has_browser=1 ;;
       *) die "unknown target: ${t}" ;;
     esac
   done
   [ "${has_aside}" -eq 0 ] || out="${out}${out:+ }aside"
   [ "${has_agents}" -eq 0 ] || out="${out}${out:+ }agents"
+  [ "${has_browser}" -eq 0 ] || out="${out}${out:+ }browser-use"
   printf '%s\n' "${out}"
 }
 
@@ -565,6 +744,12 @@ EOF
       die "nothing to install: required parent directories are missing (see plan)"
     fi
     echo "nothing to install."
+    # Skills already linked does not mean the driver is there. Re-running setup
+    # is how an operator asks for the offer again, so it must not depend on a
+    # link being created this run.
+    case " ${ordered} " in
+      *" browser-use "*) browser_use_preflight ;;
+    esac
     return 0
   fi
   confirm_plan "${installs}" || return 1
@@ -573,6 +758,9 @@ EOF
   for t in ${ordered}; do
     run_target "${t}"
   done
+  case " ${ordered} " in
+    *" browser-use "*) browser_use_preflight ;;
+  esac
   echo
   printf 'done · %s installs · 0 failed\n' "${installs}"
 }
@@ -584,14 +772,16 @@ interactive_menu() {
   select choice in \
     "Aside skills" \
     "Coding-agent skills" \
+    "browser-use skills (job-scout + job-apply in coding agents)" \
     "All of the above" \
     "Quit"
   do
     case "${REPLY}" in
       1) run_plan aside; return 0 ;;
       2) run_plan agents; return 0 ;;
-      3) run_plan aside agents; return 0 ;;
-      4) echo "quit"; return 0 ;;
+      3) run_plan browser-use; return 0 ;;
+      4) run_plan aside agents browser-use; return 0 ;;
+      5) echo "quit"; return 0 ;;
       *) echo "invalid choice" >&2 ;;
     esac
   done
@@ -627,7 +817,7 @@ main() {
       --skip-claude) SKIP_CLAUDE=1 ;;
       --skip-codex) SKIP_CODEX=1 ;;
       --skip-grok) SKIP_GROK=1 ;;
-      aside|agents|all)
+      aside|agents|browser-use|all)
         targets[${#targets[@]}]="$1"
         ;;
       *)
@@ -646,7 +836,7 @@ main() {
       interactive_menu
       return 0
     fi
-    die "need a target (aside|agents|all) when stdin is not a TTY"
+    die "need a target (aside|agents|browser-use|all) when stdin is not a TTY"
   fi
   [ -z "${ONLY_TARGETS}" ] \
     || die "--only cannot be combined with positional targets (see --help)"
@@ -658,7 +848,7 @@ main() {
   if [ "${has_all}" -eq 1 ]; then
     [ "${#targets[@]}" -eq 1 ] \
       || die "'all' cannot be combined with other targets"
-    run_plan aside agents
+    run_plan aside agents browser-use
     return 0
   fi
 
