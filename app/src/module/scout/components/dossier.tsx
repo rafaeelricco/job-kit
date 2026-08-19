@@ -106,6 +106,7 @@ function EmptyNote() {
 type DossierTableProps = {
   readonly rows: readonly Dossier[]
   readonly root: string
+  readonly skillsRoot: string
   readonly columns: readonly ColumnId[]
   readonly sort: SortState
   readonly onSort: (next: SortState) => void
@@ -190,7 +191,7 @@ function DossierTable(props: DossierTableProps) {
           salary: cell("salary", row),
           source: cell("source", row),
           status: cell("status", row),
-          actions: <RowActions row={row} root={props.root} onDelete={props.onDelete} />,
+          actions: <RowActions row={row} root={props.root} skillsRoot={props.skillsRoot} onDelete={props.onDelete} />,
         },
       }))}
     />
@@ -211,12 +212,13 @@ const DELETE_HINT = "Hold to move this file into scout/jobs/.trash — recoverab
 function RowActions(props: {
   readonly row: Dossier
   readonly root: string
+  readonly skillsRoot: string
   readonly onDelete: (file: string) => void
 }) {
   // Controlled so the hold can dismiss the menu itself. Releasing the pointer
   // never reaches a menu item, so nothing else would close it.
   const [open, setOpen] = useState(false)
-  const { onDelete, root, row } = props
+  const { onDelete, root, row, skillsRoot } = props
   const href = httpHref(row.url)
   // The export helpers take a list; one row is a list of one, and the file
   // stem names the download so a single job is not "dossiers-1.csv".
@@ -242,7 +244,7 @@ function RowActions(props: {
                 Open posting
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => copyText(toApplyPrompt(root, [row]), "Apply prompt")}>
+            <DropdownMenuItem onClick={() => copyText(toApplyPrompt(root, skillsRoot, [row]), "Apply prompt")}>
               <CopyIcon />
               Copy apply prompt
             </DropdownMenuItem>

@@ -126,6 +126,7 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         <DossierTable
           rows={current.rows}
           root={store.root}
+          skillsRoot={store.skillsRoot}
           columns={columns}
           sort={sort}
           onSort={onSort}
@@ -163,7 +164,13 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar root={store.root} rows={selectedRows} onDelete={onDelete} onClear={() => setSelected(new Set())} />
+      <SelectionBar
+        root={store.root}
+        skillsRoot={store.skillsRoot}
+        rows={selectedRows}
+        onDelete={onDelete}
+        onClear={() => setSelected(new Set())}
+      />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>
