@@ -162,7 +162,13 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar rows={selectedRows} onHide={onHide} onDelete={onDelete} onClear={() => setSelected(new Set())} />
+      <SelectionBar
+        root={store.root}
+        rows={selectedRows}
+        onHide={onHide}
+        onDelete={onDelete}
+        onClear={() => setSelected(new Set())}
+      />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>
