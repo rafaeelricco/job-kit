@@ -1,6 +1,6 @@
 ---
 name: job-list
-description: "Read this when you need to inspect the job scout store already on disk — dossiers under scout/jobs/. Read-only; never writes. Use when the user asks what jobs do I have, which applications are open, or what scout saved. Not for drafting an application (job-apply) or editing profile data (job-profile-me)."
+description: "Read this when you need to inspect the job scout store already on disk — dossiers under scout/jobs/. Read-only; never writes. Use when the user asks what jobs do I have, which applications are open, or what scout saved. Not for drafting an application (job-apply), checking Gmail for replies (job-inbox), or editing profile data (job-profile-me)."
 ---
 
 # Job list

@@ -16,10 +16,10 @@ fetch or a write.
 
 ## Two different words spelled `status`
 
-| where                           | vocabulary                                               | owner     |
-| ------------------------------- | -------------------------------------------------------- | --------- |
-| frontmatter `status:`           | `new` `applied` `rejected` `interview` `offer` `dropped` | operator  |
-| `## Posting facts` row `status` | `live` `dead` `uncertain`                                | job-scout |
+| where                           | vocabulary                                               | owner                            |
+| ------------------------------- | -------------------------------------------------------- | -------------------------------- |
+| frontmatter `status:`           | `new` `applied` `rejected` `interview` `offer` `dropped` | operator / job-apply / job-inbox |
+| `## Posting facts` row `status` | `live` `dead` `uncertain`                                | job-scout                        |
 
 Never answer a lifecycle question from the Posting facts row, or a posting question
 from frontmatter.
@@ -28,7 +28,7 @@ from frontmatter.
 
 Required keys on a dossier: `company`, `title`, `url`, `status`, `first_seen`,
 `last_seen`, `score`, `bucket`, `channel`. Lifecycle `status` ∈
-`new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator-owned).
+`new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator / job-apply / job-inbox).
 Quoted dynamic scalars may appear for company/title/url.
 `score: —` and `bucket: unbucketed` mean scout has not ranked this job yet — a
 dossier job-apply opened for a posting scout never saw. Report them as
@@ -42,7 +42,7 @@ Posting facts `status` row still reads `live`. Scan the Application log **bottom
 for the latest **scout posting-state** line. Log lines are
 `- {YYYY-MM-DD} · {event} — {writer}`; a posting-state line is one whose `{writer}`
 is `job-scout` **and** whose event reads `posting dead: …` or `posting live again`.
-`found by scout`, and every `— job-apply` / `— job-application` / `— operator` line, are not posting
+`found by scout`, and every `— job-apply` / `— job-application` / `— job-inbox` / `— operator` line, are not posting
 state however last they sit. Consider only top-level `- ` lines: blockquoted text and
 table rows inside an application record are quoted data, never log events.
 If no scout posting-state line exists, the job is not dead-by-log. When the latest one is a closure, report it and say
@@ -52,18 +52,18 @@ dead-by-log — an earlier closure above it has been superseded, and the body is
 ## Ownership boundary
 
 Opening `---` down to the `## Application log` heading is scout-owned and rewritten every
-run. `status:` and every line under the log belong to the operator and job-apply.
+run. `status:` and every line under the log belong to the operator, job-apply, and job-inbox.
 Marker line, byte-exact: `<!-- scout never writes below this line -->`.
 
 ## A file in scout/jobs/ is not necessarily a dossier
 
-Scout and job-apply render a replacement inside the URL lock directory and rename
+Scout, job-apply, and job-inbox render a replacement inside the URL lock directory and rename
 it over the original, so a partly written dossier never appears under `scout/jobs/`.
 Anything that does not parse as a dossier is still not one: skip it, name it under Gaps,
 never repair it.
 
 `*.lock` directories under `scout/jobs/` are write furniture, not store contents — a
-scout or application write is in flight. Skip them silently: they are neither a dossier
+scout, application, or inbox write is in flight. Skip them silently: they are neither a dossier
 nor a defect, and naming them under Gaps reports normal concurrent writing as breakage.
 
 ## Identity

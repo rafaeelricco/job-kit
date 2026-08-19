@@ -28,3 +28,5 @@ CV_LINE) is omitted entirely, never printed blank.
   writes one from evidence; `/job-stories audit` says which still need numbers.
 - After a scout run persists, `/job-list` reads `scout/jobs/` back — dossiers
   and application status — without writing to it.
+- After apply, `/job-inbox` checks Gmail for replies and writes later `status:`
+  when the mail strongly matches a tracked application.

@@ -44,8 +44,8 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list) — full copy
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories)
+  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-inbox) — full copy
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-inbox)
   all       aside + agents
 
 Options:
@@ -53,7 +53,7 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-profile-me | job-list
+                aside | job-scout | job-apply | job-profile-me | job-list | job-inbox
                 agents | claude | codex | grok
                 (job-profile-me also installs job-scout — packs mutate
                 needs its worker-search-*.md stems)
@@ -118,14 +118,14 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1 ;;
-      job-scout|job-apply|job-profile-me|job-list)
+      job-scout|job-apply|job-profile-me|job-list|job-inbox)
         want_aside=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
       agents) want_agents=1; want_claude=1; want_codex=1; want_grok=1 ;;
       claude) want_agents=1; named_agent=1; want_claude=1 ;;
       codex)  want_agents=1; named_agent=1; want_codex=1 ;;
       grok)   want_agents=1; named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|agents|claude|codex|grok)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-inbox|agents|claude|codex|grok)" ;;
     esac
   done
   if [ "${named_agent}" -eq 1 ]; then
