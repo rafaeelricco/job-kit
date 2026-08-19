@@ -8,10 +8,10 @@ type Apply = { readonly kind: "apply"; readonly row: Dossier }
 type Skip = { readonly kind: "skip"; readonly row: Dossier; readonly reasons: readonly string[] }
 type Classified = Apply | Skip
 
-function toApplyPrompt(root: string, rows: readonly Dossier[]): string {
+function toApplyPrompt(root: string, skills: string, rows: readonly Dossier[]): string {
   const queued = rows.map(classify)
   return joinBlocks([
-    applyBlock(`${root}/scout/jobs`, rows.length, queued.filter(isApply)),
+    applyBlock(`${root}/scout/jobs`, skills, rows.length, queued.filter(isApply)),
     skipBlock(queued.filter(isSkip)),
   ])
 }
@@ -26,24 +26,27 @@ function classify(row: Dossier): Classified {
 
 // Skills are addressed by absolute path, not by slash command: the prompt is
 // pasted into a chat that has no notion of this app's working directory.
-const SKILLS = "/Users/rafaelricco/.aside/u/0/skills/builtin"
-const APPLY_SKILL = `[$Job Apply](${SKILLS}/job-apply/SKILL.md)`
-const LIST_SKILL = `[$Job List](${SKILLS}/job-list/SKILL.md)`
-const PROFILE_SKILL = `[$Job Profile Me](${SKILLS}/job-profile-me/SKILL.md)`
+function skillLinks(skills: string) {
+  return {
+    apply: `[$Job Apply](${skills}/job-apply/SKILL.md)`,
+    list: `[$Job List](${skills}/job-list/SKILL.md)`,
+    profile: `[$Job Profile Me](${skills}/job-profile-me/SKILL.md)`,
+  }
+}
 
-const CLOSER =
-  `use the ${LIST_SKILL} to consult the data of each and also the ${PROFILE_SKILL} ` +
-  "and make sure to write concise and high signal texts/histories to increase the chance for I get return from the job."
-
-function applyBlock(jobs: string, selected: number, apply: readonly Apply[]): readonly string[] {
+function applyBlock(jobs: string, skills: string, selected: number, apply: readonly Apply[]): readonly string[] {
+  const links = skillLinks(skills)
+  const closer =
+    `use the ${links.list} to consult the data of each and also the ${links.profile} ` +
+    "and make sure to write concise and high signal texts/histories to increase the chance for I get return from the job."
   return apply.length === 0
     ? [`0 of ${selected} selected jobs under ${jobs} are apply-ready.`]
     : [
-        `Use the ${APPLY_SKILL} skill to apply for all of these jobs:`,
+        `Use the ${links.apply} skill to apply for all of these jobs:`,
         "",
         ...apply.map((item) => line(item.row)),
         "",
-        CLOSER,
+        closer,
       ]
 }
 
