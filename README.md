@@ -1,14 +1,14 @@
 # job-kit
 
-Seven agent skills for running a job search at volume: sweep the surfaces you
+Eight agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, draft applications from profile
 facts, read back what a run saved, and update status from Gmail replies. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
-Two install channels: scout, apply, config, tracker, and inbox run in
+Two install channels: scout, apply, config, tracker, inbox, and profile-root run in
 [Aside Browser](https://aside.com); profile init and stories (plus config, tracker,
-and inbox as symlinks) run in coding agents (Claude Code, Codex, Grok).
+inbox, and profile-root as symlinks) run in coding agents (Claude Code, Codex, Grok).
 
 | Skill              | Role                                                                                | Channel                         | Installed under                                                     |
 | ------------------ | ----------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
@@ -16,6 +16,7 @@ and inbox as symlinks) run in coding agents (Claude Code, Codex, Grok).
 | `job-apply`        | Draft, stage, and after approve submit one posting                                  | Aside (copy)                    | `~/.aside/u/0/skills/builtin/`                                      |
 | `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 | `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-root` | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-inbox`        | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
@@ -42,14 +43,14 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                                  |
-| -------------- | --------------------------------------------------------------------------------------------------------- |
-| `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default)        |
-| `aside`        | `job-scout` + `job-apply` + `job-profile-me` + `job-list` + `job-inbox` (fails if no Aside)               |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` (fails if no agent home) |
-| `fetch`        | Nothing — refresh the cached checkout only                                                                |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                               |
-| `-h`, `--help` | Nothing — print usage                                                                                     |
+| Argument       | Installs                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `all`          | Both channels; an absent target is skipped, not an error — fails only if both are absent (default)                             |
+| `aside`        | `job-scout` + `job-apply` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` (fails if no Aside)               |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` (fails if no agent home) |
+| `fetch`        | Nothing — refresh the cached checkout only                                                                                     |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                                    |
+| `-h`, `--help` | Nothing — print usage                                                                                                          |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -221,13 +222,13 @@ bash scripts/uninstall.sh
 bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Choice / target | Removes                                                                                                              |
-| --------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` + `job-inbox` kit copies                                   |
-| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` kit links (+ legacy `profile-init`) |
-| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                     |
-| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                    |
-| **All**         | Aside + agents + **profile** + cache                                                                                 |
+| Choice / target | Removes                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` kit copies                                   |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` kit links (+ legacy `profile-init`) |
+| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                          |
+| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                         |
+| **All**         | Aside + agents + **profile** + cache                                                                                                      |
 
 Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
 profile or cache data requires typing `yes`; a plan of re-installable links takes
@@ -235,7 +236,7 @@ profile or cache data requires typing `yes`; a plan of re-installable links take
 
 `--only` selects a subset instead of positional targets — by channel (`aside`,
 `agents`), by Aside skill (`job-scout`, `job-apply`, `job-profile-me`,
-`job-list`, `job-inbox`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
+`job-list`, `job-inbox`, `job-profile-root`), or by agent home (`claude`, `codex`, `grok`), plus `profile` and
 `cache`. An Aside skill subset cannot be combined with `cache`: the unselected
 skill would still point at it.
 
@@ -293,6 +294,7 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-apply/`        | Apply law, draft contract, approve-gated submit     |
 | `skill/job-profile-init/` | Intake + templates for empty profiles               |
 | `skill/job-profile-me/`   | Show + edit search intent and boards                |
+| `skill/job-profile-root/` | Resolve Profile root; never writes                  |
 | `skill/job-list/`         | Read the profile's scout store; never writes        |
 | `skill/job-inbox/`        | Gmail replies → lifecycle status on strong evidence |
 | `skill/job-stories/`      | Write and check the interview story deck            |

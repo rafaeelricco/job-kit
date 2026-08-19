@@ -129,7 +129,7 @@
      against `$KIT_ROOT/skill/job-profile-init`. Installed = at least one match.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
      Installed = for each of `job-scout`, `job-apply`, `job-profile-me`,
-     `job-list`, `job-inbox`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
+     `job-list`, `job-inbox`, `job-profile-root`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
      `$KIT_ROOT/skill/<name>`.
    - **Never probe by directory existence.** Legacy `skills/user/job-application` and
      `job-discovery` links from other repos are left in place by the installer
@@ -155,8 +155,8 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    - Any probe _unknown_ → print its command with the reason it could not be
      checked. Commands are absolute; CWD does not matter.
 
-   **If unresolved** — probe Aside repo-agnostically first: all four
-   `$ASIDE_ROOT/{job-scout,job-apply,job-profile-me,job-list,job-inbox}/.job-kit`
+   **If unresolved** — probe Aside repo-agnostically first: all six
+   `$ASIDE_ROOT/{job-scout,job-apply,job-profile-me,job-list,job-inbox,job-profile-root}/.job-kit`
    exist → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):
