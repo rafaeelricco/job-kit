@@ -27,7 +27,22 @@ job → `unmatched`, not an undrop.
 
 ## Outcomes
 
-Exactly one per thread. Quote the clause that fired.
+Exactly one per thread, and every one is earned from the **fetched body**.
+
+Two requirements, binding on `ack` as hard as on the three that write:
+
+1. The full thread body is fetched. A search snippet, a subject line, and a
+   sender name are not evidence of anything.
+2. The verdict quotes one clause from that body — the words that fired it, not
+   a paraphrase.
+
+`noise` is the sole exception: it is the verdict for mail the Phase 2
+snippet-filter already dropped, and dropped mail has no body. A survivor with
+no body is `skip`, never `ack`.
+
+`ack` asserted from a snippet is the failure this contract exists to stop.
+"Thank you for applying", "we received your application", and "congratulations"
+all open mail that goes on to schedule a call.
 
 | Outcome     | `status:` write | Fires when the message                                                                           |
 | ----------- | --------------- | ------------------------------------------------------------------------------------------------ |
@@ -48,8 +63,8 @@ Frontmatter `status:` only moves forward, or not at all.
 
 ```
 applied   → interview | offer | rejected | (ack: stay)
-interview → offer | rejected | (further interview mail: stay, still log)
-offer     → rejected | (counter/detail mail: stay, still log)
+interview → offer | rejected | (further interview mail: stay)
+offer     → rejected | (counter/detail mail: stay)
 rejected  → interview is skip (reopen never auto).
 dropped   → never
 new       → never from mail (no apply record → not this skill)
@@ -58,20 +73,23 @@ new       → never from mail (no apply record → not this skill)
 Never rewind (`offer`→`interview`, `interview`→`applied`, `rejected`→`applied`).
 A late apply-record already forbids that rewind; this skill must not introduce it.
 
-`ack` never writes. Same-status interview/offer mail may still append a log
-line (thread id for idempotency) when ## Write is otherwise satisfied.
+`ack` never writes. Mail repeating a stage already logged for its thread writes
+nothing — ## Write item 5 owns that test.
 
 ## Write
 
 A row is writable only when every item holds. Missing one → `skip` or
-`unmatched` / `noise` / `ack`. Never ask the operator to fill a gap.
+`unmatched` / `noise` / `ack`.
 
-1. Full thread body fetched (not a search snippet).
+1. Body fetched and clause quoted (## Outcomes) — already true of every row
+   that reached classify, or that row is `skip`.
 2. Match strength is **strong** and exactly one candidate dossier.
-3. Outcome ∈ `interview` | `offer` | `rejected`, quoted from that body
-   (one clause; not a paraphrase; not the subject line alone).
+3. Outcome ∈ `interview` | `offer` | `rejected`.
 4. Transition from current frontmatter `status:` is legal (table above).
-5. Thread id is not already on that dossier's log.
+5. This thread id is not already on that dossier's log **with this outcome**.
+   One thread carries the whole conversation — screen, then interview, then
+   offer — so a skip keyed on the thread alone would drop every stage after the
+   first. Same thread and same outcome → already recorded.
 
 Read before classifying: the dossier's `company`, `title`, `status`, and
 `applied via` date, then the fetched body. Classify from those, not from
@@ -79,9 +97,15 @@ memory of the snippet.
 
 ## Hard refuses
 
-- Send, draft, reply, forward, trash, label, or mark-read as part of classify
-- Write `status:` from a snippet without a fetched body
+- Any mail write, in any phase. This skill reads mail and nothing else — no
+  send, draft, reply, forward, trash, label, or mark-read. The only surface it
+  writes is `scout/jobs/`.
+- Ask the operator anything. Not which dossier, not which account, not whether
+  to write, not to fill a gap — a gap is a `skip`, never a question.
+- Classify from a snippet, a subject line, or a sender name. Binds every row,
+  not only the ones that write — `ack` without a fetched body is the same
+  refusal as `status:` without one. `noise` is the sole exception.
+- Report an outcome you cannot quote from the body you fetched
 - Bind on the word "interview" / "offer" alone, without a company match
-- Ask the operator which dossier, which account, or whether to write
 - Treat calendar UI or "click to confirm" copy as a status write
 - Invent company, title, URL, or thread id
