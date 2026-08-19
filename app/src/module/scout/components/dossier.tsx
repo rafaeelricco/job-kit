@@ -1,7 +1,8 @@
 export { DossierCards, DossierSheet, DossierTable }
 
-import { ExternalLinkIcon, MoreHorizontal, TriangleAlertIcon } from "lucide-react"
-import { type KeyboardEvent, type ReactNode } from "react"
+import { CopyIcon, DownloadIcon, ExternalLinkIcon, MoreHorizontal, Trash2Icon, TriangleAlertIcon } from "lucide-react"
+import { useState, type KeyboardEvent, type ReactNode } from "react"
+import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,12 +17,18 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { HoldButton } from "@/components/ui/hold-button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { toApplyPrompt } from "@/module/scout/helpers/apply-prompt"
 import type { ColumnId } from "@/module/scout/helpers/columns"
 import { COLUMNS, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
+import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
 import { httpHref } from "@/module/scout/helpers/href"
 import { assertNever } from "@/module/scout/result"
 import type { Dossier } from "@/module/scout/types"
@@ -56,7 +63,11 @@ function StatusBadges({ row }: { readonly row: Dossier }) {
 function StopClick({ children }: { readonly children: ReactNode }) {
   return (
     <span
-      className="inline-flex"
+      // Block-level, not inline: an inline box sits on the text baseline, and a
+      // 16px checkbox in a 20px line box then rides ~4px high in a tall row.
+      // `flex` takes it out of the line box so the cell's align-middle centres
+      // the control itself.
+      className="flex items-center"
       onClick={(event) => event.stopPropagation()}
       onKeyDown={(event) => event.stopPropagation()}
     >
@@ -94,6 +105,7 @@ function EmptyNote() {
 
 type DossierTableProps = {
   readonly rows: readonly Dossier[]
+  readonly root: string
   readonly columns: readonly ColumnId[]
   readonly sort: SortState
   readonly onSort: (next: SortState) => void
@@ -101,7 +113,7 @@ type DossierTableProps = {
   readonly onToggle: (file: string) => void
   readonly onToggleAll: () => void
   readonly onOpen: (file: string) => void
-  readonly onHide: (file: string) => void
+  readonly onDelete: (file: string) => void
 }
 
 function DossierTable(props: DossierTableProps) {
@@ -125,13 +137,8 @@ function DossierTable(props: DossierTableProps) {
         return <span className="block max-w-56 truncate">{factText(row.facts.location)}</span>
       case "salary":
         return <span className="block max-w-56 truncate">{factText(row.facts.salary)}</span>
-      case "seen":
-        return (
-          <div>
-            <div className="text-foreground tabular-nums">{row.lastSeen}</div>
-            <div className="text-xs text-muted-foreground tabular-nums">{row.firstSeen}</div>
-          </div>
-        )
+      case "source":
+        return <span className="block max-w-40 truncate">{row.provenance.source}</span>
       case "status":
         return (
           <div className="flex items-center gap-1.5">
@@ -181,45 +188,102 @@ function DossierTable(props: DossierTableProps) {
           company: cell("company", row),
           location: cell("location", row),
           salary: cell("salary", row),
-          seen: cell("seen", row),
+          source: cell("source", row),
           status: cell("status", row),
-          actions: <RowActions row={row} onOpen={props.onOpen} onHide={props.onHide} />,
+          actions: <RowActions row={row} root={props.root} onDelete={props.onDelete} />,
         },
       }))}
     />
   )
 }
 
+// The menu closes on click, so a copy cannot flip its own label the way
+// CopyButton does in the toolbar — a toast is the only feedback left.
+function copyText(text: string, what: string): void {
+  void navigator.clipboard.writeText(text).then(
+    () => toast.success(`${what} copied`),
+    () => toast.error("Could not copy to the clipboard")
+  )
+}
+
+const DELETE_HINT = "Hold to move this file into scout/jobs/.trash — recoverable with mv"
+
 function RowActions(props: {
   readonly row: Dossier
-  readonly onOpen: (file: string) => void
-  readonly onHide: (file: string) => void
+  readonly root: string
+  readonly onDelete: (file: string) => void
 }) {
-  const href = httpHref(props.row.url)
+  // Controlled so the hold can dismiss the menu itself. Releasing the pointer
+  // never reaches a menu item, so nothing else would close it.
+  const [open, setOpen] = useState(false)
+  const { onDelete, root, row } = props
+  const href = httpHref(row.url)
+  // The export helpers take a list; one row is a list of one, and the file
+  // stem names the download so a single job is not "dossiers-1.csv".
+  const stem = row.file.replace(/\.md$/, "")
+  const exportAs = (extension: string, mime: string, body: string) => {
+    download(`${stem}.${extension}`, mime, body)
+    toast.success(`Exported ${row.company}`)
+  }
+
   return (
     <StopClick>
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
           <span className="sr-only">Open menu</span>
           <MoreHorizontal />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuGroup>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => props.onOpen(props.row.file)}>Open dossier</DropdownMenuItem>
-            {href === null || props.row.posting.kind === "dead" ? null : (
+            {href === null || row.posting.kind === "dead" ? null : (
               <DropdownMenuItem onClick={() => window.open(href, "_blank", "noopener,noreferrer")}>
+                <ExternalLinkIcon />
                 Open posting
               </DropdownMenuItem>
             )}
+            <DropdownMenuItem onClick={() => copyText(toApplyPrompt(root, [row]), "Apply prompt")}>
+              <CopyIcon />
+              Copy apply prompt
+            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <DownloadIcon />
+                Export
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => exportAs("csv", "text/csv", toCsv([row]))}>CSV</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportAs("json", "application/json", toJson([row]))}>
+                  JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportAs("md", "text/markdown", toMarkdown([row]))}>
+                  Markdown
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => void navigator.clipboard.writeText(props.row.company)}>
-              Copy company
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => props.onHide(props.row.file)}>Hide</DropdownMenuItem>
-          </DropdownMenuGroup>
+          {/* The toolbar's own control, not a menu item dressed up as one: a
+              DropdownMenuItem activates on click, which is the single gesture
+              the hold exists to prevent. Menu items also spread their handlers
+              onto whatever they render, and HoldButton installs its pointer
+              handlers after the spread — the two would fight over the press. */}
+          <div className="p-1">
+            <HoldButton
+              variant="destructive"
+              size="sm"
+              className="w-full justify-start"
+              onHold={() => {
+                setOpen(false)
+                onDelete(row.file)
+              }}
+              title={DELETE_HINT}
+              aria-label={DELETE_HINT}
+            >
+              <Trash2Icon />
+              Hold to delete
+            </HoldButton>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     </StopClick>
