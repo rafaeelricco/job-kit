@@ -1,11 +1,7 @@
 # Profile root — recovery (Aside / dual-home)
 
-Ordered probe steps are authored in `../SKILL.md` and mirrored in job-list and
-job-profile-me SKILL.md, each marked `keep in sync`. They are inlined rather
-than delegated because the coding-agents channel installs those two skills without
-job-scout (`scripts/agents/lib.sh`), so they cannot read this tree. This file does
-not redefine order.
-Load when resolve STOPs or steps 2–4 fail.
+Ordered probe steps are authored in the `job-profile-root` skill (sole home).
+This file does not redefine order. Load when resolve STOPs or steps 2–4 fail.
 
 ## Why dual-home
 
