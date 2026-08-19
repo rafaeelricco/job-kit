@@ -35,6 +35,12 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    Profile root, else `./references/search_packs.yaml` next to this skill.
    Print `Deck: <abs path>`.
    Neither readable, or the winner fails to parse → STOP, name the file.
+   Print `Browser: <driver>` — the tool that will open pages this run. Native in
+   an agentic browser (Aside); the `browser-use` skill in a coding agent. No
+   driver that can open a page, click a control, and hold a logged-in session →
+   **STOP** before the pack pick and name what is missing. A text fetcher is not
+   a driver: this run cycles location filters, passes login gates, and reads
+   pages that render client-side.
    Never merge the two files and never read the fallback when the profile deck exists.
    `job_search.yaml` carrying a key scout does not consume → **STOP**: an update
    never rewrites profile data, so a constraint the operator configured would
