@@ -1,5 +1,6 @@
 export { toApplyPrompt }
 
+import { httpHref } from "@/module/scout/helpers/href"
 import { assertNever } from "@/module/scout/result"
 import { type Dossier } from "@/module/scout/types"
 
@@ -62,7 +63,7 @@ function line(row: Dossier): string {
 }
 
 function skipReasons(row: Dossier): readonly string[] {
-  return [...statusReason(row), ...postingReason(row.posting)]
+  return [...statusReason(row), ...postingReason(row.posting), ...urlReason(row.url)]
 }
 
 function statusReason(row: Dossier): readonly string[] {
@@ -78,4 +79,9 @@ function postingReason(posting: Dossier["posting"]): readonly string[] {
     default:
       return assertNever(posting)
   }
+}
+
+// Same gate as Open posting: only http(s) is something job-apply can open.
+function urlReason(url: string): readonly string[] {
+  return httpHref(url) === null ? ["url is not http(s)"] : []
 }
