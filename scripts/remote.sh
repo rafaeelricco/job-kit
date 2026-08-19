@@ -365,9 +365,11 @@ require_checkout() {
 
 # ensure_kit_cache DEST
 # Ensures DEST is kit-owned and usable for uninstall (or freshly fetched).
-# Absent → fetch_kit + full require_checkout. Present → ownership signature only
-# (legacy caches without newer skills still pass; do not force a refresh — agent
-# symlink ownership strings match install's pwd -P path).
+# Absent → fetch_kit + full require_checkout. Present → ownership signature
+# (legacy caches without newer skills still pass; do not force a refresh —
+# agent symlink ownership strings match install's pwd -P path), then a
+# feature-detect that the cached uninstaller accepts `browser-use` so a
+# pre-this-channel cache is refreshed before that target is forwarded.
 # Side effects: may create DEST via fetch_kit.
 ensure_kit_cache() {
   local dest raw missing
@@ -402,6 +404,17 @@ scripts/uninstall.sh"
       return 0
     fi
     die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+  fi
+  # Unified-layout caches from before this channel accept the ownership
+  # signature but die on the new `browser-use` positional target. Detect that
+  # token in the cached uninstaller so remote uninstall and `--purge` refresh
+  # once instead of exiting before anything is removed.
+  if ! grep -Fq 'aside|agents|browser-use|profile|cache|all' \
+    "${dest}/scripts/uninstall.sh"; then
+    echo "refreshing kit cache (uninstall target added): ${dest}"
+    fetch_kit "${raw}"
+    require_checkout "${raw}"
+    return 0
   fi
 }
 
