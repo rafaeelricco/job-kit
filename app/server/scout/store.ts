@@ -6,7 +6,7 @@ import path from "node:path"
 import { err, partition } from "../../src/module/scout/result"
 import type { Store } from "../../src/module/scout/types"
 import { parseDossier } from "./parse-dossier"
-import { resolveProfileRoot } from "./resolve"
+import { resolveAsideSkillsRoot, resolveProfileRoot } from "./resolve"
 
 const JOBS = ["scout", "jobs"] as const
 
@@ -34,6 +34,7 @@ async function loadStore(env: NodeJS.ProcessEnv, cwd: string): Promise<Store> {
   return {
     kind: "ready",
     root: resolution.root,
+    skillsRoot: resolveAsideSkillsRoot(env),
     via: resolution.via,
     attempts: resolution.attempts,
     generatedAt: new Date().toISOString().slice(0, 10),

@@ -1,4 +1,4 @@
-export { probe, resolveProfileRoot }
+export { probe, resolveAsideSkillsRoot, resolveProfileRoot }
 
 import fs from "node:fs"
 import path from "node:path"
@@ -63,6 +63,15 @@ function hostHome(env: NodeJS.ProcessEnv): string {
 }
 
 const isAside = (env: NodeJS.ProcessEnv): boolean => (env.HOME ?? "").endsWith(ASIDE_SUFFIX)
+
+// Same rule as scripts/aside/lib.sh resolve_aside_skills_root, but via hostHome
+// so an Aside-sandbox HOME does not point the prompt at ~/.aside/runtime/home.
+function resolveAsideSkillsRoot(env: NodeJS.ProcessEnv): string {
+  const override = env.ASIDE_SKILLS || env.ASIDE_SKILLS_USER || ""
+  if (override !== "" && path.isAbsolute(override)) return override
+  const account = env.ASIDE_ACCOUNT || "0"
+  return `${hostHome(env)}/.aside/u/${account}/skills/builtin`
+}
 
 type Pointer =
   | { readonly kind: "read"; readonly line: string }
