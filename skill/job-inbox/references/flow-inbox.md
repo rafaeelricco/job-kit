@@ -1,6 +1,6 @@
 # Inbox — pipeline
 
-Profile root: ordered resolver SSOT in `job-scout/SKILL.md`.
+Profile root: ordered resolver SSOT is the `job-profile-root` skill.
 Paths here are relative to that absolute root.
 Skill-local files: `./references/`. Classify law: `contract-classify.md` only.
 
