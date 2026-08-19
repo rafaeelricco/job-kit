@@ -27,31 +27,52 @@ job → `unmatched`, not an undrop.
 
 ## Outcomes
 
-Exactly one per thread, and every one is earned from the **fetched body**.
+Exactly one per thread, and it is earned from the **fetched body** of one
+**inbound** message.
 
-Two requirements, binding on `ack` as hard as on the three that write:
+Three requirements, binding on `ack` as hard as on the three that write:
 
 1. The full thread body is fetched. A search snippet, a subject line, and a
    sender name are not evidence of anything.
 2. The verdict quotes one clause from that body — the words that fired it, not
    a paraphrase.
+3. The clause comes from a message the operator **received**, sent by the
+   matched employer or its recruiter. A thread holds the operator's own sent
+   mail too, and that mail carries no outcome: "I look forward to the
+   interview" in a reply the operator wrote is the operator's words, not the
+   company's. Evidence quoted from an outbound message is `skip`.
 
-`noise` is the sole exception: it is the verdict for mail the Phase 2
-snippet-filter already dropped, and dropped mail has no body. A survivor with
-no body is `skip`, never `ack`.
+A thread carries the whole conversation, so several stages can sit in one
+fetched body. Pick the message, in this order:
+
+1. Among inbound messages firing `interview`, `offer`, or `rejected`, take the
+   **newest**. Its outcome is the thread's.
+2. None fires one → `ack` when any inbound message fires `ack`.
+3. Otherwise `skip`.
+
+Newest wins outright — two messages cannot share a position in a thread, so
+there is no tie to break. Step 1 runs before step 2 so a trailing "thanks for
+confirming" cannot erase the invitation it confirms. Older stages are
+already-recorded history (## Write item 5), not competing verdicts: a thread
+holding `ack` → `interview` → `offer` classifies as `offer`. Carrying more than
+one stage is never by itself a reason to `skip`.
+
+`noise` is the sole exception to the fetch rule: it is the verdict for mail the
+Phase 2 snippet-filter already dropped, and dropped mail has no body. A survivor
+with no body is `skip`, never `ack`.
 
 `ack` asserted from a snippet is the failure this contract exists to stop.
 "Thank you for applying", "we received your application", and "congratulations"
 all open mail that goes on to schedule a call.
 
-| Outcome     | `status:` write | Fires when the message                                                                           |
+| Outcome     | `status:` write | Fires when the inbound message                                                                   |
 | ----------- | --------------- | ------------------------------------------------------------------------------------------------ |
 | `ack`       | none            | confirms receipt / under review / application viewed. Process has not started.                   |
 | `interview` | `interview`     | asks to schedule, screen, meet, complete a task or take-home, or otherwise advances _this role_. |
 | `offer`     | `offer`         | states an offer, compensation, or start-date proposal for _this role_.                           |
 | `rejected`  | `rejected`      | declines, not moving forward, role filled, other candidates.                                     |
 | `noise`     | none            | alerts, newsletters, social, spray-recruiter mail that does not name a tracked role.             |
-| `skip`      | none            | match or outcome is not unique, or strength is not strong.                                       |
+| `skip`      | none            | match is not unique or not strong, or no inbound message fires an outcome.                       |
 
 Ghosting is not `rejected`. "We'll keep your CV" with a decline **is** `rejected`.
 A take-home / "quick chat about this role" is `interview`, not `ack`.
@@ -106,6 +127,7 @@ memory of the snippet.
   not only the ones that write — `ack` without a fetched body is the same
   refusal as `status:` without one. `noise` is the sole exception.
 - Report an outcome you cannot quote from the body you fetched
+- Earn any outcome from the operator's own sent message in the thread
 - Bind on the word "interview" / "offer" alone, without a company match
 - Treat calendar UI or "click to confirm" copy as a status write
 - Invent company, title, URL, or thread id
