@@ -1,12 +1,11 @@
 ---
 name: job-apply
-description: "Read this when you need to draft, stage, and after explicit approve submit one job application from a posting. Use when the user asks to apply, write a cover letter, fill an application form, or Easy Apply; stop at review; on yes submit (account wall, required terms, Submit) then record success to the scout store."
+description: "Read this when you need to draft, stage, and after explicit approve submit one job application from a posting. Use when the user asks to apply, write a cover letter, fill an application form, or Easy Apply; stop at review; on yes submit (account wall, required terms, Submit) then record success to the scout store. Not for checking Gmail for replies (job-inbox)."
 ---
 
 # Job application
 
-Profile root: same ordered resolver as job-scout — steps SSOT in `job-scout/SKILL.md`.
-On STOP / resolve fail: `job-scout/references/flow-recover-root.md`.
+Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 Resolve every `data/*` Fact path against that root, not session CWD.
 Unreadable Fact file → stop and say so.
 

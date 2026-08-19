@@ -2,17 +2,17 @@
 
 Canonical facts for **job-scout** (list-only scout; passes login gates to list)
 and **job-apply** (draft → approve → submit → record),
-read back by **job-list** (read-only).
+read back by **job-list** (read-only). Later lifecycle status from mail is **job-inbox**.
 Skills live in **job-kit**, not in this tree.
 
 ## Layout
 
-| Folder          | What's in it                                                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data/`         | Canonical YAML about you. Edit here first.                                                                                                                       |
-| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, the body is not                                                                         |
-| `cv/`           | Compiled resume PDF(s) for attachments                                                                                                                           |
-| `scout/`        | Written by job-scout, plus `status:` and Application-log records by job-apply; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
+| Folder          | What's in it                                                                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data/`         | Canonical YAML about you. Edit here first.                                                                                                                                |
+| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, the body is not                                                                                  |
+| `cv/`           | Compiled resume PDF(s) for attachments                                                                                                                                    |
+| `scout/`        | Written by job-scout; `status:` and Application-log records by job-apply and job-inbox; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
 `data/` may mix `.yaml` and `.yml`. `data/stories/` holds markdown files with
 YAML frontmatter.
@@ -63,4 +63,5 @@ roots stay active until the tree is deleted.
   it signs in or creates a browse account. job-apply stops at review, waits for
   an explicit yes, then clears whatever the form puts in the path — account, terms,
   Submit; records to `scout/jobs/` on submit success (or when you confirm you
-  submitted outside it).
+  submitted outside it). job-inbox reads Gmail for replies and writes
+  `interview` / `offer` / `rejected` when evidence is strong.

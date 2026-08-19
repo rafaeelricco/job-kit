@@ -115,7 +115,9 @@ KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
 skill/job-apply/SKILL.md
 skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md
-skill/job-stories/SKILL.md"
+skill/job-stories/SKILL.md
+skill/job-inbox/SKILL.md
+skill/job-profile-root/SKILL.md"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a
