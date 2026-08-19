@@ -42,7 +42,7 @@ function applyBlock(jobs: string, skills: string, selected: number, apply: reado
   return apply.length === 0
     ? [`0 of ${selected} selected jobs under ${jobs} are apply-ready.`]
     : [
-        `Use the ${links.apply} skill to apply for all of these jobs:`,
+        `Use the ${links.apply} skill to apply for all of these jobs under ${jobs}:`,
         "",
         ...apply.map((item) => line(item.row)),
         "",
