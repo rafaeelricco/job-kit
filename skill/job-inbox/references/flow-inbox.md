@@ -65,6 +65,17 @@ Queries, in this order, capped — do not dump the inbox:
 "not moving forward" OR "unfortunately" OR "offer letter" OR
 "application received")` plus the window.
 
+Capped means capped in *queries*, never in results. Paginate each per-candidate
+query until the transport reports no further page. A query that reaches the
+transport's page ceiling first leaves its candidate **truncated**: record the
+flag against that candidate and carry it to Phase 6.
+
+Truncated is not silent. A common company name over a long window fills the
+first page with mail that is not the reply, and the reply sits past the cut. A
+candidate never searched to exhaustion has no evidence either way, so it is
+never reported silent — it lands under `## Gaps` naming the query and the pages
+reached.
+
 Then, in order:
 
 1. **Filter.** Drop newsletters, job alerts, calendar noise with no company
@@ -168,8 +179,9 @@ Then, in order. The first three sections answer the operator's question; the
 rest are the audit that backs them.
 
 `## Summary` — prose, three sentences at most, no table. Of {n} open
-applications, {n} replied and {n} are still silent. Name every company that
-moved to interview or offer, and say what needs the operator today.
+applications, {n} replied, {n} are still silent, and {n} could not be searched
+to exhaustion. Name every company that moved to interview or offer, and say what
+needs the operator today.
 
 `## Replies` — every thread whose outcome is `interview`, `offer`, or
 `rejected`, matched or not, newest first:
@@ -181,11 +193,17 @@ gains a trailing `— {why it was not written}`. Never drop a real reply from th
 section because it could not be filed; being unfilable is the note, not the
 exit.
 
-`## Silent` — every candidate with no thread in the window, oldest first:
+`## Silent` — every candidate whose search ran to exhaustion and returned no
+thread in the window, oldest first:
 `- {company} · {title} · applied {YYYY-MM-DD} · {n}d silent`.
 
+A truncated candidate never appears here. "No reply" is a claim about the whole
+window, and a truncated search did not read the whole window.
+
 `## Harvest` — one line: `{n} in window · {n} survived filter · {n} bodies
-fetched`. Last two equal, or every difference is named under `## Gaps`.
+fetched · {n} searches truncated`. The middle pair equal, or every difference is
+named under `## Gaps`; a nonzero truncated count names every affected candidate
+there too.
 
 `## Written` — `(none)` when nothing was writable, else:
 
