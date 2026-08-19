@@ -1,6 +1,6 @@
 export { SelectionBar, type SelectionBarProps }
 
-import { DownloadIcon, EyeOffIcon, Trash2Icon, XIcon } from "lucide-react"
+import { DownloadIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -23,17 +23,14 @@ import type { Dossier } from "@/module/scout/types"
 type SelectionBarProps = {
   readonly root: string
   readonly rows: readonly Dossier[]
-  readonly onHide: () => void
   readonly onDelete: () => void
   readonly onClear: () => void
 }
 
-// Hiding only drops rows from this list; the dossier files stay untouched.
-const HIDE_HINT = "Hide from this list — the files are not touched"
 const DELETE_HINT = "Hold to move these files into scout/jobs/.trash — recoverable with mv"
 
 function SelectionBar(props: SelectionBarProps) {
-  const { onClear, onDelete, onHide, root, rows } = props
+  const { onClear, onDelete, root, rows } = props
   const count = rows.length
 
   if (count === 0) return null
@@ -71,11 +68,6 @@ function SelectionBar(props: SelectionBarProps) {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <Button variant="outline" size="sm" onClick={onHide} title={HIDE_HINT} aria-label={HIDE_HINT}>
-        <EyeOffIcon />
-        Hide
-      </Button>
 
       <HoldButton variant="destructive" size="sm" onHold={onDelete} title={DELETE_HINT} aria-label={DELETE_HINT}>
         <Trash2Icon />
