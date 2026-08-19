@@ -402,6 +402,7 @@ uninstall_browser_use() {
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
     local override dest_root target parent label name dest
+    local cli_failed=0
 
     # unlink_browser_skills_from ROOT — uninstall_skills_from narrowed to
     # BROWSER_SKILL_NAMES, so this target never reaches an agents-channel link.
@@ -469,11 +470,16 @@ uninstall_browser_use() {
       fi
     done
     if command -v browser-use >/dev/null 2>&1; then
+      # The plan counted the CLI as a removal, so a miss here is a failure, not
+      # a note: keep cleaning up the rest, then refuse to report success.
       if command -v uv >/dev/null 2>&1; then
-        uv tool uninstall browser-use \
-          || echo "warning: uv tool uninstall browser-use failed; remove it yourself" >&2
+        uv tool uninstall browser-use || {
+          echo "error: uv tool uninstall browser-use failed; remove it yourself" >&2
+          cli_failed=1
+        }
       else
-        echo "browser-use CLI left installed (uv not found): $(command -v browser-use)"
+        echo "error: browser-use CLI left installed (uv not found): $(command -v browser-use)" >&2
+        cli_failed=1
       fi
     fi
     if [ -d "${state}" ]; then
@@ -484,6 +490,7 @@ uninstall_browser_use() {
       echo "removed driver state: ${state}"
     fi
     echo "Google Chrome left installed (uninstall it yourself if you want it gone)."
+    [ "${cli_failed}" -eq 0 ] || exit 1
     echo "Uninstall completed"
   )
 }
