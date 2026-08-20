@@ -104,12 +104,13 @@ function parseDossier(file: string, raw: string): ParsedDossier {
       got: status,
     })
   }
-  const bucket = read("bucket")
+  const rawBucket = read("bucket")
+  const bucket = rawBucket === "EU/US-only" ? "restricted-geo" : rawBucket
   if (!isBucket(bucket)) {
     return fail("frontmatter", {
       kind: "vocabulary",
       field: "bucket",
-      got: bucket,
+      got: rawBucket,
     })
   }
   const channel = read("channel")

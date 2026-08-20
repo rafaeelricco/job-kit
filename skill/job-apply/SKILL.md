@@ -26,8 +26,9 @@ Unreadable Fact file → stop and say so.
    review in context): re-identify first, use the real submission date, preserve
    any advanced lifecycle status, and write the abbreviated `record not available`
    placeholder — never rewind `interview`/`offer`/`rejected`/`dropped` to
-   `applied`, never reconstruct the review. Write law per
-   `job-scout/references/schema-dossier.md`. The only disk write this skill ever makes.
+   `applied`, never reconstruct the review. Dossier shape and field ownership come from
+   `job-scout/references/schema-dossier.md`; the filesystem transaction comes from
+   `job-scout/references/persistence.md`. The only disk write this skill ever makes.
 
 ## References
 

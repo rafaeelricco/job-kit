@@ -1,6 +1,6 @@
 # worker-search-linkedin-jobs
 
-Obey CONTRACT_SEARCH.
+Caller supplies CONTRACT_BROWSE + CONTRACT_SEARCH before this surface delta.
 
 ## Deltas
 

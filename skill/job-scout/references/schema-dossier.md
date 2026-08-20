@@ -58,7 +58,7 @@ status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
 score: 9
-bucket: direct # bucket_short vocab, format-report.md
+bucket: direct # bucket_short vocab, rank-report.md
 channel: ats
 ---
 
@@ -72,7 +72,8 @@ score **9** · direct · live · {the search `why` string verbatim}
 | -----: | --------: | -------: | --: |
 |      7 |         2 |        — |   9 |
 
-Factors and sum exactly as Phase 5 `## Score` computed them. A mismatch is a defect.
+Factors and sum exactly as `rank-report.md` `## Score` computed them. A mismatch is
+a defect.
 
 ## Posting facts
 
@@ -94,7 +95,7 @@ did not print it.
 | jd_date         | 2026-08-01         |
 | blocker         | —                  |
 
-`blocker` is main-derived (`flow-scout.md` `## Bucket`), not a gated column — recompute
+`blocker` is main-derived (`rank-report.md` `## Bucket`), not a gated column — recompute
 it here; never read it off a row.
 
 ## From the posting
@@ -170,90 +171,4 @@ extracted live again.
 
 Unknown = `—`, never invented — same law as the report.
 
-Replace an existing dossier atomically: render the complete updated file, then
-rename it over the original once the write has succeeded. Never rewrite one in
-place. Under concurrent writers the stage path is the URL lock's
-`place-{owner}` file (below); a free-standing sibling `*.md.tmp` is not a fenced
-place source. The operator owns `status:` and `## Application log`, and an
-in-place write that dies partway — a full disk is enough — truncates exactly
-those lines. The pre-write readability and parse checks cannot help once the
-write has begun; a rename is the only step that either happens or does not.
-
-**Concurrent writers (job-scout Phase 6, job-apply Phase 5, job-inbox Phase 5):** atomic
-rename alone does not prevent lost updates — and check-then-rename is still a
-race. Serialize **by normalized `url`**, not by intended filename: two writers
-can pick different basenames for the same URL (midnight straddle, multi-title
-extract) and filename locks would not meet.
-
-**Store directory first (containment before create).** Before any lock or
-`mkdir`: resolve the prospective `scout/jobs` path via its deepest existing
-ancestor and **STOP** unless that physical path is still under the canonical
-Profile root. Only then `mkdir -p scout/jobs` when absent. A missing parent
-makes every lock `mkdir` fail permanently and is not contention — first-use
-must create the store before acquire, but never through an out-of-tree symlink.
-
-Lock path (bounded — long ATS URLs must not hit `ENAMETOOLONG`):
-
-`scout/jobs/url-{url-digest}.lock`
-
-where `{url-digest}` is the first 32 hex characters of the SHA-256 of the
-normalized URL bytes (UTF-8), lowercased. Compute with a local digest tool
-(`shasum -a 256`, `sha256sum`, `openssl dgst -sha256`). Same normalized URL →
-same digest → same lock. Do **not** put the raw slug in the path name.
-
-Lock directories, their `owner` metadata file, and lock-internal place staging
-(`*.lock/place-*`) are writable path shapes (Phase 6 SSOT / job-apply
-Phase 5 / job-inbox Phase 5 writable store); create only under `scout/jobs/`, never elsewhere.
-
-Hold the URL lock across the full create-or-update:
-
-1. **Acquire.** Exclusive-create the lock directory via `mkdir` — it fails when
-   the directory already exists, and that failure _is_ the lock. Never use a
-   plain file create, which can clobber.
-   - Succeeded → **immediately** write a unique `owner` token (PID + random)
-     inside the lock dir, before any dossier read or write. Keep the token;
-     every later step re-reads it.
-   - Failed, directory **≤ 15 minutes** old (directory mtime, set at `mkdir`) →
-     another writer holds it. Wait briefly and retry, cap 5 attempts / ~10s.
-     Still held → **STOP**, name the URL, and tell the operator the write did
-     not land (job-apply: set `status: applied` by hand).
-   - Failed, directory **> 15 minutes** old → the holder crashed or was
-     interrupted. This is the branch that actually fires: agent sessions die
-     mid-phase, and without reclaim that URL is wedged forever. Remove the stale
-     directory and retry acquire once. A missing `owner` file means the writer
-     died between `mkdir` and metadata init — still stale, still reclaimable.
-   - Permanent errors (permission, read-only FS) → **STOP**, do not spin.
-2. **Under the lock.** Re-read `owner`; missing or ≠ your token → **STOP**
-   without writing. Your lock was reclaimed while you were away, and a writer
-   that lost ownership must not go on to write. Then re-scan `scout/jobs/` for
-   this normalized `url` and render the **complete** file to
-   `scout/jobs/url-{url-digest}.lock/place-{owner-token}.md`. Staging inside the
-   lock directory — never a free-standing `*.md.tmp` — is what makes reclaiming
-   a lock also remove the abandoned stage.
-   - **Match** → apply only this writer's allowed edits to the file you read.
-   - **No match** → create. Filename allocation is exclusive even across
-     different URLs, since two postings can share company+title: try the
-     unsuffixed name, then `-2`, `-3`.
-3. **Commit.** Re-read `owner` one last time; missing, unreadable, or ≠ your token
-   → **STOP**. Then move the place file onto the final dossier path:
-   - **Update** (a file already owns this `url`) → plain `mv`, an atomic replace.
-   - **Create** (the name must not already exist) → hard-link then unlink:
-     `ln place final && rm place`. `ln` exits nonzero when the name is taken,
-     which is what makes a collision detectable — bump the suffix and re-stage.
-     Do **not** use `mv -n`: on macOS it exits 0 without replacing, so the
-     collision reads as success and the dossier is silently never written.
-     Never open or write the final `.md` path directly — a cancelled or partial
-     write leaves a truncated, unparseable dossier and blocks later persistence.
-     On **either** path — if the place file is gone, or the move fails for any reason
-     other than a taken name → **STOP** without further writes. Your lock was reclaimed
-     while you were away; never re-render and never invent another source path.
-     Re-rendering here is what turns a lost lock into a lost update on the replace path,
-     or a second file for one `url` on the create path.
-4. **Release.** Read `owner` at the lock path. Equals your token → remove the
-   lock directory. Missing, unreadable, or a different token → leave it
-   completely untouched; it is not yours, and deleting it would free a live
-   writer's lock.
-
-Never create or rename a dossier for a URL without holding that URL's lock.
-Never skip the lock because "only one agent is running" — Phase 6, apply Phase 5,
-and inbox Phase 5 are independent skills. Never leave two files for one `url`.
+For every create or update, obey `./persistence.md`.

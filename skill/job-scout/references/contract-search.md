@@ -6,15 +6,7 @@ Paste this file **verbatim** into every search brief. Workers inherit nothing.
 MUST report jobs. NEVER apply, open Easy Apply that posts, fill an application
 form, message, connect, follow, InMail, or edit the profile repo — anything that
 would, put under Gaps instead.
-Gate blocks listing or opening a JD for extract → sign in, create a browse account,
-accept the login/signup terms. A gate-pass buys listing and extract, nothing else.
-Password, OTP, magic-link, or 2FA → STOP and ask the operator once; never invent a
-secret; never write any secret into dossiers or the report.
-The browser is the operator's own session — its cookies, logins, and autofill.
-A page you could not open, click, or filter is not a searched page.
-Signup identity fields (name, email, handle) come from the browser's saved autofill.
-A field autofill cannot supply → STOP and ask the operator once; never invent one and
-never fill it from memory.
+Obey CONTRACT_BROWSE for page access and gates.
 
 ## Evidence (search)
 
@@ -36,14 +28,9 @@ never fill it from memory.
 
 ## Search procedure (every search unit)
 
-1. Login wall / paywall / signup / a surface that answers signed-out → pass it
-   per LIST-ONLY above. That pass buys listing; opening a JD for extract has its
-   own pass in `contract-extract.md`. Resume after the operator supplies or
-   completes a secret.
-   Still blocked after that pass, or the operator declines to unblock it → failed
-   gate:
-   Return zero candidates, verdict `auth_gate`, and move on. One pack is one host,
-   so a gate that blocks it blocks the whole pack.
+1. Follow CONTRACT_BROWSE. Still blocked, or the operator declines the gate →
+   return zero candidates with verdict `auth_gate`.
+   One pack is one host, so a gate that blocks it blocks the whole pack.
 2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
    positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted

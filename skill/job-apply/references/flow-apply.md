@@ -238,40 +238,12 @@ writes the store.
 
 ### Write law
 
-`job-scout/references/schema-dossier.md` is the writer SSOT — filename and slug rules,
-quoting and escaping for posting-copied values, injection law, log-line grammar,
-atomic replace, and **URL-keyed exclusive lock** (job-scout Phase 6 may rewrite
-the same posting while this phase runs).
-
-Order every write:
-
-1. Containment then store: resolve prospective `scout/jobs` via its deepest
-   existing ancestor under the canonical Profile root (Phase 6 steps 1-2 and 5);
-   **STOP** if outside. Only then `mkdir -p scout/jobs` when absent. Never
-   acquire a lock before the parent exists — a missing `scout/jobs/` is not
-   lock contention — and never `mkdir` through an out-of-tree symlink.
-2. Lock: exclusive-create `scout/jobs/url-{url-digest}.lock` via `mkdir`, where
-   `{url-digest}` is the first 32 hex chars of SHA-256 of the normalized URL
-   (schema-dossier.md). Write `owner` immediately. Stale lock (>15 min by directory
-   mtime, including no-metadata abandon) → remove it and retry acquire once;
-   live lock → retry cap then **STOP**; permanent errors → **STOP**.
-   Every dossier place is fenced: re-read `owner`; if not yours → **STOP**
-   without writing.
-3. Under the lock only (fenced): re-scan by URL; re-check `owner`. Match → read
-   → apply only this phase's edits → render complete file into
-   `*.lock/place-{owner-token}.md` → re-check `owner` → rename place file over
-   the original; no match → stage the complete create into the same place path
-   then hard-link onto the vacant final path (`ln place final && rm place`;
-   never `mv -n`; bump `-2`, `-3` on collision per schema-dossier.md). Never stage
-   place outside the lock directory. Never write through an exclusively opened
-   final path.
-4. Release: read `owner` at the lock path (schema-dossier.md); equals your token →
-   remove the lock directory; missing, unreadable, or different → leave it
-   completely untouched. Still locked or write fails after retries → **STOP** and
-   tell the operator to set `status: applied` by hand.
-
-Never create or rename without that URL's lock. Never exclusive-create a lock
-before `scout/jobs/` exists.
+`job-scout/references/schema-dossier.md` owns dossier shape, field ownership,
+filename and slug rules, quoting, injection law, and log grammar.
+`job-scout/references/persistence.md` owns the complete filesystem transaction.
+Under that transaction, re-test eligibility against the current file and apply
+only this phase's edits. Failure after its retries → **STOP** and tell the operator
+to set `status: applied` by hand.
 
 This phase touches two regions and no others: frontmatter `status:`, and new lines
 appended below `<!-- scout never writes below this line -->`. The scout-owned body
@@ -311,23 +283,11 @@ Phase 0 printed `no prior application recorded` with no match, or
 above — the operator applied to a posting that has no dossier under this
 normalized `url`:
 
-- Containment then `mkdir -p scout/jobs` when absent (before any lock). Then
-  acquire the URL lock (`url-{url-digest}.lock` per schema-dossier.md), re-scan for
-  this normalized `url` under the lock. Scout, or another application, may have
-  opened a dossier while the review sat waiting — a URL match under the lock
-  takes the update path (set status, append log + record) on that file. Release
-  the lock when done. A second file for one `url` splits the history the store
-  joins on.
-- Still no URL match under the lock → create
-  `scout/jobs/{today}-{company}--{title}.md` per the dossier filename and slug
-  rules; render complete into `*.lock/place-{owner-token}.md`, then hard-link
-  onto the vacant final path; base name taken → `ln` exits nonzero with the place
-  file still present, so try `-2`, `-3`. Place file gone, or the link fails for any
-  other reason → **STOP** without re-rendering (schema-dossier.md). That suffix is for two
-  jobs sharing a name,
-  never for one job twice. Create only while holding the URL lock, staging
-  through the lock place path (schema-dossier.md), and the re-scan under the lock still
-  found none.
+- Run the persistence transaction for this normalized `url`. A URL match in its
+  under-lock scan takes the update path: set status, append log + record. A second
+  file for one `url` would split the history the store joins on.
+- Still no URL match → create per the dossier filename and slug rules. The
+  persistence contract owns staging, collision suffixes, and commit behavior.
 - All nine frontmatter keys. `company` / `title` / `url` double-quoted and escaped
   per dossier quoting law, `url` the normalized identity URL from the gate above
   (never `—`);
