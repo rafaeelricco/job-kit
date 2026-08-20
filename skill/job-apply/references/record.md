@@ -14,12 +14,12 @@ On an existing dossier, touch only frontmatter `status:` and new content appende
 existing log lines. Re-scan by normalized URL under the persistence lock before
 choosing update or create.
 
-| Existing dossier status | Result after confirmed application |
-| --- | --- |
-| `new` | `applied` |
-| `applied` | unchanged |
-| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged |
-| no dossier | create with `status: applied` |
+| Existing dossier status                                                              | Result after confirmed application |
+| ------------------------------------------------------------------------------------ | ---------------------------------- |
+| `new`                                                                                | `applied`                          |
+| `applied`                                                                            | unchanged                          |
+| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged                          |
+| no dossier                                                                           | create with `status: applied`      |
 
 Always append the application log and record. A released non-`new` duplicate keeps its
 status and uses the duplicate log line below. Never rewind a lifecycle state.
@@ -74,6 +74,7 @@ For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 - {YYYY-MM-DD} · applied via {channel} — job-apply
 
 #### Application {YYYY-MM-DD} · {channel}
+
 {same-session record or later-session placeholder}
 ```
 
