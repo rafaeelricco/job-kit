@@ -76,10 +76,14 @@ Omit this heading when the list is empty.
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
+- kit drop: {company} — {title} ({reason})
 
 `skipped` covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
 pack verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate drops,
 disabled packs, never-live dead, and score<7 rows.
+`kit drop` is the one drop that does print: `{reason}` is the checker's sentence
+verbatim (`flow-scout.md` `### Kit gate`), kit field first, posting field second.
+Never shorten it to a bucket name — the reader is owed the field that failed.
 
 ## Inclusion / hard rules (spec-only; never emitted)
 
