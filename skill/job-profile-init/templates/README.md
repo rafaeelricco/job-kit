@@ -59,8 +59,9 @@ roots stay active until the tree is deleted.
 ## Rules
 
 - Facts are read from files, never recalled from chat memory.
-- job-scout is list-only (never apply/message/connect); a gate that blocks listing →
-  it signs in or creates a browse account. job-apply stops at review, waits for
+- job-scout is list-only (never apply/message/connect). It may use an existing
+  session; account creation, signup terms, passwords, and verification remain
+  operator actions. job-apply stops at review, waits for
   an explicit yes, then clears whatever the form puts in the path — account, terms,
   Submit; records to `scout/jobs/` on submit success (or when you confirm you
   submitted outside it). job-inbox reads Gmail for replies and writes

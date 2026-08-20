@@ -28,7 +28,7 @@ import { assertNever } from "@/module/scout/result"
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
 const PAGE_SIZES = [25, 50, 100] as const
 // The scale is ten integers with the rubric's own cuts — scout keeps ≥ 7 and
-// ranks ≥ 8 (skill/job-scout/references/flow-scout.md `## Score`). Bands rather
+// ranks ≥ 8 (skill/job-scout/references/rank-report.md `## Score`). Bands rather
 // than a min/max pair: every question worth asking of ten integers is one of
 // these four, and a band is one click where a range is two controls.
 const SCORE_BANDS = ["strong", "keep", "low", "unscored"] as const
