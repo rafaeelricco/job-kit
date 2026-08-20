@@ -1,9 +1,20 @@
 export { FilterBar, type FilterBarProps }
 
-import { BanIcon, ChevronDown, LayoutGridIcon, ListFilterIcon, Rows3Icon, SearchIcon, XIcon } from "lucide-react"
+import {
+  BanIcon,
+  CalendarIcon,
+  ChevronDown,
+  LayoutGridIcon,
+  ListFilterIcon,
+  Rows3Icon,
+  SearchIcon,
+  XIcon,
+} from "lucide-react"
+import type { DateRange } from "react-day-picker"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Command, CommandGroup, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
 import {
   DropdownMenu,
@@ -20,8 +31,18 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
-import { SCORE_BANDS, SCORE_BAND_LABELS, SEGMENTS, cycleSource, sourceState } from "@/module/scout/helpers/select"
+import type { DayRange, Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+import {
+  EMPTY_DAYS,
+  SCORE_BANDS,
+  SCORE_BAND_LABELS,
+  SEGMENTS,
+  cycleSource,
+  dateOf,
+  isoOf,
+  sourceState,
+  todayIso,
+} from "@/module/scout/helpers/select"
 import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
 
@@ -49,6 +70,31 @@ const VIEW_LABELS: Readonly<Record<View, string>> = {
   cards: "Cards",
 }
 
+// Day counts rather than baked ranges: the window has to be measured when the
+// button is pressed, not when the module loads.
+const FOUND_PRESETS = [
+  { label: "Today", days: 1 },
+  { label: "Last 7 days", days: 7 },
+  { label: "Last 30 days", days: 30 },
+] as const
+
+// Anchored to the wall clock, unlike the charts' `anchorOf` (analytics.ts:56),
+// which counts back from the newest dossier: "today" has to mean today even on
+// a morning that has scouted nothing yet.
+const lastDays = (days: number): DayRange => {
+  const from = new Date()
+  from.setDate(from.getDate() - (days - 1))
+  return { from: isoOf(from), to: todayIso() }
+}
+
+// A range whose ends are the same day is a day, and one of those days has a name.
+function foundLabel(range: DayRange): string {
+  const { from, to } = range
+  if (from !== null && from === to) return from === todayIso() ? "today" : from
+  if (from !== null && to !== null) return `${from} → ${to}`
+  return from !== null ? `since ${from}` : `until ${to}`
+}
+
 const isSegment = (raw: unknown): raw is Segment =>
   typeof raw === "string" && (SEGMENTS as readonly string[]).includes(raw)
 
@@ -72,6 +118,14 @@ function FilterBar(props: FilterBarProps) {
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
   const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
   const setSource = (value: string) => onFilter(cycleSource(filter, value))
+  const setFound = (next: DayRange) => onFilter({ ...filter, found: next })
+
+  // A picker range is undefined when nothing is chosen, and `to` is undefined
+  // between the first and second click.
+  const foundRange: DateRange | undefined =
+    filter.found.from === null
+      ? undefined
+      : { from: dateOf(filter.found.from), to: filter.found.to === null ? undefined : dateOf(filter.found.to) }
 
   // Rebuilt from COLUMNS so re-adding a column restores its table position.
   const toggleColumn = (id: ColumnId) => {
@@ -115,6 +169,9 @@ function FilterBar(props: FilterBarProps) {
       label: `Not: ${value}`,
       remove: () => onFilter({ ...filter, excluded: filter.excluded.filter((one) => one !== value) }),
     })),
+    ...(filter.found.from === null && filter.found.to === null
+      ? []
+      : [{ key: "found", label: `Found: ${foundLabel(filter.found)}`, remove: () => setFound(EMPTY_DAYS) }]),
   ]
 
   const clearAll = () =>
@@ -126,6 +183,7 @@ function FilterBar(props: FilterBarProps) {
       statuses: [],
       sources: [],
       excluded: [],
+      found: EMPTY_DAYS,
     })
 
   return (
@@ -228,6 +286,39 @@ function FilterBar(props: FilterBarProps) {
                 </CommandGroup>
               </CommandList>
             </Command>
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger render={<Button variant="outline" />}>
+            <CalendarIcon />
+            Found
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-auto p-0">
+            <div className="flex gap-1 border-b p-2">
+              {FOUND_PRESETS.map((preset) => (
+                <Button key={preset.label} variant="ghost" size="sm" onClick={() => setFound(lastDays(preset.days))}>
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+            <Calendar
+              mode="range"
+              autoFocus
+              // Scouting the future is not a thing, so the half of the grid that
+              // could only ever match nothing is not offered.
+              disabled={{ after: new Date() }}
+              // Spread rather than a `undefined` literal: `defaultMonth?: Date`
+              // does not admit one under `exactOptionalPropertyTypes`.
+              {...(filter.found.to === null ? {} : { defaultMonth: dateOf(filter.found.to) })}
+              selected={foundRange}
+              onSelect={(next: DateRange | undefined) =>
+                setFound({
+                  from: next?.from === undefined ? null : isoOf(next.from),
+                  to: next?.to === undefined ? null : isoOf(next.to),
+                })
+              }
+            />
           </PopoverContent>
         </Popover>
 
