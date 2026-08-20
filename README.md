@@ -138,6 +138,19 @@ and the ad under the dossier's Application log; later statuses (`interview`,
 `dropped` stays yours. Re-running scout never overwrites
 `status:`, and never renames the file.
 
+The three run as one loop, and only the middle hop is automatic:
+
+```text
+/job-scout   ranks rows, writes dossiers, prints  Next: /job-apply {url}
+/job-apply   submits, records, then runs job-inbox in the same session
+job-inbox    reports replies, writes status, prints  Next: /job-scout
+```
+
+You paste the pointer at the two ends; the apply → inbox leg needs nothing from
+you. Neither end auto-fires on purpose: scout stays list-only and cannot judge
+which ranked row is worth an application, and apply never submits without your
+explicit yes on the review.
+
 Applying needs exactly one CV PDF that opens. A tailored PDF compiled for that
 application wins when present. Otherwise job-apply reads `data/cvs.yaml`, matches
 each row's `targets` against the ad, and uses `default` when none fit. With no
@@ -169,13 +182,20 @@ network calls.
 Resolves your Profile root, prints `scout/jobs/`, and answers from the dossiers
 already on disk. It never writes one.
 
-**5. Check replies.** In Aside or any coding-agent session:
+**5. Check replies on their own.** `/job-apply` already runs this leg at the end
+of every submit. Run it standalone when you have not applied to anything today
+and just want the board refreshed — in Aside or any coding-agent session:
 
 ```text
 /job-inbox
 ```
 
 Searches Gmail for mail that matches open applications (`applied` / `interview` / `offer`), opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
+
+The apply leg is this same run with one extra line in its Phase 0 header. An
+apply session with no Gmail transport stops the leg and says so — the
+application is recorded either way, and you can run `/job-inbox` later from a
+session that has one.
 
 ## Profile root
 
