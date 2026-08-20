@@ -67,9 +67,10 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 - `list` — read-only. File order: `id · entry host · enabled|disabled · tokens`.
 - `enable` / `disable` — flip `enabled` on a named `id`. No id match → say so.
 - `formulations` — replace the list on one pack with strings the user typed. Never
-  compose a formulation, never widen one, never look a term up. `< 3` formulations
-  → warn (contract-search requires ≥3), then let the user decide.
-- `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥3 formulations
+  compose a formulation, never widen one, never look a term up. Empty list → refuse.
+  A typed line that contains `[skill:` or `[industry]` → warn (contract-search drops
+  those tokens), then let the user decide.
+- `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥1 formulation
   from the user. `surface` must match a `worker-search-<surface>.md` in the installed
   job-scout skill; unknown → refuse, name the valid ones. `entry` is one `http(s)`
   URL. A board is a pack, never a row inside one.
