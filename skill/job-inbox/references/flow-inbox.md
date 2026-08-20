@@ -123,8 +123,8 @@ Zero writable rows → emit Phase 6 report and STOP (hard end, not a question).
 ## Phase 5 — RECORD (writable rows only)
 
 `job-scout/references/schema-dossier.md` is the writer SSOT (URL lock, atomic
-replace, quoting, log grammar). Same order as job-apply Phase 5: contain →
-lock → re-scan by URL → stage inside the lock → rename → release.
+replace, quoting, log grammar). Follow `schema-dossier.md`: contain → lock →
+re-scan by URL → stage inside the lock → rename → release.
 
 Re-test contract ## Write items 4 and 5 against the file read **under the lock**,
 never the Phase 1 snapshot — another writer may have advanced `status:` or logged

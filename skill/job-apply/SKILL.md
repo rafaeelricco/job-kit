@@ -1,35 +1,31 @@
 ---
 name: job-apply
-description: "Read this when you need to draft, stage, and after explicit approve submit one job application from a posting. Use when the user asks to apply, write a cover letter, fill an application form, or Easy Apply; stop at review; on yes submit (account wall, required terms, Submit) then record success to the scout store. Not for checking Gmail for replies (job-inbox)."
+description: "Prepare one job application from a posting, then submit it after explicit approval and record only confirmed submission. Use for cover letters, application forms, and Easy Apply; not for reply tracking."
 ---
 
 # Job application
 
-Profile root: load the `job-profile-root` skill now; obey it end-to-end.
-Resolve every `data/*` Fact path against that root, not session CWD.
-Unreadable Fact file → stop and say so.
+Load `job-profile-root` first and resolve every profile path against its canonical
+root, never the session CWD. Work on one posting at a time.
 
-1. Read `./references/flow-apply.md` now; obey it end-to-end.
-2. Dual-load `./references/contract-draft.md` (sole home of Fact, Voice, Gate law):
-   - Phases 0–2: bind Fact + Gate + untrusted. Voice not until Phase 3 paste.
-   - Main opens the posting, so untrusted-content binds from the first fetch.
-3. Phase 3: every drafting brief carries (1) absolute Profile root, (2) `### Letter plan`,
-   (3) full contract pasted **verbatim** (Voice binds with the paste). Never summarize.
-4. Facts from the files Fact law names, under the profile root above.
-5. One application at a time. Each stops at review and waits for an explicit yes.
-6. Deliver the review exactly per `./references/flow-apply.md` "Review format", then STOP.
-7. On explicit yes: flow-apply Phase 4 — SUBMIT (account + terms + Submit as contract
-   allows). On submit success evidence — or when the operator confirms they submitted
-   outside the agent: Phase 5 — RECORD.
-   Same-session success: `status: applied`, one log line, and the full review on the
-   dossier (opening one when the store has none). Later session (no `### Ad` /
-   review in context): re-identify first, use the real submission date, preserve
-   any advanced lifecycle status, and write the abbreviated `record not available`
-   placeholder — never rewind `interview`/`offer`/`rejected`/`dropped` to
-   `applied`, never reconstruct the review. Write law per
-   `job-scout/references/schema-dossier.md`. The only disk write this skill ever makes.
+| State | Opens when | Authority and mutation |
+| --- | --- | --- |
+| Prepare | A posting or application request is available | Read `./references/prepare.md`; read-only profile and browser navigation; stage proposed values only |
+| Submit | The operator explicitly approves the current review | Read `./references/submit.md`; live browser fields, attachments, terms, and submission |
+| Record | Clear success evidence or explicit `sent`/`submitted`/`applied` confirmation | Read `./references/record.md`; dossier-store writes only |
+
+Read `./references/screening.md` only when the posting or live form asks about
+salary, authorization, sponsorship, employment route, work location, assessments,
+background checks, or related screening. The operator owns demographic and EEO fields.
+
+Prepare emits the complete review and stops. Submit does not open until explicit
+approval. Record does not open until submission is confirmed. A bare `done` or `ok`
+does not confirm submission.
 
 ## References
 
-- Pipeline: `./references/flow-apply.md` (phases, fit, selection, letter shape, review, submit, record)
-- Draft contract: `./references/contract-draft.md` (Fact > Gate > Voice; drafting paste card)
+- `./references/prepare.md`: ad, duplicate check, fit, selection, letter plan, draft checker, and review
+- `./references/letter-contract.md`: verbatim drafting contract for plan-only evidence and voice
+- `./references/screening.md`: conditional salary and screening rules
+- `./references/submit.md`: post-approval browser order
+- `./references/record.md`: confirmed-application dossier update
