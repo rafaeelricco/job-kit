@@ -125,7 +125,7 @@ independent batches may parallel up to 5; each batch opens URLs one at a time.
 Batches that would gate-pass the same host are not independent — serialize them, same
 rule as Phase 1. Expect `### Verified` rows — heading defined in `contract-extract.md`.
 
-## Phase 4 — CONTRACT GATE (main)
+## Phase 4 — CONTRACT GATE (main) → KIT GATE (worker)
 
 Every row has every search key from `./references/contract-search.md` plus every extract key from
 `./references/contract-extract.md`, whatever its status. Missing key → halt; name it under Gaps.
@@ -138,11 +138,29 @@ keep/drop here; do not redefine keep rules in this file.
 
 Search-time keeps still apply; this gate closes the deferred path.
 
+### Kit gate (post-location, worker)
+
+Run `./references/worker-check.md` with PROFILE_ROOT (absolute) + ROW_BATCH +
+CONTRACT_CHECK (`./references/contract-check.md`) **verbatim**. One checker per run —
+it opens no page, so batching buys nothing and a second checker reads the kit twice.
+ROW_BATCH = every `status=live` row that survived the location gate, five fields each:
+`url | work_model | location | work_auth | hiring_route`. Send nothing else. A checker
+that never saw the score cannot rank, and a checker that never saw the stack cannot
+trade a wall away for a good skills match.
+`dead` and `uncertain` rows never enter the batch — they are already excluded above.
+Expect `### Kit read` + `### Checked` — headings defined in `contract-check.md`.
+
+`drop` rows leave the run here: no score, no bucket, no ranked table, no dossier.
+Carry each to Gaps as `kit drop: {company} — {title} ({reason})`, reason verbatim.
+A `### Checked` url that was not in the batch, or a batch url with no verdict → halt
+and name it under Gaps. Never re-judge a verdict here and never overturn one — the
+checker read the kit and this file did not.
+
 ## Phase 5 — RANK + REPORT (main)
 
 Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / the ranked table.
-Location-gate drops already excluded above — do not score them.
+Location-gate and kit-gate drops already excluded above — do not score them.
 
 REAL FIT = stack. Geo/auth is a score factor only for onsite/hybrid
 (see `## Score`).
@@ -180,8 +198,9 @@ revision is ignored.
    already holds — writing there overwrites the operator's application history
    with a fresh `status: new` under a second filename. Unreadable or unparseable
    → print the path under Gaps and STOP, same as a failed write.
-3. One dossier per row with `status=live` that passed the Phase 4 gate — including
-   `score<7` rows. A `dead` row that already has a
+3. One dossier per row with `status=live` that passed both Phase 4 gates — including
+   `score<7` rows. A `kit drop` row never gets one, whatever it scored: it is not a
+   job this profile can take. A `dead` row that already has a
    dossier goes through the `schema-dossier.md` re-run handler so its closure log is
    appended; `uncertain` rows stay in chat Gaps only and create no dossier;
    `dead` rows never seen live create no dossier and are not listed in chat.

@@ -18,9 +18,11 @@ Writable paths: Phase 6 only (`./references/flow-scout.md` — Writable SSOT).
 1. Read `./references/flow-scout.md` now; obey it end-to-end.
 2. Phase 1: paste `./references/contract-search.md` verbatim into every search brief.
 3. Phase 3: paste `./references/contract-extract.md` verbatim into every extract brief.
-4. Pack list, parallelism, gates, score: flow-scout only. Contracts own list-only + evidence.
-5. Deliver report per `format-report.md`.
-6. Persist one dossier per live job per `schema-dossier.md`, then STOP.
+4. Phase 4: paste `./references/contract-check.md` verbatim into the kit-gate brief;
+   the checker reads the kit itself off the absolute Profile root.
+5. Pack list, parallelism, gates, score: flow-scout only. Contracts own list-only + evidence.
+6. Deliver report per `format-report.md`.
+7. Persist one dossier per surviving live job per `schema-dossier.md`, then STOP.
 
 ## References
 
@@ -29,7 +31,9 @@ Writable paths: Phase 6 only (`./references/flow-scout.md` — Writable SSOT).
 - Dossier: `./references/schema-dossier.md` (scout/ layout, file format, re-run rules; main-only)
 - Search contract: `./references/contract-search.md` (paste card; never inherited)
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
+- Kit-gate contract: `./references/contract-check.md` (paste card; kit read, compare law, verdicts)
 - Search surfaces: `./references/worker-search-{linkedin-jobs,open-web,social}.md` (surface deltas)
 - Extract worker: `./references/worker-extract.md` (open JD → facts / dead / uncertain)
+- Check worker: `./references/worker-check.md` (kit read → pass / drop per row)
 - Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`
   (enabled packs, YAML order; chosen set: flow-scout Phase 0)
