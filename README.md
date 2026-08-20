@@ -138,9 +138,13 @@ and the ad under the dossier's Application log; later statuses (`interview`,
 `dropped` stays yours. Re-running scout never overwrites
 `status:`, and never renames the file.
 
-Applying needs exactly one CV PDF that opens: a tailored one compiled for that
-application, or `cv/en-us-resume.pdf` as the fallback. With neither,
-job-apply stops and asks you to build it.
+Applying needs exactly one CV PDF that opens. A tailored PDF compiled for that
+application wins when present. Otherwise job-apply reads `data/cvs.yaml`, matches
+each row's `targets` against the ad, and uses `default` when none fit. With no
+registry it attaches `cv/en-us-resume.pdf`. The review's `### Attachments` prints
+the pick and why. With neither a resolvable PDF, job-apply stops and asks you to
+build one. Edit the registry with `/job-profile-me cvs`; job-kit never compiles a
+CV for you.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
