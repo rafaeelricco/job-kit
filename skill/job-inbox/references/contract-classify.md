@@ -92,9 +92,12 @@ A row is writable only when all hold:
 3. Outcome is `interview`, `offer`, or `rejected`.
 4. Transition is legal.
 5. Qualified `(account_uid, thread_id, outcome)` is not already on that
-   dossier’s log. Bare legacy `thread:{id}` entries never satisfy replay checks.
+   dossier’s log, and no legacy `thread:{id}` line carries this outcome. Read a
+   legacy line as this account when the run bound exactly one account; with
+   several bound it is unattributable, so withhold the write and Gap it.
 
-Read `company`, `title`, `status`, `applied via`, and qualified log keys before
-classifying; use the fetched body, never the search snippet. Missing required
-body/clause or ambiguous candidate/outcome evidence is `skip`/`Gaps`: never ask
-the operator or invent company, title, URL, account UID, thread ID, or outcome.
+Read `company`, `title`, `status`, `applied via`, and qualified plus legacy log
+keys before classifying; use the fetched body, never the search snippet.
+Missing required body/clause or ambiguous candidate/outcome evidence is
+`skip`/`Gaps`: never ask the operator or invent company, title, URL, account
+UID, thread ID, or outcome.
