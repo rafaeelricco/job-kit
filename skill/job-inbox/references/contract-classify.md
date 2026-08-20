@@ -136,10 +136,13 @@ A row is writable only when every item holds. Missing one → `skip` or
 2. Match strength is **strong** and exactly one candidate dossier.
 3. Outcome ∈ `interview` | `offer` | `rejected`.
 4. Transition from current frontmatter `status:` is legal (table above).
-5. This thread id is not already on that dossier's log **with this outcome**.
-   One thread carries the whole conversation — screen, then interview, then
-   offer — so a skip keyed on the thread alone would drop every stage after the
-   first. Same thread and same outcome → already recorded.
+5. This `(account_uid, thread_id)` is not already on that dossier's log **with
+   this outcome**. One thread carries the whole conversation — screen, then
+   interview, then offer — so a skip keyed on the thread alone would drop every
+   stage after the first. Same account, same thread, same outcome → already
+   recorded. A legacy naked `thread:{id}` line reads as this account when the run
+   bound exactly one account; with several bound it is unattributable, so withhold
+   the write and Gap it rather than re-append an event the dossier already holds.
 
 Read before classifying: the dossier's `company`, `title`, `status`, and
 `applied via` date, then the fetched body. Classify from those, not from
