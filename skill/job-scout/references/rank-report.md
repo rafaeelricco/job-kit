@@ -1,15 +1,11 @@
 # Job scout — rank and report
 
-The output and ranking contract for `flow-scout.md` Phase 5. Main-only, same as
-that file. Never paste into a worker brief.
+Phase 5. Main-only. Never paste into a worker brief.
 
 ## Hard contradiction (main; before score and bucket)
 
-Apply the compare law in `./contract-check.md` to the four printed row fields
-`work_model` · `location` · `work_auth` · `hiring_route`. A contradiction the
-posting itself prints against a confirmed profile fact drops the row here: no
-score, no bucket, no Do this first, no ranked table, no dossier. `—` never
-contradicts, and a row you cannot judge stays. List each drop under Gaps as
+Apply `./contract-check.md`. A `drop` gets no score, no bucket, no Do this first,
+no ranked table, no dossier. List under Gaps as
 `kit drop: {company} — {title} ({reason})`, reason kit field first, in that
 contract's grammar.
 
@@ -47,9 +43,8 @@ Geo/auth participates only for enabled onsite/hybrid models:
 - `—`: insufficient printed/profile evidence
 
 If skills is numeric, total is the sum of numeric factors; `—` factors are not
-added. If skills is `—`, total is `—`. Do not score recency; `date_posted` already
-dropped out-of-window rows at search. Print factors only on dossier `## Verdict`,
-never in the chat Score audit.
+added. If skills is `—`, total is `—`. Do not score recency. Print factors only
+on dossier `## Verdict`, never in the chat Score audit.
 
 ## Bucket (main-derived; never a gated column)
 
@@ -69,9 +64,7 @@ counts in the header census. List under Gaps. Never guess a route from a company
 country. `direct` and `EOR` name the hire-from route the JD prints, not its location.
 
 `bucket_short` is the bucket value itself — `direct` | `EOR` | `restricted-geo` |
-`unbucketed`, spelled exactly as the ladder above mints it. Nothing abbreviates it;
-the name is historical. Its two consumers are Do this first and the ranked table,
-both of which exclude `unbucketed`, so only the first three can reach a printed row.
+`unbucketed`, spelled exactly as the ladder above mints it. Nothing abbreviates it.
 
 ## Channel sort (report tables)
 
@@ -80,8 +73,8 @@ both of which exclude `unbucketed`, so only the first three can reach a printed 
 ## Report format
 
 Emit markdown **exactly** in this section order, then hand back to `flow-scout.md`
-Phase 6 — the dossiers are written after this report, and the **STOP** belongs at
-the end of that phase, not here.
+Phase 6 — dossiers write after this report; **STOP** is the end of that phase,
+not here.
 Every section below is the **chat deliverable only**. Disk receives dossiers under
 `schema-dossier.md` — never a run file, never a second copy of ranked tables or
 score factors. No preamble. No apply / message / connect / open-form language.
@@ -92,8 +85,7 @@ score factors. No preamble. No apply / message / connect / open-form language.
 
 - `live≥7` — `status=live` and score ≥7
 - `contacts` — public email or @handle across gated search rows. Named `contacts`,
-  not `email`: an @handle is not an email address, and counting both under `email`
-  claims addresses the run never found
+  not `email`
 - `defects` — pack verdicts `defect: {name}` **and** `auth_gate`, which
   `flow-scout.md` counts as a pack defect
 - Never invent a run filename. Never print a write-success count.
@@ -101,13 +93,10 @@ score factors. No preamble. No apply / message / connect / open-form language.
 ### Do this first
 
 Exactly 3 if ≥3 **eligible** rows; fewer if not, including none. Eligible = live,
-score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population — counting
-it on all live≥7 rows would promise three picks this section is not allowed to list.
+score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population.
 Prefer direct over restricted-geo on ties.
-`unbucketed` rows are not eligible here or in the table — they list under Gaps only,
-because the posting printed no route to judge them by. The header's `live≥7` census
-stays unfiltered: every live row has a dossier, so the remainder line must point at
-the whole store.
+`unbucketed` rows are not eligible here or in the table — they list under Gaps only.
+The header's `live≥7` census stays unfiltered.
 
 1. **{company}** — {title} — score **{score}** — {bucket_short}
    {why ≤ 20 words} / {contact if printed} / {url}
@@ -115,8 +104,7 @@ the whole store.
 ### Ranked
 
 `status=live` AND `score≥8`, excluding `unbucketed`. Sort per `## Channel sort`.
-Rows already named in Do this first repeat here — the two sections answer different
-questions, and a table that hid its own top rows would read as if they were missing.
+Rows already named in Do this first repeat here.
 
 | score | company | title | bucket | contact | why | url |
 | ----: | ------- | ----- | ------ | ------- | --- | --- |
@@ -133,9 +121,8 @@ sections printed, when `live≥7` exceeds the rows already printed above (Do thi
 ∪ table, counted once):
 
 - Rows printed above → `+{n} more live≥7 → {abs Profile root}/scout/jobs/`
-- Nothing printed above, because every live≥7 row was `unbucketed` →
-  `{n} live≥7 → {abs Profile root}/scout/jobs/`. Never `+{n} more` there: there is no
-  "more" when the reader was shown nothing to add to.
+- Nothing printed above (every live≥7 row was `unbucketed`) →
+  `{n} live≥7 → {abs Profile root}/scout/jobs/`. Never `+{n} more` there.
 
 ### Gaps
 
