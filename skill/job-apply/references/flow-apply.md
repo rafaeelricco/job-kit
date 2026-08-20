@@ -100,7 +100,9 @@ harvest, and Fit all run in parallel off `### Ad`; Select waits on an
 all-green gate:
 
 1. Untrusted harvest done (quotes ready for Review `### Untrusted content`)
-2. CV path resolvable — missing/unopenable PDF → **STOP** at the gate
+2. CV chosen and resolvable — pick one row per contract Gate law off `### Ad` alone
+   (title, seniority, and the printed requirements are the whole input; Fit has not
+   run yet). Missing/unopenable PDF → **STOP** at the gate
 3. Ad-stated Gate precheck — Facts cannot meet a hard format requirement →
    **STOP** at the gate
 4. `### Duplicate check` printed, and a non-`new` match answered by the operator
@@ -162,6 +164,10 @@ That single yes unlocks submit. It is not yet a store write. A form that turns o
 more than the review covered stops once more for those fields alone (Order step 6).
 
 Anything other than approve → do not submit; write nothing.
+
+A reply naming a different `data/cvs.yaml` id is a correction, not an approve: reprint
+`### Attachments` alone with that id, then **STOP** for a fresh yes. An id absent from
+the registry → say so and reprint nothing.
 
 ### Order
 
@@ -518,9 +524,11 @@ Five lines, from `contract-draft.md` "Salary expectation":
 
 ### Attachments
 
-| file                                                   | exists |
-| ------------------------------------------------------ | -----: |
-| Exactly one CV, already proven to open at gate item 2. |
+| id                                                                            | file | why | exists |
+| ----------------------------------------------------------------------------- | ---- | --- | -----: |
+| Exactly one CV, already chosen and proven to open at gate item 2. `id` is the |
+| `data/cvs.yaml` row, or `fallback` when no registry decided it. `file` is the |
+| absolute path. `why` is one clause naming what in the ad selected that row.   |
 
 ### Gate compliance
 

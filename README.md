@@ -163,9 +163,13 @@ you. Neither end auto-fires on purpose: scout stays list-only and cannot judge
 which ranked row is worth an application, and apply never submits without your
 explicit yes on the review.
 
-Applying needs exactly one CV PDF that opens: a tailored one compiled for that
-application, or `cv/en-us-resume.pdf` as the fallback. With neither,
-job-apply stops and asks you to build it.
+Applying needs exactly one CV PDF that opens. Keep as many as you like in `cv/` and
+list them in `data/cvs.yaml` — one row per target role, with a `targets` line saying
+what each is for and a `default` for postings that match none. job-apply reads the ad,
+picks one row, and prints the pick and its reason in the review's `### Attachments`
+before you approve; reply with another id to switch it. With no registry it attaches
+`cv/en-us-resume.pdf`. With neither, job-apply stops and asks you to build one.
+Edit the registry with `/job-profile-me cvs`; job-kit never compiles a CV for you.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
