@@ -21,7 +21,7 @@ a terminal `status:` on the tracked one. Conflict removes every candidate →
 | Signal                                                       | Strength | Use                                      |
 | ------------------------------------------------------------ | -------- | ---------------------------------------- |
 | Sender domain is the company's own domain                    | strong   | enough with one dossier for that company, no title conflict |
-| Known-ATS sender domain, company named in From or Subject    | strong   | same                                     |
+| Known-ATS sender domain, company named in From or Subject    | medium   | shared platform — promotes only on the rule below |
 | Company name in From display-name or Subject, sender neither | medium   | skip — both fields are sender-controlled |
 | Company name only in body                                    | weak     | skip — not unique enough to write        |
 | Title tokens in Subject, no company                          | weak     | skip — title-only never binds            |
@@ -30,15 +30,18 @@ a terminal `status:` on the tracked one. Conflict removes every candidate →
 Strength is a property of the **sender**, not of the words. A From display-name
 and a Subject line are typed by whoever sent the mail, so anyone can put any
 company in either; the envelope domain is the only part a stranger cannot choose
-freely. That is why both strong rows name a domain. Without one, a spoofed or
-merely unrelated message naming the company would be enough to move a tracked
-application to `interview`, `offer`, or `rejected`.
+freely. That is why the only strong row names the company's own domain. Without
+one, a spoofed or merely unrelated message naming the company would be enough to
+move a tracked application to `interview`, `offer`, or `rejected`.
 
 Known-ATS domain means the mail's envelope sender is a recruiting platform the
 company posts through — `greenhouse.io`, `lever.co`, `ashbyhq.com`,
 `myworkday.com`, `smartrecruiters.com`, `workable.com`, `teamtailor.com`. A
 domain not on that list and not the company's own is not authenticated here;
-treat it as the medium row.
+treat it as the medium row. A listed domain authenticates the platform, not the
+tenant that sent — every customer of that platform shares it, so the company
+still reaches you only through From or Subject, which the sender types. It stays
+medium until the fetched body supplies the application evidence below.
 
 A medium row promotes to strong only on **application-specific** evidence in the
 fetched body: the mail names this dossier's role and addresses the operator's own
