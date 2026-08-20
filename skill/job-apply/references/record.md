@@ -1,15 +1,10 @@
 # Record confirmed application
 
-Open only after clear Submit success or explicit operator `sent`, `submitted`, or
-`applied` confirmation. Recording is not submitting. This is the only phase that writes
-the Profile root, and it writes only the dossier store.
+This is the only phase that writes the Profile root, and it writes only the
+dossier store.
 
-Before writing, read and obey `job-scout/references/schema-dossier.md` and
-`job-scout/references/persistence.md`. `schema-dossier.md` is the sole authority for
-dossier shape and field ownership, URL normalization, quoting and escaping, injection
-protection, filename allocation, and log grammar. `persistence.md` owns the complete
-filesystem transaction — containment, URL locks, owner fencing, staging, atomic
-placement, and lock release. Do not reproduce or replace those mechanics here.
+Before writing, obey `job-scout/references/schema-dossier.md` and
+`job-scout/references/persistence.md`. Do not reproduce or replace those mechanics.
 Normalize identity with `job-scout/references/contract-search.md`.
 
 ## Write scope and lifecycle
@@ -19,12 +14,12 @@ On an existing dossier, touch only frontmatter `status:` and new content appende
 existing log lines. Re-scan by normalized URL under the persistence lock before
 choosing update or create.
 
-| Existing dossier status                                                              | Result after confirmed application |
-| ------------------------------------------------------------------------------------ | ---------------------------------- |
-| `new`                                                                                | `applied`                          |
-| `applied`                                                                            | unchanged                          |
-| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged                          |
-| no dossier                                                                           | create with `status: applied`      |
+| Existing dossier status | Result after confirmed application |
+| --- | --- |
+| `new` | `applied` |
+| `applied` | unchanged |
+| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged |
+| no dossier | create with `status: applied` |
 
 Always append the application log and record. A released non-`new` duplicate keeps its
 status and uses the duplicate log line below. Never rewind a lifecycle state.
@@ -79,7 +74,6 @@ For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 - {YYYY-MM-DD} · applied via {channel} — job-apply
 
 #### Application {YYYY-MM-DD} · {channel}
-
 {same-session record or later-session placeholder}
 ```
 
@@ -96,9 +90,7 @@ Append the application heading using the submission date and exactly one line:
 
 `> record not available (confirmed in a later session)`
 
-No section headings. Existing status follows the lifecycle table: only `new` becomes
-`applied`; `interview`, `offer`, `rejected`, `dropped`, and every other non-`new` value
-remain unchanged.
+No section headings. Existing status follows the lifecycle table.
 
 ## Persistence encoding
 
@@ -119,7 +111,5 @@ default candidate set. Do not narrow that set to the job just filed. The inbox r
 this run's last output.
 
 The inbox leg runs only after a successful write. A record that failed or never opened
-ends here. Inbox law is untouched: read-only on mail, no gate, and it writes only what
-its classify contract marks writable. An inbox stop (no Gmail transport, no
-`scout/jobs/`, or zero candidates) is not an apply failure — print inbox's own stop
-line, say the application is still recorded, and end.
+ends here. An inbox stop is not an apply failure — print inbox's own stop line, say the
+application is still recorded, and end.
