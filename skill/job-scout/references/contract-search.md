@@ -28,7 +28,10 @@ Obey CONTRACT_BROWSE for page access and gates.
 
 ## Search procedure (every search unit)
 
-1. Follow CONTRACT_BROWSE. Still blocked, or the operator declines the gate →
+1. Follow CONTRACT_BROWSE. A limited signed-out or guest result page is a
+   gate even when some cards are visible — STOP and ask the operator to
+   confirm login. A full public index (open-web) is not that gate.
+   Still blocked, still guest, or the operator declines the gate →
    return zero candidates with verdict `auth_gate`.
    One pack is one host, so a gate that blocks it blocks the whole pack.
 2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
