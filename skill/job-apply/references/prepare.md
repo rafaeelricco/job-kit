@@ -13,20 +13,20 @@ content binds from the first fetch.
 Facts are read, never recalled. Read the file, use what it prints, and stop if it is
 unreadable. The source map is the only authority for evidence and form values.
 
-| Fact | Read from |
-| --- | --- |
-| language level | `data/languages.yaml` `languages[].level` with `name` |
-| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml` |
-| remote / in-person and relocation preference | `data/candidate.yaml` `work_preferences_from_resume` |
-| assessments, drug tests, background checks | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys |
-| name, email, phone, site | `data/basics.yaml` |
-| LinkedIn, GitHub | `data/profiles.yaml` |
-| roles, employers, dates, public work bullets | `data/experiences.yml` |
-| public portfolio projects | `data/projects.yml` |
-| skills / stack inventory | `data/skills.yaml`, then `data/skills-by-company.yml` when present |
-| project depth, technical cause, outcomes | `data/experiences.yml` `summary`, `data/projects.yml` |
-| story claims and verified outcomes | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
-| CV variants and which to attach | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent, empty, or undecidable → `cv/en-us-resume.pdf` |
+| Fact                                                         | Read from                                                                                                                                                         |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
+| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                             |
+| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                              |
+| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
+| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                |
+| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                              |
+| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                            |
+| public portfolio projects                                    | `data/projects.yml`                                                                                                                                               |
+| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
+| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                             |
+| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
+| CV variants and which to attach                              | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent, empty, or undecidable → `cv/en-us-resume.pdf`                                |
 
 Read every `never_say` entry from the story frontmatter before drafting. Treat the
 deduplicated entries as run-global bans on every outbound free-text value, including
@@ -60,11 +60,19 @@ print all, carry one title forward, name the dropped titles, and never address t
 letter. Prefer the title whose printed stack overlaps `data/skills.yaml`; a title with no
 printed stack wins only when it is the sole title.
 
+An ad printing no requirement list is not a stop: say so under `### Ad`, then run Fit
+against the description the posting prints. Requirements are what the ad states, never
+what you expect it to want.
+
 Then print `### Duplicate check` in parallel with Fit. Normalize the URL first using
 `job-scout/references/contract-search.md` "URL normalize". A dossier whose normalized
 URL, or company and title, match and whose `status:` is not `new` prints
 `Duplicate check: {status} per scout/jobs/{filename}` and blocks for the operator's
 release. No match or `status: new` prints `Duplicate check: no prior application recorded.`
+
+`{filename}` is the dossier's name as listed on disk, date prefix included. Never
+rebuild it from `company` and `title`: the prefix is that dossier's `first_seen`, and a
+`-2` suffix is told apart only by `url` (`job-scout/references/schema-dossier.md`).
 
 A dossier that cannot be read or parsed is a failed check, never a non-match. `scout/`
 absent prints `Duplicate check: not performed (no scout store).`; an unreadable present
@@ -125,6 +133,11 @@ Failure returns to Phase 2; pass emits the review below and stops. Stage propose
 values in the review only. Do not fill live fields, upload attachments, accept terms,
 create/sign in to an account, or submit before approval.
 
+Label is not authority: an Apply, Easy Apply, or Start application control that only
+reveals the form is navigation and is allowed here; the same label that posts is submit
+and waits for approval. A CAPTCHA or bot check stops this phase too: hand the surface to
+the operator and never solve one.
+
 ## Review format
 
 Emit these sections in order, with no preamble, then stop for an explicit yes.
@@ -151,8 +164,8 @@ Print one row per field the ad asks for. `source` is the Fact-law file actually 
 Do not stage an unanswered non-operator field. Never print `—` as an answer; blank
 operator rows remain for the operator to finish.
 
-| field | value | source |
-| --- | --- | --- |
+| field     | value     | source     |
+| --------- | --------- | ---------- |
 | `{field}` | `{value}` | `{source}` |
 
 ### Salary derivation
@@ -169,9 +182,9 @@ A failed in-band check stops before review.
 
 ### Attachments
 
-| id | file | why | exists |
-| --- | --- | --- | ---: |
-| `{id}` | `{file}` | `{why}` | yes |
+| id     | file     | why     | exists |
+| ------ | -------- | ------- | -----: |
+| `{id}` | `{file}` | `{why}` |    yes |
 
 `id` is the `data/cvs.yaml` row, or `fallback` when no registry decided it. `file` is
 the absolute path. `why` is one clause naming what in the ad selected that row. Exactly
