@@ -3,7 +3,7 @@
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
 # Skill folder names under skill/ for coding agents.
-SKILL_NAMES="job-profile-init job-profile-me job-list job-stories job-inbox job-profile-root"
+SKILL_NAMES="job-profile-init job-profile-me job-list job-stories job-pitch job-inbox job-profile-root"
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply"
