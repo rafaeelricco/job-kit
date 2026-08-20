@@ -23,6 +23,7 @@ Writes occur only in Phase 6 under the persistence and dossier contracts.
 
 - Pipeline: `./references/flow-scout.md` (phases, score, bucket, gate)
 - Scout report: `./references/rank-report.md` (score, bucket, sections, columns, vocab; main-only)
+- Kit-gate contract: `./references/contract-check.md` (hard-contradiction compare law; main-only)
 - Dossier: `./references/schema-dossier.md` (scout/ layout, file format, re-run rules; main-only)
 - Search contract: `./references/contract-search.md` (paste card; never inherited)
 - Extract contract: `./references/contract-extract.md` (paste card; never inherited)
