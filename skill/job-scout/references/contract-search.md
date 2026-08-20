@@ -35,10 +35,8 @@ Obey CONTRACT_BROWSE for page access and gates.
    return zero candidates with verdict `auth_gate`.
    One pack is one host, so a gate that blocks it blocks the whole pack.
 2. Interpolate pack tokens before searching: `[role]` = one term from CONSTRAINTS
-   positions — submit the formulation once per position, in file order. A surface
-   ranks a query, it does not evaluate it as a boolean set, so an OR-join of the
-   whole list can match nothing and return a zero that says nothing about the
-   market. `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
+   positions — submit the formulation once per position, in file order.
+   `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
    query. A token whose source list is empty or absent → drop the token and the
    parentheses that held it alone; a formulation left with no search term is not
@@ -70,9 +68,7 @@ Obey CONTRACT_BROWSE for page access and gates.
    rows or zero — confirm the surface ran the string you submitted: the
    results view echoes it back (the search URL's query parameter, or the
    surface's own "results for …" element) and the echo is your string.
-   Filling a search box is not submitting it; a typeahead can swallow the
-   Enter and leave the previous query's results on screen, and that page's
-   zero belongs to a query you never wrote. No echo, or an echo that is not
+   Filling a search box is not submitting it. No echo, or an echo that is not
    your string → resubmit once by loading the surface's own search URL with
    the query percent-encoded. Still no echo → record zero rows for that
    query with verdict `defect: query_not_submitted`, naming the string that

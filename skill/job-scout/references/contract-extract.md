@@ -7,7 +7,6 @@ Open listed URLs only. NEVER apply, open an application form, message, connect,
 follow, InMail, or discover new URLs.
 Obey CONTRACT_BROWSE for page access and gates.
 Still blocked after the operator's pass → row `status=uncertain`.
-Anything that would apply, message, or connect → stop.
 No page → no field. NEVER fill from memory, search card, or inference.
 
 ## Superset law
