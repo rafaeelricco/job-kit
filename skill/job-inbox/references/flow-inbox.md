@@ -19,9 +19,10 @@ frontmatter `status:` `applied`, `interview`, or `offer`. An operator-named
 company/title/file selects that dossier, any status except `dropped`.
 
 Snapshot each candidate’s `company`, `title`, `url`, `status`, latest
-`applied via` date, and qualified logged keys `(account_uid, thread_id,
-outcome)`. Preserve malformed-dossier Gaps. The candidate count is the summary
-denominator. Zero candidates stops with:
+`applied via` date, qualified logged keys `(account_uid, thread_id, outcome)`,
+and legacy `(thread_id, outcome)` keys from pre-qualification log lines.
+Preserve malformed-dossier Gaps. The candidate count is the summary denominator.
+Zero candidates stops with:
 `No open applications to match mail against.`
 
 ## Harvest
@@ -100,7 +101,8 @@ writer SSOT:
 ```
 
 Never record secrets or full bodies. Existing naked `thread:{id}` log entries
-remain untouched and are ignored for qualified replay.
+stay untouched and still block a same-outcome replay under `## Write` item 5, so
+a profile upgraded mid-history never re-appends events it already holds.
 
 ## Report
 
