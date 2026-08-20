@@ -44,8 +44,8 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-inbox, job-profile-root) — full copy
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-inbox, job-profile-root)
+  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
   browser-use  Browser skills (job-scout, job-apply) into coding-agent homes;
                driven by the local browser-use CLI (docs.browser-use.com)
   all       aside + agents + browser-use
@@ -55,7 +55,7 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-profile-me | job-list | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
                 agents | browser-use | claude | codex | grok
                 (claude|codex|grok narrow a channel named alongside them;
                 alone they mean the agents channel)
@@ -135,7 +135,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root)
+      job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -144,7 +144,7 @@ expand_only() {
       claude) named_agent=1; want_claude=1 ;;
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -170,7 +170,7 @@ expand_only() {
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-profile-me "*|*" job-list "*|*" job-inbox "*)
+      *" job-scout "*|*" job-apply "*|*" job-profile-me "*|*" job-list "*|*" job-pitch "*|*" job-inbox "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
