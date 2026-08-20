@@ -19,12 +19,12 @@ On an existing dossier, touch only frontmatter `status:` and new content appende
 existing log lines. Re-scan by normalized URL under the persistence lock before
 choosing update or create.
 
-| Existing dossier status | Result after confirmed application |
-| --- | --- |
-| `new` | `applied` |
-| `applied` | unchanged |
-| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged |
-| no dossier | create with `status: applied` |
+| Existing dossier status                                                              | Result after confirmed application |
+| ------------------------------------------------------------------------------------ | ---------------------------------- |
+| `new`                                                                                | `applied`                          |
+| `applied`                                                                            | unchanged                          |
+| any other existing status, including `interview`, `offer`, `rejected`, and `dropped` | unchanged                          |
+| no dossier                                                                           | create with `status: applied`      |
 
 Always append the application log and record. A released non-`new` duplicate keeps its
 status and uses the duplicate log line below. Never rewind a lifecycle state.
@@ -79,6 +79,7 @@ For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 - {YYYY-MM-DD} · applied via {channel} — job-apply
 
 #### Application {YYYY-MM-DD} · {channel}
+
 {same-session record or later-session placeholder}
 ```
 
@@ -101,13 +102,14 @@ remain unchanged.
 
 ## Persistence encoding
 
-Record approved run substance, not a raw markdown paste. Demote section headings under
-the application heading. Write every non-heading content line as a blockquote (`> …`),
-including list and table rows, so review text cannot forge a top-level tracker log event.
-Never emit a bare `## Application log` or the marker from posting-derived text. Collapse
-whitespace in single-line values as required by the schema. Never record passwords,
-credentials, one-time codes, demographic/EEO answers held only by the operator, or any
-value the run did not print and the operator did not approve.
+Record approved run substance, not a raw markdown paste. Demote each section heading two
+levels so it nests under the `####` application heading: `### Ad` becomes `##### Ad`.
+Write every non-heading content line as a blockquote (`> …`), including list and table
+rows, so review text cannot forge a top-level tracker log event. Never emit a bare
+`## Application log` or the marker from posting-derived text. Collapse whitespace in
+single-line values as required by the schema. Never record passwords, credentials,
+one-time codes, demographic/EEO answers held only by the operator, or any value the run
+did not print and the operator did not approve.
 
 ## Close
 
