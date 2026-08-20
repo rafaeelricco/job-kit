@@ -49,7 +49,8 @@ roots stay active until the tree is deleted.
    write for one approval. Source values and defaults require explicit
    confirmation, edits, or skips.
 2. Review Gaps in the fill report; fix any empty fields scout needs.
-3. `cv/en-us-resume.pdf` for job-apply attachments when not already placed.
+3. Compiled CV PDFs go in `cv/`; list them in `data/cvs.yaml` (add or retarget via
+   `/job-profile-me cvs`). With no registry, job-apply attaches `cv/en-us-resume.pdf`.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
    there or via `/job-profile-me packs`.
 5. Free-form details are stored in `data/observations.yaml`.

@@ -100,7 +100,9 @@ harvest, and Fit all run in parallel off `### Ad`; Select waits on an
 all-green gate:
 
 1. Untrusted harvest done (quotes ready for Review `### Untrusted content`)
-2. CV path resolvable — missing/unopenable PDF → **STOP** at the gate
+2. CV chosen and resolvable — pick one row per contract Gate law off `### Ad` alone
+   (title, seniority, and the printed requirements are the whole input; Fit has not
+   run yet). Missing/unopenable PDF → **STOP** at the gate
 3. Ad-stated Gate precheck — Facts cannot meet a hard format requirement →
    **STOP** at the gate
 4. `### Duplicate check` printed, and a non-`new` match answered by the operator
@@ -162,6 +164,10 @@ That single yes unlocks submit. It is not yet a store write. A form that turns o
 more than the review covered stops once more for those fields alone (Order step 6).
 
 Anything other than approve → do not submit; write nothing.
+
+A reply naming a different `data/cvs.yaml` id is a correction, not an approve: reprint
+`### Attachments` alone with that id, then **STOP** for a fresh yes. An id absent from
+the registry → say so and reprint nothing.
 
 ### Order
 
@@ -383,7 +389,29 @@ plus any Phase 4 `### Added fields` the operator second-yes'd — never invented
 
 ### Close
 
-Print the dossier's filename, the log line written, and the new `status:`. Then done.
+Print the dossier's filename, the log line written, and the new `status:`.
+
+Then run the **inbox leg** in this same session — the reason a reply sweep no
+longer needs a session of its own. Load the `job-inbox` skill and obey it
+end-to-end on its default candidate set. The dossier this phase just wrote is
+`status: applied`, so it is already in that set, and every other open
+application comes with it — which is where the replies actually are. Never
+narrow inbox to the job just filed: nobody answers a form in the seconds since
+you submitted it.
+
+Bounds on the leg:
+
+- It runs after the write, never before. A RECORD that failed or never opened
+  ends the run here — there is nothing this session changed to sweep against.
+- Inbox's own law is untouched. Read-only on mail, no gate, no question, and it
+  writes only what `contract-classify.md` marks writable. This phase grants it
+  nothing extra, and the leg's dossier writes are `job-inbox`'s, not this
+  skill's.
+- An inbox **STOP** is not an apply failure. No Gmail transport, no
+  `scout/jobs/`, or zero candidates → print inbox's own stop line, say the
+  application is still recorded, and end. Submit and record already shipped.
+
+The inbox report is the last thing this run prints. Then done.
 
 ## Letter shape
 
@@ -456,9 +484,11 @@ Five lines, from `contract-draft.md` "Salary expectation":
 
 ### Attachments
 
-| file                                                   | exists |
-| ------------------------------------------------------ | -----: |
-| Exactly one CV, already proven to open at gate item 2. |
+| id                                                                            | file | why | exists |
+| ----------------------------------------------------------------------------- | ---- | --- | -----: |
+| Exactly one CV, already chosen and proven to open at gate item 2. `id` is the |
+| `data/cvs.yaml` row, or `fallback` when no registry decided it. `file` is the |
+| absolute path. `why` is one clause naming what in the ad selected that row.   |
 
 ### Gate compliance
 

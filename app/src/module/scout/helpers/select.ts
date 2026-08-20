@@ -1,4 +1,5 @@
 export {
+  EMPTY_DAYS,
   EMPTY_FILTER,
   PAGE_SIZES,
   SCORE_BANDS,
@@ -9,11 +10,15 @@ export {
   bySource,
   byText,
   cycleSource,
+  dateOf,
+  isoOf,
   matches,
   paginate,
   sourceState,
   summarize,
   tallySources,
+  todayIso,
+  type DayRange,
   type Filter,
   type ScoreBand,
   type Segment,
@@ -48,6 +53,32 @@ const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
 const bandOf = (d: Dossier): ScoreBand =>
   d.score.kind === "unscored" ? "unscored" : d.score.value >= 8 ? "strong" : d.score.value >= 7 ? "keep" : "low"
 
+/* -- days ----------------------------------------------------------------- */
+
+// Open at either end: "since the 3rd" and "up to the 3rd" are each one click in
+// the picker, and an unset side of a range is exactly what null means there.
+type DayRange = { readonly from: string | null; readonly to: string | null }
+
+const EMPTY_DAYS: DayRange = { from: null, to: null }
+
+// Local parts rather than `toISOString()`: the corpus stamps `first_seen` with
+// the operator's own day, so a UTC day would read the evening as tomorrow and
+// leave "Found today" empty for the last hours of every working day.
+const isoOf = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+
+const todayIso = (): string => isoOf(new Date())
+
+// Midnight local, so the picker highlights the same day the string names.
+const dateOf = (iso: string): Date => {
+  const [year, month, day] = iso.split("-")
+  return new Date(Number(year), Number(month) - 1, Number(day))
+}
+
+// ISO days compare lexically, so the window needs no parsing to test.
+const inDays = (range: DayRange, day: string): boolean =>
+  (range.from === null || day >= range.from) && (range.to === null || day <= range.to)
+
 type Filter = {
   readonly query: string
   readonly segment: Segment
@@ -59,6 +90,10 @@ type Filter = {
   // facets above, so they carry no union type — the list comes from the store.
   readonly sources: readonly string[]
   readonly excluded: readonly string[]
+  // The day scout first wrote the dossier — `first_seen`, the same stamp the
+  // filename carries. `last_seen` moves on every re-run, so it answers "still
+  // live", not "what did I find today".
+  readonly found: DayRange
 }
 
 const EMPTY_FILTER: Filter = {
@@ -70,6 +105,7 @@ const EMPTY_FILTER: Filter = {
   statuses: [],
   sources: [],
   excluded: [],
+  found: EMPTY_DAYS,
 }
 
 /* -- filtering ------------------------------------------------------------ */
@@ -149,6 +185,7 @@ const matches =
     if (!facet(f.buckets, d.bucket)) return false
     if (!facet(f.channels, d.channel)) return false
     if (!facet(f.statuses, d.status)) return false
+    if (!inDays(f.found, d.firstSeen)) return false
     const query = f.query.trim().toLowerCase()
     if (query === "") return true
     return corpus(d).includes(query)
