@@ -26,6 +26,7 @@ unreadable. The source map is the only authority for evidence and form values.
 | skills / stack inventory | `data/skills.yaml`, then `data/skills-by-company.yml` when present |
 | project depth, technical cause, outcomes | `data/experiences.yml` `summary`, `data/projects.yml` |
 | story claims and verified outcomes | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
+| CV variants and which to attach | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent, empty, or undecidable → `cv/en-us-resume.pdf` |
 
 Read every `never_say` entry from the story frontmatter before drafting. Treat the
 deduplicated entries as run-global bans on every outbound free-text value, including
@@ -73,8 +74,13 @@ store stops and names the path. For either non-blocking outcome, also print
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
 released by the operator. Missing or unopenable PDF stops the run. Exactly one CV per
-submission; prefer a tailored compiled PDF, else `cv/en-us-resume.pdf`; never use `.tex`
-or generate LaTeX here.
+submission, chosen in this order and never more than one: (1) a tailored compiled PDF
+already produced for this application; (2) `data/cvs.yaml` readable with a non-empty
+`cvs` — read every row's `targets`, take the one row the ad fits best, and when no row
+clearly fits take the `default` id (ties go to `default`; never blend two rows; never
+invent an id or filename); (3) no registry, unreadable registry, empty `cvs`, or a
+`default` naming no row → `cv/en-us-resume.pdf`. The chosen `file` resolves under `cv/`
+and must open as a PDF. Never use `.tex` or generate LaTeX here.
 
 ## Phase 1 — FIT
 
@@ -163,9 +169,13 @@ A failed in-band check stops before review.
 
 ### Attachments
 
-| file | exists |
-| --- | ---: |
-| Exactly one CV, proven openable at the ad gate. | yes |
+| id | file | why | exists |
+| --- | --- | --- | ---: |
+| `{id}` | `{file}` | `{why}` | yes |
+
+`id` is the `data/cvs.yaml` row, or `fallback` when no registry decided it. `file` is
+the absolute path. `why` is one clause naming what in the ad selected that row. Exactly
+one CV, chosen and proven openable at the ad gate.
 
 ### Gate compliance
 
