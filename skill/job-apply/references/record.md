@@ -25,7 +25,7 @@ choosing update or create.
 | no dossier | create with `status: applied` |
 
 Always append the application log and record. A released non-`new` duplicate keeps its
-status and adds ` · was {status}` to the new log line. Never rewind a lifecycle state.
+status and uses the duplicate log line below. Never rewind a lifecycle state.
 
 ## Identity and write preconditions
 
@@ -57,6 +57,10 @@ or invent content. Keep operator-only rows as `operator`.
 The log line is:
 
 `- {YYYY-MM-DD} · applied via {channel} — job-apply`
+
+A released non-`new` duplicate uses:
+
+`- {YYYY-MM-DD} · applied via {channel} · was {status} — job-apply`
 
 For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 `last_seen` to today, use the normalized URL, `channel` from `### Ad`, `score: —`, and
