@@ -43,7 +43,7 @@ Obey CONTRACT_BROWSE for page access and gates.
    Do not repeat a keyword-group term as a literal when the same
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
-3. Run every formulation in PACK (≥3). Dry formulation = logged result, not a skip.
+3. Run every formulation in PACK. Dry formulation = logged result, not a skip.
    Hit **pack-wide** `auth_gate` at (1) (shared surface only) → skip remaining
    SEARCH-ONLY steps for this pack;
    report the actual `formulations_run` with that verdict.
@@ -91,4 +91,5 @@ exceptions, empty log included.
 
 `pack | formulations_run | zero_result_runs | verdict`
 
-- `formulations_run` = formulations run for the pack. MUST be ≥ 3 or verdict names the defect.
+- `formulations_run` = formulations run for the pack. MUST equal the pack's
+  formulation count or verdict names the defect.
