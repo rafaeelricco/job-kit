@@ -107,9 +107,10 @@
      an absolute kit root or the README Install recipe. Operator is often only
      in a profile directory.
    - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
-     file: set to **empty** (omit the line). Else set to:
-     `- If CV not placed: add cv/en-us-resume.pdf before job-apply attachments.`
-     Register-existing: probe the same path under `<target>`.
+     file, **or** `"$REPO/data/cvs.yaml"` names at least one `file` that exists and
+     is non-empty under `"$REPO/cv/"`: set to **empty** (omit the line). Else set to:
+     `- If CV not placed: add a PDF under cv/ before job-apply attachments.`
+     Register-existing: probe the same paths under `<target>`.
 
    **Resolve `KIT_ROOT` (optional):** take the real path of the skill root that
    holds `SKILL.md` (`…/skill/job-profile-init`), not this file's own

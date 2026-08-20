@@ -12,6 +12,10 @@ Every section below is the **chat deliverable only**. Disk receives dossiers und
 `scout/jobs/` per `schema-dossier.md` — never a run file, never a second copy of ranked
 tables or score factors. No preamble. No apply / message / connect / open-form language.
 
+The report itself holds no `Next:` line. `flow-scout.md` Phase 6 prints one after
+the dossiers land — naming the next command is not applying, and it sits outside
+these sections, so "exactly in this section order" still binds here.
+
 ### Header
 
 `# Job Scout · {YYYY-MM-DD} · {n} live≥7 · {n} contacts · {n} defects`
@@ -72,10 +76,14 @@ Omit this heading when the list is empty.
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unbucketed: {company} — {title} (no printed work_auth, hiring_route, or location)
+- kit drop: {company} — {title} ({reason})
 
 `skipped` covers dry packs (`{pack_id} (dry)`). `tool defects` also covers
 pack verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate drops,
 disabled packs, never-live dead, and score<7 rows.
+`kit drop` is the one drop that does print: `{reason}` is the checker's sentence
+verbatim (`flow-scout.md` `### Kit gate`), kit field first, posting field second.
+Never shorten it to a bucket name — the reader is owed the field that failed.
 
 ## Inclusion / hard rules (spec-only; never emitted)
 
