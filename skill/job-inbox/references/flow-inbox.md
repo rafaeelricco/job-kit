@@ -93,7 +93,8 @@ Then, in order:
 3. **Count.** Every survivor is fetched or `skip`, or Phase 3 does not start.
 
 A fetch that errors → retry once. Still failing → that thread is `skip`, named
-under Gaps with the transport error. A failed fetch never passes as an `ack`.
+under Gaps with the transport error and the candidate it was searched for. A
+failed fetch never passes as an `ack`.
 
 Fetching only what looks like news is how a decline reads as a receipt: the
 deciding clause usually sits below the snippet's cut, and the company that
@@ -207,12 +208,17 @@ or acknowledgement to it in the window, oldest first:
 `- {company} · {title} · applied {YYYY-MM-DD} · {n}d silent`.
 
 A truncated candidate never appears here. "No reply" is a claim about the whole
-window, and a truncated search did not read the whole window. Silence is decided
-after classify, never from the raw result count: `noise`, an `unmatched` row, and
-any thread that never bound to this candidate all leave it silent — a query that
-surfaced only a newsletter surfaced no reply. Otherwise a candidate with one
-unbound hit would fall out of every section and contradict the Phase 1
-denominator.
+window, and a truncated search did not read the whole window. Neither does a
+candidate carrying its own `skip` — a body that never fetched, or a match or
+outcome left unresolved: that candidate is named under Gaps, because a message
+nobody read is not a message that said nothing. Gaps wins the tie; a candidate is
+never both.
+
+Silence is decided after classify, never from the raw result count: `noise`, an
+`unmatched` row, and any classified thread that bound elsewhere all leave this
+candidate silent — a query that surfaced only a newsletter surfaced no reply.
+Otherwise a candidate with one unbound hit would fall out of every section and
+contradict the Phase 1 denominator.
 
 `## Harvest` — one line: `{n} in window · {n} survived filter · {n} bodies
 fetched · {n} searches truncated`. The middle pair equal, or every difference is
