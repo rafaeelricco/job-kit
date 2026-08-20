@@ -43,15 +43,15 @@ never in the chat Score audit.
 
 ## Bucket (main-derived; never a gated column)
 
-Derived from extract output. NEVER set by a worker. First match wins.
+Derived from extract output. NEVER set by a worker. First eligible match wins.
 
 1. Printed EOR/Deel/Oyster/hire-from-anywhere route and
    `employment_routes.employer_of_record == Yes` → `EOR`
-2. Same route with any other profile value → `unbucketed`; blocker `EOR route not
-   enabled in profile`
-3. Contractor/B2B or LATAM/global/anywhere/worldwide → `direct`
-4. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
+2. Contractor/B2B or LATAM/global/anywhere/worldwide → `direct`
+3. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
    blocker = printed restriction
+4. Printed EOR/Deel/Oyster/hire-from-anywhere route with any other profile value
+   → `unbucketed`; blocker `EOR route not enabled in profile`
 5. Otherwise → `unbucketed`
 
 `unbucketed` enters no ranked table or Do this first — it still gets a dossier and
