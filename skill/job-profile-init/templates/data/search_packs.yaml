@@ -13,102 +13,87 @@ packs:
     entry: https://www.linkedin.com/jobs/
     formulations:
       - "[role]"
-      - "[role] [skill:primary]"
-      - "[skill:primary] engineer [skill:hiring_model]"
-      - "[role] [industry]"
 
   - id: hn-hiring
     surface: open-web
     entry: https://hnhiring.com
     formulations:
       - "[role]"
-      - "[skill:primary]"
-      - "[role] [skill:hiring_model]"
 
   - id: work-at-a-startup
     surface: open-web
     entry: https://www.workatastartup.com/companies?demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=fulltime&layout=list-compact&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=true
     formulations:
       - "[role]"
-      - "[role] [skill:primary]"
-      - '(founding OR "early-stage") [role]'
 
   - id: we-work-remotely
     surface: open-web
     entry: https://weworkremotely.com
     formulations:
       - "[role]"
-      - "[skill:primary] [role]"
-      - "[role] [industry]"
 
   - id: himalayas
     surface: open-web
     entry: https://himalayas.app
     formulations:
       - "[role]"
-      - "[skill:primary] [role]"
-      - "[role] [industry]"
 
   - id: hiring-cafe
     surface: open-web
     entry: https://hiring.cafe
     formulations:
       - "[role]"
-      - "[skill:primary] [role]"
-      - "[role] [industry]"
 
   - id: greenhouse
     surface: open-web
     entry: https://job-boards.greenhouse.io
     formulations:
       - "[role]"
-      - "[role] [skill:primary]"
-      - "[role] [industry] [skill:hiring_model]"
 
   - id: lever
     surface: open-web
     entry: https://jobs.lever.co
     formulations:
       - "[role]"
-      - "[role] [skill:primary]"
-      - "[role] [industry] [skill:hiring_model]"
 
   - id: linkedin-posts
     surface: social
     entry: https://www.linkedin.com/search/results/content/
     formulations:
-      - '("we''re hiring" OR "now hiring") [role]'
-      - '("open role" OR "join our team") [skill:primary]'
-      - "hiring [role] [skill:hiring_model]"
+      - '"we''re hiring" [role]'
+      - '"now hiring" [role]'
+      - '"open role" [role]'
+      - '"join our team" [role]'
+      - "hiring [role]"
 
   - id: x-dm-me
     surface: social
     entry: https://x.com/search?f=live
     formulations:
       - 'hiring "DM me" [role]'
-      - '"we''re hiring" ("email me" OR "send CV") [role]'
-      - "[role] hiring (DM OR email)"
+      - '"we''re hiring" "email me" [role]'
+      - '"we''re hiring" "send CV" [role]'
+      - "[role] hiring DM"
+      - "[role] hiring email"
 
   - id: x-funding
     surface: social
     entry: https://x.com/search?f=live
     formulations:
-      - '("just raised" OR "Series A" OR "seed round") hiring [role]'
+      - '"just raised" hiring [role]'
+      - '"Series A" hiring [role]'
+      - '"seed round" hiring [role]'
       - '"out of stealth" hiring [role]'
-      - "raised hiring [skill:primary]"
+      - "raised hiring [role]"
 
   - id: dice
     surface: open-web
     entry: https://www.dice.com/jobs
     formulations:
       - "[role]"
-      - "[skill:primary] [role]"
-      - "[role] [skill:hiring_model]"
 
   - id: getonbrd
     surface: open-web
     entry: https://getonbrd.com/jobs
     formulations:
       - "[role]"
-      - "[skill:primary] [role]"
-      - "[role] [skill:hiring_model]"

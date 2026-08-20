@@ -108,9 +108,9 @@ Expect `### Candidates` + `### Defect log` per unit — headings defined in
 
 ## Phase 2 — MERGE (main only)
 
-Pre-merge pack checker: `formulations_run` missing or <3 and no formulations defect and
-verdict not `auth_gate` → `formulations_short`; candidates not merge-eligible until
-re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
+Pre-merge pack checker: `formulations_run` missing or not equal to the pack's
+formulation count and no formulations defect and verdict not `auth_gate` →
+`formulations_short`; candidates not merge-eligible until re-run; main enforces. `auth_gate` packs: empty candidates merge-eligible; do not re-run
 — gate-pass was already attempted in the search unit and failed. Carry the actual
 `formulations_run`.
 Every chosen pack id must have Defect log row before extract.
