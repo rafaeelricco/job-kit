@@ -11,8 +11,10 @@ Candidate skill set `C` is the deduplicated union of:
 - `data/job_search.yaml` `keywords.primary`
 
 Required skill set `R` is extract `required_skills`.
-Normalize both by trimming, case-folding, and removing punctuation and
-whitespace. Match normalized values exactly; never infer aliases.
+Normalize both by trimming, case-folding, collapsing whitespace, and
+stripping separator punctuation (commas, slashes, parentheses). Keep
+identifier punctuation (`+`, `#`, `.`) so `C++`, `C#`, and `Node.js`
+stay distinct. Match normalized values exactly; never infer aliases.
 
 If `R` is absent/`—`, or `C` is empty, the row is unscored (`score: —`) and
 lists under Gaps.
