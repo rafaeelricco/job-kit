@@ -1,0 +1,11 @@
+# Compiled CVs available for attachment. job-apply reads this file from the
+# Profile root and attaches exactly one row per application; job-profile-me
+# edits it. Absent file, empty `cvs`, or no `default` → job-apply falls back to
+# `cv/en-us-resume.pdf`, so a profile without this file still applies.
+# file = path under `cv/`; must open as a PDF. NEVER a `.tex`.
+# targets = prose job-apply matches against the ad. Write what the CV is for.
+# default = the id used when no row clearly matches the ad.
+
+default: ""
+
+cvs: []
