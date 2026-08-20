@@ -34,8 +34,11 @@ Obey CONTRACT_BROWSE for page access and gates.
    Still blocked, still guest, or the operator declines the gate →
    return zero candidates with verdict `auth_gate`.
    One pack is one host, so a gate that blocks it blocks the whole pack.
-2. Interpolate pack tokens before searching: `[role]` = OR-join of CONSTRAINTS
-   positions; `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
+2. Interpolate pack tokens before searching: `[role]` = one term from CONSTRAINTS
+   positions — submit the formulation once per position, in file order. A surface
+   ranks a query, it does not evaluate it as a boolean set, so an OR-join of the
+   whole list can match nothing and return a zero that says nothing about the
+   market. `[skill:<group>]` = OR-join of that CONSTRAINTS keyword group;
    `[industry]` from PROFILE_CARD. Never leave a bracketed token in a submitted
    query. A token whose source list is empty or absent → drop the token and the
    parentheses that held it alone; a formulation left with no search term is not
@@ -43,7 +46,9 @@ Obey CONTRACT_BROWSE for page access and gates.
    Do not repeat a keyword-group term as a literal when the same
    line already carries that group's `[skill:<group>]` token; curated narrow literals
    (a deliberate subset of a group, or terms in no group) are allowed.
-3. Run every formulation in PACK. Dry formulation = logged result, not a skip.
+3. Run every formulation in PACK, once per configured position. The walk lives
+   inside one formulation and never changes `formulations_run`. Dry formulation =
+   logged result, not a skip.
    Hit **pack-wide** `auth_gate` at (1) (shared surface only) → skip remaining
    SEARCH-ONLY steps for this pack;
    report the actual `formulations_run` with that verdict.
