@@ -113,10 +113,11 @@ Expect `### Candidates` + `### Defect log` per unit — headings defined in
 
 ## Phase 2 — MERGE (main only)
 
-Pre-merge pack checker: `formulations_run` missing or <3 with `verdict=pass`, or with
-nonempty candidates → `formulations_short`; candidates not merge-eligible until
-re-run; main enforces. An empty candidate set whose verdict already names `auth_gate`
-or a defect is terminal and merge-eligible as an empty set. Carry the actual
+Pre-merge pack checker: `formulations_run` missing or less than the pack's
+formulation count with `verdict=pass`, or with nonempty candidates →
+`formulations_short`; candidates not merge-eligible until re-run; main enforces.
+An empty candidate set whose verdict already names `auth_gate` or a defect is
+terminal and merge-eligible as an empty set. Carry the actual
 `formulations_run`.
 Every chosen pack id must have Defect log row before extract.
 
