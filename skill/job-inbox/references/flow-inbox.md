@@ -128,7 +128,7 @@ Zero writable rows → emit Phase 6 report and STOP (hard end, not a question).
 ## Phase 5 — RECORD (writable rows only)
 
 `job-scout/references/schema-dossier.md` owns dossier shape, field ownership,
-quoting, and log grammar. `job-scout/references/persistence.md` owns the complete
+quoting, and log grammar. `./references/persistence.md` owns the complete
 filesystem transaction.
 
 Re-test contract ## Write items 4 and 5 against the file read **under the lock**,
