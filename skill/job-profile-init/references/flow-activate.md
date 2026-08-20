@@ -2,8 +2,7 @@
 
 1. `REPO="$(cd "<target>" && pwd -P)"` — STOP if not a directory.
 2. Require `"$REPO/data/candidate.yaml"` and `"$REPO/data/job_search.yaml"`;
-   else STOP (same two-file probe as Route). Create path: this runs **after**
-   emit and apply the questionnaire (including scaffold-only) so probes exist.
+   else STOP (same two-file probe as Route).
 3. Resolve `HOST_HOME`: if `$HOME` ends with `/.aside/runtime/home`, strip
    that suffix; else `HOST_HOME=$HOME`.
 4. Resolve `HOST_DEFAULT=$HOST_HOME/.config/job-kit` and this-env
@@ -12,8 +11,7 @@
    `HOST_DEFAULT` **and** this process is **not** inside Aside runtime (`$HOME`
    does not end with `/.aside/runtime/home`) **and** `JOB_KIT_CONFIG` either
    equals `HOST_DEFAULT` or fails the two-file probe. Host-default needs no
-   pointer except the two exceptions in `../templates/README.md` (XDG
-   outranks it, or activation ran inside Aside) — see the fall-through below.
+   pointer except the fall-through cases below.
    - **Do not write** a host/Aside pointer naming `REPO` in the pure-convention
      case.
    - **Do read** shadowing registrations: host
@@ -75,28 +73,21 @@
 7. If `$HOST_HOME/.aside/runtime/home` is a directory: `mkdir -p` its
    `.config` and write the same one-line `REPO` into
    `$HOST_HOME/.aside/runtime/home/.config/profile-root`. If runtime home
-   missing, skip mirror; state skip. This is how Aside sandbox `$HOME` sees
-   the pointer without inheriting coding-agent env.
+   missing, skip mirror; state skip.
    If the mirror write fails (read-only, full disk), **roll (6) back** —
    restore the host pointer's previous contents, or remove it when it did not
    exist — then STOP with the error. Never leave agents on the new profile
    while Aside still resolves the old one through a stale mirror.
 8. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
    equivalent). State whether export ran. **Aside will not see this export** —
-   host-default path-convention probe + dual-home read + (otherwise) host
-   pointer and runtime mirror cover Aside.
+   dual-home pointers and path-convention cover Aside.
 9. Print `./format-next-steps.md` with placeholders filled, then STOP:
    - `{{GAPS_LINE}}` — if the fill report has any scout-critical Gaps remaining,
      set to a single line:
      `- Resolve remaining Gaps from the fill report: <gap bullets or summary>.`
      If none (or register-existing wrote no tree): set to **empty** (omit the line).
-     Remaining Gaps from the fill report include
-     skipped **scout-critical** blockers (not optional/preference shells).
      **Scaffold-only: report the gaps the completed fill actually left**, and
-     fall back to the `./flow-emit-tree.md` unfilled inventory only for values still
-     holding their placeholder. The questionnaire now confirms positions,
-     keywords, locations, and blockers during the same run, so printing the
-     whole inventory would claim resolved fields still read `TODO-skill`.
+     fall back to values still holding their placeholder only.
    - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
      host path written + mirror yes/no (including XDG-only defaults); session
      export yes/no. If skipped: how to Activate later — re-run
@@ -133,11 +124,6 @@
      `$KIT_ROOT/skill/<name>` for **every** one of the six. A home counts
      installed only when the whole set matches; matching some is _partial_, and
      partial is not installed. Installed = at least one complete home.
-     Probing `job-profile-init` alone is what reports an upgraded checkout
-     installed: that link still matches while the newly added `job-inbox` and
-     `job-profile-root` are absent, and every other skill in the set loads
-     `job-profile-root` on its first step — so Activate would print "Nothing to
-     run" over a broken `/job-list`, `/job-profile-me`, and `/job-stories`.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
      Installed = for each of `job-scout`, `job-apply`, `job-profile-me`,
      `job-list`, `job-inbox`, `job-profile-root`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
