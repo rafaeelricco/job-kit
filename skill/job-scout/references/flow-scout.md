@@ -1,9 +1,5 @@
 # Job scout — pipeline
 
-Paths are relative to the Profile root from the `job-profile-root` skill.
-Resolve every `data/*` path against that root, not session CWD.
-Skill-local files live under `./references/` next to `SKILL.md`.
-Load phase-specific references only when their phase begins.
 You sequence phases. Workers search/extract only. You merge, gate, rank, report.
 Do not invent jobs or company facts.
 
@@ -12,20 +8,18 @@ rule a worker needs.
 
 ## Mode: list only
 
-Finds and reports jobs. Never applies, messages, or connects. Use the operator's
-existing browser session; a required login or signup gate is an operator action.
-Listing and extract are the only things that gate completion can enable. Done when
-the Report ships and Phase 6 has written every dossier it must → **STOP**.
+Never applies, messages, or connects. Gate completion enables list and extract only.
+Done when the Report ships and Phase 6 has written every dossier it must → **STOP**.
 
 ## Inputs (read-only)
 
-| Path                                                            | Supplies                                                                               |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation                                       |
-| `data/job_search.yaml`                                          | positions, keywords, filters                                                           |
-| `data/search_packs.yaml`, else `./references/search_packs.yaml` | enabled packs, YAML order; chosen set is Phase 0 pick; whichever file wins, wins whole |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                                                   |
-| legacy `data/skills-by-company.yml`, when present               | company↔stack history an update never migrated                                         |
+| Path                                                            | Supplies                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------- |
+| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation      |
+| `data/job_search.yaml`                                          | positions, keywords, filters                          |
+| `data/search_packs.yaml`, else `./references/search_packs.yaml` | enabled packs, YAML order; chosen set is Phase 0 pick |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                  |
+| legacy `data/skills-by-company.yml`, when present               | company↔stack history                                 |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
 
@@ -40,19 +34,13 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    an agentic browser (Aside); the `browser-use` skill in a coding agent. No
    driver that can open a page, click a control, and hold a logged-in session →
    **STOP** before the pack pick and name what is missing. A text fetcher is not
-   a driver: this run cycles location filters, passes login gates, and reads
-   pages that render client-side.
+   a driver.
    Never merge the two files and never read the fallback when the profile deck exists.
-   `job_search.yaml` carrying a key scout does not consume → **STOP**: an update
-   never rewrites profile data, so a constraint the operator configured would
-   silently stop applying. Consumed keys are exactly `work_model`,
-   `seniority_level`, `job_types`, `date_posted`, `positions`, `keywords`,
-   `locations`. Any other key holding a value that is not empty, `false`, or null
-   → name the file and the key, and say to migrate via `/job-profile-me`.
-   Never derive a replacement value — these are operator-owned, per
-   `job-profile-init/references/flow-fill.md`. Keep this an allowlist rather than a list of
-   dropped keys: a key scout stops consuming then fails closed here instead of
-   going quietly unread.
+   `job_search.yaml` carrying a key scout does not consume → **STOP**: name the
+   file and the key, and say to migrate via `/job-profile-me`. Consumed keys are
+   exactly `work_model`, `seniority_level`, `job_types`, `date_posted`,
+   `positions`, `keywords`, `locations`. Any other key holding a value that is
+   not empty, `false`, or null fires this STOP. Never derive a replacement value.
 2. Pack pick (blocking). List every pack in the resolved deck whose `enabled` is
    true or absent, file order, as `N. {id}`. Last line: `{N+1}. Search in all`.
    Listed packs = 0 → STOP, no enabled pack. That list is chat text — not a
@@ -90,20 +78,14 @@ append the selected surface delta. Do not run a pack when either `surface` names
 `worker-search-*.md` in this skill or `entry` is not one `http(s)` URL. Main emits
 empty `### Candidates`, then `### Defect log` with this contract-shaped Defect row:
 `{id} | 0 | 0 | defect: unsupported_pack {id}`.
-A profile deck is never rewritten by an update, and
-`/job-profile-me` checks `surface` but not `entry` shape, so a deck can still
-carry a legacy source-row list, or a `from data/sources.yaml <group>` entry it no
-longer resolves. Both run silently — an unresolvable entry reports as a dry pack,
-which is the same string a healthy-but-empty pack emits. Keep the migration
-explanation under Gaps: give each source row its own pack with that row's URL as
+Legacy `entry` (source-row list, or `from data/sources.yaml <group>`) is a dry pack,
+not `unsupported_pack`. Gaps: each source row its own pack with that row's URL as
 `entry`, or drop the pack.
 
 Do not summarize, do not substitute a field list.
-A worker that was not given a constraint or guardrail cannot apply it.
 
 Parallelism: at most 5 packs at once. Never two packs with the same `entry` host
-concurrent — two workers passing one gate race the session and can trip duplicate OTPs
-or account throttling. Every `entry` is one URL, so the host is always evaluable.
+concurrent. Every `entry` is one URL, so the host is always evaluable.
 LinkedIn stays the named case — `entry` host `linkedin.com` or ending `.linkedin.com`
 covers both `linkedin-jobs` and `linkedin-posts`, one host under two playbooks.
 Launch up to 5 → join → Phase 2 MERGE.
@@ -115,7 +97,7 @@ Expect `### Candidates` + `### Defect log` per unit — headings defined in
 
 Pre-merge pack checker: `formulations_run` missing or less than the pack's
 formulation count with `verdict=pass`, or with nonempty candidates →
-`formulations_short`; candidates not merge-eligible until re-run; main enforces.
+`formulations_short`; candidates not merge-eligible until re-run.
 An empty candidate set whose verdict already names `auth_gate` or a defect is
 terminal and merge-eligible as an empty set. Carry the actual
 `formulations_run`.
@@ -144,7 +126,7 @@ Never invent a field to pass the gate. Unknown = `—`.
 Re-apply contract-search Location keep on extract-confirmed locations; deferred — becomes
 keep/drop here; do not redefine keep rules in this file.
 
-Search-time keeps still apply; this gate closes the deferred path.
+Search-time keeps still apply.
 
 ## Phase 5 — RANK + REPORT (main)
 
@@ -159,7 +141,7 @@ the row, do not adjust the sum. Then Phase 6.
 
 ## Phase 6 — PERSIST (main only) → STOP
 
-**Writable SSOT for this skill.** Main writes; a worker never does. Only these
+Main writes; a worker never does. Only these
 path shapes under Profile root: `scout/jobs/*.md`, exclusive lock directories
 `scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
 `persistence.md`), lock metadata `scout/jobs/*.lock/owner`, and
@@ -173,13 +155,13 @@ Validate that `scout/jobs/` is listable and every existing dossier parses before
 starting the first transaction. Every filesystem mutation uses `persistence.md`.
 One dossier per row with `status=live` that passed the Phase 4 gate and the
 Phase 5 hard-contradiction drop — including `score<7` rows. A `kit drop` row
-never gets one, whatever it scored: it is not a job this profile can take. A `dead` row that already has a
+never gets one, whatever it scored. A `dead` row that already has a
 dossier goes through the `schema-dossier.md` re-run handler so its closure log is
 appended; `uncertain` rows stay in chat Gaps only and create no dossier;
 `dead` rows never seen live create no dossier and are not listed in chat.
-Shape and re-run semantics come from `schema-dossier.md`; every filesystem mutation
-uses `persistence.md`. Unwritable path (permission, read-only FS) → print the error and the path under
-Gaps and STOP. Never fall back to another directory. A failed write is never silent.
-A dossier that fails stops the phase; report the error in chat under Gaps.
+Shape and re-run semantics come from `schema-dossier.md`. Unwritable path
+(permission, read-only FS) → print the error and the path under Gaps and STOP.
+Never fall back to another directory. A dossier that fails stops the phase;
+report the error in chat under Gaps.
 
 Then **STOP**.

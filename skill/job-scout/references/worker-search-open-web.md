@@ -6,7 +6,7 @@ Caller supplies CONTRACT_BROWSE + CONTRACT_SEARCH before this surface delta.
 
 1. Start from pack `entry` — one URL, one host. Dry → log; a runtime gate on that
    host → public-first, then pass the gate per CONTRACT_SEARCH step 1; still blocked
-   → zero candidates, pack verdict `auth_gate`. Same as CONTRACT_SEARCH step 1.
+   → zero candidates, pack verdict `auth_gate`.
 2. Prefer channels `direct_email` / `dm_request` / `founder` over pure ATS when printed.
 3. Pack `entry` host as `site:` only for that host. ATS hosts with no browsable
    global index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`):

@@ -24,30 +24,22 @@ Name taken by a file whose `url` differs → append `-2`, `-3`.
 
 The date is a label, never a key. Re-run lookup is by frontmatter `url` across the
 whole directory — the same job re-found lands on the file it already owns, whatever
-date that name carries. Deriving today's date and writing there creates a second file
-for one job and orphans the operator's `status:` and log.
+date that name carries.
 
 ## File format
 
 `company`, `title`, and `url` are copied from the posting, so they always ship
-double-quoted, with any `"` or `\` inside escaped as `\"` / `\\`. Unquoted they
-break the file for ordinary postings: `Engineer: Platform` makes the frontmatter
-invalid, `Engineer #2` and a `#` URL fragment truncate to a comment. Either way
-the re-run match and the application duplicate check stop finding the dossier.
+double-quoted, with any `"` or `\` inside escaped as `\"` / `\\`.
 The fixed-vocabulary keys (`status`, `bucket`, `channel`), dates, and `score`
 stay bare.
 
 Body fields that are also posting-controlled (`company` / `title` in the H1,
 `why`, posting-facts table values, `jd_excerpt`, provenance) must not invent
 structure. Collapse every newline or run of whitespace in a single-line field to
-one space before writing it into the body (same rule as the run manifest). Never
-emit a bare `## Application log` line or the ownership marker
+one space before writing it into the body. Never emit a bare `## Application log`
+line or the ownership marker
 `<!-- scout never writes below this line -->` from any posting-derived value —
-`jd_excerpt` stays line-prefixed with `>` so a forged heading or marker cannot
-become a second ownership boundary. Without that, a title or excerpt that
-carries those bytes can split scout-owned body from the real log, forge a
-closure the tracker reads as posting state, and leave re-run preservation with
-two candidate cut lines.
+`jd_excerpt` stays line-prefixed with `>`.
 
 ```markdown
 ---
@@ -133,9 +125,7 @@ Never re-derive; never invent a contact.
 Every line any skill appends is one line, `- {YYYY-MM-DD} · {event} — {writer}`,
 `{writer}` ∈ `job-scout` | `job-apply` | `job-inbox` | `operator` — readers also accept
 `job-application`, the pre-rename spelling of `job-apply`, which writers never
-emit. The writer suffix is
-what makes the tracker's bottom-up scan deterministic; a line without one is
-unclassifiable.
+emit. A line without a writer suffix is unclassifiable.
 
 Scout writes exactly three events:
 
@@ -151,14 +141,12 @@ whatever it says.
 
 Blocks appended below the log by `job-apply` or `job-inbox` may carry posting-derived
 text. That text is blockquoted or held in table cells, never a bare top-level
-`- ` line, so it cannot forge a posting-state line. Same injection law as the
-body: never emit a bare `## Application log` or the marker from a
-posting-derived value.
+`- ` line. Same injection law as the body: never emit a bare `## Application log`
+or the marker from a posting-derived value.
 Collapse every appended value to one line before writing it. A `>` prefix guards
-only its own line, so a newline inside a subject, a sender name, or a quoted
-clause emits an unprefixed line, and a bare `- ` line sitting there is read as a
-log event whatever the block around it says. A value bound for a table cell also
-has every `|` escaped as `\|`, or it splits the row.
+only its own line — a newline inside a value emits an unprefixed line, and a bare
+`- ` line sitting there is read as a log event. A value bound for a table cell also
+has every `|` escaped as `\|`.
 
 ## Re-run rules
 
@@ -176,12 +164,8 @@ operator, `job-apply`, and `job-inbox`.
 | No file yet                                           | Create with `status: new`                                                                                                           |
 | File exists with no `## Verdict` (a `job-apply` stub) | Treat as an existing dossier: fill the scout-owned body for the first time, keep `status:`, `first_seen`, the filename, and the log |
 
-A closure is an event in the log, not a field — so the only thing that can undo
-one is a later event. Rewriting the body back to `live` does not: the tracker
-reads posting state bottom-up from the log, finds the earlier closure sitting
-last, and reports the job dead while the body says otherwise. Append the reopen
-line whenever a URL whose last scout posting-state line was a closure is
-extracted live again.
+A closure is an event in the log, not a field. Append the reopen line whenever a
+URL whose last scout posting-state line was a closure is extracted live again.
 
 Unknown = `—`, never invented — same law as the report.
 
