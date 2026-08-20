@@ -69,7 +69,10 @@ instead: `job_search.yaml` filter maps (`work_model`, `job_types`,
 
 Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
 `work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
-empties, `cv/en-us-resume.pdf`, `data/stories/`, and `data/observations.yaml`.
+empties, `cv/` PDFs, `data/cvs.yaml`, `data/stories/`, and `data/observations.yaml`.
+
+`data/cvs.yaml` ships with empty `cvs` and empty `default` — job-apply falls back to
+`cv/en-us-resume.pdf` until the operator registers a row, so it is never a Gap.
 
 `data/observations.yaml` is optional human-only detail storage and is never a Gap.
 
