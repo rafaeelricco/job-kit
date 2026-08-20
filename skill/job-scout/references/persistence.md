@@ -2,7 +2,7 @@
 
 Shared filesystem transaction for job-scout, job-apply, and job-inbox.
 Dossier shape, ownership, and writer-specific mutations remain in
-`schema-dossier.md`.
+`job-scout/references/schema-dossier.md`.
 
 1. Resolve `scout/jobs` through its deepest existing ancestor. STOP unless its
    physical path remains under canonical Profile root; only then create it.

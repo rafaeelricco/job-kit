@@ -110,3 +110,12 @@ exceptions, empty log included.
 - `formulations_run` = formulations run for the pack. MUST equal the pack's
   formulation count or verdict names the defect.
 - `zero_result_runs` = submitted queries that returned no rows.
+- `verdict` ∈ `pass` | `auth_gate` | `defect: {name}`
+  - `pass` — every formulation in the pack ran. A pack that ran clean and found
+    nothing is still `pass`: emptiness is `zero_result_runs`, never a verdict.
+  - `auth_gate` — step 1 left the surface signed-out, or the operator declined the
+    gate. Zero candidates.
+  - `defect: {name}` — anything else. `{name}` is a snake_case token naming the
+    failure, e.g. `defect: query_not_submitted`.
+- Never invent a fourth value. A pack you were not given has no row at all; main
+  writes that row, not you.
