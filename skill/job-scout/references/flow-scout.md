@@ -84,11 +84,11 @@ not `unsupported_pack`. Gaps: each source row its own pack with that row's URL a
 
 Do not summarize, do not substitute a field list.
 
-Parallelism: at most 5 packs at once. Never two packs with the same `entry` host
+Parallelism: one pack at a time. Never two packs with the same `entry` host
 concurrent. Every `entry` is one URL, so the host is always evaluable.
 LinkedIn stays the named case — `entry` host `linkedin.com` or ending `.linkedin.com`
 covers both `linkedin-jobs` and `linkedin-posts`, one host under two playbooks.
-Launch up to 5 → join → Phase 2 MERGE.
+Launch 1 → join → next pack; all joined → Phase 2 MERGE.
 Every chosen pack attempted (`auth_gate` is pack defect).
 Expect `### Candidates` + `### Defect log` per unit — headings defined in
 `contract-search.md`.
