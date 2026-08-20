@@ -30,6 +30,11 @@ The profile email (SKILL step 3) picks the account; it is not a `to:` filter —
 ATS mail may land on an alias. Absent, unreadable, or matching no listed
 account → search every listed account.
 
+Entered from `job-apply` Phase 5 Close → print `Chained from job-apply ·
+{dossier filename}` as this phase's first line, so a report arriving on the heels
+of a submit reads as the loop's next leg and not a stray run. Nothing else
+changes: same candidate set, same phases, same contract.
+
 ## Phase 1 — candidates
 
 `job-list/references/flow-read.md` is the reader SSOT — dossier anatomy,
@@ -65,7 +70,7 @@ Queries, in this order, capped — do not dump the inbox:
 "not moving forward" OR "unfortunately" OR "offer letter" OR
 "application received")` plus the window.
 
-Capped means capped in *queries*, never in results. Paginate each per-candidate
+Capped means capped in _queries_, never in results. Paginate each per-candidate
 query until the transport reports no further page. A query that reaches the
 transport's page ceiling first leaves its candidate **truncated**: record the
 flag against that candidate and carry it to Phase 6.
@@ -220,4 +225,13 @@ run is not finished. A row with no dossier says so; there is no separate
 unmatched section, because what the mail _said_ matters more than whether it
 could be filed.
 
-`## Gaps` — then done. No “reply yes” line.
+`## Gaps` — then one loop line, last:
+
+    Next: /job-scout
+
+Print it when `## Replies` holds no `interview` and no `offer` row: a board of
+silence and declines is a board that needs more rows. At least one `interview`
+or `offer` → print no loop line at all; the next move is the operator's
+calendar, not a command. Either way it is a printed pointer, never a question —
+this skill still never stops for a yes, loads no other skill, and ends here.
+No “reply yes” line.

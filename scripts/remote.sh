@@ -116,6 +116,7 @@ skill/job-apply/SKILL.md
 skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md
 skill/job-stories/SKILL.md
+skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md
 skill/job-profile-root/SKILL.md"
 

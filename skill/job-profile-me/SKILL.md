@@ -14,8 +14,8 @@ Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
 Writable here: `data/job_search.yaml`, `data/profile_card.yaml`,
-`data/search_packs.yaml`, and their `*.yaml.tmp` staging siblings during atomic
-rename.
+`data/search_packs.yaml`, `data/cvs.yaml`, and their `*.yaml.tmp` staging siblings
+during atomic rename.
 Every other path under Profile root is read-only in this skill.
 
 1. Read `./references/flow-show.md` now; obey it for `show` and `gaps`. Card
@@ -28,20 +28,22 @@ Every other path under Profile root is read-only in this skill.
 
 ## Commands
 
-| Utterance                                                            | Do                                | Writes                   |
-| -------------------------------------------------------------------- | --------------------------------- | ------------------------ |
-| show my profile / profile card / what's my search config             | `show`                            | —                        |
-| what's missing for scout                                             | `gaps`                            | —                        |
-| change keywords / set positions / add location                       | `set`                             | `data/job_search.yaml`   |
-| add a board / remove HiringCafe                                      | `packs add` / `packs remove`      | `data/search_packs.yaml` |
-| refresh profile card from data                                       | `refresh-card`                    | `data/profile_card.yaml` |
-| list my boards / list my packs / disable a pack / edit a formulation | `packs`                           | `data/search_packs.yaml` |
-| create a profile / set one up from my CV                             | hand off `job-profile-init`, STOP | —                        |
-| find jobs / scout openings                                           | hand off `job-scout`, STOP        | —                        |
+| Utterance                                                            | Do                                   | Writes                   |
+| -------------------------------------------------------------------- | ------------------------------------ | ------------------------ |
+| show my profile / profile card / what's my search config             | `show`                               | —                        |
+| what's missing for scout                                             | `gaps`                               | —                        |
+| change keywords / set positions / add location                       | `set`                                | `data/job_search.yaml`   |
+| add a board / remove HiringCafe                                      | `packs add` / `packs remove`         | `data/search_packs.yaml` |
+| refresh profile card from data                                       | `refresh-card`                       | `data/profile_card.yaml` |
+| list my boards / list my packs / disable a pack / edit a formulation | `packs`                              | `data/search_packs.yaml` |
+| list my CVs / which CV goes out by default                           | `cvs`                                | —                        |
+| add a CV / remove a CV / set the default CV / retarget a CV          | `cvs add` / `cvs remove` / `cvs set` | `data/cvs.yaml`          |
+| create a profile / set one up from my CV                             | hand off `job-profile-init`, STOP    | —                        |
+| find jobs / scout openings                                           | hand off `job-scout`, STOP           | —                        |
 
 ## References
 
-- Show: `./references/flow-show.md` (read set, card + constraints + packs blocks, gaps)
+- Show: `./references/flow-show.md` (read set, card + constraints + packs + CVs blocks, gaps)
 - Mutate: `./references/flow-mutate.md` (writable keys, diff → confirm → write, refuses)
 - Card schema: `./references/schema-profile-card.md` (`profile_card.yaml` shape + derivation)
 
@@ -54,3 +56,5 @@ Every other path under Profile root is read-only in this skill.
 - Run job-scout or job-apply; edit the kit fallback deck inside the job-scout
   skill (that copy is overwritten on reinstall — edit the profile deck instead)
 - Copy another profile's data
+- Register a CV whose file is not already present under `cv/`, or compile / generate any
+  PDF or LaTeX. This skill names files the operator built; it never builds one.
