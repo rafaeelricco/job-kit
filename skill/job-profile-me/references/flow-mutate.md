@@ -29,7 +29,7 @@ batch — still one diff, one yes.
    `wrote` for a cycle that did not complete: the card-clear and its
    `job_search.yaml` edit stand or fall together.
 10. All renames done → print `wrote <abs path>` per file and re-print only the
-    affected `### Constraints` (or `### Packs`) slice.
+    affected `### Constraints` (or `### Packs` / `### CVs`) slice.
 11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
@@ -76,6 +76,20 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 
 A `[skill:<group>]` token in a formulation whose group is absent from
 `job_search.yaml` is dropped at search time — say so alongside the diff.
+
+## `cvs.yaml` — writable keys
+
+| Key             | Shape                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `default`       | one `id` that exists in `cvs`; never an id the file does not hold                                           |
+| `cvs[].id`      | slug the operator names                                                                                     |
+| `cvs[].file`    | filename under `cv/`; **must already exist and open as a PDF** — probe it before the diff, refuse otherwise |
+| `cvs[].targets` | one prose line the operator typed; never composed, never widened                                            |
+
+Nothing else in this file is written. `remove` of the row `default` names must set
+`default` in the same confirm cycle — show both edits in one diff, and ask which id
+takes over rather than choosing one. Removing the last row empties `cvs` and clears
+`default`: say in the same message that job-apply falls back to `cv/en-us-resume.pdf`.
 
 ## Refuse (redirect, never write)
 
