@@ -192,8 +192,7 @@ and just want the board refreshed — in Aside or any coding-agent session:
 
 Searches Gmail for mail that matches open applications (`applied` / `interview` / `offer`), opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
 
-The apply leg is this same run with one extra line in its Phase 0 header. An
-apply session with no Gmail transport stops the leg and says so — the
+An apply session with no Gmail transport stops the inbox leg and says so — the
 application is recorded either way, and you can run `/job-inbox` later from a
 session that has one.
 
