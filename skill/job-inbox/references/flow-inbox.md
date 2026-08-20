@@ -122,4 +122,6 @@ mail-controlled values using the writer SSOT.
 
 Use `- company · outcome · date · account:{uid} · thread:{id} · "≤10-word clause"`
 for reply-like rows. Keep real but unfiled replies visible with their reason;
-there is no separate unmatched section. End after Gaps; ask no question.
+there is no separate unmatched section. After Gaps, print `Next: /job-scout`
+when Replies holds no `interview` and no `offer`; otherwise print no loop
+line. Ask no question.
