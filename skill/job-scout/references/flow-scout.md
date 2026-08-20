@@ -172,14 +172,14 @@ Load `./references/schema-dossier.md` and `./references/persistence.md`.
 Validate that `scout/jobs/` is listable and every existing dossier parses before
 starting the first transaction. Every filesystem mutation uses `persistence.md`.
 One dossier per row with `status=live` that passed the Phase 4 gate and the
-   Phase 5 hard-contradiction drop — including `score<7` rows. A `kit drop` row
-   never gets one, whatever it scored: it is not a job this profile can take. A `dead` row that already has a
-   dossier goes through the `schema-dossier.md` re-run handler so its closure log is
-   appended; `uncertain` rows stay in chat Gaps only and create no dossier;
-   `dead` rows never seen live create no dossier and are not listed in chat.
+Phase 5 hard-contradiction drop — including `score<7` rows. A `kit drop` row
+never gets one, whatever it scored: it is not a job this profile can take. A `dead` row that already has a
+dossier goes through the `schema-dossier.md` re-run handler so its closure log is
+appended; `uncertain` rows stay in chat Gaps only and create no dossier;
+`dead` rows never seen live create no dossier and are not listed in chat.
 Shape and re-run semantics come from `schema-dossier.md`; every filesystem mutation
 uses `persistence.md`. Unwritable path (permission, read-only FS) → print the error and the path under
-   Gaps and STOP. Never fall back to another directory. A failed write is never silent.
-   A dossier that fails stops the phase; report the error in chat under Gaps.
+Gaps and STOP. Never fall back to another directory. A failed write is never silent.
+A dossier that fails stops the phase; report the error in chat under Gaps.
 
 Then **STOP**.

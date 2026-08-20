@@ -68,6 +68,11 @@ Derived from extract output. NEVER set by a worker. First eligible match wins.
 counts in the header census. List under Gaps. Never guess a route from a company's
 country. `direct` and `EOR` name the hire-from route the JD prints, not its location.
 
+`bucket_short` is the bucket value itself — `direct` | `EOR` | `restricted-geo` |
+`unbucketed`, spelled exactly as the ladder above mints it. Nothing abbreviates it;
+the name is historical. Its two consumers are Do this first and the ranked table,
+both of which exclude `unbucketed`, so only the first three can reach a printed row.
+
 ## Channel sort (report tables)
 
 `direct_email` → `dm_request` → `founder` → `ats`, then score desc.

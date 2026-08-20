@@ -57,8 +57,8 @@ url: "https://example.com/jobs/123" # normalized, per contract-search.md "URL no
 status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
-score: 9
-bucket: direct # bucket_short vocab, rank-report.md
+score: 9 # 0–9, or — when the row is unscored
+bucket: direct # bucket_short vocab, rank-report.md `## Bucket`
 channel: ats
 ---
 
@@ -74,6 +74,20 @@ score **9** · direct · live · {the search `why` string verbatim}
 
 Factors and sum exactly as `rank-report.md` `## Score` computed them. A mismatch is
 a defect.
+
+Unscored row — `## Score` returned `—` because the posting printed no
+`required_skills`, or the profile carries no skills. Frontmatter `score: —`, the
+Verdict line prints `score **—**`, and the `=` cell is `—`:
+
+score **—** · direct · live · {the search `why` string verbatim}
+
+| skills | seniority | geo/auth |   = |
+| -----: | --------: | -------: | --: |
+|      — |         2 |        — |   — |
+
+Every factor keeps what it computed; one with no evidence stays `—`. Never write `0`
+for an unknown factor, never omit the table, and never drop the row's bucket — a row
+is unscored, not unbucketed.
 
 ## Posting facts
 
