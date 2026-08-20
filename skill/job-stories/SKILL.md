@@ -1,6 +1,6 @@
 ---
 name: job-stories
-description: "Read this when you need to write or check the interview story deck in a profile — one markdown file per story under data/stories/. Never invent a number, an outcome, a client name, or a claim the evidence does not print; never write without an explicit yes. Use when the user runs /job-stories, asks to write a story, add a story to the deck, turn a project into an interview answer, or asks which stories still need numbers. Not for drafting an application (job-apply) or editing search config (job-profile-me)."
+description: "Read this when you need to write or check the interview story deck in a profile — one markdown file per story under data/stories/. Never invent a number, an outcome, a client name, or a claim the evidence does not print; never write without an explicit yes. Use when the user runs /job-stories, asks to write a story, add a story to the deck, turn a project into an interview answer, or asks which stories still need numbers. Not for drafting an application (job-apply), rendering a story as a vetting script or profile write-up (job-pitch), or editing search config (job-profile-me)."
 ---
 
 # Job stories
