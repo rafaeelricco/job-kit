@@ -25,7 +25,8 @@ Print `Store: {root}/scout/jobs/` before any read.
 `scout/jobs/` absent → nothing to match; STOP.
 Present but unreadable → STOP, naming the path.
 
-Bind transport (SKILL step 3). Print the account email / `uid` used.
+Bind transport (SKILL step 3). Print every account email / `uid` searched,
+and preserve the `uid` on every result it produced.
 The profile email (SKILL step 3) picks the account; it is not a `to:` filter —
 ATS mail may land on an alias. Absent, unreadable, or matching no listed
 account → search every listed account.
@@ -50,7 +51,8 @@ status except `dropped` (contract ## Match).
 
 Per candidate, take from the file: `company`, `title`, `url`, `status`, and
 from the Application log, bottom-up: the latest `applied via` date, and every
-already-recorded `thread:{id}` with the outcome logged beside it
+already-recorded `(account_uid, thread_id)` with the outcome logged beside
+it, plus any legacy naked `thread:{id}` line
 (contract ## Write item 5). Filename is not an id.
 
 Print the candidate count. It is the denominator of the Phase 6 summary: every
@@ -112,7 +114,7 @@ Do not start until Phase 2 step 3 holds.
 Load `./references/contract-classify.md`. Every surviving thread gets exactly
 one row, and every row carries four fields:
 
-    thread:{id} · {matched dossier | unmatched} · {outcome} · "{clause}"
+    account:{account_uid} · thread:{thread_id} · {matched dossier | unmatched} · {outcome} · "{clause}"
 
 The clause is quoted from the fetched body (contract ## Outcomes) and travels
 with the row into Phase 6 — `ack` rows included. No clause → no row → `skip`.
@@ -142,12 +144,13 @@ rewritten. Scout-owned body is never rewritten.
 
 One log line per write:
 
-`- {YYYY-MM-DD} · {outcome} via email · thread:{id} — job-inbox`
+`- {YYYY-MM-DD} · {outcome} via email · account:{account_uid} · thread:{thread_id} — job-inbox`
 
 `{YYYY-MM-DD}` is the date of the message the evidence clause came from — not
 today, and not the thread's first message. `{outcome}` ∈ contract vocab
-(`interview` | `offer` | `rejected`). `{id}` is the transport thread id
-(opaque; used only for re-run skip).
+(`interview` | `offer` | `rejected`). `{thread_id}` is the transport thread id
+(opaque; used only for re-run skip). It is scoped to `{account_uid}`, so the two
+travel together everywhere — an id alone cannot say which mailbox it came from.
 
 Then the record block. Every value in it is mail-controlled: collapse each to one
 line and blockquote every non-heading line, per the injection law in
@@ -159,7 +162,8 @@ blockquote and can forge a log event:
 
 > from: {name} <{email}>
 > subject: {subject}
-> thread: {id}
+> account: {account_uid}
+> thread: {thread_id}
 > {the evidence clause from classify}
 ```
 
@@ -191,7 +195,7 @@ needs the operator today.
 `## Replies` — every thread whose outcome is `interview`, `offer`, or
 `rejected`, matched or not, newest first:
 
-    - {company} · {outcome} · {YYYY-MM-DD} · thread:{id} · "{≤10-word clause}"
+    - {company} · {outcome} · {YYYY-MM-DD} · account:{account_uid} · thread:{thread_id} · "{≤10-word clause}"
 
 A reply with no dossier, or one the transition table blocks, keeps its row and
 gains a trailing `— {why it was not written}`. Never drop a real reply from this
@@ -212,12 +216,12 @@ there too.
 
 `## Written` — `(none)` when nothing was writable, else:
 
-| company | title | from | subject | date | was | → | evidence | thread |
+| company | title | from | subject | date | was | → | evidence | account | thread |
 
 `## Acknowledged` — the Phase 3 row for every thread not already in `## Replies`,
 `ack` included, one per line:
 
-    - {company} · {outcome} · thread:{id} · "{≤10-word clause}"
+    - {company} · {outcome} · account:{account_uid} · thread:{thread_id} · "{≤10-word clause}"
 
 `noise` dropped at the filter collapses to a single count line. Every other row
 carries its quote — a row you cannot quote is a row you did not read, and the
