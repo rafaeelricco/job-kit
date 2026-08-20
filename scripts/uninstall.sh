@@ -289,8 +289,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-inbox, job-profile-root)
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-inbox, job-profile-root)
+  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root)
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
   browser-use  Browser skills (job-scout, job-apply) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
@@ -302,7 +302,7 @@ Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-profile-me | job-list | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
                 agents | browser-use | claude | codex | grok
                 profile | cache
                 (claude|codex|grok narrow a channel named alongside them;
@@ -1242,7 +1242,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root)
+      job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -1253,7 +1253,7 @@ expand_only() {
       grok)   named_agent=1; want_grok=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
     esac
   done
   # Matches the installer: a bare agent-home token still means the agents

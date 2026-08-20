@@ -44,6 +44,7 @@ Facts are read, never recalled. Read the file, use what it prints, stop if you c
 | skills / stack inventory                                 | `data/skills.yaml`, then legacy `data/skills-by-company.yml` when present                                                             |
 | project depth, technical cause, outcomes                 | `data/experiences.yml` `summary`, `data/projects.yml` (only what the file prints)                                                     |
 | claims, verified outcomes from the story deck            | `data/stories/*.md` frontmatter (`claim`, `evidence.*`, `impact_numbers` that are not `unverified` / `kind: process`); never the body |
+| CV variants and which to attach                          | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent → single-CV fallback                              |
 
 - File unreadable, stop and say so. NEVER answer from memory or from a previous draft.
 - Legacy fallbacks (`skills-by-company.yml`, the `willing_to_*` screening answers,
@@ -171,10 +172,16 @@ The review prints this derivation before any approve (`### Salary derivation`, f
 
 - Obey the ad literally: exact subject line, salary expectation, links, project count,
   file naming. Ignoring one is the first filter the ad applies.
-- Exactly one CV per submission. Prefer a tailored compiled PDF already produced for this
-  application. Else `cv/en-us-resume.pdf` only if present and the PDF opens. NEVER a `.tex`.
-  Missing PDF: stop and surface; operator builds it per `cv/README.md`.
-  Do not generate LaTeX here.
+- Exactly one CV per submission, chosen in this order and NEVER more than one:
+  1. A tailored compiled PDF already produced for this application.
+  2. `data/cvs.yaml` readable with a non-empty `cvs` — read every row's `targets`, take
+     the one row the ad fits best, and when no row clearly fits take the `default` id.
+     Ties go to `default`. Never blend two rows, never invent an id or a filename.
+  3. No registry, unreadable registry, empty `cvs`, or a `default` naming no row →
+     `cv/en-us-resume.pdf`.
+     The chosen `file` resolves under `cv/` and must open as a PDF. NEVER a `.tex`.
+     Missing or unopenable: stop and surface; operator builds it per `cv/README.md`.
+     Do not generate LaTeX here.
 - Duplicate check: flow-apply Phase 0 (SSOT). Review reprints that line. Operator
   confirms first contact; never assume first.
 - Surface every value you had to invent instead of deciding alone: years of X, weekly
