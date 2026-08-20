@@ -202,12 +202,17 @@ gains a trailing `— {why it was not written}`. Never drop a real reply from th
 section because it could not be filed; being unfilable is the note, not the
 exit.
 
-`## Silent` — every candidate whose search ran to exhaustion and returned no
-thread in the window, oldest first:
+`## Silent` — every candidate whose search ran to exhaustion and bound no reply
+or acknowledgement to it in the window, oldest first:
 `- {company} · {title} · applied {YYYY-MM-DD} · {n}d silent`.
 
 A truncated candidate never appears here. "No reply" is a claim about the whole
-window, and a truncated search did not read the whole window.
+window, and a truncated search did not read the whole window. Silence is decided
+after classify, never from the raw result count: `noise`, an `unmatched` row, and
+any thread that never bound to this candidate all leave it silent — a query that
+surfaced only a newsletter surfaced no reply. Otherwise a candidate with one
+unbound hit would fall out of every section and contradict the Phase 1
+denominator.
 
 `## Harvest` — one line: `{n} in window · {n} survived filter · {n} bodies
 fetched · {n} searches truncated`. The middle pair equal, or every difference is
