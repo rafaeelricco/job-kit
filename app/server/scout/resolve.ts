@@ -5,7 +5,7 @@ import path from "node:path"
 
 import type { Attempt, AttemptOutcome, AttemptSource, Resolution } from "../../src/module/scout/types"
 
-// SKILL.md lines 8-30. The reader mirrors the resolver the skill runs, so the
+// SKILL.md probe + steps 1–6. The reader mirrors the resolver the skill runs, so the
 // app and a scout run can never disagree about which profile is in play.
 
 const ASIDE_SUFFIX = "/.aside/runtime/home"
