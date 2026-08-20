@@ -24,6 +24,7 @@ Fixed order. Unfired slots are absent, not empty.
 | 6 Terms | conditional | Geo, authorization, or engagement position, with the decision handed back |
 | 7 Ask | always | One sentence proposing the conversation |
 
+Slot 6 fires only for a `none` Fit row covering geo, authorization, or engagement.
 A skill gap belongs in slot 2 or 3; a geo or authorization gap belongs in slot 6.
 
 ## Voice law
