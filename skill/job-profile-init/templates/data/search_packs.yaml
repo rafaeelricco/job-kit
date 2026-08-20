@@ -96,3 +96,19 @@ packs:
       - '("just raised" OR "Series A" OR "seed round") hiring [role]'
       - '"out of stealth" hiring [role]'
       - "raised hiring [skill:primary]"
+
+  - id: dice
+    surface: open-web
+    entry: https://www.dice.com/jobs
+    formulations:
+      - "[role]"
+      - "[skill:primary] [role]"
+      - "[role] [skill:hiring_model]"
+
+  - id: getonbrd
+    surface: open-web
+    entry: https://getonbrd.com/jobs
+    formulations:
+      - "[role]"
+      - "[skill:primary] [role]"
+      - "[role] [skill:hiring_model]"
