@@ -66,7 +66,18 @@ Obey CONTRACT_BROWSE for page access and gates.
      LinkedIn: clear/omit the location filter, or select the UI's worldwide/global
      option if it offers one; never invent a country. Open-web: leave location
      controls unset and do not OR-suffix any location into the query.
-5. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
+5. **Proof the query ran.** Before you record anything for a submitted query —
+   rows or zero — confirm the surface ran the string you submitted: the
+   results view echoes it back (the search URL's query parameter, or the
+   surface's own "results for …" element) and the echo is your string.
+   Filling a search box is not submitting it; a typeahead can swallow the
+   Enter and leave the previous query's results on screen, and that page's
+   zero belongs to a query you never wrote. No echo, or an echo that is not
+   your string → resubmit once by loading the surface's own search URL with
+   the query percent-encoded. Still no echo → record zero rows for that
+   query with verdict `defect: query_not_submitted`, naming the string that
+   never landed.
+6. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
    job_types, date_posted.
    **Location keep (first match):**
    - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep
@@ -75,8 +86,8 @@ Obey CONTRACT_BROWSE for page access and gates.
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)
      Outside other positive filters → not a candidate.
-6. Normalize URLs per the rules above. Cap 40 candidates.
-7. One call = one pack. Cards + URLs only.
+7. Normalize URLs per the rules above. Cap 40 candidates.
+8. One call = one pack. Cards + URLs only.
 
 ## Output sections
 
@@ -98,3 +109,4 @@ exceptions, empty log included.
 
 - `formulations_run` = formulations run for the pack. MUST equal the pack's
   formulation count or verdict names the defect.
+- `zero_result_runs` = submitted queries that returned no rows.
