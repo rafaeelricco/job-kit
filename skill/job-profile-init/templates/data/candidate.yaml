@@ -7,14 +7,14 @@ salary_expectations:
 
 # No self-identification block, deliberately. EEO / demographic questions are
 # voluntary and per-employer; answer them in the ATS form at apply time.
-# job-apply must never stage protected-class data from a file — the whole
-# Fact card is pasted verbatim into every drafting brief.
+# job-apply must never stage protected-class data from a file. Drafting briefs
+# receive only their Letter plan.
 
 legal_authorization:
   # One row per country. job-apply reads only the row whose `country` matches
   # the question. A country with no row has no stored answer — never copy
   # another row onto it. Profiles that still have the old us_*/eu_*/canada_*/uk_*
-  # scalars and no `jurisdictions` list: apply reads those keys (contract-draft).
+  # scalars and no `jurisdictions` list: apply reads those keys (`screening.md`).
   jurisdictions: [] # TODO each: {country, work_authorization, legally_allowed_to_work, requires_visa, requires_sponsorship}
 
 employment_routes:
