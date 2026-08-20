@@ -130,11 +130,12 @@ Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; the Action strip (Do this first, ranked score≥8, Gaps) stays in chat.
 `data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — job-apply sets `applied` itself after submit
-success (or once you confirm you submitted outside it), and records the letter, the form
-answers, and the ad under the dossier's Application log; later statuses (`interview`,
-`offer`, `rejected`) are set by `/job-inbox` from Gmail when evidence is strong; `dropped`
-stays yours. Re-running scout never overwrites
+dossier's frontmatter as you apply — job-apply changes `new` to `applied` after
+confirmed submission (or once you confirm you submitted outside it), preserves
+an existing advanced lifecycle status, and records the letter, the form answers,
+and the ad under the dossier's Application log; later statuses (`interview`,
+`offer`, `rejected`) are set by `/job-inbox` from Gmail when evidence is strong;
+`dropped` stays yours. Re-running scout never overwrites
 `status:`, and never renames the file.
 
 Applying needs exactly one CV PDF that opens: a tailored one compiled for that
