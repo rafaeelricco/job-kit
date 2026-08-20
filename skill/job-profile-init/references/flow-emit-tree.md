@@ -12,7 +12,7 @@ Source = `../templates/` only. Destination = intake target path.
   cv/README.md
 ```
 
-No skill pack trees inside the profile. Skills come from job-kit install (agents: profile init + config + tracker; Aside: scout + apply + config + tracker).
+No skill pack trees inside the profile. Skills come from job-kit install.
 
 Copy the entire `../templates/` tree into the target (preserving structure), then
 substitute every token in the target tree (all text files):
@@ -54,27 +54,4 @@ root README). Re-run this leak gate after fill.
 `job-scout` Phase 6 creates `scout/` under Profile root at first run. It is not
 emitted here and never a Gap; this flow neither creates nor reads it.
 
-## Unfilled inventory (what the template ships blank)
-
-`flow-fill.md` applies the questionnaire buffer. Scaffold-only still runs the
-questionnaire; if every field is skipped, the `./flow-fill.md` Gap report lists
-**only the scout-critical lines** (allowlist owned by `./flow-fill.md` "Gaps
-allowlist only") as Gaps — never `none`, and never optional shells
-(preferences, projects, languages, stories, CV). Handoff injects that report via
-`./flow-activate.md` step 9 → `./format-next-steps.md`.
-
-Non-Gap blanks that ship empty/false and require questionnaire keep/edit
-instead: `job_search.yaml` filter maps (`work_model`, `job_types`,
-`date_posted`), `seniority_level`, `keywords.hiring_model`, `locations`.
-
-Optional shells still blank in the tree (not Gaps): other `employment_routes.*`,
-`work_preferences_from_resume.*`, experiences/projects/skills/languages/basics
-empties, `cv/` PDFs, `data/cvs.yaml`, `data/stories/`, and `data/observations.yaml`.
-
-`data/cvs.yaml` ships with empty `cvs` and empty `default` — job-apply falls back to
-`cv/en-us-resume.pdf` until the operator registers a row, so it is never a Gap.
-
-`data/observations.yaml` is optional human-only detail storage and is never a Gap.
-
-`data/search_packs.yaml` ships every pack enabled (absent `enabled` = on) and is
-runnable as emitted — never a Gap, including on scaffold-only.
+Gaps allowlist and never-Gaps: `./flow-fill.md`. Handoff: `./flow-activate.md` step 9.

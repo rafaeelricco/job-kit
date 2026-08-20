@@ -22,7 +22,6 @@ Hard refuses: `../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent
      (PDF/text/md); full-ingest into the buffer; set the Source key.
 6. Prefer quoted facts over paraphrase. Hold the buffer for questionnaire
    application; never re-read SoT as a second pass after the buffer is set.
-   Missing or unreadable → STOP unless scaffold-only.
 
 ## Invent matrix
 
@@ -45,28 +44,21 @@ EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or us
 
 Use the source buffer when available, but explicit questionnaire values always
 win over extracted or template-provided proposals. Apply only confirmed values,
-explicit skips, and confirmed pack enablement choices. The source buffer is never
-re-read after the Source gate.
+explicit skips, and confirmed pack enablement choices.
 
 - Write all confirmed candidate, basics, collection, and job-search fields.
 - Write `seniority_level` as the single confirmed seniority string.
 - Write empty values/lists for explicit skips where supported.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
-- The questionnaire must request story names, then observations, after every other
-  field and before Approve. Write one `data/stories/<slug>.md` stub per confirmed
-  story name — `status: draft`, `company` set to the confirmed employer when it
-  matches `data/experiences.yml`, else `""` for a confirmed project; every other
-  field empty, no prose — and write the final observations response to
-  `data/observations.yaml`.
+- Write one `data/stories/<slug>.md` stub per confirmed story name — `status: draft`,
+  `company` set to the confirmed employer when it matches `data/experiences.yml`,
+  else `""` for a confirmed project; every other field empty, no prose — and write
+  the final observations response to `data/observations.yaml`.
 - Do not rewrite identity tokens unless the operator corrects approved values.
 - Do not rewrite `salary_expectations.tip`. Keep the emitted template string. It is not a fact, not skippable, not a Gap.
 
 ## Questionnaire-derived suggestions and packs
 
-Blockers, search suggestions, seniority, and pack enablement
-were confirmed before Approve. Apply them here without re-asking.
-
-- Write confirmed positions, keywords, and locations only.
 - Write the single confirmed `seniority_level`; do not recreate a boolean
   seniority map.
 - Write only confirmed `enabled:` values on named packs. Never edit
@@ -121,6 +113,5 @@ Partial fill is OK. **Gaps allowlist only** — omit a line when that key is fil
 `projects.yml` / `languages.yaml` / experience `url.*`, `data/stories/`,
 `job_search.locations`
 (empty = worldwide search), or CV (use **### CV**).
-Apply surfaces empty preference keys at
-form time (`job-apply` Fact law). Blocker `skip` still emits a Gaps line
+Blocker `skip` still emits a Gaps line
 **only** when the skipped key is on this allowlist.
