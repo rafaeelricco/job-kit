@@ -34,7 +34,7 @@ Unreadable required file under a resolved root → stop and say so.
    scout-owned body.
 5. Writable rows → flow-inbox Phase 5 in this turn (writer suffix `job-inbox`).
    Dossier shape and field ownership come from `job-scout/references/schema-dossier.md`;
-   the filesystem transaction comes from `job-scout/references/persistence.md`.
+   the filesystem transaction comes from `./references/persistence.md`.
    The only disk write this skill ever makes.
 6. Emit the Phase 6 report, then STOP.
 
@@ -42,3 +42,4 @@ Unreadable required file under a resolved root → stop and say so.
 
 - Pipeline: `./references/flow-inbox.md` (bind, harvest, record, report)
 - Classify contract: `./references/contract-classify.md` (match, outcomes, transitions, write)
+- Persistence: `./references/persistence.md` (lock, stage, commit)
