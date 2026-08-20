@@ -20,7 +20,9 @@ background checks, or related screening. The operator owns demographic and EEO f
 
 Prepare emits the complete review and stops. Submit does not open until explicit
 approval. Record does not open until submission is confirmed. A bare `done` or `ok`
-does not confirm submission.
+does not confirm submission. After Record closes, load `job-inbox` in this session
+on its default candidate set. Its report is this run's last output. An inbox stop
+is not an apply failure — the record already landed.
 
 ## References
 
@@ -28,4 +30,4 @@ does not confirm submission.
 - `./references/letter-contract.md`: verbatim drafting contract for plan-only evidence and voice
 - `./references/screening.md`: conditional salary and screening rules
 - `./references/submit.md`: post-approval browser order
-- `./references/record.md`: confirmed-application dossier update
+- `./references/record.md`: confirmed-application dossier update, then the inbox leg

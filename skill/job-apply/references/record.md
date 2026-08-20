@@ -110,4 +110,12 @@ value the run did not print and the operator did not approve.
 ## Close
 
 After the schema-compliant write and lock release, print the dossier filename, log line,
-and resulting `status:`. Then stop.
+and resulting `status:`. Then load the `job-inbox` skill and obey it end-to-end on its
+default candidate set. Do not narrow that set to the job just filed. The inbox report is
+this run's last output.
+
+The inbox leg runs only after a successful write. A record that failed or never opened
+ends here. Inbox law is untouched: read-only on mail, no gate, and it writes only what
+its classify contract marks writable. An inbox stop (no Gmail transport, no
+`scout/jobs/`, or zero candidates) is not an apply failure — print inbox's own stop
+line, say the application is still recorded, and end.
