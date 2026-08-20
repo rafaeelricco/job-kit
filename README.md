@@ -12,16 +12,16 @@ through the local [browser-use](https://docs.browser-use.com) CLI. Profile init
 and stories (plus config, tracker, inbox, and profile-root as symlinks) run in
 coding agents (Claude Code, Codex, Grok).
 
-| Skill              | Role                                                                                | Channel                         | Installed under                                                     |
-| ------------------ | ----------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------- |
+| Skill              | Role                                                                                | Channel                              | Installed under                                                     |
+| ------------------ | ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- |
 | `job-scout`        | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-apply`        | Draft, stage, and after approve submit one posting                                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-root` | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-inbox`        | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)         | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-profile-root` | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-inbox`        | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
@@ -259,8 +259,8 @@ bash scripts/uninstall.sh
 bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Choice / target | Removes                                                                                                                                   |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Choice / target | Removes                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Aside           | `job-scout` + `job-apply` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` kit copies                                               |
 | Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` kit links (+ legacy `profile-init`)             |
 | browser-use     | `job-scout` + `job-apply` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser |
@@ -331,21 +331,21 @@ Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
 multi-target install also removes legacy kit links there, which the
 `CLAUDE_SKILLS` single-dest escape hatch skips.
 
-| Path                      | Role                                                |
-| ------------------------- | --------------------------------------------------- |
-| `skill/job-scout/`        | Scout law, contracts, surfaces                      |
-| `skill/job-apply/`        | Apply law, draft contract, approve-gated submit     |
-| `skill/job-profile-init/` | Intake + templates for empty profiles               |
-| `skill/job-profile-me/`   | Show + edit search intent and boards                |
-| `skill/job-profile-root/` | Resolve Profile root; never writes                  |
-| `skill/job-list/`         | Read the profile's scout store; never writes        |
-| `skill/job-inbox/`        | Gmail replies → lifecycle status on strong evidence |
-| `skill/job-stories/`      | Write and check the interview story deck            |
+| Path                      | Role                                                            |
+| ------------------------- | --------------------------------------------------------------- |
+| `skill/job-scout/`        | Scout law, contracts, surfaces                                  |
+| `skill/job-apply/`        | Apply law, draft contract, approve-gated submit                 |
+| `skill/job-profile-init/` | Intake + templates for empty profiles                           |
+| `skill/job-profile-me/`   | Show + edit search intent and boards                            |
+| `skill/job-profile-root/` | Resolve Profile root; never writes                              |
+| `skill/job-list/`         | Read the profile's scout store; never writes                    |
+| `skill/job-inbox/`        | Gmail replies → lifecycle status on strong evidence             |
+| `skill/job-stories/`      | Write and check the interview story deck                        |
 | `scripts/install.sh`      | Single install: plan, confirm, apply (aside+agents+browser-use) |
-| `scripts/aside/`          | Aside lib + thin install wrapper                    |
-| `scripts/agents/`         | Agents lib + thin install wrapper                   |
-| `scripts/uninstall.sh`    | Single uninstall: plan, confirm, apply              |
-| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone)    |
+| `scripts/aside/`          | Aside lib + thin install wrapper                                |
+| `scripts/agents/`         | Agents lib + thin install wrapper                               |
+| `scripts/uninstall.sh`    | Single uninstall: plan, confirm, apply                          |
+| `scripts/remote.sh`       | Fetch to cache + install or uninstall (no clone)                |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
@@ -354,6 +354,9 @@ Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
 created before the deck moved; it must stay byte-identical to
 `skill/job-profile-init/templates/data/search_packs.yaml`.
+`skill/job-inbox/references/persistence.md` must likewise stay byte-identical to
+`skill/job-scout/references/persistence.md`. The agents channel installs job-inbox
+without job-scout, so the copy is what keeps the write transaction readable there.
 
 ## License
 
