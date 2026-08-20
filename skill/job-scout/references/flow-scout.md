@@ -152,9 +152,9 @@ Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / the ranked table.
 Location-gate drops already excluded above — do not score them.
 
-Load `./references/rank-report.md`.
-Apply its score, bucket, eligibility, ordering, and exact rendering contracts to
-Phase 4 rows. A row whose factors do not sum to its printed score is a defect: fix
+Load `./references/rank-report.md` and `./references/contract-check.md`.
+Apply its hard-contradiction drop first, then its score, bucket, eligibility,
+ordering, and exact rendering contracts to the rows that survive. A row whose factors do not sum to its printed score is a defect: fix
 the row, do not adjust the sum. Then Phase 6.
 
 ## Phase 6 — PERSIST (main only) → STOP
@@ -171,8 +171,9 @@ revision is ignored.
 Load `./references/schema-dossier.md` and `./references/persistence.md`.
 Validate that `scout/jobs/` is listable and every existing dossier parses before
 starting the first transaction. Every filesystem mutation uses `persistence.md`.
-One dossier per row with `status=live` that passed the Phase 4 gate — including
-   `score<7` rows. A `dead` row that already has a
+One dossier per row with `status=live` that passed the Phase 4 gate and the
+   Phase 5 hard-contradiction drop — including `score<7` rows. A `kit drop` row
+   never gets one, whatever it scored: it is not a job this profile can take. A `dead` row that already has a
    dossier goes through the `schema-dossier.md` re-run handler so its closure log is
    appended; `uncertain` rows stay in chat Gaps only and create no dossier;
    `dead` rows never seen live create no dossier and are not listed in chat.

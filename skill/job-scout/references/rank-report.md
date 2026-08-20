@@ -3,6 +3,16 @@
 The output and ranking contract for `flow-scout.md` Phase 5. Main-only, same as
 that file. Never paste into a worker brief.
 
+## Hard contradiction (main; before score and bucket)
+
+Apply the compare law in `./contract-check.md` to the four printed row fields
+`work_model` · `location` · `work_auth` · `hiring_route`. A contradiction the
+posting itself prints against a confirmed profile fact drops the row here: no
+score, no bucket, no Do this first, no ranked table, no dossier. `—` never
+contradicts, and a row you cannot judge stays. List each drop under Gaps as
+`kit drop: {company} — {title} ({reason})`, reason kit field first, in that
+contract's grammar.
+
 ## Score (0–9; keep ≥ 7)
 
 Candidate skill set `C` is the deduplicated union of:
@@ -132,6 +142,7 @@ Omit this heading when the list is empty.
 - unscored: {company} — {title} (required skills not printed or profile skills empty)
 - route disabled: {company} — {title} (EOR not enabled in profile)
 - unbucketed: {company} — {title} (no printed route or restriction)
+- kit drop: {company} — {title} ({reason})
 
 `skipped` covers dry packs (`{pack_id} (dry)`). `tool defects` also covers pack
 verdicts `defect: {name}` and `auth_gate`. Omit recovered fetches, location-gate
