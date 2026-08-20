@@ -18,7 +18,7 @@ legal_authorization:
   jurisdictions: [] # TODO each: {country, work_authorization, legally_allowed_to_work, requires_visa, requires_sponsorship}
 
 employment_routes:
-  employer_of_record: "" # Yes | No: gates the EOR bucket
+  employer_of_record: "" # Yes | No: gates EOR report eligibility
   direct_contractor: ""
   local_employment: ""
 

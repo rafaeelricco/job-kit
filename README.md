@@ -25,7 +25,8 @@ coding agents (Claude Code, Codex, Grok).
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
-applications; a gate that blocks listing → it signs in or creates a browse account.
+applications. It may use an existing session; account creation, signup terms,
+passwords, and verification remain operator actions.
 job-apply clicks Submit / Send / final Confirm only after an explicit review
 approve.
 
