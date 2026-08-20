@@ -43,7 +43,7 @@ import type { Result } from "./result"
 /* -- closed vocabularies, each with a total guard ------------------------- */
 
 const LIFECYCLES = ["new", "applied", "interview", "offer", "rejected", "dropped"] as const
-const BUCKETS = ["direct", "EOR", "EU/US-only", "unbucketed"] as const
+const BUCKETS = ["direct", "EOR", "restricted-geo", "unbucketed"] as const
 const CHANNELS = ["direct_email", "dm_request", "founder", "ats"] as const
 // `job-application` is the pre-rename spelling of `job-apply`; dossiers written
 // before the rename still carry it, so readers keep accepting it.

@@ -30,9 +30,9 @@ Required keys on a dossier: `company`, `title`, `url`, `status`, `first_seen`,
 `last_seen`, `score`, `bucket`, `channel`. Lifecycle `status` ∈
 `new` | `applied` | `rejected` | `interview` | `offer` | `dropped` (operator / job-apply / job-inbox).
 Quoted dynamic scalars may appear for company/title/url.
-`score: —` and `bucket: unbucketed` mean scout has not ranked this job yet — a
-dossier job-apply opened for a posting scout never saw. Report them as
-printed; never score or bucket one yourself.
+`score: —` means required scoring evidence was unavailable or the dossier was
+created by job-apply before scout ranked it. Report it as unscored; never score
+or bucket one yourself.
 
 ## A dead job never says dead in frontmatter
 

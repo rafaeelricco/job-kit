@@ -4,17 +4,19 @@ Open only after clear Submit success or explicit operator `sent`, `submitted`, o
 `applied` confirmation. Recording is not submitting. This is the only phase that writes
 the Profile root, and it writes only the dossier store.
 
-Before writing, read and obey `job-scout/references/schema-dossier.md`. That file is the
-sole authority for containment, URL normalization, quoting and escaping, injection
-protection, filename allocation, URL locks, owner fencing, atomic placement, and lock
-release. Do not reproduce or replace those mechanics here. Normalize identity with
-`job-scout/references/contract-search.md`.
+Before writing, read and obey `job-scout/references/schema-dossier.md` and
+`job-scout/references/persistence.md`. `schema-dossier.md` is the sole authority for
+dossier shape and field ownership, URL normalization, quoting and escaping, injection
+protection, filename allocation, and log grammar. `persistence.md` owns the complete
+filesystem transaction — containment, URL locks, owner fencing, staging, atomic
+placement, and lock release. Do not reproduce or replace those mechanics here.
+Normalize identity with `job-scout/references/contract-search.md`.
 
 ## Write scope and lifecycle
 
 On an existing dossier, touch only frontmatter `status:` and new content appended below
 `<!-- scout never writes below this line -->`; never rewrite the scout-owned body or
-existing log lines. Re-scan by normalized URL under the schema-mandated lock before
+existing log lines. Re-scan by normalized URL under the persistence lock before
 choosing update or create.
 
 | Existing dossier status | Result after confirmed application |
