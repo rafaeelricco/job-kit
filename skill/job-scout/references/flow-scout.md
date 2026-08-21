@@ -64,9 +64,11 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
      `locations` remains a keep token under `listed`. Hire-from routes come from
      the JD's printed `hiring_route`, never the job's own location.
 
-   `location_scope` empty → **STOP** and say to set `worldwide` or `listed` via
-   `/job-profile-me`. `location_scope: listed` and `locations` empty → **STOP**
-   and say to fill `locations`. Never default `location_scope` to worldwide.
+   `location_scope` not exactly `worldwide` or `listed` → **STOP**, print the
+   value read, and say to set one of them via `/job-profile-me`.
+   `location_scope: listed` with no named location (`locations` empty, or
+   holding only `Anywhere`) → **STOP** and say to add a named location or switch
+   to `worldwide`. Never default `location_scope` to worldwide.
 
 Print both blocks before any search. Pass both **verbatim** into every search brief.
 
