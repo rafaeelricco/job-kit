@@ -56,12 +56,15 @@ Drop only on a contradiction the posting itself prints.
 
 Row 2 also fires on a wall that reaches citizenship by construction: `security
 clearance`, `DoD Secret`, `Public Trust`, `CUI`, `US Person`, `ITAR`, `EAR`.
-Row 3 fires only on these presence verbs in `location`: `must be based in`,
-`must reside in`, `must live in`, `must be located in`. The named place (city,
-state, country, region) is not the kit base, and is not a `locations[]` match
-under Yes + `listed` (see relocation). Remote geography labels are not that
-wall: `Remote — US`, `US - Remote Eligible`, `Remote, United States`. A city,
-country, or timezone with no presence verb is not that wall.
+Row 3 fires on an explicit presence requirement in `location` — any verb of
+residing, living, being based or located, or working from, bound to a named
+place, however phrased: `must be based in`, `must reside in`, `required to
+reside in`, `must live in`, `must be located in`, `must work from {office}`.
+The named place (city, state, country, region) is not the kit base, and is not
+a `locations[]` match under Yes + `listed` (see relocation). Remote geography
+labels are not that wall: `Remote — US`, `US - Remote Eligible`, `Remote,
+United States`. A city, country, or timezone with no presence verb is not that
+wall.
 
 `employer_of_record` and `direct_contractor` set to `Yes` are routes that PASS: EOR,
 Deel, Oyster, hire-from-anywhere, contractor, and B2B never drop a row.
