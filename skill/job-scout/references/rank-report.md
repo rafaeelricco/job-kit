@@ -48,16 +48,24 @@ on dossier `## Verdict`, never in the chat Score audit.
 
 ## Bucket (main-derived; never a gated column)
 
-Derived from extract output. NEVER set by a worker. First eligible match wins.
+Derived from extract output plus kit `employment_routes` and `job_search.yaml`
+`direct_regions`. NEVER set by a worker. First eligible match wins.
 
 1. Printed EOR/Deel/Oyster/hire-from-anywhere route and
    `employment_routes.employer_of_record == Yes` → `EOR`
-2. Contractor/B2B or LATAM/global/anywhere/worldwide → `direct`
-3. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
-   blocker = printed restriction
-4. Printed EOR/Deel/Oyster/hire-from-anywhere route with any other profile value
+2. Printed EOR/Deel/Oyster/hire-from-anywhere route with any other profile value,
+   and no printed contractor/B2B route with
+   `employment_routes.direct_contractor == Yes`
    → `unbucketed`; blocker `EOR route not enabled in profile`
-5. Otherwise → `unbucketed`
+3. Contractor/B2B and `employment_routes.direct_contractor == Yes` → `direct`;
+   or extract `location` matches a `direct_regions` token (case-insensitive
+   whole token, not a substring of `hire-from-anywhere`) → `direct`
+4. Contractor/B2B is the only printed hire-from route and
+   `employment_routes.direct_contractor != Yes` → `unbucketed`;
+   blocker `Contractor route not enabled in profile`
+5. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
+   blocker = printed restriction
+6. Otherwise → `unbucketed`
 
 `unbucketed` enters no ranked table or Do this first — it still gets a dossier and
 counts in the header census. List under Gaps. Never guess a route from a company's
@@ -73,11 +81,9 @@ country. `direct` and `EOR` name the hire-from route the JD prints, not its loca
 ## Report format
 
 Emit markdown **exactly** in this section order, then hand back to `flow-scout.md`
-Phase 6 — dossiers write after this report; **STOP** is the end of that phase,
-not here.
-Every section below is the **chat deliverable only**. Disk receives dossiers under
-`schema-dossier.md` — never a run file, never a second copy of ranked tables or
-score factors. No preamble. No apply / message / connect / open-form language.
+Phase 6. **STOP** is the end of that phase, not here.
+Chat only. Never a run file; never copy ranked tables or score factors to disk.
+No preamble. No apply / message / connect / open-form language.
 
 ### Header
 
@@ -95,7 +101,6 @@ score factors. No preamble. No apply / message / connect / open-form language.
 Exactly 3 if ≥3 **eligible** rows; fewer if not, including none. Eligible = live,
 score≥7, bucket ≠ `unbucketed`. Count the trigger on that same population.
 Prefer direct over restricted-geo on ties.
-`unbucketed` rows are not eligible here or in the table — they list under Gaps only.
 The header's `live≥7` census stays unfiltered.
 
 1. **{company}** — {title} — score **{score}** — {bucket_short}
@@ -132,7 +137,7 @@ Omit this heading when the list is empty.
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unscored: {company} — {title} (required skills not printed or profile skills empty)
-- route disabled: {company} — {title} (EOR not enabled in profile)
+- route disabled: {company} — {title} ({route} not enabled in profile)
 - unbucketed: {company} — {title} (no printed route or restriction)
 - kit drop: {company} — {title} ({reason})
 

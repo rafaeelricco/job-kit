@@ -3,8 +3,7 @@
 You sequence phases. Workers search/extract only. You merge, gate, rank, report.
 Do not invent jobs or company facts.
 
-Never paste any part of this file into a worker brief. The two paste cards carry every
-rule a worker needs.
+Never paste any part of this file into a worker brief.
 
 ## Mode: list only
 
@@ -39,7 +38,8 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    `job_search.yaml` carrying a key scout does not consume → **STOP**: name the
    file and the key, and say to migrate via `/job-profile-me`. Consumed keys are
    exactly `work_model`, `seniority_level`, `job_types`, `date_posted`,
-   `positions`, `keywords`, `locations`. Any other key holding a value that is
+   `positions`, `keywords`, `locations`, `location_scope`, `direct_regions`,
+   `market_currencies`. Any other key holding a value that is
    not empty, `false`, or null fires this STOP. Never derive a replacement value.
 2. Pack pick (blocking). List every pack in the resolved deck whose `enabled` is
    true or absent, file order, as `N. {id}`. Last line: `{N+1}. Search in all`.
@@ -50,20 +50,27 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    Empty, unlisted number, or other text → print the list again and wait.
    Each `enabled: false` pack stays unlisted, recorded internally
    (`skipped: disabled`), omitted from chat.
-   Chosen set = those packs. Phase 1 runs only that set.
+   Chosen set = those packs.
    usable=0 → Gaps `skipped: {pack} (dry)`.
 3. Read inputs → print `### Profile card` and `### Constraints`.
    - Profile card: primary role · seniority · top skills · industries · languages · target stack
    - Constraints: work model · seniority level · job types · positions · keywords · locations ·
-     date_posted · salary_range_usd · work auth · employment_routes · relocation
-   - Markets intent (prose in Constraints): listed locations are strong-pay markets
-     (employers that pay USD, EUR, or GBP). Remote roles paid in those currencies are
-     in scope regardless of company country. `Anywhere` in `locations` is a wildcard,
-     not a market: it keeps every location. Hire-from routes come from the JD's printed
-     `hiring_route`, never the job's own location.
+     date_posted · location_scope · direct_regions · market_currencies ·
+     salary_range_usd · work auth · employment_routes · relocation
+   - Markets intent (prose in Constraints, omit the whole bullet when
+     `market_currencies` is empty): Remote roles paid in {those currencies} are in
+     scope regardless of company country — only if `work_model.remote` is true.
+     `location_scope: worldwide` is the unfiltered-geo wildcard. `Anywhere` in
+     `locations` remains a keep token under `listed`. Hire-from routes come from
+     the JD's printed `hiring_route`, never the job's own location.
 
-Print both blocks before any search. Pass both **verbatim** into every search brief —
-they are the workers' only source for filters and for `[industry]`.
+   `location_scope` not exactly `worldwide` or `listed` → **STOP**, print the
+   value read, and say to set one of them via `/job-profile-me`.
+   `location_scope: listed` with no named location (`locations` empty, or
+   holding only `Anywhere`) → **STOP** and say to add a named location or switch
+   to `worldwide`. Never default `location_scope` to worldwide.
+
+Print both blocks before any search. Pass both **verbatim** into every search brief.
 
 Phase 0 opens no page and signs in to nothing — the run's first network access is
 Phase 1. A surface that answers signed-out is a Phase 1 defect
@@ -85,13 +92,11 @@ not `unsupported_pack`. Gaps: each source row its own pack with that row's URL a
 Do not summarize, do not substitute a field list.
 
 Parallelism: one pack at a time. Never two packs with the same `entry` host
-concurrent. Every `entry` is one URL, so the host is always evaluable.
+concurrent.
 LinkedIn stays the named case — `entry` host `linkedin.com` or ending `.linkedin.com`
 covers both `linkedin-jobs` and `linkedin-posts`, one host under two playbooks.
-Launch 1 → join → next pack; all joined → Phase 2 MERGE.
 Every chosen pack attempted (`auth_gate` is pack defect).
-Expect `### Candidates` + `### Defect log` per unit — headings defined in
-`contract-search.md`.
+Expect `### Candidates` + `### Defect log` per unit.
 
 ## Phase 2 — MERGE (main only)
 
@@ -113,7 +118,7 @@ Load `./references/contract-browse.md`, `./references/contract-extract.md`, and
 Batch size = 5 job URLs. For each unique job URL batch run `worker-extract`;
 independent batches may parallel up to 5; each batch opens URLs one at a time.
 Batches that would gate-pass the same host are not independent — serialize them, same
-rule as Phase 1. Expect `### Verified` rows — heading defined in `contract-extract.md`.
+rule as Phase 1. Expect `### Verified` rows.
 
 ## Phase 4 — CONTRACT GATE (main)
 
@@ -124,7 +129,7 @@ Never invent a field to pass the gate. Unknown = `—`.
 ### Location gate (post-extract, main)
 
 Re-apply contract-search Location keep on extract-confirmed locations; deferred — becomes
-keep/drop here; do not redefine keep rules in this file.
+keep/drop here.
 
 Search-time keeps still apply.
 

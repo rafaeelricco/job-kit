@@ -13,16 +13,3 @@ Skill-local files: `./references/*` only.
 
 Read `./references/flow-scout.md` now.
 Load each additional reference only when that flow names it.
-
-## References
-
-- Pipeline: `./references/flow-scout.md`
-- Scout report: `./references/rank-report.md` (main-only)
-- Kit-gate: `./references/contract-check.md` (main-only)
-- Dossier: `./references/schema-dossier.md` (main-only)
-- Search contract: `./references/contract-search.md` (paste card)
-- Extract contract: `./references/contract-extract.md` (paste card)
-- Browse contract: `./references/contract-browse.md`
-- Search surfaces: `./references/worker-search-{linkedin-jobs,open-web,social}.md`
-- Extract worker: `./references/worker-extract.md`
-- Search packs: `data/search_packs.yaml`, else `./references/search_packs.yaml`

@@ -1,0 +1,4 @@
+# TODO: one object per credential.
+# Keys: institution, credential, field, location, date
+# date = start -- end when both known, else the printed end only. Never guess start.
+[]

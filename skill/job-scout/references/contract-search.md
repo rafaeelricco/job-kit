@@ -10,7 +10,7 @@ Obey CONTRACT_BROWSE for page access and gates.
 
 ## Evidence (search)
 
-- No invent. No memory fill. No snippet-inferred salary/auth/route/seniority.
+- No memory fill. No snippet-inferred salary/auth/route/seniority.
 - Search may set light card fields only (company, title, url, date, poster if named).
 - Contacts only if publicly printed. Never put personal data in a URL.
 - **Forbidden on search/job rows:** salary, work_auth, hiring_route, seniority-as-fact
@@ -52,18 +52,19 @@ Obey CONTRACT_BROWSE for page access and gates.
    report the actual `formulations_run` with that verdict.
    A per-row skip is not pack-wide `auth_gate` and does not abort the pack.
 4. **Geo coverage (job packs)** — do not accept the surface default geography.
-   Cover CONSTRAINTS locations deliberately per surface file (LinkedIn location
-   cycles; open-web set/cycle controls when present, else OR-suffix). Cap cycles as
+   Cover CONSTRAINTS locations deliberately per surface file. Cap cycles as
    the surface file states. Never multiply packs by region.
    `Anywhere` is a keep-rule token, never a UI location or a query term — never
    submit it to a location control and never append it to a query.
-   - **Named countries present** (any location that is not `Anywhere`,
-     case-insensitive) → cycle those only; ignore `Anywhere` for geo coverage.
-   - **Worldwide mode** — every entry is `Anywhere`, or the list is empty after
-     dropping `Anywhere`: run each formulation **once** with geography unfiltered.
+   - **Worldwide mode** — `location_scope` is `worldwide` (ignore a nonempty
+     `locations` list for coverage): run each formulation **once** with geography
+     unfiltered.
      LinkedIn: clear/omit the location filter, or select the UI's worldwide/global
      option if it offers one; never invent a country. Open-web: leave location
      controls unset and do not OR-suffix any location into the query.
+   - **Listed mode** — `location_scope` is `listed`: cycle named `locations`
+     (not `Anywhere`). No named location here — empty, or `Anywhere` only — is
+     a Phase 0 STOP, not this step.
 5. **Proof the query ran.** Before you record anything for a submitted query —
    rows or zero — confirm the surface ran the string you submitted: the
    results view echoes it back (the search URL's query parameter, or the
@@ -75,9 +76,15 @@ Obey CONTRACT_BROWSE for page access and gates.
    never landed.
 6. **Job rows only** — apply CONSTRAINTS filters: work_model, seniority_level,
    job_types, date_posted.
+   **work_model:** keep iff the card's model intersects enabled kit flags.
+   Remote / worldwide / global card → `remote`. Hybrid with remote → `hybrid, remote`.
+   Onsite card → `onsite`. Unknown model → keep (Phase 4 re-applies after extract).
    **Location keep (first match):**
-   - card is remote / worldwide / anywhere / global (or hybrid with remote) → keep
+   - `location_scope` is `worldwide` → keep
    - CONSTRAINTS `locations` contains `Anywhere` → keep
+   - card is remote or hybrid-with-remote (geo label or not: `Remote — US`,
+     `worldwide`) → keep; the work_model rule above already dropped it when kit
+     `remote` is false
    - card is onsite or location-restricted → keep only if it matches CONSTRAINTS
      `locations` (or a clear synonym: EU/Europe for listed EU countries)
    - location unknown on card → keep (main re-applies Location keep after extract)
