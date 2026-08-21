@@ -1,14 +1,8 @@
 # Job scout — dossier format
 
-The output contract for `flow-scout.md` Phase 6. Main-only, same as that file.
-Never paste into a worker brief. Workers never write.
+Phase 6 output. Main-only. Never paste into a worker brief. Workers never write.
 
 ## Layout (under Profile root)
-
-```
-scout/
-  jobs/2026-08-08-ambar--senior-software-engineer.md
-```
 
 `scout/jobs/` is created by this phase, never by `job-profile-init`. Never write
 `scout/runs/`.
@@ -16,8 +10,7 @@ scout/
 ## Filename
 
 `{first_seen}-{company}--{title}.md`. The date is the ISO day this dossier was
-created and is **never** rewritten — not when `last_seen` moves, not when the body
-is rebuilt, not when `status:` changes.
+created and is **never** rewritten.
 
 Slug part: lowercased; every run of non-alphanumerics → one `-`; trimmed.
 Name taken by a file whose `url` differs → append `-2`, `-3`.
@@ -166,7 +159,5 @@ operator, `job-apply`, and `job-inbox`.
 
 A closure is an event in the log, not a field. Append the reopen line whenever a
 URL whose last scout posting-state line was a closure is extracted live again.
-
-Unknown = `—`, never invented — same law as the report.
 
 For every create or update, obey `./persistence.md`.

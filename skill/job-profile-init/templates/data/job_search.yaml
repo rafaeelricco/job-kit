@@ -28,4 +28,7 @@ keywords:
     - "TODO-skill"
   hiring_model: []
 
-locations: [] # confirm; empty → worldwide search, remote-only keep
+locations: [] # empty OK when location_scope is worldwide; listed + empty → scout STOP
+location_scope: "" # worldwide | listed — empty → scout STOP until set
+direct_regions: [] # tokens vs extract location for bucket `direct` (e.g. LATAM)
+market_currencies: [] # e.g. USD, EUR, GBP; empty → no markets prose

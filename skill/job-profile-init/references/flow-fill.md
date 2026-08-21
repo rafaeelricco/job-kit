@@ -25,17 +25,18 @@ Hard refuses: `../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent
 
 ## Invent matrix
 
-| Class                                                                        | SoT present                                                                                                       | SoT silent                                                                                        |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR                            | Propose only verbatim / clear synonym, then require questionnaire confirmation                                    | Ask explicitly; skip leaves empty and may produce a Gap                                           |
-| Kit-owned `salary_expectations.tip`                                          | Keep the emitted template string; never propose from SoT                                                          | Keep the emitted string; never ask; never empty                                                   |
-| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)   | Propose only when SoT prints a clear answer, then require confirmation                                            | Ask explicitly; skip leaves empty; **do not** list under Gaps                                     |
-| Positions, keywords groups, locations                                        | Propose from SoT only; questionnaire confirmation is required                                                     | Ask explicitly; skip → `[]`; Gaps for positions / `keywords.primary` only                         |
-| Search filters (`work_model`, `job_types`, `date_posted`), `seniority_level` | Propose only from SoT or template as **proposals**; require confirm/keep/edit                                     | Ask; skip → empty/`false` / `""` — **not** Gaps; never retain shipped template trues without keep |
-| Experiences, skills, projects, languages (incl. levels, experience URLs)     | Propose only what is printed, then require row/field confirmation                                                 | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps                         |
-| Story names (moment + employer link)                                         | Propose only titles the SoT prints as a role or project, then require confirmation                                | Ask explicitly; skip → no stub; **do not** list under Gaps                                        |
-| CV binary                                                                    | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                              | Report only under **### CV** (not Gaps)                                                           |
-| Identity (name, email, LI, GH)                                               | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill | Ask explicitly; required fields cannot be skipped                                                 |
+| Class                                                                               | SoT present                                                                                                       | SoT silent                                                                                        |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Salary, notice, work auth, visa, sponsorship, EOR                                   | Propose only verbatim / clear synonym, then require questionnaire confirmation                                    | Ask explicitly; skip leaves empty and may produce a Gap                                           |
+| Kit-owned `salary_expectations.tip`                                                 | Keep the emitted template string; never propose from SoT                                                          | Keep the emitted string; never ask; never empty                                                   |
+| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)          | Propose only when SoT prints a clear answer, then require confirmation                                            | Ask explicitly; skip leaves empty; **do not** list under Gaps                                     |
+| Positions, keywords groups, locations                                               | Propose from SoT only; questionnaire confirmation is required                                                     | Ask explicitly; skip → `[]`; Gaps per the allowlist below                                         |
+| `location_scope`, `direct_regions`, `market_currencies`                             | Propose only from SoT; confirm                                                                                    | Ask; skip → `""` / `[]`; Gap if `location_scope` empty                                            |
+| Search filters (`work_model`, `job_types`, `date_posted`), `seniority_level`        | Propose only from SoT or template as **proposals**; require confirm/keep/edit                                     | Ask; skip → empty/`false` / `""` — **not** Gaps; never retain shipped template trues without keep |
+| Experiences, skills, projects, languages, education (incl. levels, experience URLs) | Propose only what is printed, then require row/field confirmation                                                 | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps                         |
+| Story names (moment + employer link)                                                | Propose only titles the SoT prints as a role or project, then require confirmation                                | Ask explicitly; skip → no stub; **do not** list under Gaps                                        |
+| CV binary                                                                           | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                              | Report only under **### CV** (not Gaps)                                                           |
+| Identity (name, email, LI, GH)                                                      | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill | Ask explicitly; required fields cannot be skipped                                                 |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
@@ -46,7 +47,7 @@ Use the source buffer when available, but explicit questionnaire values always
 win over extracted or template-provided proposals. Apply only confirmed values,
 explicit skips, and confirmed pack enablement choices.
 
-- Write all confirmed candidate, basics, collection, and job-search fields.
+- Write all confirmed candidate, basics, collection (experiences, skills, projects, languages, education), and job-search fields.
 - Write `seniority_level` as the single confirmed seniority string.
 - Write empty values/lists for explicit skips where supported.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
@@ -107,11 +108,13 @@ Partial fill is OK. **Gaps allowlist only** — omit a line when that key is fil
 - `legal_authorization.*`
 - `employment_routes.employer_of_record`
 - `job_search` `positions` / `keywords.primary`
+- `job_search` `location_scope`; `locations` when `location_scope` is `listed`
+  and the list is empty
 
 **Never Gaps:** remote / in-person prefs (`in_person_work*`),
 `direct_contractor`, `local_employment`, `salary_expectations.tip`, empty
-`projects.yml` / `languages.yaml` / experience `url.*`, `data/stories/`,
-`job_search.locations`
-(empty = worldwide search), or CV (use **### CV**).
+`projects.yml` / `languages.yaml` / `education.yaml` / experience `url.*`, `data/stories/`,
+`job_search.locations` (Never Gaps when `worldwide` or when `listed` and
+nonempty; Gap when `listed` and empty), or CV (use **### CV**).
 Blocker `skip` still emits a Gaps line
 **only** when the skipped key is on this allowlist.
