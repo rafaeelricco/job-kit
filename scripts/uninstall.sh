@@ -290,8 +290,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
 
 Targets:
   aside     Aside skills (job-scout, job-apply, job-resume, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root)
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root, job-resume)
-  browser-use  Browser skills (job-scout, job-apply) in coding-agent homes, plus
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
+  browser-use  Browser skills (job-scout, job-apply, job-resume) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
   profile   Delete profile root(s) + matching profile-root pointers
