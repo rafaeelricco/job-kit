@@ -11,13 +11,14 @@
 # Never vendor the mapping into cv/. Never mutate TEX_PATH when it sits
 # outside OUT_DIR. Never copy any PDF to resume.pdf.
 #
-# stdout, when a PDF exists:
+# stdout, on exit 0, 2, and 3:
 #   Pages: N
 #   /abs/path/STEM.txt
+# Pages is 0 on exit 2 — no usable PDF this run.
 # Exit:
 #   0  pdflatex ok AND Pages==1 AND no Overfull \vbox
 #   1  usage / missing binary / TEX unreadable / OUT_DIR not writable
-#   2  pdflatex failed
+#   2  pdflatex failed, or the PDF cannot be inspected or extracted
 #   3  pdflatex ok AND (Pages!=1 OR Overfull \vbox in the log)
 # Overfull \hbox is not a fail.
 
@@ -78,9 +79,29 @@ if [[ $tex_rc -ne 0 || ! -f "$PDF" ]]; then
   exit 2
 fi
 
-pages=$(pdfinfo "$PDF" | awk '/^Pages:/ { print $2; exit }')
+set +e
+info=$(pdfinfo "$PDF" 2>/dev/null)
+info_rc=$?
+set -e
+if [[ $info_rc -ne 0 ]]; then
+  echo "pdfinfo failed on $PDF (status $info_rc)" >&2
+  echo "Pages: 0"
+  echo "$TXT"
+  exit 2
+fi
+pages=$(printf '%s\n' "$info" | awk '/^Pages:/ { print $2; exit }')
 [[ -n "$pages" ]] || pages=0
+
+set +e
 pdftotext -layout "$PDF" "$TXT"
+txt_rc=$?
+set -e
+if [[ $txt_rc -ne 0 ]]; then
+  echo "pdftotext failed on $PDF (status $txt_rc)" >&2
+  echo "Pages: 0"
+  echo "$TXT"
+  exit 2
+fi
 
 echo "Pages: $pages"
 echo "$TXT"
