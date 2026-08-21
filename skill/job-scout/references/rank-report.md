@@ -53,14 +53,19 @@ Derived from extract output plus kit `employment_routes` and `job_search.yaml`
 
 1. Printed EOR/Deel/Oyster/hire-from-anywhere route and
    `employment_routes.employer_of_record == Yes` → `EOR`
-2. Printed EOR/Deel/Oyster/hire-from-anywhere route with any other profile value
+2. Printed EOR/Deel/Oyster/hire-from-anywhere route with any other profile value,
+   and no printed contractor/B2B route with
+   `employment_routes.direct_contractor == Yes`
    → `unbucketed`; blocker `EOR route not enabled in profile`
 3. Contractor/B2B and `employment_routes.direct_contractor == Yes` → `direct`;
    or extract `location` matches a `direct_regions` token (case-insensitive
    whole token, not a substring of `hire-from-anywhere`) → `direct`
-4. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
+4. Contractor/B2B is the only printed hire-from route and
+   `employment_routes.direct_contractor != Yes` → `unbucketed`;
+   blocker `Contractor route not enabled in profile`
+5. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
    blocker = printed restriction
-5. Otherwise → `unbucketed`
+6. Otherwise → `unbucketed`
 
 `unbucketed` enters no ranked table or Do this first — it still gets a dossier and
 counts in the header census. List under Gaps. Never guess a route from a company's
@@ -132,7 +137,7 @@ Omit this heading when the list is empty.
 - tool defects: {tool} ({reason})
 - uncertain: {url or company} ({reason}) # only if any
 - unscored: {company} — {title} (required skills not printed or profile skills empty)
-- route disabled: {company} — {title} (EOR not enabled in profile)
+- route disabled: {company} — {title} ({route} not enabled in profile)
 - unbucketed: {company} — {title} (no printed route or restriction)
 - kit drop: {company} — {title} ({reason})
 
