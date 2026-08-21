@@ -164,6 +164,11 @@ and uses `default` when none fit. With no registry it attaches
 With neither a resolvable PDF, job-apply stops. Edit the registry with
 `/job-profile-me cvs`.
 
+`/job-resume` needs a LaTeX base under `cv/`, named `resume-{id}.tex` for the
+`data/cvs.yaml` row it tailors (or a `.tex` sibling of that row's PDF). It
+compiles, but never authors, that base — without one it stops and names the
+path it wanted.
+
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
 
