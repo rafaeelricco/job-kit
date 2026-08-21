@@ -63,7 +63,8 @@ Obey CONTRACT_BROWSE for page access and gates.
      option if it offers one; never invent a country. Open-web: leave location
      controls unset and do not OR-suffix any location into the query.
    - **Listed mode** — `location_scope` is `listed`: cycle named `locations`
-     (not `Anywhere`). Empty `locations` here is a Phase 0 STOP, not this step.
+     (not `Anywhere`). No named location here — empty, or `Anywhere` only — is
+     a Phase 0 STOP, not this step.
 5. **Proof the query ran.** Before you record anything for a submitted query —
    rows or zero — confirm the surface ran the string you submitted: the
    results view echoes it back (the search URL's query parameter, or the
