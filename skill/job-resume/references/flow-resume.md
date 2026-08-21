@@ -73,8 +73,9 @@ a tie → `default`. Never blend rows. Never invent an id. Absent/empty registry
 or a `default` naming no row → STOP, name the file.
 
 Source file = Profile-root `cv/resume-{id}.tex`. If that path is missing, take
-`cvs[].file` with `.pdf` → `.tex` under `cv/`. Missing `.tex` → STOP, name it.
-Never fall back to another row.
+`cvs[].file` with `.pdf` → `.tex` under `cv/`. Missing `.tex` → **STOP**:
+`No LaTeX base for {id}. Add cv/resume-{id}.tex under the Profile root.`
+Never fall back to another row. This skill never generates the base.
 
 Print `Base: {id} · {tex path} · {why}`.
 
