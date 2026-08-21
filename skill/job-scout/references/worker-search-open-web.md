@@ -13,6 +13,6 @@ Caller supplies CONTRACT_BROWSE + CONTRACT_SEARCH before this surface delta.
    `site:` only — never open the root. A query surface (a search engine such as
    `google.com/search`) is never a `site:` host — run the formulation as a plain search.
 4. `work-at-a-startup`: company card is intermediate; `url` must be the role page.
-5. Geo UI (modes: CONTRACT_SEARCH step 4). Named mode: if a location control
+5. Geo UI (modes: CONTRACT_SEARCH step 4). Listed mode: if a location control
    exists, set/cycle named CONSTRAINTS locations (incl. Remote when listed); if
    no control, OR-suffix named locations into the query. Never invent locations.
