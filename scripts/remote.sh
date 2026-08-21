@@ -113,6 +113,7 @@ skill/job-scout/SKILL.md"
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
 skill/job-apply/SKILL.md
+skill/job-resume/SKILL.md
 skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md
 skill/job-stories/SKILL.md
