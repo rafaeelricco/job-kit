@@ -76,13 +76,20 @@ store stops and names the path. For either non-blocking outcome, also print
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
 released by the operator. Missing or unopenable PDF stops the run. Exactly one CV per
-submission, chosen in this order and never more than one: (1) a tailored compiled PDF
-already produced for this application; (2) `data/cvs.yaml` readable with a non-empty
-`cvs` — read every row's `targets`, take the one row the ad fits best, and when no row
-clearly fits take the `default` id (ties go to `default`; never blend two rows; never
-invent an id or filename); (3) no registry, unreadable registry, empty `cvs`, or a
-`default` naming no row → `cv/en-us-resume.pdf`. The chosen `file` resolves under `cv/`
-and must open as a PDF. Never use `.tex` or generate LaTeX here.
+submission, chosen in this order and never more than one: (1)
+`scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
+matching report prints `verdict: **PASS**`, and the matched dossier's
+normalized frontmatter URL exactly equals the current ad's normalized URL.
+`{slug}` is that exact-URL dossier's filename minus `.md` — never rebuilt from
+company and title. A company/title-only duplicate never supplies this `{slug}`;
+a FAIL report, a missing PDF, or a missing report is not this step; (2)
+`data/cvs.yaml` readable with a non-empty `cvs` — read every
+row's `targets`, take the one row the ad fits best, and when no row clearly
+fits take the `default` id (ties go to `default`; never blend two rows; never
+invent an id or filename); (3) no registry, unreadable registry, empty `cvs`,
+or a `default` naming no row → `cv/en-us-resume.pdf`. Step (1) `file` is that
+canonical PDF. Steps (2)–(3) resolve under `cv/` and must open as a PDF.
+Never use `.tex` or generate LaTeX here.
 
 ## Phase 1 — FIT
 
@@ -176,9 +183,10 @@ A failed in-band check stops before review.
 | ------ | -------- | ------- | -----: |
 | `{id}` | `{file}` | `{why}` |    yes |
 
-`id` is the `data/cvs.yaml` row, or `fallback` when no registry decided it. `file` is
-the absolute path. `why` is one clause naming what in the ad selected that row. Exactly
-one CV, chosen and proven openable at the ad gate.
+`id` is `tailored` when step (1) won, the `data/cvs.yaml` row id when step (2)
+won, or `fallback` when step (3) won. `file` is the absolute path. `why` is one
+clause naming what in the ad selected that row (step (1): `job-resume PASS`).
+Exactly one CV, chosen and proven openable at the ad gate.
 
 ### Gate compliance
 

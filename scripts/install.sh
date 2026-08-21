@@ -44,9 +44,9 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
+  aside     Aside skills (job-scout, job-apply, job-resume, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
-  browser-use  Browser skills (job-scout, job-apply) into coding-agent homes;
+  browser-use  Browser skills (job-scout, job-apply, job-resume) into coding-agent homes;
                driven by the local browser-use CLI (docs.browser-use.com)
   all       aside + agents + browser-use
 
@@ -55,7 +55,7 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-resume | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
                 agents | browser-use | claude | codex | grok
                 (claude|codex|grok narrow a channel named alongside them;
                 alone they mean the agents channel)
@@ -135,7 +135,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
+      job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -144,7 +144,7 @@ expand_only() {
       claude) named_agent=1; want_claude=1 ;;
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -170,7 +170,7 @@ expand_only() {
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-profile-me "*|*" job-list "*|*" job-pitch "*|*" job-inbox "*)
+      *" job-scout "*|*" job-apply "*|*" job-resume "*|*" job-profile-me "*|*" job-list "*|*" job-pitch "*|*" job-inbox "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
@@ -461,9 +461,9 @@ confirm_plan() {
 # PATH is the driver path in display form; FIX is the command that installs it
 # there, empty when `browser-use skill install` has no `--target` for that dest
 # (Grok, or a CLAUDE_SKILLS override). An empty FIX still reports the gap —
-# the channel links job-scout and job-apply there, and their Phase 0 STOPs
-# without a driver — but the callers name the path instead of offering a
-# command the CLI cannot run.
+# the channel links job-scout, job-apply, and job-resume there, and their
+# Phase 0 STOPs without a driver — but the callers name the path instead of
+# offering a command the CLI cannot run.
 # A dest the kit does not install into is skipped: a driver missing there is
 # not a gap this channel can close. When CLAUDE_SKILLS is set, that dest is
 # exclusive (same as install_agent_home) and AGENT_TARGETS are not walked.
@@ -521,14 +521,14 @@ browser_use_offer() {
 
 # browser_use_preflight — flag every missing browser-use requirement + offer fixes.
 # Args: none. Side effects: may run one offered install command per yes answer.
-# Never blocks: the skills are already installed and job-scout Phase 0 STOPs on
-# its own when no driver answers.
+# Never blocks: the skills are already installed and each one's Phase 0 STOPs
+# on its own when no driver answers.
 browser_use_preflight() {
   local need_cli=0 need_browser=0 drivers driver_path driver_fix
   command -v browser-use >/dev/null 2>&1 || need_cli=1
   have_chromium || need_browser=1
   # Probed separately: a CLI and a browser that are both already present say
-  # nothing about the driver skill, and job-scout/job-apply Phase 0 needs it.
+  # nothing about the driver skill, and every browser skill's Phase 0 needs it.
   drivers="$(browser_use_missing_drivers)"
   [ "${need_cli}" -eq 1 ] || [ "${need_browser}" -eq 1 ] || [ -n "${drivers}" ] || return 0
 
@@ -780,7 +780,7 @@ interactive_menu() {
   select choice in \
     "Aside skills" \
     "Coding-agent skills" \
-    "browser-use skills (job-scout + job-apply in coding agents)" \
+    "browser-use skills (job-scout + job-apply + job-resume in coding agents)" \
     "All of the above" \
     "Quit"
   do
