@@ -115,18 +115,21 @@
    **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
    that cannot run reports _unknown_, never _installed_.
 
-   - Agents: the channel links six skills — `job-profile-init`,
-     `job-profile-me`, `job-list`, `job-stories`, `job-inbox`, and
-     `job-profile-root` (`SKILL_NAMES` in `scripts/agents/lib.sh`). For each of
+   - Agents: the channel links seven skills — `job-profile-init`,
+     `job-profile-me`, `job-list`, `job-stories`, `job-pitch`, `job-inbox`,
+     and `job-profile-root` (`SKILL_NAMES` in
+     `scripts/agents/lib.sh`). `job-resume` is browser-channel and is not
+     probed here. For each of
      `$HOST_HOME/{.claude,.agents,.grok}` that is a directory, compare bare
      `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
      `scripts/agents/lib.sh` `is_kit_skill_link`) against
-     `$KIT_ROOT/skill/<name>` for **every** one of the six. A home counts
+     `$KIT_ROOT/skill/<name>` for **every** one of the seven. A home counts
      installed only when the whole set matches; matching some is _partial_, and
      partial is not installed. Installed = at least one complete home.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
-     Installed = for each of `job-scout`, `job-apply`, `job-profile-me`,
-     `job-list`, `job-inbox`, `job-profile-root`, the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
+     Installed = for each of `job-scout`, `job-apply`, `job-resume`,
+     `job-profile-me`, `job-list`, `job-pitch`, `job-inbox`, `job-profile-root`,
+     the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
      `$KIT_ROOT/skill/<name>`.
    - **Never probe by directory existence.** Legacy `skills/user/job-application` and
      `job-discovery` links from other repos are left in place by the installer
@@ -154,8 +157,8 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    - Any probe _unknown_ → print its command with the reason it could not be
      checked. Commands are absolute; CWD does not matter.
 
-   **If unresolved** — probe Aside repo-agnostically first: all six
-   `$ASIDE_ROOT/{job-scout,job-apply,job-profile-me,job-list,job-inbox,job-profile-root}/.job-kit`
+   **If unresolved** — probe Aside repo-agnostically first: all eight
+   `$ASIDE_ROOT/{job-scout,job-apply,job-resume,job-profile-me,job-list,job-pitch,job-inbox,job-profile-root}/.job-kit`
    exist → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):
