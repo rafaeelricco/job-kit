@@ -5,10 +5,11 @@ Ask every user-owned field before profile Approve.
 ## Fields
 
 Ask identity, basics, every `candidate.yaml` key, every experience/project/
-language/skill row, and every `job_search.yaml` key:
+language/skill/education row, and every `job_search.yaml` key:
 
 - work model, `seniority_level`, job types, date filters
-- positions, keyword groups, locations
+- positions, keyword groups, locations, `location_scope` (`worldwide` | `listed`),
+  `direct_regions`, `market_currencies`
 
 Ask each `search_packs.yaml` `packs[].enabled` flag.
 

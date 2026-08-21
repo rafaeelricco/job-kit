@@ -41,6 +41,9 @@ Print `Profile root: /abs/path` before the first diff of the session.
 | `positions`                                      | list of strings                                             |
 | `keywords.<group>`                               | list of strings; create a group only when the user names it |
 | `locations`                                      | list of strings                                             |
+| `location_scope`                                 | `worldwide` \| `listed`, only when explicit                 |
+| `direct_regions`                                 | list of strings                                             |
+| `market_currencies`                              | list of strings                                             |
 | `work_model.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
 | `seniority_level`                                | string, only when explicit                                  |
 
