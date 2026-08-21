@@ -31,8 +31,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { DayRange, Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+import type { Blocker, DayRange, Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
 import {
+  BLOCKERS,
+  BLOCKER_LABELS,
   EMPTY_DAYS,
   SCORE_BANDS,
   SCORE_BAND_LABELS,
@@ -70,23 +72,6 @@ const VIEW_LABELS: Readonly<Record<View, string>> = {
   cards: "Cards",
 }
 
-// Day counts rather than baked ranges: the window has to be measured when the
-// button is pressed, not when the module loads.
-const FOUND_PRESETS = [
-  { label: "Today", days: 1 },
-  { label: "Last 7 days", days: 7 },
-  { label: "Last 30 days", days: 30 },
-] as const
-
-// Anchored to the wall clock, unlike the charts' `anchorOf` (analytics.ts:56),
-// which counts back from the newest dossier: "today" has to mean today even on
-// a morning that has scouted nothing yet.
-const lastDays = (days: number): DayRange => {
-  const from = new Date()
-  from.setDate(from.getDate() - (days - 1))
-  return { from: isoOf(from), to: todayIso() }
-}
-
 // A range whose ends are the same day is a day, and one of those days has a name.
 function foundLabel(range: DayRange): string {
   const { from, to } = range
@@ -115,6 +100,7 @@ function FilterBar(props: FilterBarProps) {
 
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
+  const setBlockers = (value: Blocker) => onFilter({ ...filter, blockers: toggled(filter.blockers, value) })
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
   const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
   const setSource = (value: string) => onFilter(cycleSource(filter, value))
@@ -146,6 +132,11 @@ function FilterBar(props: FilterBarProps) {
       key: `channel:${value}`,
       label: `Channel: ${value}`,
       remove: () => setChannels(value),
+    })),
+    ...filter.blockers.map((value) => ({
+      key: `blocker:${value}`,
+      label: `Blocker: ${BLOCKER_LABELS[value]}`,
+      remove: () => setBlockers(value),
     })),
     ...filter.statuses.map((value) => ({
       key: `status:${value}`,
@@ -180,6 +171,7 @@ function FilterBar(props: FilterBarProps) {
       bands: [],
       buckets: [],
       channels: [],
+      blockers: [],
       statuses: [],
       sources: [],
       excluded: [],
@@ -230,6 +222,19 @@ function FilterBar(props: FilterBarProps) {
                       onSelect={() => setChannels(value)}
                     >
                       {value}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+                <CommandSeparator />
+                <CommandGroup heading="Blocker">
+                  {BLOCKERS.map((value) => (
+                    <CommandItem
+                      key={value}
+                      value={`blocker ${BLOCKER_LABELS[value]}`}
+                      data-checked={filter.blockers.includes(value)}
+                      onSelect={() => setBlockers(value)}
+                    >
+                      {BLOCKER_LABELS[value]}
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -295,13 +300,6 @@ function FilterBar(props: FilterBarProps) {
             Found
           </PopoverTrigger>
           <PopoverContent align="start" className="w-auto p-0">
-            <div className="flex gap-1 border-b p-2">
-              {FOUND_PRESETS.map((preset) => (
-                <Button key={preset.label} variant="ghost" size="sm" onClick={() => setFound(lastDays(preset.days))}>
-                  {preset.label}
-                </Button>
-              ))}
-            </div>
             <Calendar
               mode="range"
               autoFocus
