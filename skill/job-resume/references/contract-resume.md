@@ -54,11 +54,11 @@ is a `projects.yml` or `experiences.yml` row.
 - Heading identity: `basics.yaml` name/email/phone/site + `profiles.yaml`
   LinkedIn/GitHub. Headline `position` is the newest `experiences.yml`
   `position`, verbatim. Stack nouns in the headline must also appear in
-  `skills.yaml`.
+  the skills inventory read-set.
 - Experience rows: `company`, `position`, `location`, `date` verbatim from
   `experiences.yml`. Reverse-chrono by those dates. Never reorder for fit.
 - Project rows: `name`, `description`, `date`, `url` from `projects.yml`.
-- Skills: `skills.yaml` `items` (and spoken from `languages.yaml`). Language
+- Skills: the skills inventory read-set (and spoken from `languages.yaml`). Language
   level is the printed self-assessment with the language name. Never assert a
   certification, test score, or bare letter grade.
 - Summary: omit, or print one `experiences.yml` `summary[]` bullet or one story
@@ -107,7 +107,7 @@ the run. PDF_TEXT empty or unreadable → `unjudgeable`.
 | 10  | no `we` promoted to `I`; no `led` the Fact does not print                         | `reject`                             |
 | 11  | no invented relation                                                              | `reject`                             |
 | 12  | printed roles stay reverse-chrono by `experiences.yml` dates                      | `reject`                             |
-| 13  | every printed skill is in `skills.yaml` (spoken from `languages.yaml`)            | `reject`                             |
+| 13  | every printed skill is in the inventory read-set (spoken from `languages.yaml`)   | `reject`                             |
 | 14  | heading identity traces to `basics.yaml` / `profiles.yaml`                        | `reject`                             |
 | 15  | no salary, sponsorship, visa, or notice on the page                               | `reject`                             |
 | 16  | every claim traces to one Fact file                                               | `repair`                             |
