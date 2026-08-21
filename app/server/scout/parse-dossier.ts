@@ -28,8 +28,9 @@ import type {
 // The grammar below was recovered by round-tripping the corpus on disk, so the
 // odd-looking rules are the corpus, not taste: titles carry ": " and " — ",
 // five fact values carry a raw pipe, the verdict header changes shape and
-// order between files, and the "never writes below this line" comment is
-// printed twice in a good number of records.
+// order between files, some Verdict lines omit `live · why` (pack stub in
+// slot 3), some Provenance authors contain ` · `, and the "never writes
+// below this line" comment is printed twice in a good number of records.
 
 const FRONTMATTER_KEYS = [
   "company",
@@ -51,7 +52,7 @@ const SECTIONS = [
   "## Application log",
 ] as const
 
-const VERDICT_LINE = /^score \*\*(.+?)\*\* · (.+?) · (.+?) · (.*)$/
+const VERDICT_LINE = /^score \*\*(.+?)\*\* · (.+?) · (.+?)(?: · (.*))?$/
 const LOG_LINE = /^- (\d{4}-\d{2}-\d{2}) · (.*) — ([a-z-]+)$/
 const APPLICATION_LINE = /^#### Application /gm
 const FACTS_HEADER = "key | value"
@@ -211,10 +212,11 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   const verdictBody = sectionAt(0)
   const headline = verdictBody.map((line) => line.trim()).find((line) => line !== "" && !line.startsWith("|"))
-  const why = headline === undefined ? undefined : VERDICT_LINE.exec(headline)?.[4]
-  if (why === undefined) {
+  const match = headline === undefined ? null : VERDICT_LINE.exec(headline)
+  if (match === null) {
     return fail("## Verdict line", { kind: "section", heading: "## Verdict" })
   }
+  const why = match[4] ?? ""
 
   const pipes = verdictBody.filter((line) => line.trim().startsWith("|"))
   const headerLine = pipes[0]
@@ -321,14 +323,11 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   const provLine = sectionAt(3).find((line) => line.trim() !== "")
   const parts = provLine === undefined ? [] : provLine.trim().split(" · ")
-  const [source, author, contact, seen] = parts
-  if (
-    parts.length !== 4 ||
-    source === undefined ||
-    author === undefined ||
-    contact === undefined ||
-    seen === undefined
-  ) {
+  const source = parts[0]
+  const seen = parts.at(-1)
+  const contact = parts.at(-2)
+  const author = parts.slice(1, -2).join(" · ")
+  if (parts.length < 4 || source === undefined || contact === undefined || seen === undefined) {
     return fail("## Provenance", {
       kind: "section",
       heading: "## Provenance",

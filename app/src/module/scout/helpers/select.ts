@@ -2,6 +2,8 @@ export {
   EMPTY_DAYS,
   EMPTY_FILTER,
   PAGE_SIZES,
+  BLOCKERS,
+  BLOCKER_LABELS,
   SCORE_BANDS,
   SCORE_BAND_LABELS,
   SEGMENTS,
@@ -20,6 +22,7 @@ export {
   todayIso,
   type DayRange,
   type Filter,
+  type Blocker,
   type ScoreBand,
   type Segment,
   type SourceRow,
@@ -32,6 +35,15 @@ import { assertNever } from "@/module/scout/result"
 
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
 const PAGE_SIZES = [25, 50, 100] as const
+const BLOCKERS = ["yes", "no"] as const
+
+type Blocker = (typeof BLOCKERS)[number]
+
+const BLOCKER_LABELS: Readonly<Record<Blocker, string>> = {
+  yes: "Has blocker",
+  no: "No blocker",
+}
+
 // The scale is ten integers with the rubric's own cuts — scout keeps ≥ 7 and
 // ranks ≥ 8 (skill/job-scout/references/rank-report.md `## Score`). Bands rather
 // than a min/max pair: every question worth asking of ten integers is one of
@@ -52,6 +64,8 @@ const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
 // saying so; here they are one of the four things you can ask for.
 const bandOf = (d: Dossier): ScoreBand =>
   d.score.kind === "unscored" ? "unscored" : d.score.value >= 8 ? "strong" : d.score.value >= 7 ? "keep" : "low"
+
+const blockerOf = (d: Dossier): Blocker => (d.facts.blocker.kind === "known" ? "yes" : "no")
 
 /* -- days ----------------------------------------------------------------- */
 
@@ -85,6 +99,7 @@ type Filter = {
   readonly bands: readonly ScoreBand[]
   readonly buckets: readonly Bucket[]
   readonly channels: readonly Channel[]
+  readonly blockers: readonly Blocker[]
   readonly statuses: readonly Lifecycle[]
   // Sources are operator-minted pack ids, not a closed vocabulary like the
   // facets above, so they carry no union type — the list comes from the store.
@@ -102,6 +117,7 @@ const EMPTY_FILTER: Filter = {
   bands: [],
   buckets: [],
   channels: [],
+  blockers: [],
   statuses: [],
   sources: [],
   excluded: [],
@@ -184,6 +200,7 @@ const matches =
     if (!facet(f.bands, bandOf(d))) return false
     if (!facet(f.buckets, d.bucket)) return false
     if (!facet(f.channels, d.channel)) return false
+    if (!facet(f.blockers, blockerOf(d))) return false
     if (!facet(f.statuses, d.status)) return false
     if (!inDays(f.found, d.firstSeen)) return false
     const query = f.query.trim().toLowerCase()
