@@ -47,15 +47,15 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                                                               |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                 |
-| `aside`        | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` (fails if no Aside)        |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` (fails if no agent home)         |
-| `browser-use`  | `job-scout` + `job-apply` + `job-resume` into agent homes, driven by the local browser-use CLI; missing CLI or browser prints an offer |
-| `fetch`        | Nothing — refresh the cached checkout only                                                                                             |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                                                            |
-| `-h`, `--help` | Nothing — print usage                                                                                                                  |
+| Argument       | Installs                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                              |
+| `aside`        | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` (fails if no Aside)     |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` (fails if no agent home)      |
+| `browser-use`  | `job-scout` + `job-apply` + `job-resume` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
+| `fetch`        | Nothing — refresh the cached checkout only                                                                                          |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                                         |
+| `-h`, `--help` | Nothing — print usage                                                                                                               |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -119,9 +119,12 @@ browser-use CLI drives your own Chrome. Either way:
 The browser-use channel is local only: your own signed-in browser over CDP —
 no Browser Use account, no cloud browser, no API key. It needs an agent home,
 the `browser-use` CLI, a Chromium-family browser, and the browser-use driver
-skill in that home; the installer flags whichever is missing, and offers the
-command that fixes it wherever the CLI has one — `browser-use skill install`
-has no `--target` for Grok, so a Grok home is flagged for you to fill.
+skill in that home. When the CLI is present, the installer runs
+`browser-use skill install` into each home (`--target claude`, `--target agents`,
+`--path ~/.grok/skills/browser-use`; `CLAUDE_SKILLS` also uses `--path`).
+Missing CLI or browser still prints an offer. After that: open
+`chrome://inspect/#remote-debugging`, tick Allow remote debugging, and sign in
+to the sites you scout.
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
 ranks the job rows it extracts. Application drafts and stages one posting at a
@@ -322,10 +325,11 @@ bash scripts/install.sh   # interactive menu, or: all | aside | agents | browser
 Prerequisites: Bash, plus the target for whichever channel you install — at
 least one agent home (`~/.claude`, `~/.agents`, or `~/.grok`; open that agent
 once if missing), and an Aside account profile (`~/.aside/u/0`, including a
-`skills` parent). For `browser-use`: an agent home, the `browser-use` CLI, and
-a Chromium-family browser you are signed into — all local, no Browser Use
-account, no cloud browser, no API key. The installer flags a missing CLI or
-browser and offers the command that fixes it. Private clone: use whatever auth
+`skills` parent). For `browser-use`: an agent home, the `browser-use` CLI, a
+Chromium-family browser you are signed into, and the driver skill the installer
+places when the CLI is present — all local, no Browser Use account, no cloud
+browser, no API key. The installer flags a missing CLI or browser and offers
+the command that fixes it. Private clone: use whatever auth
 your host requires (`gh repo clone rafaeelricco/job-kit`, HTTPS token, or SSH
 remote).
 
