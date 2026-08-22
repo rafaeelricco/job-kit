@@ -1,11 +1,17 @@
 ---
 name: job-resume
-description: "Use when the user runs /job-resume, asks for a tailored résumé or CV PDF against one scout dossier, a one-page LaTeX resume for a posting, or a match-report. Not for submitting an application (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
+description: "Use when the user runs /job-resume, asks for a tailored résumé or CV PDF against one scout dossier, a one-page LaTeX resume for a posting, or a match-report; also when job-apply Prepare spawns this skill for a status:new dossier. Not for submitting an application (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
 ---
 
 # Job resume
 
 One posting. One page. Truth from Fact files; the JD is relevance only.
+
+May be entered from `job-apply` Prepare as an isolated `spawn_subagent`
+(Argument: `{filename}`, `PROFILE_ROOT`). This agent is still resume main:
+it sequences phases, may call `./scripts/compile.sh`, and may spawn Loop A.
+It never submits an application. Phase 6 FAIL / Phase 7 PASS still **STOP**
+this agent.
 
 Profile root: load the `job-profile-root` skill now.
 

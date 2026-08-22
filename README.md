@@ -140,29 +140,31 @@ and the ad under the dossier's Application log; later statuses (`interview`,
 `dropped` stays yours. Re-running scout never overwrites
 `status:`, and never renames the file.
 
-The three run as one loop, and only the middle hop is automatic:
+The three run as one loop. Scout and inbox stay operator-pasted; inside
+`/job-apply`, Prepare may chain `job-resume`, and Record chains `job-inbox`:
 
 ```text
-/job-scout   ranks rows, writes dossiers, prints  Next: /job-apply {url}
-/job-apply   submits, records, then runs job-inbox in the same session
+/job-scout   ranks rows, writes dossiers, STOP (list-only)
+/job-apply   Prepare may spawn job-resume for a status:new dossier;
+             review → yes → submit → record → job-inbox in-session
 job-inbox    reports replies, writes status, prints  Next: /job-scout
 ```
 
-You paste the pointer at the two ends; the apply → inbox leg needs nothing from
-you. Neither end auto-fires on purpose: scout stays list-only and cannot judge
-which ranked row is worth an application, and apply never submits without your
-explicit yes on the review.
+You paste the pointer at the two ends. Neither end auto-fires on purpose: scout
+stays list-only and cannot judge which ranked row is worth an application, and
+apply never submits without your explicit yes on the review.
 
-Applying needs exactly one CV PDF that opens. A tailored PDF compiled for that
-application wins only when `scout/applications/{slug}/resume.pdf` opens,
-`match-report.md` prints `verdict: **PASS**`, and the dossier’s normalized URL
-matches the current ad URL (`{slug}` = that exact-URL dossier filename minus
-`.md`). Produce that package with `/job-resume` before `/job-apply`. Otherwise
-job-apply reads `data/cvs.yaml`, matches each row's `targets` against the ad,
-and uses `default` when none fit. With no registry it attaches
-`cv/en-us-resume.pdf`. The review's `### Attachments` prints the pick and why.
-With neither a resolvable PDF, job-apply stops. Edit the registry with
-`/job-profile-me cvs`.
+Applying needs exactly one CV PDF that opens. For a matched `status: new`
+dossier, Prepare chains `/job-resume` (isolated subagent) and attaches
+`scout/applications/{slug}/resume.pdf` only when `match-report.md` prints
+`verdict: **PASS**` (`{slug}` = that dossier filename minus `.md`). Resume
+FAIL stops that Prepare — no fallthrough to a generic CV. Without a `new`
+dossier, a prior PASS leftover at that path still wins when the dossier URL
+matches; otherwise job-apply reads `data/cvs.yaml`, matches each row's
+`targets` against the ad, and uses `default` when none fit. With no registry
+it attaches `cv/en-us-resume.pdf`. The review's `### Attachments` prints the
+pick and why. With neither a resolvable PDF, job-apply stops. Edit the
+registry with `/job-profile-me cvs`. Standalone `/job-resume` remains valid.
 
 `/job-resume` needs a LaTeX base under `cv/`, named `resume-{id}.tex` for the
 `data/cvs.yaml` row it tailors (or a `.tex` sibling of that row's PDF). It

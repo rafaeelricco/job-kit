@@ -8,6 +8,11 @@ Never paste any part of this file into a worker brief.
 Done when Phase 6 or Phase 7 has written what schema requires → **STOP**.
 No study advice.
 
+Entered from `job-apply` Prepare → print `Chained from job-apply · {filename}`
+first. This agent is main: it sequences every phase, may call `compile.sh`, and
+may `spawn_subagent` Loop A (`worker-verify`). Nothing else in this pipeline
+changes.
+
 ## Inputs (read-only)
 
 Argument = one posting: a `scout/jobs/` filename, `{name}.md`, or a URL.
