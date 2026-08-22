@@ -27,6 +27,7 @@ export {
   type Segment,
   type SourceRow,
   type SourceState,
+  type PageSize,
 }
 
 import type { Bucket, Channel, Dossier, FactValue, Lifecycle } from "@/module/scout/types"
@@ -35,6 +36,7 @@ import { assertNever } from "@/module/scout/result"
 
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
 const PAGE_SIZES = [25, 50, 100] as const
+type PageSize = (typeof PAGE_SIZES)[number]
 const BLOCKERS = ["yes", "no"] as const
 
 type Blocker = (typeof BLOCKERS)[number]
