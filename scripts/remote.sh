@@ -36,9 +36,9 @@ Install channels:
   all          Aside + coding agents + browser-use, skipping absent (default)
   aside        Aside only (fails when Aside is not set up)
   agents       Coding agents only (fails when no agent home exists)
-  browser-use  job-scout + job-apply + job-resume into coding-agent homes (needs
-               an agent home), driven by the local browser-use CLI over your
-               own browser
+  browser-use  job-scout + job-apply + job-resume plus the browser-use driver
+               skill into coding-agent homes (needs an agent home), driven by
+               the local browser-use CLI over your own browser
   fetch        Refresh the cached checkout, install nothing
 
 Uninstall:
