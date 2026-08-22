@@ -197,10 +197,7 @@ function DossierTable(props: DossierTableProps) {
 
 const DELETE_HINT = "Hold to move this file into scout/jobs/.trash — recoverable with mv"
 
-function RowActions(props: {
-  readonly row: Dossier
-  readonly onDelete: (file: string) => void
-}) {
+function RowActions(props: { readonly row: Dossier; readonly onDelete: (file: string) => void }) {
   // Controlled so the hold can dismiss the menu itself. Releasing the pointer
   // never reaches a menu item, so nothing else would close it.
   const [open, setOpen] = useState(false)
