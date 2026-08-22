@@ -25,8 +25,9 @@ submission. When Duplicate check resolves a dossier with `status: new` whose nor
 frontmatter URL exactly equals the current ad's, Prepare
 prints `Chained job-resume · {filename}` and `spawn_subagent`s `job-resume` (brief:
 load that skill end-to-end; Argument `{filename}`; `PROFILE_ROOT`) — never load
-resume in-session (its STOP would end Apply). Resume FAIL or missing PASS+PDF
-stops Prepare; do not fall through to `data/cvs.yaml` or `cv/en-us-resume.pdf` on
-that run. After Record closes, load `job-inbox` in this session on its default
-candidate set. Its report is this run's last output. An inbox stop is not an apply
-failure — the record already landed.
+resume in-session (its STOP would end Apply). Resume STOP, FAIL, or a PASS+PDF
+pair this child did not print stops Prepare; leftover files from a prior run
+do not satisfy the gate. Do not fall through to `data/cvs.yaml` or
+`cv/en-us-resume.pdf` on that run. After Record closes, load `job-inbox` in
+this session on its default candidate set. Its report is this run's last
+output. An inbox stop is not an apply failure — the record already landed.

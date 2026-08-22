@@ -158,9 +158,10 @@ Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains `/job-resume`
 (isolated subagent) and attaches `scout/applications/{slug}/resume.pdf` only
 when `match-report.md` prints `verdict: **PASS**` (`{slug}` = that dossier
-filename minus `.md`). Resume FAIL stops that Prepare — no fallthrough to a
-generic CV. Without a URL-matched `new` dossier, a prior PASS leftover at that
-path still wins when the dossier URL matches; otherwise job-apply reads
+filename minus `.md`). Resume STOP or FAIL stops that Prepare — leftover
+PASS files from a prior run do not count; no fallthrough to a generic CV.
+Without a URL-matched `new` dossier, a prior PASS leftover at that path
+still wins when the dossier URL matches; otherwise job-apply reads
 `data/cvs.yaml`, matches each row's `targets` against the ad, and uses
 `default` when none fit. With no registry it attaches `cv/en-us-resume.pdf`.
 The review's `### Attachments` prints the pick and why. With neither a

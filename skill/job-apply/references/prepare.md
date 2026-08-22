@@ -91,13 +91,15 @@ exactly equals the current ad's normalized URL, with `status: new`:
    The child loads `job-profile-root` and resume refs itself. The child **is**
    resume main: it may call `compile.sh` and spawn Loop A (`worker-verify`).
 
-3. After the child returns, continue Prepare only when
-   `scout/applications/{slug}/resume.pdf` opens as a PDF **and**
+3. After the child returns, continue Prepare only when **this child
+   invocation** printed `verdict: **PASS**` (its own output — not a leftover
+   file) **and** `scout/applications/{slug}/resume.pdf` opens as a PDF **and**
    `scout/applications/{slug}/match-report.md` prints `verdict: **PASS**`.
    `{slug}` = `{filename}` minus `.md` — never rebuilt from company and title.
    That path is this run's only CV (`id: tailored`, `why: job-resume PASS`).
-4. Child returns without that PASS+PDF pair → **STOP**. Name the child's stop
-   or FAIL line. Do **not** fall through to `data/cvs.yaml` or
+4. Child STOP, FAIL, or missing PASS+PDF pair → **STOP**. Name the child's
+   stop or FAIL line. A leftover PASS+PDF pair from a prior run does not
+   satisfy this gate. Do **not** fall through to `data/cvs.yaml` or
    `cv/en-us-resume.pdf` on this Prepare. Generic fallback applies only when
    this chain was **not** fired.
 
