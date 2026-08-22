@@ -4,7 +4,6 @@ import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
 import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
 import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
@@ -85,11 +84,6 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
       }
       return next
     })
-
-  // Ticking the header box takes the page, not the filter — the offer to widen
-  // it to every match only appears once the page itself is fully ticked.
-  const pageFull = current.rows.length > 0 && current.rows.every((row) => selected.has(row.file))
-  const onSelectMatching = () => setSelected(new Set(visible.map((row) => row.file)))
 
   // One call for both callers: the toolbar sends the selection, the row menu
   // sends a single file. Reload is owned by useStore.trash after a successful move.
