@@ -4,7 +4,6 @@ import { DownloadIcon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { CopyButton } from "@/components/ui/copy"
 import { HoldButton } from "@/components/ui/hold-button"
 import {
   DropdownMenu,
@@ -16,12 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
-import { toApplyPrompt } from "@/module/scout/helpers/apply-prompt"
 import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
 import type { Dossier } from "@/module/scout/types"
 
 type SelectionBarProps = {
-  readonly label: string
   readonly rows: readonly Dossier[]
   readonly onDelete: () => void
   readonly onClear: () => void
@@ -30,7 +27,7 @@ type SelectionBarProps = {
 const DELETE_HINT = "Hold to move these files into scout/jobs/.trash — recoverable with mv"
 
 function SelectionBar(props: SelectionBarProps) {
-  const { onClear, onDelete, label, rows } = props
+  const { onClear, onDelete, rows } = props
   const count = rows.length
 
   if (count === 0) return null
@@ -47,8 +44,6 @@ function SelectionBar(props: SelectionBarProps) {
       <span className="text-sm font-medium">{count.toLocaleString()} selected</span>
 
       <Separator orientation="vertical" className="my-auto h-5" />
-
-      <CopyButton value={() => toApplyPrompt(label, rows)} label="Copy apply prompt" />
 
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>

@@ -123,7 +123,6 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
       {view === "table" ? (
         <DossierTable
           rows={current.rows}
-          label={store.label}
           columns={columns}
           sort={sort}
           onSort={onSort}
@@ -154,12 +153,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
         /scout/jobs · folder picker · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar
-        label={store.label}
-        rows={selectedRows}
-        onDelete={onDelete}
-        onClear={() => setSelected(new Set())}
-      />
+      <SelectionBar rows={selectedRows} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>

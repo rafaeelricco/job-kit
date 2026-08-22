@@ -1,6 +1,6 @@
 export { DossierCards, DossierSheet, DossierTable }
 
-import { CopyIcon, DownloadIcon, ExternalLinkIcon, MoreHorizontal, Trash2Icon, TriangleAlertIcon } from "lucide-react"
+import { DownloadIcon, ExternalLinkIcon, MoreHorizontal, Trash2Icon, TriangleAlertIcon } from "lucide-react"
 import { useState, type KeyboardEvent, type ReactNode } from "react"
 import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -25,7 +25,6 @@ import {
 import { HoldButton } from "@/components/ui/hold-button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toApplyPrompt } from "@/module/scout/helpers/apply-prompt"
 import type { ColumnId } from "@/module/scout/helpers/columns"
 import { COLUMNS, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
@@ -105,7 +104,6 @@ function EmptyNote() {
 
 type DossierTableProps = {
   readonly rows: readonly Dossier[]
-  readonly label: string
   readonly columns: readonly ColumnId[]
   readonly sort: SortState
   readonly onSort: (next: SortState) => void
@@ -190,19 +188,10 @@ function DossierTable(props: DossierTableProps) {
           salary: cell("salary", row),
           source: cell("source", row),
           status: cell("status", row),
-          actions: <RowActions row={row} label={props.label} onDelete={props.onDelete} />,
+          actions: <RowActions row={row} onDelete={props.onDelete} />,
         },
       }))}
     />
-  )
-}
-
-// The menu closes on click, so a copy cannot flip its own label the way
-// CopyButton does in the toolbar — a toast is the only feedback left.
-function copyText(text: string, what: string): void {
-  void navigator.clipboard.writeText(text).then(
-    () => toast.success(`${what} copied`),
-    () => toast.error("Could not copy to the clipboard")
   )
 }
 
@@ -210,13 +199,12 @@ const DELETE_HINT = "Hold to move this file into scout/jobs/.trash — recoverab
 
 function RowActions(props: {
   readonly row: Dossier
-  readonly label: string
   readonly onDelete: (file: string) => void
 }) {
   // Controlled so the hold can dismiss the menu itself. Releasing the pointer
   // never reaches a menu item, so nothing else would close it.
   const [open, setOpen] = useState(false)
-  const { onDelete, label, row } = props
+  const { onDelete, row } = props
   const href = httpHref(row.url)
   // The export helpers take a list; one row is a list of one, and the file
   // stem names the download so a single job is not "dossiers-1.csv".
@@ -242,10 +230,6 @@ function RowActions(props: {
                 Open posting
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={() => copyText(toApplyPrompt(label, [row]), "Apply prompt")}>
-              <CopyIcon />
-              Copy apply prompt
-            </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <DownloadIcon />
