@@ -56,8 +56,6 @@ type FilterBarProps = {
   readonly columns: readonly ColumnId[]
   readonly onColumns: (next: readonly ColumnId[]) => void
   readonly sources: readonly SourceRow[]
-  readonly total: number
-  readonly shown: number
 }
 
 const SEGMENT_LABELS: Readonly<Record<Segment, string>> = {
@@ -96,7 +94,7 @@ type Chip = {
 }
 
 function FilterBar(props: FilterBarProps) {
-  const { columns, filter, onColumns, onFilter, onView, shown, sources, total, view } = props
+  const { columns, filter, onColumns, onFilter, onView, sources, view } = props
 
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
