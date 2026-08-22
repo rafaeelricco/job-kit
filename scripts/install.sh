@@ -61,6 +61,8 @@ Options:
                 alone they mean the agents channel)
                 (job-profile-me also installs job-scout — packs mutate
                 needs its worker-search-*.md stems)
+                (job-apply also installs job-resume — Prepare chains it
+                for a status:new dossier)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
   -h, --help    Show this help
@@ -160,12 +162,22 @@ expand_only() {
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-profile-me packs add/remove validates impl against job-scout's
   # worker-search-*.md stems; standalone config without scout is unusable.
+  # job-apply Prepare chains job-resume for a status:new dossier; a subset
+  # without resume cannot complete that path.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-profile-me "*)
         case " ${ASIDE_ONLY} " in
           *" job-scout "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
+        esac
+        ;;
+    esac
+    case " ${ASIDE_ONLY} " in
+      *" job-apply "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-resume "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-resume" ;;
         esac
         ;;
     esac
