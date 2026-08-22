@@ -17,7 +17,7 @@ import { dossierName } from "@/module/scout/helpers/dossier-name"
 import type { ProbeFiles } from "@/module/scout/helpers/probe"
 import { err, ok, partition } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
-import type { TrashFailure, TrashOpError, Trashed } from "@/module/scout/types"
+import type { ParseError, TrashFailure, TrashOpError, Trashed } from "@/module/scout/types"
 
 const DB = "job-kit"
 const STORE = "directory-handles"
@@ -187,7 +187,7 @@ async function snapshotProbe(root: FileSystemDirectoryHandle): Promise<ProbeFile
 
 async function readJobs(
   root: FileSystemDirectoryHandle
-): Promise<Result<readonly { readonly file: string; readonly raw: string }[], string>> {
+): Promise<Result<readonly Result<{ readonly file: string; readonly raw: string }, ParseError>[], string>> {
   let jobs: FileSystemDirectoryHandle
   try {
     const scout = await root.getDirectoryHandle("scout")
@@ -204,10 +204,18 @@ async function readJobs(
     }
     names.sort()
     const files = await Promise.all(
-      names.map(async (file) => {
-        const handle = await jobs.getFileHandle(file)
-        const raw = await (await handle.getFile()).text()
-        return { file, raw }
+      names.map(async (file): Promise<Result<{ readonly file: string; readonly raw: string }, ParseError>> => {
+        try {
+          const handle = await jobs.getFileHandle(file)
+          const raw = await (await handle.getFile()).text()
+          return ok({ file, raw })
+        } catch (error) {
+          return err({
+            file,
+            at: "read",
+            cause: { kind: "unreadable", detail: error instanceof Error ? error.message : String(error) },
+          })
+        }
       })
     )
     return ok(files)
