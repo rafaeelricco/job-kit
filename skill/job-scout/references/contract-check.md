@@ -1,6 +1,6 @@
 # Contract (check) — job scout kit gate
 
-Main-side law, loaded by `rank-report.md` before score and bucket. Never paste
+Main-side law, applied by `flow-rank.md` before score and bucket. Never paste
 into a worker brief.
 
 === READ-ONLY + JUDGE-ONLY ===

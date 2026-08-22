@@ -26,4 +26,4 @@ Never ask the operator anything — a gap is a `skip`, never a question.
 
 - Pipeline: `./references/flow-inbox.md` — bind, harvest, classify, record, report
 - Classify contract: `./references/contract-classify.md`
-- Filesystem transaction: `job-scout/references/persistence.md`
+- Filesystem transaction: `job-scout/references/contract-persistence.md`

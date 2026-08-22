@@ -1,6 +1,5 @@
 # Intent packs for job scout. One pack = one site × one intent.
-# job-scout reads this file from the Profile root; the copy inside the job-scout
-# skill is a fallback used only when this file is absent.
+# job-scout reads this file from the Profile root only (required).
 # surface → ./references/worker-search-{surface}.md in job-scout: the playbook to run.
 # entry = the one URL this pack starts from.
 # [role] = job_search.yaml positions. [skill:<group>] = keywords.<group>.

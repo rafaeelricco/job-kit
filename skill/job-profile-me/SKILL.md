@@ -53,8 +53,7 @@ Every other path under Profile root is read-only in this skill.
 - Write `data/candidate.yaml` or any Fact file (experiences, skills, languages, basics)
 - Write anything before printing the diff and receiving an explicit yes
 - Network: no board lookup, no keyword research, no scrape, no sign-up
-- Run job-scout or job-apply; edit the kit fallback deck inside the job-scout
-  skill (that copy is overwritten on reinstall — edit the profile deck instead)
+- Run job-scout or job-apply; edit skill-local files under `skill/job-scout/`
 - Copy another profile's data
 - Register a CV whose file is not already present under `cv/`, or compile / generate any
   PDF or LaTeX. This skill names files the operator built; it never builds one.

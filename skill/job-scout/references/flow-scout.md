@@ -12,13 +12,13 @@ Done when the Report ships and Phase 6 has written every dossier it must → **S
 
 ## Inputs (read-only)
 
-| Path                                                            | Supplies                                              |
-| --------------------------------------------------------------- | ----------------------------------------------------- |
-| `data/candidate.yaml`                                           | salary, work auth, employment_routes, relocation      |
-| `data/job_search.yaml`                                          | positions, keywords, filters                          |
-| `data/search_packs.yaml`, else `./references/search_packs.yaml` | enabled packs, YAML order; chosen set is Phase 0 pick |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml`         | card                                                  |
-| legacy `data/skills-by-company.yml`, when present               | company↔stack history                                 |
+| Path                                                    | Supplies                                              |
+| ------------------------------------------------------- | ----------------------------------------------------- |
+| `data/candidate.yaml`                                   | salary, work auth, employment_routes, relocation      |
+| `data/job_search.yaml`                                  | positions, keywords, filters                          |
+| `data/search_packs.yaml`                                | enabled packs, YAML order; chosen set is Phase 0 pick |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                  |
+| legacy `data/skills-by-company.yml`, when present       | company↔stack history                                 |
 
 Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins filters — note it.
 
@@ -26,15 +26,14 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
 
 1. Resolve Profile root via the `job-profile-root` skill; print
    `Profile root: /abs/path`. Probe the deck: `data/search_packs.yaml` under
-   Profile root, else `./references/search_packs.yaml` next to this skill.
+   Profile root only. Never fall back to skill-local.
    Print `Deck: <abs path>`.
-   Neither readable, or the winner fails to parse → STOP, name the file.
+   Unreadable or unparseable → STOP, name the file.
    Print `Browser: <driver>` — the tool that will open pages this run. Native in
    an agentic browser (Aside); the `browser-use` skill in a coding agent. No
    driver that can open a page, click a control, and hold a logged-in session →
    **STOP** before the pack pick and name what is missing. A text fetcher is not
    a driver.
-   Never merge the two files and never read the fallback when the profile deck exists.
    `job_search.yaml` carrying a key scout does not consume → **STOP**: name the
    file and the key, and say to migrate via `/job-profile-me`. Consumed keys are
    exactly `work_model`, `seniority_level`, `job_types`, `date_posted`,
@@ -109,7 +108,7 @@ terminal and merge-eligible as an empty set. Carry the actual
 Every chosen pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
-Prefer non-`—` author; best channel per `rank-report.md` `## Channel sort`.
+Prefer non-`—` author; best channel per `flow-rank.md` `## Channel sort`.
 
 ## Phase 3 — EXTRACT
 
@@ -139,9 +138,10 @@ Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / the ranked table.
 Location-gate drops already excluded above — do not score them.
 
-Load `./references/rank-report.md` and `./references/contract-check.md`.
-Apply its hard-contradiction drop first, then its score, bucket, eligibility,
-ordering, and exact rendering contracts to the rows that survive. A row whose factors do not sum to its printed score is a defect: fix
+Load `./references/flow-rank.md`, `./references/format-report.md`, and
+`./references/contract-check.md`. Apply flow-rank hard-contradiction then
+score, bucket, eligibility, and ordering; render with format-report.md.
+A row whose factors do not sum to its printed score is a defect: fix
 the row, do not adjust the sum. Then Phase 6.
 
 ## Phase 6 — PERSIST (main only) → STOP
@@ -149,15 +149,15 @@ the row, do not adjust the sum. Then Phase 6.
 Main writes; a worker never does. Only these
 path shapes under Profile root: `scout/jobs/*.md`, exclusive lock directories
 `scout/jobs/*.lock` (create via `mkdir`, remove when the write finishes — see
-`persistence.md`), lock metadata `scout/jobs/*.lock/owner`, and
+`contract-persistence.md`), lock metadata `scout/jobs/*.lock/owner`, and
 lock-internal place staging `scout/jobs/*.lock/place-*`.
 Every other Profile-root path (`data/`, `cv/`, …) is read-only. Never create,
 write, list-require, or delete `scout/runs/` — an orphan from an older
 revision is ignored.
 
-Load `./references/schema-dossier.md` and `./references/persistence.md`.
+Load `./references/schema-dossier.md` and `./references/contract-persistence.md`.
 Validate that `scout/jobs/` is listable and every existing dossier parses before
-starting the first transaction. Every filesystem mutation uses `persistence.md`.
+starting the first transaction. Every filesystem mutation uses `contract-persistence.md`.
 One dossier per row with `status=live` that passed the Phase 4 gate and the
 Phase 5 hard-contradiction drop — including `score<7` rows. A `kit drop` row
 never gets one, whatever it scored. A `dead` row that already has a
