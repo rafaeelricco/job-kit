@@ -145,7 +145,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
         onSize={onPageSize}
       />
 
-      <Gaps gaps={store.gaps} label={store.label} />
+      <Gaps gaps={store.gaps} />
 
       <footer className="font-mono text-xs text-muted-foreground">
         {store.dossiers.length.toLocaleString()} dossiers · {store.gaps.length.toLocaleString()} gaps · view of{" "}
