@@ -46,8 +46,8 @@ Usage: install.sh                 # interactive menu (TTY required)
 Targets:
   aside     Aside skills (job-scout, job-apply, job-resume, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
-  browser-use  Browser skills (job-scout, job-apply, job-resume) into coding-agent homes;
-               driven by the local browser-use CLI (docs.browser-use.com)
+  browser-use  Browser skills (job-scout, job-apply, job-resume) plus the browser-use
+               driver skill into coding-agent homes; driven by the local browser-use CLI
   all       aside + agents + browser-use
 
 Options:
@@ -238,6 +238,22 @@ plan_row_agent() {
   printf 'I%slink%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
 }
 
+# plan_row_driver ROOT — driver skill dest under a skills root this channel
+# installs into. Present → N up to date. Missing + CLI → I (apply runs the
+# official installer). Missing + no CLI → N (preflight still names the command).
+plan_row_driver() {
+  local dest="${1}/browser-use"
+  if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+    printf 'N%sup to date%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+    return 0
+  fi
+  if command -v browser-use >/dev/null 2>&1; then
+    printf 'I%sinstall driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+  else
+    printf 'N%smissing driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+  fi
+}
+
 # plan_rows_aside — rows for the aside target. No mutation.
 plan_rows_aside() {
   local repo="${REPO_ROOT}" force="${FORCE}" aside_only="${ASIDE_ONLY}" soft="${SOFT_SKIP}"
@@ -283,13 +299,11 @@ plan_rows_agent_home() {
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
     local override target root parent agent_label_s name source dest names
-    local drivers driver_path driver_fix
     if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
     # Requirement rows sit under their own header, or under `all` they would
     # read as the tail of the preceding channel's section.
     if [ "${sel}" = browser ]; then
-      drivers="$(browser_use_missing_drivers)"
-      if ! command -v browser-use >/dev/null 2>&1 || ! have_chromium || [ -n "${drivers}" ]; then
+      if ! command -v browser-use >/dev/null 2>&1 || ! have_chromium; then
         printf 'H%s%s · requirements%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "offered after install"
         if ! command -v browser-use >/dev/null 2>&1; then
           printf 'N%smissing CLI%s%s\n' "${ROW_FS}" "${ROW_FS}" "uv tool install --python 3.12 browser-use"
@@ -297,13 +311,6 @@ plan_rows_agent_home() {
         if ! have_chromium; then
           printf 'N%smissing browser%s%s\n' "${ROW_FS}" "${ROW_FS}" "brew install --cask google-chrome"
         fi
-        while IFS="${ROW_FS}" read -r driver_path driver_fix; do
-          [ -n "${driver_path}" ] || continue
-          printf 'N%smissing driver%s%s\n' "${ROW_FS}" "${ROW_FS}" \
-            "${driver_fix:-supply ${driver_path} yourself (no browser-use --target)}"
-        done <<EOF
-${drivers}
-EOF
       fi
     fi
     override="$(resolve_override_skills)" || exit 1
@@ -314,6 +321,9 @@ EOF
         dest="$(skill_dest "${override}" "${name}")"
         plan_row_agent "${dest}" "${name}" "${source}" "${force}"
       done
+      if [ "${sel}" = browser ]; then
+        plan_row_driver "${override}"
+      fi
       exit 0
     fi
     for target in ${AGENT_TARGETS}; do
@@ -341,6 +351,9 @@ EOF
         dest="$(skill_dest "${root}" "${name}")"
         plan_row_agent "${dest}" "${name}" "${source}" "${force}"
       done
+      if [ "${sel}" = browser ]; then
+        plan_row_driver "${root}"
+      fi
     done
   )
 }
@@ -421,9 +434,10 @@ render_plan() {
     flush_pend
 
     if [ "${k}" = I ] && [ -n "${leaf}" ]; then
-      # Labels: "link", "link (force)", "copy", "copy (refresh)", "copy (force)"
+      # Labels: "link", "link (force)", "copy", "copy (refresh)", "copy (force)",
+      # "install driver"
       case "${lab}" in
-        "link"|"link (force)"|"copy"|"copy (refresh)"|"copy (force)")
+        "link"|"link (force)"|"copy"|"copy (refresh)"|"copy (force)"|"install driver")
           printf '  %-16s %s\n' "${lab}" "${leaf}"
           return 0
           ;;
@@ -468,27 +482,38 @@ confirm_plan() {
   esac
 }
 
+# browser_use_driver_cmd ROOT — official CLI that writes ROOT/browser-use.
+# claude → --target claude; codex (job-kit: ~/.agents/skills) → --target agents;
+# anything else (Grok, CLAUDE_SKILLS) → --path ROOT/browser-use.
+# --no-install: place the skill file only; never uv-upgrade the CLI.
+browser_use_driver_cmd() {
+  local root="$1"
+  if [ "${root}" = "${HOME}/.claude/skills" ]; then
+    printf '%s\n' "browser-use skill install --target claude --no-install"
+  elif [ "${root}" = "${HOME}/.agents/skills" ]; then
+    printf '%s\n' "browser-use skill install --target agents --no-install"
+  else
+    printf 'browser-use skill install --path "%s" --no-install\n' "${root}/browser-use"
+  fi
+}
+
 # browser_use_missing_drivers — dests this channel installs into that
 # carry no driver skill. Args: none; prints one `PATH<ROW_FS>FIX` row per gap.
-# PATH is the driver path in display form; FIX is the command that installs it
-# there, empty when `browser-use skill install` has no `--target` for that dest
-# (Grok, or a CLAUDE_SKILLS override). An empty FIX still reports the gap —
-# the channel links job-scout, job-apply, and job-resume there, and their
-# Phase 0 STOPs without a driver — but the callers name the path instead of
-# offering a command the CLI cannot run.
-# A dest the kit does not install into is skipped: a driver missing there is
-# not a gap this channel can close. When CLAUDE_SKILLS is set, that dest is
+# PATH is the driver path in display form; FIX is always a runnable
+# `browser-use skill install`. When CLAUDE_SKILLS is set, that dest is
 # exclusive (same as install_agent_home) and AGENT_TARGETS are not walked.
+# A dest the kit does not install into is skipped: a driver missing there is
+# not a gap this channel can close.
 browser_use_missing_drivers() {
   local repo="${REPO_ROOT}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local target fix root override
+    local target root override
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       [ -e "${override}/browser-use" ] || [ -L "${override}/browser-use" ] \
-        || printf '%s%s%s\n' "$(path_display "${override}/browser-use")" "${ROW_FS}" ""
+        || printf '%s%s%s\n' "$(path_display "${override}/browser-use")" "${ROW_FS}" "$(browser_use_driver_cmd "${override}")"
       exit 0
     fi
     for target in ${AGENT_TARGETS}; do
@@ -496,18 +521,15 @@ browser_use_missing_drivers() {
       # inside command substitutions.
       if [ "${target}" = claude ]; then
         [ "${SKIP_CLAUDE}" -eq 0 ] || continue
-        fix="browser-use skill install --target claude"
       elif [ "${target}" = codex ]; then
         [ "${SKIP_CODEX}" -eq 0 ] || continue
-        fix="browser-use skill install --target agents"
       else
         [ "${SKIP_GROK}" -eq 0 ] || continue
-        fix=""
       fi
       root="$(agent_skills_root "${target}")"
       [ -d "$(agent_parent_dir "${target}")" ] || [ -d "${root}" ] || continue
       [ -e "${root}/browser-use" ] || [ -L "${root}/browser-use" ] \
-        || printf '%s%s%s\n' "$(path_display "${root}/browser-use")" "${ROW_FS}" "${fix}"
+        || printf '%s%s%s\n' "$(path_display "${root}/browser-use")" "${ROW_FS}" "$(browser_use_driver_cmd "${root}")"
     done
   )
 }
@@ -515,9 +537,9 @@ browser_use_missing_drivers() {
 # browser_use_offer LABEL COMMAND — flag one missing requirement, offer to run it.
 # COMMAND is a fixed literal from the caller below — at most an install target
 # from a closed two-value map — never operator input.
-# Prints the flag always; prompts only on a TTY. --yes never auto-installs a
-# third-party tool: the kit's own law is that it installs skill trees and
-# nothing else, so this stays an explicit, per-item yes.
+# Prints the flag always; prompts only on a TTY. --yes never auto-installs the
+# CLI or a browser (third-party tools). The driver skill is a planned I-row
+# in apply, not an offer.
 browser_use_offer() {
   local label="$1" cmd="$2" reply
   echo "  missing: ${label}"
@@ -568,16 +590,9 @@ browser_use_preflight() {
   if [ -n "${drivers}" ]; then
     while IFS="${ROW_FS}" read -r driver_path driver_fix; do
       [ -n "${driver_path}" ] || continue
-      if [ -z "${driver_fix}" ]; then
-        # No `--target` reaches this home, so there is nothing to offer: name
-        # the gap and the path, never a command the CLI cannot run.
-        echo "  missing: browser-use driver skill (${driver_path})"
-        echo "    fix: supply ${driver_path} yourself —"
-        echo "         browser-use skill install has no --target for this home"
-      elif command -v browser-use >/dev/null 2>&1; then
+      if command -v browser-use >/dev/null 2>&1; then
         browser_use_offer "browser-use driver skill (${driver_path})" "${driver_fix}"
       else
-        # No CLI to run it with yet; name the command for after the CLI lands.
         echo "  missing: browser-use driver skill (${driver_path})"
         echo "    fix: ${driver_fix}"
       fi
@@ -631,6 +646,29 @@ install_aside() {
   )
 }
 
+# install_driver_into ROOT — write ROOT/browser-use via the official CLI.
+# No-op if dest exists or CLI missing (preflight names the command).
+# claude/codex use --target; Grok and CLAUDE_SKILLS use --path.
+install_driver_into() {
+  local root="$1" dest="${1}/browser-use"
+  if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+    echo "up to date: ${dest}"
+    return 0
+  fi
+  if ! command -v browser-use >/dev/null 2>&1; then
+    echo "skipped (no CLI): ${dest}"
+    return 0
+  fi
+  echo "installing driver: ${dest}"
+  if [ "${root}" = "${HOME}/.claude/skills" ]; then
+    browser-use skill install --target claude --no-install
+  elif [ "${root}" = "${HOME}/.agents/skills" ]; then
+    browser-use skill install --target agents --no-install
+  else
+    browser-use skill install --path "${dest}" --no-install
+  fi
+}
+
 # install_agent_home SEL LABEL — apply one agent-home channel. No plan.
 # SEL is profile (SKILL_NAMES) or browser (BROWSER_SKILL_NAMES); LABEL names the
 # channel in messages.
@@ -647,6 +685,9 @@ install_agent_home() {
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
       install_skills_into "${override}" "${repo}" "${force}" "${names}" || exit 1
+      if [ "${sel}" = browser ]; then
+        install_driver_into "${override}" || exit 1
+      fi
       echo "Install completed -> ${override}"
       exit 0
     fi
@@ -667,6 +708,9 @@ install_agent_home() {
       echo "== ${agent_label_s} (${dest_root}) =="
       if install_skills_into "${dest_root}" "${repo}" "${force}" "${names}"; then
         linked=$((linked + 1))
+        if [ "${sel}" = browser ]; then
+          install_driver_into "${dest_root}" || exit 1
+        fi
       else
         exit 1
       fi
