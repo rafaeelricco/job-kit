@@ -361,12 +361,10 @@ Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
 `surface` must match a surface reference basename — `worker-search-<surface>.md`, so
 `linkedin-jobs`, `open-web`, or `social`.
-`skill/job-scout/references/search_packs.yaml` is the fallback deck for profiles
-created before the deck moved; it must stay byte-identical to
-`skill/job-profile-init/templates/data/search_packs.yaml`.
-`skill/job-inbox/references/persistence.md` must likewise stay byte-identical to
-`skill/job-scout/references/persistence.md`. The agents channel installs job-inbox
-without job-scout, so the copy is what keeps the write transaction readable there.
+`job-scout` requires the profile deck — no skill-local fallback.
+`skill/job-inbox` cites `job-scout/references/contract-persistence.md` for the
+dossier write transaction (Aside co-installs scout; agents-channel local copy
+remains a known gap, unchanged by this edit).
 
 ## License
 

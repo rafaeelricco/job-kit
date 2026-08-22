@@ -2,7 +2,7 @@
 
 Main-only. Never paste into a worker brief.
 
-`job-scout/references/persistence.md` does not apply.
+`job-scout/references/contract-persistence.md` does not apply.
 
 ## Layout (under Profile root)
 

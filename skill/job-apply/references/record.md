@@ -4,7 +4,7 @@ This is the only phase that writes the Profile root, and it writes only the
 dossier store.
 
 Before writing, obey `job-scout/references/schema-dossier.md` and
-`job-scout/references/persistence.md`. Do not reproduce or replace those mechanics.
+`job-scout/references/contract-persistence.md`. Do not reproduce or replace those mechanics.
 Normalize identity with `job-scout/references/contract-search.md`.
 
 ## Write scope and lifecycle

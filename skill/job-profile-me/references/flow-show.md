@@ -27,8 +27,8 @@ job-scout Phase 0, so the two never disagree:
   work auth · employment_routes · relocation
 
 `### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
-enabled|disabled · tokens`. Absent → one line saying job-scout will use the kit
-fallback deck; never print the fallback's contents as if they were the profile's.
+enabled|disabled · tokens`. Absent → one line saying job-scout will STOP until
+this file exists (emit via `/job-profile-init` or add packs via `/job-profile-me`).
 
 `### CVs` fourth when `data/cvs.yaml` is readable: `id · file · default? · targets`,
 plus `missing` on any row whose `file` does not resolve under `cv/` — a registry row
