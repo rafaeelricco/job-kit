@@ -72,7 +72,16 @@ function StoreGate({
 
   return (
     <Shell title={title} Icon={Icon}>
-      <Resolved state={state} reload={reload} trash={trash} onRepick={() => void changeFolder()}>
+      <Resolved
+        state={state}
+        reload={reload}
+        trash={trash}
+        onRepick={() => {
+          void changeFolder().then((result) => {
+            if (result.kind === "ok") reload()
+          })
+        }}
+      >
         {children}
       </Resolved>
     </Shell>
