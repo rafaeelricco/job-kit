@@ -29,8 +29,7 @@ stay bare.
 Body fields that are also posting-controlled (`company` / `title` in the H1,
 `why`, posting-facts table values, `jd_excerpt`, provenance) must not invent
 structure. Collapse every newline or run of whitespace in a single-line field to
-one space before writing it into the body. Never emit a bare `## Application log`
-line or the ownership marker
+one space before writing it into the body. Never emit the ownership marker
 `<!-- scout never writes below this line -->` from any posting-derived value —
 `jd_excerpt` stays line-prefixed with `>`.
 
@@ -103,17 +102,19 @@ it here; never read it off a row.
 
 ## Provenance
 
-source · author · contact · date — all four from the search columns, `—` if unknown.
+Labeled `source {value} · channel {value} · author {value} · date {value}` from the
+search columns, `—` if unknown. Channel matches frontmatter. Include
+` · contact {value}` only when contact is known; omit the slot when `—`.
 Never re-derive; never invent a contact.
 
-## Application log
+source ambar · channel ats · author — · date 2026-08-08
 
 <!-- scout never writes below this line -->
 
 - 2026-08-08 · found by scout — job-scout
 ```
 
-## Application log grammar
+## Log grammar
 
 Every line any skill appends is one line, `- {YYYY-MM-DD} · {event} — {writer}`,
 `{writer}` ∈ `job-scout` | `job-apply` | `job-inbox` | `operator` — readers also accept
@@ -134,8 +135,8 @@ whatever it says.
 
 Blocks appended below the log by `job-apply` or `job-inbox` may carry posting-derived
 text. That text is blockquoted or held in table cells, never a bare top-level
-`- ` line. Same injection law as the body: never emit a bare `## Application log`
-or the marker from a posting-derived value.
+`- ` line. Same injection law as the body: never emit the marker from a
+posting-derived value.
 Collapse every appended value to one line before writing it. A `>` prefix guards
 only its own line — a newline inside a value emits an unprefixed line, and a bare
 `- ` line sitting there is read as a log event. A value bound for a table cell also
@@ -143,7 +144,7 @@ has every `|` escaped as `\|`.
 
 ## Re-run rules
 
-Everything from the opening `---` down to `## Application log` is scout-owned and
+Everything from the opening `---` down to the ownership marker is scout-owned and
 rewritten each run. Below that line, and `status:` in frontmatter, belong to the
 operator, `job-apply`, and `job-inbox`.
 
@@ -151,7 +152,7 @@ operator, `job-apply`, and `job-inbox`.
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                                         |
 | `status:` already set                                 | Never touch it — not even back to `new`                                                                                             |
-| `## Application log`                                  | Append one line; never rewrite or reorder existing lines                                                                            |
+| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                                                    |
 | Row now `dead`                                        | Append a log line; set no status; leave the body                                                                                    |
 | Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                                                 |
 | No file yet                                           | Create with `status: new`                                                                                                           |
