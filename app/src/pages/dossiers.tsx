@@ -150,16 +150,6 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
         sizes={PAGE_SIZES}
         size={pageSize}
         onSize={onPageSize}
-        status={
-          <span className="flex flex-wrap items-center gap-1">
-            {selectedRows.length.toLocaleString()} of {visible.length.toLocaleString()} row(s) selected.
-            {pageFull && selectedRows.length < visible.length ? (
-              <Button variant="link" className="h-auto p-0" onClick={onSelectMatching}>
-                Select all {visible.length.toLocaleString()} matching
-              </Button>
-            ) : null}
-          </span>
-        }
       />
 
       <Gaps gaps={store.gaps} label={store.label} />
