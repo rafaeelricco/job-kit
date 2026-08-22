@@ -21,15 +21,15 @@ type ConsentDialogProps = {
 const NOTES = [
   {
     lead: "You're in control",
-    body: "This page reads, and sends nothing anywhere. The one thing it changes is a dossier you delete by hand — that file moves to scout/jobs/.trash rather than being erased.",
+    body: "This tab reads your folder in the browser and sends nothing to a server. The one write is a dossier you delete by hand — it moves to scout/jobs/.trash rather than being erased.",
   },
   {
     lead: "What gets read",
-    body: "The profile root resolved from $PROFILE_ROOT, ~/.config/profile-root, or ~/.config/job-kit — then every dossier under scout/jobs.",
+    body: "The profile folder you choose — it must contain data/candidate.yaml and data/job_search.yaml — then every dossier under scout/jobs.",
   },
   {
     lead: "Where it stays",
-    body: "The dev server reads those files from this machine and hands them to this tab. Your answer is remembered in this browser only.",
+    body: "The folder handle is remembered in this browser only (IndexedDB). Chrome or Edge on desktop is required. Revoke anytime in site settings.",
   },
 ] as const
 
@@ -82,7 +82,7 @@ function ConsentDialog(props: ConsentDialogProps) {
         </div>
 
         <Button size="lg" onClick={onAllow} className="h-11 w-full rounded-full">
-          Allow and load dossiers
+          Choose profile folder
         </Button>
       </DialogContent>
     </Dialog>

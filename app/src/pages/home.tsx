@@ -11,7 +11,7 @@ function HomePage() {
     <StoreGate title="Home" Icon={LayoutGrid}>
       {(store) => (
         <>
-          <Gaps gaps={store.gaps} root={store.root} />
+          <Gaps gaps={store.gaps} />
           <Dashboard dossiers={store.dossiers} />
         </>
       )}

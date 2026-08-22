@@ -4,7 +4,6 @@ import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
-import { Button } from "@/components/ui/button"
 import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
 import { DossierCards, DossierSheet, DossierTable } from "@/module/scout/components/dossier"
@@ -17,23 +16,26 @@ import type { Ready } from "@/module/scout/components/store-gate"
 import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize, tallySources } from "@/module/scout/helpers/select"
-import type { Filter } from "@/module/scout/helpers/select"
-import { trashDossiers } from "@/module/scout/helpers/trash"
+import type { Filter, PageSize } from "@/module/scout/helpers/select"
+import { assertNever } from "@/module/scout/result"
+import type { Result } from "@/module/scout/result"
+import type { TrashOpError, Trashed } from "@/module/scout/types"
 
-const PAGE_SIZE = PAGE_SIZES[0]
+type TrashFn = (files: readonly string[]) => Promise<Result<Trashed, TrashOpError>>
 
 function DossiersPage() {
   return (
     <StoreGate title="Dossiers" Icon={Briefcase}>
-      {(store, reload) => <Surface store={store} onReload={reload} />}
+      {(store, actions) => <Surface store={store} trash={actions.trash} />}
     </StoreGate>
   )
 }
 
-function Surface({ store, onReload }: { readonly store: Ready; readonly onReload: () => void }) {
+function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly trash: TrashFn }) {
   const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<PageSize>(PAGE_SIZES[0])
   const [columns, setColumns] = useState<readonly ColumnId[]>(DEFAULT_COLUMNS)
   const [view, setView] = useState<View>("table")
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
@@ -41,9 +43,8 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
 
   const visible = useMemo(() => store.dossiers.filter(matches(filter)), [store.dossiers, filter])
   const ordered = useMemo(() => visible.slice().sort(comparator(DOSSIER_COLUMNS, sort)), [visible, sort])
-  const current = paginate(ordered, page, PAGE_SIZE)
-  // Store-wide, not filter-scoped: these are a standing overview, and the
-  // filtered count already has its own line under the toolbar.
+  const current = paginate(ordered, page, pageSize)
+  // Store-wide, not filter-scoped: these are a standing overview.
   const summary = useMemo(() => summarize(store.dossiers), [store.dossiers])
   const sources = useMemo(() => tallySources(store.dossiers), [store.dossiers])
 
@@ -57,6 +58,11 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
 
   const onSort = (next: SortState) => {
     setSort(next)
+    setPage(1)
+  }
+
+  const onPageSize = (next: PageSize) => {
+    setPageSize(next)
     setPage(1)
   }
 
@@ -79,17 +85,12 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
       return next
     })
 
-  // Ticking the header box takes the page, not the filter — the offer to widen
-  // it to every match only appears once the page itself is fully ticked.
-  const pageFull = current.rows.length > 0 && current.rows.every((row) => selected.has(row.file))
-  const onSelectMatching = () => setSelected(new Set(visible.map((row) => row.file)))
-
-  // One request for both callers: the toolbar sends the selection, the row menu
-  // sends a single file.
+  // One call for both callers: the toolbar sends the selection, the row menu
+  // sends a single file. Reload is owned by useStore.trash after a successful move.
   const trash = (files: readonly string[]) => {
-    void trashDossiers(store.root, files).then((result) => {
+    void trashFiles(files).then((result) => {
       if (result.kind === "err") {
-        toast.error(result.error)
+        toast.error(describeTrashError(result.error))
         return
       }
       const { moved, failed } = result.value
@@ -99,7 +100,6 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         toast.error(`${failure.file}: ${failure.reason}`)
       }
       setSelected(new Set())
-      onReload()
     })
   }
 
@@ -118,15 +118,11 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         columns={columns}
         onColumns={setColumns}
         sources={sources}
-        total={store.dossiers.length}
-        shown={visible.length}
       />
 
       {view === "table" ? (
         <DossierTable
           rows={current.rows}
-          root={store.root}
-          skillsRoot={store.skillsRoot}
           columns={columns}
           sort={sort}
           onSort={onSort}
@@ -144,35 +140,37 @@ function Surface({ store, onReload }: { readonly store: Ready; readonly onReload
         page={current.page}
         pages={current.pages}
         onPage={setPage}
-        status={
-          <span className="flex flex-wrap items-center gap-1">
-            {selectedRows.length.toLocaleString()} of {visible.length.toLocaleString()} row(s) selected.
-            {pageFull && selectedRows.length < visible.length ? (
-              <Button variant="link" className="h-auto p-0" onClick={onSelectMatching}>
-                Select all {visible.length.toLocaleString()} matching
-              </Button>
-            ) : null}
-          </span>
-        }
+        sizes={PAGE_SIZES}
+        size={pageSize}
+        onSize={onPageSize}
       />
 
-      <Gaps gaps={store.gaps} root={store.root} />
+      <Gaps gaps={store.gaps} />
 
       <footer className="font-mono text-xs text-muted-foreground">
         {store.dossiers.length.toLocaleString()} dossiers · {store.gaps.length.toLocaleString()} gaps · view of{" "}
-        {store.root}
-        /scout/jobs · resolved via {store.via} · generated {store.generatedAt}
+        {store.label}
+        /scout/jobs · folder picker · generated {store.generatedAt}
       </footer>
 
-      <SelectionBar
-        root={store.root}
-        skillsRoot={store.skillsRoot}
-        rows={selectedRows}
-        onDelete={onDelete}
-        onClear={() => setSelected(new Set())}
-      />
+      <SelectionBar rows={selectedRows} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
       <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
     </>
   )
+}
+
+function describeTrashError(error: TrashOpError): string {
+  switch (error.kind) {
+    case "not-allowed":
+      return "Folder write permission was denied"
+    case "stale":
+      return "Saved folder is gone — choose it again"
+    case "jobs-missing":
+      return "scout/jobs is missing in the chosen folder"
+    case "failed":
+      return error.detail
+    default:
+      return assertNever(error)
+  }
 }

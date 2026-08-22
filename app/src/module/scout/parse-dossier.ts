@@ -1,15 +1,7 @@
 export { parseDossier }
 
-import { err, ok } from "../../src/module/scout/result"
-import {
-  FACT_KEYS,
-  UNKNOWN_TEXT,
-  isBucket,
-  isChannel,
-  isLifecycle,
-  isWriter,
-  toIsoDate,
-} from "../../src/module/scout/types"
+import { err, ok } from "@/module/scout/result"
+import { FACT_KEYS, UNKNOWN_TEXT, isBucket, isChannel, isLifecycle, isWriter, toIsoDate } from "@/module/scout/types"
 import type {
   Dossier,
   Excerpt,
@@ -23,7 +15,7 @@ import type {
   Provenance,
   Score,
   Verdict,
-} from "../../src/module/scout/types"
+} from "@/module/scout/types"
 
 // The grammar below was recovered by round-tripping the corpus on disk, so the
 // odd-looking rules are the corpus, not taste: titles carry ": " and " — ",

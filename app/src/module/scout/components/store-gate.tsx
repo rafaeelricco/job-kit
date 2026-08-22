@@ -6,18 +6,25 @@ import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ConsentDialog } from "@/module/scout/components/consent-dialog"
 import { PermissionEmpty } from "@/module/scout/components/permission-empty"
-import { useConsent } from "@/module/scout/helpers/use-consent"
+import { useAccess } from "@/module/scout/helpers/use-access"
 import { useStore } from "@/module/scout/helpers/use-store"
 import type { StoreState } from "@/module/scout/helpers/use-store"
 import { assertNever } from "@/module/scout/result"
-import type { Attempt, Store } from "@/module/scout/types"
+import type { Result } from "@/module/scout/result"
+import type { Store, TrashOpError, Trashed } from "@/module/scout/types"
 
 type Ready = Extract<Store, { kind: "ready" }>
 
-// Both Home and Dossiers open on the same ladder — ask, load, fail, resolve —
+type StoreActions = {
+  readonly reload: () => void
+  readonly trash: (files: readonly string[]) => Promise<Result<Trashed, TrashOpError>>
+}
+
+// Both Home and Dossiers open on the same ladder — access, load, fail, resolve —
 // and only diverge once a ready store exists.
 function StoreGate({
   title,
@@ -26,27 +33,58 @@ function StoreGate({
 }: {
   readonly title: string
   readonly Icon: LucideIcon
-  readonly children: (store: Ready, reload: () => void) => ReactNode
+  readonly children: (store: Ready, actions: StoreActions) => ReactNode
 }) {
-  const { granted, grant } = useConsent()
+  const { state: access, pick, request, changeFolder } = useAccess()
   // Dismissing the dialog is not a dead end — the empty state reopens it.
   const [asking, setAsking] = useState(true)
-  const { state, reload } = useStore(granted)
+  const { state, reload, trash } = useStore(access.kind === "granted")
+
+  if (access.kind === "hydrating") {
+    return (
+      <Shell title={title} Icon={Icon}>
+        <LoadingRows />
+      </Shell>
+    )
+  }
+
+  if (access.kind !== "granted") {
+    return (
+      <>
+        <PermissionEmpty
+          kind={access.kind}
+          onPrimary={() => {
+            if (access.kind === "prompt") void request()
+            else void pick()
+          }}
+          {...(access.kind === "no-handle" ? { onReview: () => setAsking(true) } : {})}
+        />
+        <ConsentDialog
+          open={access.kind === "no-handle" && asking}
+          onOpenChange={setAsking}
+          onAllow={() => {
+            void pick()
+          }}
+        />
+      </>
+    )
+  }
 
   return (
-    <>
-      {state.kind === "idle" ? (
-        <PermissionEmpty onAllow={grant} onReview={() => setAsking(true)} />
-      ) : (
-        <Shell title={title} Icon={Icon}>
-          <Resolved state={state} reload={reload}>
-            {children}
-          </Resolved>
-        </Shell>
-      )}
-
-      <ConsentDialog open={!granted && asking} onOpenChange={setAsking} onAllow={grant} />
-    </>
+    <Shell title={title} Icon={Icon}>
+      <Resolved
+        state={state}
+        reload={reload}
+        trash={trash}
+        onRepick={() => {
+          void changeFolder().then((result) => {
+            if (result.kind === "ok") reload()
+          })
+        }}
+      >
+        {children}
+      </Resolved>
+    </Shell>
   )
 }
 
@@ -70,58 +108,78 @@ function Shell({
   )
 }
 
+function LoadingRows() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 8 }, (_, row) => (
+        <Skeleton key={row} className="h-14 w-full" />
+      ))}
+    </div>
+  )
+}
+
 function Resolved({
   state,
   reload,
+  trash,
+  onRepick,
   children,
 }: {
-  readonly state: Exclude<StoreState, { kind: "idle" }>
+  readonly state: StoreState
   readonly reload: () => void
-  readonly children: (store: Ready, reload: () => void) => ReactNode
+  readonly trash: (files: readonly string[]) => Promise<Result<Trashed, TrashOpError>>
+  readonly onRepick: () => void
+  readonly children: (store: Ready, actions: StoreActions) => ReactNode
 }) {
   switch (state.kind) {
+    case "idle":
     case "loading":
-      return (
-        <div className="space-y-3">
-          {Array.from({ length: 8 }, (_, row) => (
-            <Skeleton key={row} className="h-14 w-full" />
-          ))}
-        </div>
-      )
-    case "failed":
+      return <LoadingRows />
+    case "read-failed":
       return (
         <Alert variant="destructive">
-          <AlertTitle>Could not reach the store</AlertTitle>
-          <AlertDescription>{state.message}</AlertDescription>
+          <AlertTitle>Could not read the folder</AlertTitle>
+          <AlertDescription>{state.detail}</AlertDescription>
         </Alert>
       )
     case "loaded":
-      return state.store.kind === "unresolved" ? (
-        <Unresolved attempts={state.store.attempts} />
+      return state.store.kind === "wrong-root" ? (
+        <WrongRoot label={state.store.label} missing={state.store.missing} onRepick={onRepick} />
       ) : (
-        children(state.store, reload)
+        children(state.store, { reload, trash })
       )
     default:
       return assertNever(state)
   }
 }
 
-// The skills require every attempt be named on STOP, then a handoff to
-// job-profile-init. This is that report, not a generic error.
-function Unresolved({ attempts }: { readonly attempts: readonly Attempt[] }) {
+function WrongRoot({
+  label,
+  missing,
+  onRepick,
+}: {
+  readonly label: string
+  readonly missing: readonly string[]
+  readonly onRepick: () => void
+}) {
   return (
     <Alert variant="destructive">
-      <AlertTitle>No profile root resolved</AlertTitle>
+      <AlertTitle>Not a job-kit profile folder</AlertTitle>
       <AlertDescription>
+        <p className="pt-1">
+          <span className="font-mono text-xs">{label}</span> is missing required files:
+        </p>
         <ul className="my-2 space-y-1 font-mono text-xs">
-          {attempts.map((attempt) => (
-            <li key={`${attempt.source}:${attempt.path ?? ""}`}>
-              {attempt.source} · {attempt.path ?? "—"} · {attempt.outcome.kind}
-              {attempt.line === null ? "" : ` · line "${attempt.line}"`}
-            </li>
+          {missing.map((name) => (
+            <li key={name}>{name}</li>
           ))}
         </ul>
-        Create one with <code>job-profile-init</code>, or register an existing profile with Activate = Yes.
+        <p className="pb-3">
+          Choose the profile root — the folder that contains <code>data/</code>.
+        </p>
+        <Button size="sm" onClick={onRepick}>
+          Choose a different folder
+        </Button>
       </AlertDescription>
     </Alert>
   )

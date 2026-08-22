@@ -1,31 +1,28 @@
 export { useStore, type StoreState }
 
-import type { Store } from "@/module/scout/types"
 import { useCallback, useEffect, useState } from "react"
+
+import { toStore } from "@/module/scout/helpers/assemble-store"
+import { loadHandle, readJobs, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
+import { parseDossier } from "@/module/scout/parse-dossier"
+import { err } from "@/module/scout/result"
+import type { Result } from "@/module/scout/result"
+import type { Store, TrashOpError, Trashed } from "@/module/scout/types"
 
 type StoreState =
   | { readonly kind: "idle" }
   | { readonly kind: "loading" }
-  | { readonly kind: "failed"; readonly message: string }
+  | { readonly kind: "read-failed"; readonly detail: string }
   | { readonly kind: "loaded"; readonly store: Store }
 
-// /api/store exists only under the dev server middleware. A static build has no
-// backend, so the failure message has to say where the route comes from.
-const SERVED_BY =
-  "/api/store is served by the dev server middleware — run the dev server; " + "a static build has no backend."
-
-// Loading is never stored — it is exactly "enabled, with nothing back yet", so
-// deriving it keeps the effect free of a synchronous setState.
 type Settled = Exclude<StoreState, { readonly kind: "loading" }>
 
-// Nothing is fetched until `enabled`. The request is the only thing that reads
-// the profile store, so an ungranted page has touched no file on disk.
 function useStore(enabled: boolean): {
   readonly state: StoreState
   readonly reload: () => void
+  readonly trash: (files: readonly string[]) => Promise<Result<Trashed, TrashOpError>>
 } {
   const [state, setState] = useState<Settled>({ kind: "idle" })
-  // Bumped after a write, to refetch without dropping back to a skeleton.
   const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
@@ -34,25 +31,32 @@ function useStore(enabled: boolean): {
 
     const load = async (): Promise<void> => {
       try {
-        const response = await fetch("/api/store")
-        if (!response.ok) {
-          if (!ignore) {
-            setState({
-              kind: "failed",
-              message: `/api/store responded ${response.status} ${response.statusText}. ${SERVED_BY}`,
-            })
-          }
+        const loaded = await loadHandle()
+        if (ignore) return
+        if (loaded.kind === "err") {
+          setState({ kind: "read-failed", detail: loaded.error })
           return
         }
-        const store = (await response.json()) as Store
-        if (!ignore) setState({ kind: "loaded", store })
+        if (loaded.value === null) {
+          setState({ kind: "read-failed", detail: "No folder handle stored" })
+          return
+        }
+        const handle = loaded.value
+        const files = await snapshotProbe(handle)
+        const jobs = await readJobs(handle)
+        if (ignore) return
+        if (jobs.kind === "err") {
+          setState({ kind: "read-failed", detail: jobs.error })
+          return
+        }
+        const parsed = jobs.value.map((item) =>
+          item.kind === "ok" ? parseDossier(item.value.file, item.value.raw) : item
+        )
+        const generatedAt = new Date().toISOString().slice(0, 10)
+        setState({ kind: "loaded", store: toStore(handle.name, generatedAt, files, parsed) })
       } catch (error) {
         if (ignore) return
-        const detail = error instanceof Error ? error.message : String(error)
-        setState({
-          kind: "failed",
-          message: `Could not reach /api/store: ${detail}. ${SERVED_BY}`,
-        })
+        setState({ kind: "read-failed", detail: error instanceof Error ? error.message : String(error) })
       }
     }
 
@@ -65,8 +69,21 @@ function useStore(enabled: boolean): {
 
   const reload = useCallback(() => setNonce((n) => n + 1), [])
 
+  const trash = useCallback(
+    async (files: readonly string[]): Promise<Result<Trashed, TrashOpError>> => {
+      const loaded = await loadHandle()
+      if (loaded.kind === "err") return err({ kind: "failed", detail: loaded.error })
+      if (loaded.value === null) return err({ kind: "stale" })
+      const result = await trashJobs(loaded.value, files)
+      if (result.kind === "ok") reload()
+      return result
+    },
+    [reload]
+  )
+
   return {
     state: enabled && state.kind === "idle" ? { kind: "loading" } : state,
     reload,
+    trash,
   }
 }
