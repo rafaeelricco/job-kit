@@ -425,10 +425,9 @@ uninstall_browser_use() {
     echo "== job-kit browser-use uninstall =="
 
     if [ -n "${override}" ]; then
-      # Mirrors uninstall_agents' override branch for the kit links only. The
-      # driver section below still runs: `browser-use skill install` writes to
-      # the agents' own homes and never consults CLAUDE_SKILLS, so an override
-      # moves the kit links without moving the driver.
+      # Kit links live only under the override. The driver may also live there
+      # (`browser-use skill install --path`), and still under the default
+      # homes from a prior --target install — both get cleaned.
       echo "== override (${override}) =="
       unlink_browser_skills_from "${override}" || exit 1
       echo "Uninstall completed for ${override}"
@@ -454,6 +453,18 @@ uninstall_browser_use() {
     # Driver artifacts are browser-use's own files, not kit-owned: remove only
     # what the plan listed, and never a browser.
     echo "== browser-use · driver (not kit-owned) =="
+    if [ -n "${override}" ]; then
+      dest="${override}/browser-use"
+      if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+        rm -rf "${dest}" || {
+          echo "error: failed to remove driver skill: ${dest}" >&2
+          exit 1
+        }
+        echo "removed driver skill: ${dest}"
+      else
+        echo "skipped (missing): ${dest}"
+      fi
+    fi
     for target in ${AGENT_TARGETS}; do
       # A skipped home is excluded whole: the driver there is not even kit-owned,
       # so removing it would take files from the one target the user named.
@@ -463,6 +474,9 @@ uninstall_browser_use() {
         grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: driver skipped (--skip-grok)."; continue; } ;;
       esac
       dest="$(agent_skills_root "${target}")/browser-use"
+      if [ -n "${override}" ] && [ "${dest}" = "${override}/browser-use" ]; then
+        continue
+      fi
       if [ -e "${dest}" ] || [ -L "${dest}" ]; then
         rm -rf "${dest}" || {
           echo "error: failed to remove driver skill: ${dest}" >&2
@@ -900,9 +914,9 @@ plan_rows_agents() {
 #   - no legacy rows: job-scout and job-apply have never lived under an agent
 #     home under another basename, so there is no orphan to sweep, and no legacy
 #     Codex root either — this channel never installed there;
-#   - the override branch does not end the walk. `browser-use skill install`
-#     writes to the agents' own homes and never reads CLAUDE_SKILLS, so the
-#     driver is still there when an override has moved the kit links.
+#   - the override branch does not end the walk: a prior --target install may
+#     still sit under the default homes, and --path may have written the
+#     driver under CLAUDE_SKILLS as well.
 # link_only=1 throughout: this channel only ever symlinks (agents/lib.sh:300).
 plan_rows_browser_use() {
   local repo="${REPO_ROOT}" state
@@ -943,9 +957,18 @@ plan_rows_browser_use() {
     # ownership predicate to state — a row appears only when the artifact is
     # actually on disk, and uninstall_browser_use removes exactly this set.
     printf 'H%sbrowser-use · driver (not kit-owned)%s%s\n' "${ROW_FS}" "${ROW_FS}" "browser-use"
+    if [ -n "${override}" ]; then
+      dest="${override}/browser-use"
+      if [ -e "${dest}" ] || [ -L "${dest}" ]; then
+        printf 'I%sremove driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+      fi
+    fi
     for target in ${AGENT_TARGETS}; do
       root="$(agent_skills_root "${target}")"
       dest="${root}/browser-use"
+      if [ -n "${override}" ] && [ "${dest}" = "${override}/browser-use" ]; then
+        continue
+      fi
       # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
       # inside command substitutions. Mirrors the skip guard in
       # uninstall_browser_use so the plan names exactly what will be removed.
@@ -1799,7 +1822,7 @@ unremovable_skill_entries() {
     # will never unlink would block a run that was always going to succeed.
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
-    names="${BROWSER_SKILL_NAMES}"
+    names="${BROWSER_SKILL_NAMES} browser-use"
   elif [ "${target}" = aside ]; then
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
