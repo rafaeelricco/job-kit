@@ -1,6 +1,19 @@
-import { ArrowDownNarrowWide, ArrowDownWideNarrow, ArrowUpDown } from "lucide-react"
+import { ArrowDownNarrowWide, ArrowDownWideNarrow, ArrowUpDown, ChevronDown } from "lucide-react"
 import type { Key, KeyboardEvent, ReactNode } from "react"
 
+import * as React from "react"
+
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Pagination,
   PaginationContent,
@@ -200,48 +213,101 @@ function pageWindow(page: number, pages: number): readonly (number | null)[] {
   return [1, ...(start > 2 ? [null] : []), start, start + 1, end, ...(end < pages - 1 ? [null] : []), pages]
 }
 
-function DataTablePagination(props: {
-  readonly page: number
-  readonly pages: number
-  readonly onPage: (next: number) => void
-  readonly status?: ReactNode
-}) {
+// Menu radio values are strings; `find` returns `S | undefined` — no assertion.
+function sizeFromToken<S extends number>(sizes: readonly S[], token: string): S | undefined {
+  return sizes.find((s) => s === Number(token))
+}
+
+type SizeControls<S extends number> =
+  | {
+      readonly sizes: readonly S[]
+      readonly size: S
+      readonly onSize: (next: S) => void
+    }
+  | {
+      readonly sizes?: undefined
+      readonly size?: undefined
+      readonly onSize?: undefined
+    }
+
+function DataTablePagination<S extends number>(
+  props: {
+    readonly page: number
+    readonly pages: number
+    readonly onPage: (next: number) => void
+    readonly status?: ReactNode
+  } & SizeControls<S>
+) {
   const atFirst = props.page <= 1
   const atLast = props.page >= props.pages
   return (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex-1 text-sm text-muted-foreground">{props.status}</div>
-      <Pagination className="mx-0 w-auto">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              aria-disabled={atFirst}
-              className={cn(atFirst && "pointer-events-none opacity-50")}
-              onClick={() => props.onPage(props.page - 1)}
-            />
-          </PaginationItem>
-          {pageWindow(props.page, props.pages).map((n, i) =>
-            n === null ? (
-              <PaginationItem key={`gap-${i}`}>
-                <PaginationEllipsis />
-              </PaginationItem>
-            ) : (
-              <PaginationItem key={n}>
-                <PaginationLink isActive={n === props.page} onClick={() => props.onPage(n)}>
-                  {n}
-                </PaginationLink>
-              </PaginationItem>
-            )
-          )}
-          <PaginationItem>
-            <PaginationNext
-              aria-disabled={atLast}
-              className={cn(atLast && "pointer-events-none opacity-50")}
-              onClick={() => props.onPage(props.page + 1)}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+    <div className="flex items-center gap-2">
+      {props.status === undefined ? null : <div className="flex-1 text-sm text-muted-foreground">{props.status}</div>}
+      <div className="flex w-full items-center justify-between gap-2">
+        {props.sizes ? (
+          <React.Fragment>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">Rows per page</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Page size">
+                  {props.size}
+                  <ChevronDown />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Page size</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={String(props.size)}
+                      onValueChange={(next) => {
+                        const parsed = sizeFromToken(props.sizes, String(next))
+                        if (parsed !== undefined) props.onSize(parsed)
+                      }}
+                    >
+                      {props.sizes.map((n) => (
+                        <DropdownMenuRadioItem key={n} value={String(n)}>
+                          {n}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </React.Fragment>
+        ) : null}
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                aria-disabled={atFirst}
+                className={cn(atFirst && "pointer-events-none opacity-50")}
+                onClick={() => props.onPage(props.page - 1)}
+              />
+            </PaginationItem>
+            {pageWindow(props.page, props.pages).map((n, i) =>
+              n === null ? (
+                <PaginationItem key={`gap-${i}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={n}>
+                  <PaginationLink isActive={n === props.page} onClick={() => props.onPage(n)}>
+                    {n}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+            <PaginationItem>
+              <PaginationNext
+                aria-disabled={atLast}
+                className={cn(atLast && "pointer-events-none opacity-50")}
+                onClick={() => props.onPage(props.page + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   )
 }
