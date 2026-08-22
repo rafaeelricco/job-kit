@@ -49,7 +49,9 @@ function useStore(enabled: boolean): {
           setState({ kind: "read-failed", detail: jobs.error })
           return
         }
-        const parsed = jobs.value.map(({ file, raw }) => parseDossier(file, raw))
+        const parsed = jobs.value.map((item) =>
+          item.kind === "ok" ? parseDossier(item.value.file, item.value.raw) : item
+        )
         const generatedAt = new Date().toISOString().slice(0, 10)
         setState({ kind: "loaded", store: toStore(handle.name, generatedAt, files, parsed) })
       } catch (error) {
