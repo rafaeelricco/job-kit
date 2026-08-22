@@ -1,10 +1,11 @@
 export { Gaps }
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { CopyButton } from "@/components/ui/copy"
+import { toFixPrompt } from "@/module/scout/helpers/fix-prompt"
 import type { ParseError } from "@/module/scout/types"
 
-// A file that does not parse is named here; repair stays out of the browser —
-// FSA only exposes a folder basename, which cannot bind an agent to this root.
+// Name the gaps here; Copy fix hands repair to an agent via /job-profile-root.
 function Gaps({ gaps }: { readonly gaps: readonly ParseError[] }) {
   if (gaps.length === 0) return null
 
@@ -19,6 +20,7 @@ function Gaps({ gaps }: { readonly gaps: readonly ParseError[] }) {
             </li>
           ))}
         </ul>
+        <CopyButton value={() => toFixPrompt(gaps)} label="Copy fix prompt" />
       </AlertDescription>
     </Alert>
   )
