@@ -398,10 +398,6 @@ function FilterBar(props: FilterBarProps) {
           </Button>
         </div>
       )}
-
-      <p className="text-xs text-muted-foreground">
-        Showing {shown.toLocaleString()} of {total.toLocaleString()}
-      </p>
     </div>
   )
 }
