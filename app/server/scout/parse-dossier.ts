@@ -29,8 +29,10 @@ import type {
 // odd-looking rules are the corpus, not taste: titles carry ": " and " — ",
 // five fact values carry a raw pipe, the verdict header changes shape and
 // order between files, some Verdict lines omit `live · why` (pack stub in
-// slot 3), some Provenance authors contain ` · `, and the "never writes
-// below this line" comment is printed twice in a good number of records.
+// slot 3), Provenance is labeled (`source · channel · author · date`) or
+// unlabeled with authors that contain ` · `, and the log is the tail after
+// the ownership marker (or `## Application log` when the marker is absent) —
+// the heading itself is not required.
 
 const FRONTMATTER_KEYS = [
   "company",
@@ -44,13 +46,10 @@ const FRONTMATTER_KEYS = [
   "channel",
 ] as const
 
-const SECTIONS = [
-  "## Verdict",
-  "## Posting facts",
-  "## From the posting",
-  "## Provenance",
-  "## Application log",
-] as const
+const SECTIONS = ["## Verdict", "## Posting facts", "## From the posting", "## Provenance"] as const
+
+const OWNERSHIP_MARKER = "<!-- scout never writes below this line -->"
+const LABELED_PROVENANCE = /^source (.+?) · channel (.+?) · author (.+?)(?: · contact (.+?))? · date (.+)$/
 
 const VERDICT_LINE = /^score \*\*(.+?)\*\* · (.+?) · (.+?)(?: · (.*))?$/
 const LOG_LINE = /^- (\d{4}-\d{2}-\d{2}) · (.*) — ([a-z-]+)$/
@@ -151,16 +150,10 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   // The "# company — title" heading is never read: two titles contain " — ".
   const body = lines.slice(close + 1)
-  // job-application stubs have frontmatter + Application log and no scout body.
-  // Find the log first so a stub still parses; require the other headings only
+  // job-application stubs have frontmatter + a log tail and no scout body.
+  // Read the log first so a stub still parses; require the other headings only
   // when ## Verdict is present.
-  const logHeading = "## Application log"
-  const logStart = body.indexOf(logHeading)
-  if (logStart === -1) {
-    return fail(logHeading, { kind: "section", heading: logHeading })
-  }
-
-  const logged = readLog(body.slice(logStart + 1), fail)
+  const logged = readLog(logTail(body), fail)
   if (logged.kind === "fail") return logged.result
   const { log, posting, applications } = logged
 
@@ -322,23 +315,12 @@ function parseDossier(file: string, raw: string): ParsedDossier {
   /* -- provenance --------------------------------------------------------- */
 
   const provLine = sectionAt(3).find((line) => line.trim() !== "")
-  const parts = provLine === undefined ? [] : provLine.trim().split(" · ")
-  const source = parts[0]
-  const seen = parts.at(-1)
-  const contact = parts.at(-2)
-  const author = parts.slice(1, -2).join(" · ")
-  if (parts.length < 4 || source === undefined || contact === undefined || seen === undefined) {
+  const provenance = parseProvenance(provLine)
+  if (provenance === null) {
     return fail("## Provenance", {
       kind: "section",
       heading: "## Provenance",
     })
-  }
-  // date stays raw: "8d", "7 days ago" and "2026-08-03" all occur.
-  const provenance: Provenance = {
-    source: source.trim(),
-    author: value(author.trim()),
-    contact: value(contact.trim()),
-    date: seen.trim(),
   }
 
   /* -- log already read above --------------------------------------------- */
@@ -387,13 +369,13 @@ function readLog(tail: readonly string[], fail: (at: string, cause: ParseError["
     if (date === null) {
       return {
         kind: "fail",
-        result: fail("## Application log", { kind: "date", field: "log", got: stamp }),
+        result: fail("log", { kind: "date", field: "log", got: stamp }),
       }
     }
     if (!isWriter(writer)) {
       return {
         kind: "fail",
-        result: fail("## Application log", { kind: "vocabulary", field: "writer", got: writer }),
+        result: fail("log", { kind: "vocabulary", field: "writer", got: writer }),
       }
     }
     log.push({ date, event, writer })
@@ -414,6 +396,45 @@ function readLog(tail: readonly string[], fail: (at: string, cause: ParseError["
   // log lines, so records are not reliably last.
   const applications = (tail.join("\n").match(APPLICATION_LINE) ?? []).length
   return { kind: "ok", log, posting, applications }
+}
+
+function logTail(body: readonly string[]): readonly string[] {
+  const marker = body.indexOf(OWNERSHIP_MARKER)
+  if (marker !== -1) return body.slice(marker + 1)
+  const heading = body.indexOf("## Application log")
+  if (heading !== -1) return body.slice(heading + 1)
+  return []
+}
+
+function parseProvenance(provLine: string | undefined): Provenance | null {
+  if (provLine === undefined) return null
+  const line = provLine.trim()
+  const labeled = LABELED_PROVENANCE.exec(line)
+  if (labeled !== null) {
+    const [, source, , author, contact, date] = labeled
+    if (source === undefined || author === undefined || date === undefined) return null
+    return {
+      source: source.trim(),
+      author: value(author.trim()),
+      contact: value((contact ?? UNKNOWN_TEXT).trim()),
+      date: date.trim(),
+    }
+  }
+  // Legacy unlabeled: source · author · contact · date (author may contain " · ").
+  const parts = line.split(" · ")
+  const source = parts[0]
+  const seen = parts.at(-1)
+  const contact = parts.at(-2)
+  const author = parts.slice(1, -2).join(" · ")
+  if (parts.length < 4 || source === undefined || contact === undefined || seen === undefined) {
+    return null
+  }
+  return {
+    source: source.trim(),
+    author: value(author.trim()),
+    contact: value(contact.trim()),
+    date: seen.trim(),
+  }
 }
 
 function blankFacts(): Readonly<Record<FactKey, FactValue>> {

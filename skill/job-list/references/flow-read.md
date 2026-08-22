@@ -37,8 +37,8 @@ or bucket one yourself.
 ## A dead job never says dead in frontmatter
 
 The lifecycle vocab has no `dead` value. When a job dies, scout appends one line under
-`## Application log` and leaves the body — so `## Verdict` still reads `live` and the
-Posting facts `status` row still reads `live`. Scan the Application log **bottom-up**
+the ownership marker and leaves the body — so `## Verdict` still reads `live` and the
+Posting facts `status` row still reads `live`. Scan the log tail **bottom-up**
 for the latest **scout posting-state** line. Log lines are
 `- {YYYY-MM-DD} · {event} — {writer}`; a posting-state line is one whose `{writer}`
 is `job-scout` **and** whose event reads `posting dead: …` or `posting live again`.
@@ -51,8 +51,8 @@ dead-by-log — an earlier closure above it has been superseded, and the body is
 
 ## Ownership boundary
 
-Opening `---` down to the `## Application log` heading is scout-owned and rewritten every
-run. `status:` and every line under the log belong to the operator, job-apply, and job-inbox.
+Opening `---` down to the ownership marker is scout-owned and rewritten every
+run. `status:` and every line under the marker belong to the operator, job-apply, and job-inbox.
 Marker line, byte-exact: `<!-- scout never writes below this line -->`.
 
 ## A file in scout/jobs/ is not necessarily a dossier
