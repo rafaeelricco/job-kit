@@ -11,9 +11,6 @@ export {
   isLifecycle,
   isWriter,
   toIsoDate,
-  type Attempt,
-  type AttemptOutcome,
-  type AttemptSource,
   type Bucket,
   type Channel,
   type Dossier,
@@ -28,11 +25,10 @@ export {
   type ParsedDossier,
   type Posting,
   type Provenance,
-  type Resolution,
   type Score,
   type Store,
   type TrashFailure,
-  type TrashRequest,
+  type TrashOpError,
   type Trashed,
   type Verdict,
   type Writer,
@@ -170,59 +166,23 @@ type ParseError = {
 
 type ParsedDossier = Result<Dossier, ParseError>
 
-/* -- profile-root resolution ---------------------------------------------- */
-
-// Lives here rather than beside the resolver so the browser never reaches into
-// app/server/ and drag node types into the app tsconfig project.
-type AttemptSource = "PROFILE_ROOT" | "host-pointer" | "aside-mirror" | "job-kit-config" | "host-default" | "cwd-walk"
-
-type AttemptOutcome =
-  | { readonly kind: "passed" }
-  | { readonly kind: "empty" }
-  | { readonly kind: "missing" }
-  | { readonly kind: "unreadable" }
-  | { readonly kind: "probe-failed" }
-  | {
-      readonly kind: "skipped"
-      readonly reason: "already-tried" | "not-applicable"
-    }
-
-type Attempt = {
-  readonly source: AttemptSource
-  readonly path: string | null
-  // Pointer files must report the line they held, per SKILL.md step 6.
-  readonly line: string | null
-  readonly outcome: AttemptOutcome
-}
-
-type Resolution =
-  | {
-      readonly kind: "resolved"
-      readonly root: string
-      readonly via: AttemptSource
-      readonly attempts: readonly Attempt[]
-    }
-  | { readonly kind: "unresolved"; readonly attempts: readonly Attempt[] }
+/* -- store (client corpus snapshot; no absolute paths) -------------------- */
 
 type Store =
   | {
       readonly kind: "ready"
-      readonly root: string
-      readonly skillsRoot: string
-      readonly via: AttemptSource
-      readonly attempts: readonly Attempt[]
+      readonly label: string
       readonly generatedAt: string
       readonly dossiers: readonly Dossier[]
       readonly gaps: readonly ParseError[]
     }
-  | { readonly kind: "unresolved"; readonly attempts: readonly Attempt[] }
+  | {
+      readonly kind: "wrong-root"
+      readonly label: string
+      readonly missing: readonly string[]
+    }
 
-/* -- the wire shape of POST /api/trash ------------------------------------ */
-
-type TrashRequest = {
-  readonly root: string
-  readonly files: readonly string[]
-}
+/* -- trash outcomes ------------------------------------------------------- */
 
 type TrashFailure = { readonly file: string; readonly reason: string }
 
@@ -230,3 +190,9 @@ type Trashed = {
   readonly moved: readonly string[]
   readonly failed: readonly TrashFailure[]
 }
+
+type TrashOpError =
+  | { readonly kind: "not-allowed" }
+  | { readonly kind: "stale" }
+  | { readonly kind: "jobs-missing" }
+  | { readonly kind: "failed"; readonly detail: string }

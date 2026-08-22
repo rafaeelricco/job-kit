@@ -21,8 +21,7 @@ import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/expo
 import type { Dossier } from "@/module/scout/types"
 
 type SelectionBarProps = {
-  readonly root: string
-  readonly skillsRoot: string
+  readonly label: string
   readonly rows: readonly Dossier[]
   readonly onDelete: () => void
   readonly onClear: () => void
@@ -31,7 +30,7 @@ type SelectionBarProps = {
 const DELETE_HINT = "Hold to move these files into scout/jobs/.trash — recoverable with mv"
 
 function SelectionBar(props: SelectionBarProps) {
-  const { onClear, onDelete, root, rows, skillsRoot } = props
+  const { onClear, onDelete, label, rows } = props
   const count = rows.length
 
   if (count === 0) return null
@@ -49,7 +48,7 @@ function SelectionBar(props: SelectionBarProps) {
 
       <Separator orientation="vertical" className="h-5" />
 
-      <CopyButton value={() => toApplyPrompt(root, skillsRoot, rows)} label="Copy apply prompt" />
+      <CopyButton value={() => toApplyPrompt(label, rows)} label="Copy apply prompt" />
 
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>

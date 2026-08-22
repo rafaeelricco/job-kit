@@ -8,10 +8,10 @@ type Apply = { readonly kind: "apply"; readonly row: Dossier }
 type Skip = { readonly kind: "skip"; readonly row: Dossier; readonly reasons: readonly string[] }
 type Classified = Apply | Skip
 
-function toApplyPrompt(root: string, skills: string, rows: readonly Dossier[]): string {
+function toApplyPrompt(label: string, rows: readonly Dossier[]): string {
   const queued = rows.map(classify)
   return joinBlocks([
-    applyBlock(`${root}/scout/jobs`, skills, rows.length, queued.filter(isApply)),
+    applyBlock(`${label}/scout/jobs`, rows.length, queued.filter(isApply)),
     skipBlock(queued.filter(isSkip)),
   ])
 }
@@ -24,25 +24,15 @@ function classify(row: Dossier): Classified {
   return reasons.length === 0 ? { kind: "apply", row } : { kind: "skip", row, reasons }
 }
 
-// Skills are addressed by absolute path, not by slash command: the prompt is
-// pasted into a chat that has no notion of this app's working directory.
-function skillLinks(skills: string) {
-  return {
-    apply: `[$Job Apply](${skills}/job-apply/SKILL.md)`,
-    list: `[$Job List](${skills}/job-list/SKILL.md)`,
-    profile: `[$Job Profile Me](${skills}/job-profile-me/SKILL.md)`,
-  }
-}
-
-function applyBlock(jobs: string, skills: string, selected: number, apply: readonly Apply[]): readonly string[] {
-  const links = skillLinks(skills)
+// Browser has no Aside skills path. Name the skills; the operator's chat resolves them.
+function applyBlock(jobs: string, selected: number, apply: readonly Apply[]): readonly string[] {
   const closer =
-    `use the ${links.list} to consult the data of each and also the ${links.profile} ` +
+    "use $Job List to consult the data of each and also $Job Profile Me " +
     "and make sure to write concise and high signal texts/histories to increase the chance for I get return from the job."
   return apply.length === 0
     ? [`0 of ${selected} selected jobs under ${jobs} are apply-ready.`]
     : [
-        `Use the ${links.apply} skill to apply for all of these jobs under ${jobs}:`,
+        `Use the $Job Apply skill to apply for all of these jobs under ${jobs}:`,
         "",
         ...apply.map((item) => line(item.row)),
         "",

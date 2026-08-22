@@ -7,7 +7,7 @@ import type { ParseError } from "@/module/scout/types"
 
 // A file that does not parse is named, never repaired here — the button hands
 // the repair off with every cause spelled out.
-function Gaps({ gaps, root }: { readonly gaps: readonly ParseError[]; readonly root: string }) {
+function Gaps({ gaps, label }: { readonly gaps: readonly ParseError[]; readonly label: string }) {
   if (gaps.length === 0) return null
 
   return (
@@ -21,7 +21,7 @@ function Gaps({ gaps, root }: { readonly gaps: readonly ParseError[]; readonly r
             </li>
           ))}
         </ul>
-        <CopyButton value={() => toFixPrompt(root, gaps)} label="Copy fix prompt" />
+        <CopyButton value={() => toFixPrompt(label, gaps)} label="Copy fix prompt" />
       </AlertDescription>
     </Alert>
   )
