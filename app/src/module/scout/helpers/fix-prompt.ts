@@ -3,11 +3,11 @@ export { toFixPrompt }
 import { assertNever } from "@/module/scout/result"
 import type { ParseError } from "@/module/scout/types"
 
-function toFixPrompt(root: string, gaps: readonly ParseError[]): string {
+function toFixPrompt(label: string, gaps: readonly ParseError[]): string {
   const noun = gaps.length === 1 ? "dossier" : "dossiers"
 
   return [
-    `${gaps.length} ${noun} in ${root}/scout/jobs failed to parse:`,
+    `${gaps.length} ${noun} in ${label}/scout/jobs failed to parse:`,
     "",
     ...gaps.map((gap) => `- ${gap.file} — at ${gap.at} — ${describe(gap.cause)}`),
     "",
