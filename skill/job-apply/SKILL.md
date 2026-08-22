@@ -21,7 +21,8 @@ background checks, or related screening. The operator owns demographic and EEO f
 Drafting contract: `./references/letter-contract.md`.
 
 Prepare emits the complete review and stops. A bare `done` or `ok` does not confirm
-submission. When Duplicate check resolves a dossier with `status: new`, Prepare
+submission. When Duplicate check resolves a dossier with `status: new` whose normalized
+frontmatter URL exactly equals the current ad's, Prepare
 prints `Chained job-resume · {filename}` and `spawn_subagent`s `job-resume` (brief:
 load that skill end-to-end; Argument `{filename}`; `PROFILE_ROOT`) — never load
 resume in-session (its STOP would end Apply). Resume FAIL or missing PASS+PDF

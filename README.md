@@ -154,17 +154,18 @@ You paste the pointer at the two ends. Neither end auto-fires on purpose: scout
 stays list-only and cannot judge which ranked row is worth an application, and
 apply never submits without your explicit yes on the review.
 
-Applying needs exactly one CV PDF that opens. For a matched `status: new`
-dossier, Prepare chains `/job-resume` (isolated subagent) and attaches
-`scout/applications/{slug}/resume.pdf` only when `match-report.md` prints
-`verdict: **PASS**` (`{slug}` = that dossier filename minus `.md`). Resume
-FAIL stops that Prepare — no fallthrough to a generic CV. Without a `new`
-dossier, a prior PASS leftover at that path still wins when the dossier URL
-matches; otherwise job-apply reads `data/cvs.yaml`, matches each row's
-`targets` against the ad, and uses `default` when none fit. With no registry
-it attaches `cv/en-us-resume.pdf`. The review's `### Attachments` prints the
-pick and why. With neither a resolvable PDF, job-apply stops. Edit the
-registry with `/job-profile-me cvs`. Standalone `/job-resume` remains valid.
+Applying needs exactly one CV PDF that opens. For a `status: new` dossier
+whose normalized URL equals the current ad's, Prepare chains `/job-resume`
+(isolated subagent) and attaches `scout/applications/{slug}/resume.pdf` only
+when `match-report.md` prints `verdict: **PASS**` (`{slug}` = that dossier
+filename minus `.md`). Resume FAIL stops that Prepare — no fallthrough to a
+generic CV. Without a URL-matched `new` dossier, a prior PASS leftover at that
+path still wins when the dossier URL matches; otherwise job-apply reads
+`data/cvs.yaml`, matches each row's `targets` against the ad, and uses
+`default` when none fit. With no registry it attaches `cv/en-us-resume.pdf`.
+The review's `### Attachments` prints the pick and why. With neither a
+resolvable PDF, job-apply stops. Edit the registry with `/job-profile-me cvs`.
+Standalone `/job-resume` remains valid.
 
 `/job-resume` needs a LaTeX base under `cv/`, named `resume-{id}.tex` for the
 `data/cvs.yaml` row it tailors (or a `.tex` sibling of that row's PDF). It

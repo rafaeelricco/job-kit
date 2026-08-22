@@ -77,8 +77,8 @@ store stops and names the path. For either non-blocking outcome, also print
 
 ### Chained job-resume (status: new dossier only)
 
-When Duplicate check resolved a dossier (normalized URL, or company and title)
-with `status: new`:
+When Duplicate check resolved a dossier whose normalized frontmatter URL
+exactly equals the current ad's normalized URL, with `status: new`:
 
 1. Print `Chained job-resume · {filename}`.
 2. `spawn_subagent` isolated. Brief **only**:
@@ -101,8 +101,8 @@ with `status: new`:
    `cv/en-us-resume.pdf` on this Prepare. Generic fallback applies only when
    this chain was **not** fired.
 
-No matched dossier, or matched `status:` ≠ `new`: do not fire the chain. Use
-the pick below.
+No matched dossier, a company/title-only match, or matched `status:` ≠ `new`:
+do not fire the chain. Use the pick below.
 
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
