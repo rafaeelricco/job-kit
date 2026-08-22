@@ -5,7 +5,7 @@ Bind → Harvest → Classify → Record → Report. Paths resolve against Profi
 this file into a classify pass.
 
 Writable in Record only: `scout/jobs/*.md` and the lock furniture
-`job-scout/references/persistence.md` defines. Every other Profile-root path, `data/`
+`job-scout/references/contract-persistence.md` defines. Every other Profile-root path, `data/`
 and `cv/` included, stays read-only. Mail is read-only throughout.
 
 ## Bind
@@ -41,7 +41,7 @@ first. Nothing else changes: same default candidate set, same contract.
 `job-list/references/flow-read.md` is the reader SSOT — dossier anatomy, `*.lock`
 skipping, staleness, and the untrusted-data law. Load it; never re-derive it here. One
 divergence: a dossier this skill cannot parse is a Gap it keeps going past, never a
-guess and never a repair. The parse-failure STOP in `persistence.md` still binds under
+guess and never a repair. The parse-failure STOP in `contract-persistence.md` still binds under
 the lock.
 
 Default candidate set: frontmatter `status:` ∈ `applied` | `interview` | `offer`.
@@ -127,7 +127,7 @@ Contract-writable rows are recorded now, in this turn; this skill never stops fo
 yes. Zero writable rows → emit the report and STOP.
 
 `job-scout/references/schema-dossier.md` owns dossier shape, log grammar, and the
-injection law. `job-scout/references/persistence.md` owns the filesystem transaction.
+injection law. `job-scout/references/contract-persistence.md` owns the filesystem transaction.
 Obey both.
 
 Re-test contract ## Write items 4 and 5 against the file read **under the lock**, never
