@@ -70,13 +70,47 @@ A skill gap belongs in slot 2 or 3; a geo or authorization gap belongs in slot 6
 Reject any exact or paraphrased claim semantically equivalent to a `### Forbidden claims`
 entry. Scan the letter, subject line, form notes, and any other outbound free-text value.
 
-Before the draft reaches review, verify:
+## Checker (verify)
 
-- every factual claim traces to one exact Letter-plan row;
-- form free-text answers only the question and cites no evidence outside the plan;
-- no Fact file or rejected evidence was reread;
-- all fired slots are present and all unfired slots are absent;
-- every outbound free-text value passes the ban and Voice scans; and
-- the ad's required subject, links, salary, project count, and format are followed.
+Every check is `pass`, `fail`, or `unjudgeable`. Unjudgeable → `reject` for the run.
+LETTER_TEXT empty, or a brief with no `### Letter plan` → `unjudgeable`.
 
-Failure means return to planning; do not weaken the contract or fill the gap from memory.
+| #   | Check                                                                                    | fail is  |
+| --- | ---------------------------------------------------------------------------------------- | -------- |
+| 1   | every factual claim traces to one exact `### Letter plan` row                            | `reject` |
+| 2   | no `### Forbidden claims` hit, exact or semantic, in the letter or any staged free-text  | `reject` |
+| 3   | no relation the plan does not print: cause, scale, audience, leadership, credit          | `reject` |
+| 4   | the plan's person is kept: a `we` row stays `we`, never promoted to `I`                  | `reject` |
+| 5   | every number ships from a plan row                                                       | `reject` |
+| 6   | a staged free-text value answers only its question and cites nothing outside the plan    | `reject` |
+| 7   | no process number, as digit or words                                                     | `repair` |
+| 8   | every fired slot present, every unfired slot absent, in slot order                       | `repair` |
+| 9   | first sentence states fit, not interest and not the act of writing                       | `repair` |
+| 10  | slots 1 and 2 open on the reader, not on `I`                                             | `repair` |
+| 11  | slot 3 names what was chosen and what it replaced; slot 4 is an outcome, not an activity | `repair` |
+| 12  | no em dash, no hedge, no confidence theater; slot 7 is an ask, not a thank-you           | `repair` |
+| 13  | the ad's stated subject, links, salary, project count, and length are followed           | `repair` |
+
+Pick exactly one Outcome, first match:
+
+1. any check `unjudgeable` or `reject`-class `fail` → `reject`
+2. else any `repair`-class `fail` → `repair`
+3. else `pass`
+
+Never warn-and-pass a `reject`. A `reject` means the evidence is wrong and planning must
+run again; do not weaken the contract or fill the gap from memory. A `repair` names what
+must change, never the replacement wording.
+
+## Output sections
+
+```
+### Outcome
+{pass|repair|reject}
+
+### Checks
+| check | result | evidence |
+result ∈ pass | fail | unjudgeable
+
+### Repairs
+{what must change, not the wording — or _(none)_}
+```
