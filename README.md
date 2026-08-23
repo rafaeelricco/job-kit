@@ -353,7 +353,7 @@ multi-target install also removes legacy kit links there, which the
 | ------------------------- | --------------------------------------------------------------- |
 | `skill/job-scout/`        | Scout law, contracts, surfaces                                  |
 | `skill/job-apply/`        | Apply law, draft contract, approve-gated submit                 |
-| `skill/job-resume/`       | Tailor one-page résumé PDF; Loop B CLI + match-report           |
+| `skill/job-resume/`       | Tailor one-page résumé PDF; isolated verifier + match-report    |
 | `skill/job-profile-init/` | Intake + templates for empty profiles                           |
 | `skill/job-profile-me/`   | Show + edit search intent and boards                            |
 | `skill/job-profile-root/` | Resolve Profile root; never writes                              |
