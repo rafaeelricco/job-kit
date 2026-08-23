@@ -88,17 +88,32 @@ frontmatter URL, normalized per `job-scout/references/contract-search.md`
 verdict: **PASS**
 
 base: {id} · {one clause: why targets fit ### Ad+Fit, or default-on-tie}
-pages: {N from compile.sh stdout} · compiles: {k}/6
+pages: {N from compile.sh stdout} · compiles: {k}/7
 attempt: {N}
 
 ## Fit coverage
 
 | requirement | on page | strength | source |
 
+## Skim
+
+| lens | score | note |
+| ATS keyword 0–100 | {n} | one line: title / recency / domain gaps |
+| LLM fit 0–10 | {n} | one line: identity vs collage |
+
+Main estimates both lenses from PDF_TEXT + ### Ad after Loop A `pass`. Below
+ATS 75 or LLM 7 routes per `flow-resume.md` Loop A — one skim rewrite toward
+above-the-fold `direct`s, never a FAIL reason. Truth gate wins: a second skim
+fail still PASSes when checks 1–20 pass.
+
 ## Numbers
 
 | printed | source | kind |
-kind ∈ outcome | years-of-X
+| ------- | ------ | ---- |
+
+`kind` ∈ `outcome` | `years-of-X`. A calendar date or timestamp never gets a
+row: it is a schedule fact, not a magnitude, and is not an eligible claim
+number.
 
 ## Omissions
 
@@ -120,8 +135,9 @@ fail → {reason}; no canonical PDF
 
 `verdict:` line is exactly `verdict: **PASS**` or `verdict: **FAIL**`.
 `pages:` is the CLI `Pages: N` for the named attempt — never a counted or
-vision-estimated value. FAIL `reason` ∈ `reject` | `geometry exhausted` |
-`rewrite exhausted` | `compile ceiling` | `pdflatex` | `{named STOP}`.
+vision-estimated value. FAIL `reason` ∈ `reject` | `redact exhausted` |
+`geometry exhausted` | `rewrite exhausted` | `compile ceiling` | `pdflatex` |
+`{named STOP}`.
 
 Every omission that opens a date gap is a row with `date gap: yes`.
 `## Forbidden` lists every `never_say` or checker-reject hit, or `_(none)_`.

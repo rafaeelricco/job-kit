@@ -5,7 +5,7 @@ description: "Use when the user runs /job-resume, asks for a tailored résumé o
 
 # Job resume
 
-One posting. One page. Truth from Fact files; the JD is relevance only.
+One posting. One page. Page law: `./references/contract-resume.md`.
 
 May be entered from `job-apply` Prepare as an isolated `spawn_subagent`
 (Argument: `{filename}`, `PROFILE_ROOT`). This agent is still resume main:
@@ -30,4 +30,5 @@ Load each additional reference only when that flow names it.
 - Page contract: `./references/contract-resume.md` (paste card)
 - Verify worker: `./references/worker-verify.md`
 - Disk write law: `./references/schema-report.md` (main-only)
-- Loop B CLI: `./scripts/compile.sh` (main is the only caller)
+- Loop B CLI: `./scripts/compile.sh` (resume main; `job-apply` Prepare may call it
+  only to build a missing `cv/` base)
