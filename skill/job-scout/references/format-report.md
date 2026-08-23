@@ -7,7 +7,7 @@ Phase 6. **STOP** is the end of that phase, not here.
 Chat only. Never a run file; never copy ranked tables or score factors to disk.
 No preamble. No apply / message / connect / open-form language. The
 `### Kit read` block (`contract-check.md`) and the per-row bucket audit
-(`flow-rank.md` `## Bucket`) print immediately before this section, in that
+(`contract-rank.md` `## Bucket`) print immediately before this section, in that
 order — required audit output, not preamble.
 
 ### Header
@@ -33,7 +33,7 @@ The header's `live≥7` census stays unfiltered.
 
 ### Ranked
 
-`status=live` AND `score≥8`, excluding `unbucketed`. Sort per `flow-rank.md` `## Channel sort`.
+`status=live` AND `score≥8`, excluding `unbucketed`. Sort per `contract-rank.md` `## Channel sort`.
 Rows already named in Do this first repeat here.
 
 | score | company | title | bucket | contact | why | url |

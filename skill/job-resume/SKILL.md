@@ -50,7 +50,7 @@ first.
    Off-domain work does not print. Education prints when `data/education.yaml`
    is readable and non-empty.
    Compile with `pdflatex -interaction=nonstopmode -halt-on-error
-   -output-directory={dir} {tex}`. Set `TEXINPUTS` to the directory of
+-output-directory={dir} {tex}`. Set `TEXINPUTS` to the directory of
    `kpsewhich glyphtounicode.tex` plus the `.tex` dir (bases
    `\input{glyphtounicode}`; `cv/` does not ship it). Then `pdfinfo` and
    `pdftotext -layout`. Missing binary → STOP, name it.

@@ -33,7 +33,7 @@ already holds.
 The profile email picks the account; it is not a `to:` filter — ATS mail lands on
 aliases.
 
-Entered from `job-apply` record.md Close → print `Chained from job-apply · {dossier filename}`
+Entered from `job-apply` flow-record.md Close → print `Chained from job-apply · {dossier filename}`
 first. Nothing else changes: same default candidate set, same contract.
 
 ## Candidates

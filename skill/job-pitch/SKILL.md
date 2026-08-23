@@ -15,7 +15,7 @@ Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
 Read-only; never writes. No path under Profile root is writable in this skill.
 
-1. Read `./references/flow-render.md` now; it is the read set and the say law for
+1. Read `./references/contract-say.md` now; it is the read set and the say law for
    both verbs.
 2. `script`: render per `./references/format-script.md` (five beats, one story,
    timed to the word budget).
@@ -34,7 +34,7 @@ Read-only; never writes. No path under Profile root is writable in this skill.
 
 ## References
 
-- Say law: `./references/flow-render.md` (read set, number firewall, credit rule, status gate)
+- Say law: `./references/contract-say.md` (read set, number firewall, credit rule, status gate)
 - Video script: `./references/format-script.md` (five beats, word budget, delivery notes)
 - Work experience: `./references/format-experience.md` (S.T.A.R.T. bullets, tech tags, title law)
 

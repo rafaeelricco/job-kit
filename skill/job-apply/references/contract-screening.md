@@ -65,6 +65,6 @@ use the more specific field and surface the ambiguity; never blend them into a h
 ## Other screening
 
 Answer notice, employment route, work location, relocation, assessments, drug tests, and
-background checks from the exact candidate-file fields named in `prepare.md`. Surface
+background checks from the exact candidate-file fields named in `flow-prepare.md`. Surface
 every value that the files do not print, including years of experience, weekly hours, or
 a seniority self-label, rather than deciding alone.
