@@ -19,6 +19,16 @@ Unknown value = `—`. NEVER invent a value.
 - Salary, work_auth, hiring_route, seniority-as-fact, required_skills, work_model, location: **only** from the opened JD page.
 - Carry every search column unchanged. Do not re-derive author or contact.
 
+## How a field is read
+
+Read the rendered JD text. A DOM query may locate that text; it never decides
+a field's value. `required_skills` empty from a page whose prose prints a
+Requirements / Qualifications / Must have / You have section that names at
+least one value this field admits is a defect — re-read that section before
+writing `—`. A section whose every item this field excludes yields `—`; that
+is the correct value, not a defect. Token match is whole-token only:
+`scala` never matches inside `scalable`, `go` never inside `golang`.
+
 ## Output section
 
 Emit rows under `### Verified`.
