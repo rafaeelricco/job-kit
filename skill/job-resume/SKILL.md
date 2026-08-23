@@ -5,30 +5,87 @@ description: "Use when the user runs /job-resume, asks for a tailored résumé o
 
 # Job resume
 
-One posting. One page. Page law: `./references/contract-resume.md`.
+One posting. One page. Facts only.
 
 May be entered from `job-apply` Prepare as an isolated `spawn_subagent`
 (Argument: `{filename}`, `PROFILE_ROOT`). This agent is still resume main:
-it sequences phases, may call `./scripts/compile.sh`, and may spawn Loop A.
-It never submits an application. Phase 6 FAIL / Phase 7 PASS still **STOP**
-this agent.
+it compiles and may spawn the verifier. It never submits. PASS and FAIL still
+**STOP** this agent.
 
 Profile root: load the `job-profile-root` skill now.
 
-Resolve every `data/*`, `cv/`, and `scout/` path against Profile root (not CWD, not skill dir).
-Unreadable required Fact file under a resolved root → stop and say so.
-Skill-local files: `./references/*` and `./scripts/compile.sh` only.
+Resolve every `data/*`, `cv/`, and `scout/` path against Profile root.
+Unreadable required Fact file → stop and say so.
+
+Skill-local files: `./references/contract-resume.md` and
+`./references/worker-verify.md` only.
 
 Writes only `scout/applications/`. Never `data/`, `cv/`, `scout/jobs/`.
 
-Read `./references/flow-resume.md` now.
-Load each additional reference only when that flow names it.
+Entered from `job-apply` Prepare → print `Chained from job-apply · {filename}`
+first.
 
-## References
+## Flow
 
-- Pipeline: `./references/flow-resume.md` (main-only)
-- Page contract: `./references/contract-resume.md` (paste card)
-- Verify worker: `./references/worker-verify.md`
-- Disk write law: `./references/schema-report.md` (main-only)
-- Loop B CLI: `./scripts/compile.sh` (resume main; `job-apply` Prepare may call it
-  only to build a missing `cv/` base)
+1. **Posting.** Argument = one `scout/jobs/` filename, `{name}.md`, or URL.
+   Two postings → STOP. No dossier → STOP: `No dossier for {arg}. Run /job-scout.`
+   Lookup is exact filename or normalized frontmatter `url`. Never company+title.
+   `status:` must be `new`. Any other → STOP, name
+   `{status} per scout/jobs/{filename}`. Do not write.
+   `slug` = filename minus `.md`.
+   Open the dossier `url`. `jd_excerpt` is a pointer, never the JD. Page dead →
+   STOP; do not tailor from the excerpt.
+   Print company, title, and each requirement with Fact evidence
+   (`direct` | `adjacent` | `none`).
+
+2. **Profile.** Load `./references/contract-resume.md`. Pick one
+   `data/cvs.yaml` `cvs[]` row (`targets` vs the ad; tie → `default`). Never
+   blend rows. Source = `cv/resume-{id}.tex` (or the row's `.pdf` stem → `.tex`).
+   Missing `.tex` → STOP: `No LaTeX base for {id}.` This skill never generates
+   the base.
+
+3. **CV.** First write: `mkdir -p scout/applications/{slug}`; unlink
+   `resume.pdf` / `resume.tex` if present.
+   Copy the base preamble and macros only. Fill from Facts under the contract.
+   Off-domain work does not print. Education prints when `data/education.yaml`
+   is readable and non-empty.
+   Compile with `pdflatex -interaction=nonstopmode -halt-on-error
+   -output-directory={dir} {tex}`. Set `TEXINPUTS` to the directory of
+   `kpsewhich glyphtounicode.tex` plus the `.tex` dir (bases
+   `\input{glyphtounicode}`; `cv/` does not ship it). Then `pdfinfo` and
+   `pdftotext -layout`. Missing binary → STOP, name it.
+   Not one page, or `pdflatex` fail → treat as verifier `fail` and adjust.
+
+4. **Verifier.** Isolated `spawn_subagent`, read-only. Brief is **only**
+   PROFILE_ROOT, the printed ad, PDF_TEXT (inline, not a path), verbatim
+   `contract-resume.md`, then `./references/worker-verify.md` deltas.
+   Never the `.tex`. Never this file.
+
+5. **Pass or adjust.** Expect `### Outcome`.
+   - `pass` → write `resume.pdf` / `resume.tex`. Write `match-report.md` with
+     `verdict: **PASS**`. Print it. **STOP**.
+   - `fail` → apply the named fixes from Facts, no new claims. Compile again.
+     Third `fail` → write `match-report.md` with `verdict: **FAIL**`, unlink
+     `resume.pdf` / `resume.tex`, **STOP**.
+
+## Output
+
+```
+scout/applications/{slug}/
+  match-report.md
+  resume.tex          # PASS only
+  resume.pdf          # PASS only
+```
+
+`resume.pdf` exists iff `match-report.md` prints `verdict: **PASS**`.
+
+```markdown
+# Match report · {company} · {title} · {YYYY-MM-DD}
+
+verdict: **PASS**
+
+## Outcome
+
+pass → resume.pdf written
+fail → {reason}; no canonical PDF
+```
