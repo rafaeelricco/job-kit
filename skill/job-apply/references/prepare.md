@@ -87,9 +87,9 @@ exactly equals the current ad's normalized URL, with `status: new`:
        Argument: {filename}
        PROFILE_ROOT: {abs}
 
-   Do not paste `flow-resume.md`, `contract-resume.md`, Facts, or this file.
+   Do not paste `contract-resume.md`, Facts, or this file.
    The child loads `job-profile-root` and resume refs itself. The child **is**
-   resume main: it may call `compile.sh` and spawn Loop A (`worker-verify`).
+   resume main: it may spawn the verifier.
 
 3. After the child returns, continue Prepare only when **this child
    invocation** printed `verdict: **PASS**` (its own output — not a leftover
@@ -108,8 +108,7 @@ do not fire the chain. Use the pick below.
 
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
-released by the operator. A PDF still missing or unopenable after the step (2)–(3)
-build below stops the run. Exactly one CV per
+released by the operator. A PDF still missing or unopenable stops the run. Exactly one CV per
 submission, chosen in this order and never more than one — **skip this pick when the
 chain above already supplied the tailored PDF**: (1)
 `scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
@@ -124,15 +123,8 @@ fits take the `default` id (ties go to `default`; never blend two rows; never
 invent an id or filename); (3) no registry, unreadable registry, empty `cvs`,
 or a `default` naming no row → `cv/en-us-resume.pdf`. Step (1) `file` is that
 canonical PDF. Steps (2)–(3) resolve under `cv/` and must open as a PDF.
-When that `.pdf` is missing and its sibling `cv/{stem}.tex` is readable, build it
-once instead of stopping: `job-resume/scripts/compile.sh {cv/{stem}.tex} {OUT_DIR}`,
-`OUT_DIR` a scratch directory outside the Profile root. Exit 0 → attach
-`OUT_DIR/{stem}.pdf`. Exit 3 with stdout `Pages: 1` → **STOP**: the page overflows its
-box and the PDF is clipped. Exit 3 with `Pages:` above 1 → attach; a registry base may
-run past one page, so that exit 3 is a page count, not a failure. Exit 1 or 2 →
-**STOP**, name the exit. Never write the build
-under `cv/`, and never rebuild a `.pdf` that already opens.
-Apply never authors LaTeX and never attaches `.tex`. The only producer of a
+Missing PDF → **STOP**, name the path. Apply never authors LaTeX, never
+compiles, and never attaches `.tex`. The only producer of a
 tailored LaTeX/PDF package is the `job-resume` child (or a prior `/job-resume`
 PASS leftover consumed at step (1)).
 
@@ -261,8 +253,7 @@ A failed in-band check stops before review.
 `id` is `tailored` when the chained resume PASS won or step (1) won, the
 `data/cvs.yaml` row id when step (2) won, or `fallback` when step (3) won.
 `file` is the absolute path of the PDF (never a `.tex`). `why` is one clause
-naming what selected that row (chained or step (1): `job-resume PASS`; a base
-built at the gate: `built from cv/{stem}.tex`).
+naming what selected that row (chained or step (1): `job-resume PASS`).
 Exactly one CV, chosen and proven openable at the ad gate. Submit uploads
 those reviewed bytes even when the ATS already shows the same filename.
 
