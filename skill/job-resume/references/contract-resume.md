@@ -22,20 +22,20 @@ Never read story bodies. Never answer from a prior draft or memory.
 `observations.yaml` is not a Fact file. `README.md` and `_`-prefixed
 basenames under `data/stories/` are not stories.
 
-| Fact | Read from |
-| --- | --- |
-| language level | `data/languages.yaml` `languages[].level` with `name` |
-| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml` |
-| remote / in-person and relocation preference | `data/candidate.yaml` `work_preferences_from_resume` |
-| assessments, drug tests, background checks | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys |
-| name, email, phone, site | `data/basics.yaml` |
-| LinkedIn, GitHub | `data/profiles.yaml` |
-| roles, employers, dates, public work bullets | `data/experiences.yml` |
-| public portfolio projects | `data/projects.yml` |
-| schools, credentials, graduation dates | `data/education.yaml` |
-| skills / stack inventory | `data/skills.yaml`, then `data/skills-by-company.yml` when present |
-| project depth, technical cause, outcomes | `data/experiences.yml` `summary`, `data/projects.yml` |
-| story claims and verified outcomes | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
+| Fact                                                         | Read from                                                                                                                                                         |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
+| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                             |
+| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                              |
+| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
+| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                |
+| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                              |
+| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                            |
+| public portfolio projects                                    | `data/projects.yml`                                                                                                                                               |
+| schools, credentials, graduation dates                       | `data/education.yaml`                                                                                                                                             |
+| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
+| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                             |
+| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
 
 Deduplicate every `never_say` entry as run-global bans on outbound free-text.
 

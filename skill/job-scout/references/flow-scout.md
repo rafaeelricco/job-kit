@@ -116,7 +116,7 @@ terminal and merge-eligible as an empty set. Carry the actual
 Every chosen pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
-Prefer non-`—` author; best channel per `flow-rank.md` `## Channel sort`.
+Prefer non-`—` author; best channel per `contract-rank.md` `## Channel sort`.
 
 ## Phase 3 — EXTRACT
 
@@ -150,8 +150,8 @@ Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / the ranked table.
 Location-gate drops already excluded above — do not score them.
 
-Load `./references/flow-rank.md`, `./references/format-report.md`, and
-`./references/contract-check.md`. Apply flow-rank hard-contradiction then
+Load `./references/contract-rank.md`, `./references/format-report.md`, and
+`./references/contract-check.md`. Apply contract-rank hard-contradiction then
 score, bucket, eligibility, and ordering; render with format-report.md.
 A row whose factors do not sum to its printed score is a defect: fix
 the row, do not adjust the sum. Then Phase 6.

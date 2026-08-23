@@ -171,20 +171,20 @@ Build `### Letter plan` in fixed slot order. Each always-on slot (1–4 and 7) h
 evidence; slots 5–6 state `fired` with trigger and evidence or `not fired` with trigger.
 Add `### Forbidden claims` containing every run-global `never_say` entry and its source.
 Add `### Ad formats` naming the ad's stated subject, links, salary, project count, and
-length, each with its value or `none` — precedence 2 in `letter-contract.md` binds these
+length, each with its value or `none` — precedence 2 in `contract-letter.md` binds these
 only when the plan carries them.
 Do not write prose until the plan is complete.
 
 The drafting brief contains only the completed `### Letter plan`, its exact approved
 evidence rows and sources, `### Forbidden claims`, and the verbatim contents of
-`./references/letter-contract.md`. It contains no Profile root, Fact paths, `### Fit`,
+`./references/contract-letter.md`. It contains no Profile root, Fact paths, `### Fit`,
 or `### Left out`.
 
 Verify the draft before Review. Load `./references/worker-letter.md` and dispatch one
 isolated `spawn_subagent`, read-only. The brief is **only** the completed
 `### Letter plan` (including `### Ad formats`), `### Forbidden claims`, the letter text,
 every staged free-text value with the question it answers, and the verbatim contents of
-`./references/letter-contract.md`, then the worker-letter deltas. Never a Profile root, a
+`./references/contract-letter.md`, then the worker-letter deltas. Never a Profile root, a
 Fact path, `### Fit`, `### Left out`, or this file. Expect `### Outcome`.
 
 - `pass` → emit the review below and stop
@@ -234,7 +234,7 @@ operator rows remain for the operator to finish.
 
 ### Salary derivation
 
-Print whenever salary is staged; otherwise `_(none)_`. Use `screening.md` and print:
+Print whenever salary is staged; otherwise `_(none)_`. Use `contract-screening.md` and print:
 
     ours:       {ours.min} - {ours.max} USD
     ad printed: {job.min} - {job.max} USD, or `none`

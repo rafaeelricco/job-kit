@@ -8,17 +8,17 @@ description: "Prepare one job application from a posting, then submit it after e
 Load `job-profile-root` first. Resolve every profile path against its canonical
 root, never the session CWD. One posting at a time.
 
-| State   | Opens when                                                                   | Authority and mutation                                                                                                                                                                              |
-| ------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prepare | A posting or application request is available                                | Read `./references/prepare.md`; read-only profile and browser navigation; stage proposed values only — except an isolated `job-resume` child may write `scout/applications/` when Prepare chains it |
-| Submit  | The operator explicitly approves the current review                          | Read `./references/submit.md`; live browser fields, attachments, terms, and submission                                                                                                              |
-| Record  | Clear success evidence or explicit `sent`/`submitted`/`applied` confirmation | Read `./references/record.md`; dossier-store writes only                                                                                                                                            |
+| State   | Opens when                                                                   | Authority and mutation                                                                                                                                                                                   |
+| ------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prepare | A posting or application request is available                                | Read `./references/flow-prepare.md`; read-only profile and browser navigation; stage proposed values only — except an isolated `job-resume` child may write `scout/applications/` when Prepare chains it |
+| Submit  | The operator explicitly approves the current review                          | Read `./references/flow-submit.md`; live browser fields, attachments, terms, and submission                                                                                                              |
+| Record  | Clear success evidence or explicit `sent`/`submitted`/`applied` confirmation | Read `./references/flow-record.md`; dossier-store writes only                                                                                                                                            |
 
-Read `./references/screening.md` only when the posting or live form asks about
+Read `./references/contract-screening.md` only when the posting or live form asks about
 salary, authorization, sponsorship, employment route, work location, assessments,
 background checks, or related screening. The operator owns demographic and EEO fields.
 
-Drafting contract: `./references/letter-contract.md`. Letter verifier:
+Drafting contract: `./references/contract-letter.md`. Letter verifier:
 `./references/worker-letter.md`, dispatched as an isolated child in Prepare Phase 3 and
 never loaded in-session. Phase 3 skips the letter entirely when the channel takes none.
 

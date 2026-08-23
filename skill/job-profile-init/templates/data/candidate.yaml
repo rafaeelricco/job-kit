@@ -14,7 +14,7 @@ legal_authorization:
   # One row per country. job-apply reads only the row whose `country` matches
   # the question. A country with no row has no stored answer — never copy
   # another row onto it. Profiles that still have the old us_*/eu_*/canada_*/uk_*
-  # scalars and no `jurisdictions` list: apply reads those keys (`screening.md`).
+  # scalars and no `jurisdictions` list: apply reads those keys (`contract-screening.md`).
   jurisdictions: [] # TODO each: {country, work_authorization, legally_allowed_to_work, requires_visa, requires_sponsorship}
 
 employment_routes:
