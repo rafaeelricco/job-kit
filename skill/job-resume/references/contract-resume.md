@@ -90,16 +90,17 @@ unless every entry is a `projects.yml` or `experiences.yml` row.
   paste `claim` when `evidence.decision` and `evidence.impact` exist. Render
   Action+Result from those fields (joiners only): what was chosen and what it
   replaced, then the `impact` outcome. Else one `summary[]` bullet (joiners
-  only). Zero new nouns except Bounded stretch stack nouns. Conjunction of two
-  such clauses is allowed. A verb the source does not print is not a summary,
-  except `made`/`replaced`/`chose` when `decision` already names that act.
+  only). Zero new nouns except Bounded stretch stack nouns. A verb the source
+  does not print is not a summary, except `made`/`replaced`/`chose` when
+  `decision` already names that act. Shape: `## Sentence law`.
 - Experience `\resumeItem`s: same voice. Prefer `summary[]` and
   `evidence.decision`/`impact` over `claim`. Do not duplicate Summary as the
   carrying role's first bullet.
 - Outbound voice: prefer owned / built / shipped / replaced / made. Ban:
   `invented`, `passionate`, `proactive`, `team player`, and `led` unless the
-  Fact clause prints it. Mechanism ships only as means of the replace/outcome
-  clause, never as the Summary opener. Stack tokens stay in headline, skills,
+  Fact clause prints it. Mechanism ships as a named noun inside the
+  replace/outcome clause, never as the Summary opener and never as an
+  explanation of how it works. Stack tokens stay in headline, skills,
   years line, or Fact-native role bullets — not inside the Result clause.
 
 ### Bounded stretch
@@ -114,6 +115,40 @@ unless every entry is a `projects.yml` or `experiences.yml` row.
 - When Fit is `direct` on years-of-experience, print the years-of-X floor
   (never higher) in summary or under skills.
 
+## Sentence law
+
+Governs Summary and every `\resumeItem`. The reader is outside the company and
+scans the page. Prose only an insider can follow does not survive the scan.
+
+- One sentence per claim, 30 words maximum. Two clauses joined by `and`, `so`,
+  or `then` is the ceiling. A third clause is a second claim: cut it, or give
+  it its own bullet.
+- No mid-sentence aside. No em dash pair, no parenthetical, no relative clause
+  that explains how a thing works. A relative clause that only identifies
+  which thing is fine. Test: if the sentence still reads with the span
+  deleted, delete the span.
+- Name the mechanism, never explain it. `a searchable combobox` is a noun and
+  prints. How it caps what it mounts is an internal mechanism story and does
+  not print.
+- The outcome is what the reader can now do, not what the code now does.
+
+One Fact, rendered wrong and then right:
+
+> Replaced an organization picker's plain select, which rendered every
+> organization in the system — 29,563 options measured against the live
+> application — with a searchable combobox that caps how many options are
+> mounted at once, so operators can open and use the campaigns and events
+> pages instead of waiting through a multi-second freeze.
+
+Fifty-one words. Four claims, two asides, one measurement method, and a
+mechanism explaining itself.
+
+> Replaced the organization picker's plain select with a searchable combobox,
+> so operators can open the campaigns and events pages instead of waiting on
+> them.
+
+Twenty-four words. Decision and outcome survive. Nothing else was Fact.
+
 ## Title, numbers, credit, client
 
 Quantitative numbers in claim prose ship only when they are an `impact_numbers`
@@ -126,6 +161,10 @@ produced, or print nothing. Phone numbers, URLs, dates, and
 other verbatim Fact fields are governed by their traceability checks instead.
 Process numbers in claim prose never ship, as digits or words. No eligible
 number → qualitative Fact clause only. Never estimate.
+
+An eligible number prints inside its own clause, as the object or the result.
+Never as a mid-sentence aside, and never beside how it was measured: the
+method is not an achievement and does not print.
 
 years-of-X: union of `date` ranges on rows whose `summary` (or a story with
 matching `company`) evidences X; `Present`/`present` = run date; floor
@@ -169,6 +208,7 @@ the run. PDF_TEXT empty or unreadable → `unjudgeable`.
 | 20  | no `invented`/`passionate`/`proactive`/`team player` on the page; Summary is Action+Result from `decision`+`impact` (or `summary[]` if no story), not `claim`; Summary text is not duplicated as the carrying role's first bullet                   | `repair`                             |
 | 21  | every printed `\resumeItem`, project row, and role is `direct`, `adjacent`, or on-domain per ### Ad `discipline`/`bonus`; an off-domain bullet or role is a fail                                                                                    | `repair`                             |
 | 22  | every printed skill token is `direct`, `adjacent`, or the ### Ad discipline's stack; spoken languages exempt                                                                                                                                        | `repair`                             |
+| 23  | every Summary sentence and printed `\resumeItem` is one claim in 30 words or fewer, with no mid-sentence aside (em dash pair, parenthetical, or a relative clause explaining how a thing works), and no measurement method printed beside a number  | `repair`                             |
 
 Pick exactly one Outcome, first match:
 

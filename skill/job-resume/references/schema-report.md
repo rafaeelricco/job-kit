@@ -104,7 +104,7 @@ attempt: {N}
 Main estimates both lenses from PDF_TEXT + ### Ad after Loop A `pass`. Below
 ATS 75 or LLM 7 routes per `flow-resume.md` Loop A — one skim rewrite toward
 above-the-fold `direct`s, never a FAIL reason. Truth gate wins: a second skim
-fail still PASSes when checks 1–20 pass.
+fail still PASSes when every check in the Checker table passes.
 
 ## Numbers
 
