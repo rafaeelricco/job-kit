@@ -18,7 +18,9 @@ Read `./references/screening.md` only when the posting or live form asks about
 salary, authorization, sponsorship, employment route, work location, assessments,
 background checks, or related screening. The operator owns demographic and EEO fields.
 
-Drafting contract: `./references/letter-contract.md`.
+Drafting contract: `./references/letter-contract.md`. Letter verifier:
+`./references/worker-letter.md`, dispatched as an isolated child in Prepare Phase 3 and
+never loaded in-session. Phase 3 skips the letter entirely when the channel takes none.
 
 Prepare emits the complete review and stops. A bare `done` or `ok` does not confirm
 submission. When Duplicate check resolves a dossier with `status: new` whose normalized

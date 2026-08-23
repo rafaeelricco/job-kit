@@ -108,7 +108,8 @@ do not fire the chain. Use the pick below.
 
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
-released by the operator. Missing or unopenable PDF stops the run. Exactly one CV per
+released by the operator. A PDF still missing or unopenable after the step (2)–(3)
+build below stops the run. Exactly one CV per
 submission, chosen in this order and never more than one — **skip this pick when the
 chain above already supplied the tailored PDF**: (1)
 `scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
@@ -123,9 +124,17 @@ fits take the `default` id (ties go to `default`; never blend two rows; never
 invent an id or filename); (3) no registry, unreadable registry, empty `cvs`,
 or a `default` naming no row → `cv/en-us-resume.pdf`. Step (1) `file` is that
 canonical PDF. Steps (2)–(3) resolve under `cv/` and must open as a PDF.
-Apply never typesets and never attaches `.tex`. The only producer of a tailored
-LaTeX/PDF package is the `job-resume` child (or a prior `/job-resume` PASS
-leftover consumed at step (1)). Never call `compile.sh` or `pdflatex` from Apply.
+When that `.pdf` is missing and its sibling `cv/{stem}.tex` is readable, build it
+once instead of stopping: `job-resume/scripts/compile.sh {cv/{stem}.tex} {OUT_DIR}`,
+`OUT_DIR` a scratch directory outside the Profile root. Exit 0 → attach
+`OUT_DIR/{stem}.pdf`. Exit 3 with stdout `Pages: 1` → **STOP**: the page overflows its
+box and the PDF is clipped. Exit 3 with `Pages:` above 1 → attach; a registry base may
+run past one page, so that exit 3 is a page count, not a failure. Exit 1 or 2 →
+**STOP**, name the exit. Never write the build
+under `cv/`, and never rebuild a `.pdf` that already opens.
+Apply never authors LaTeX and never attaches `.tex`. The only producer of a
+tailored LaTeX/PDF package is the `job-resume` child (or a prior `/job-resume`
+PASS leftover consumed at step (1)).
 
 ## Phase 1 — FIT
 
@@ -152,9 +161,26 @@ carrying project exists, and supports are at most two. Only then open Phase 3.
 
 ## Phase 3 — PLAN → draft → review
 
+Classify the letter channel first and print `Letter: {required|optional|none} · {why}`.
+`direct_email`, `dm_request`, and `founder` are always `required`: the letter is the
+message. On `ats`, reveal the application form (navigation, below) and read its fields.
+An ad or form that states a letter, statement, or written answer is `required`; a
+cover-letter, message, or free-text field offered without being demanded is `optional`;
+no such field and no such ad line is `none`. Judge a field by the question it asks, never
+by its tag: a hidden, disabled, or bot-check field is not a letter field, and a form whose
+only `textarea` is `g-recaptcha-response` takes no letter.
+
+`none` skips the rest of this phase's letter work: no `### Letter plan`, no draft, no
+verify loop. Print `### Draft` as `_(n/a — the form takes no letter)_` and go to Review
+with the CV pick and staged form values unchanged. Never attach a letter as an
+unrequested file, and never paste one into a field that did not ask for it.
+
 Build `### Letter plan` in fixed slot order. Each always-on slot (1–4 and 7) has
 evidence; slots 5–6 state `fired` with trigger and evidence or `not fired` with trigger.
 Add `### Forbidden claims` containing every run-global `never_say` entry and its source.
+Add `### Ad formats` naming the ad's stated subject, links, salary, project count, and
+length, each with its value or `none` — precedence 2 in `letter-contract.md` binds these
+only when the plan carries them.
 Do not write prose until the plan is complete.
 
 The drafting brief contains only the completed `### Letter plan`, its exact approved
@@ -162,8 +188,20 @@ evidence rows and sources, `### Forbidden claims`, and the verbatim contents of
 `./references/letter-contract.md`. It contains no Profile root, Fact paths, `### Fit`,
 or `### Left out`.
 
-Run the checker in `letter-contract.md` before Review. Failure returns to Phase 2;
-pass emits the review below and stops. Stage proposed form values in the review only.
+Verify the draft before Review. Load `./references/worker-letter.md` and dispatch one
+isolated `spawn_subagent`, read-only. The brief is **only** the completed
+`### Letter plan` (including `### Ad formats`), `### Forbidden claims`, the letter text,
+every staged free-text value with the question it answers, and the verbatim contents of
+`./references/letter-contract.md`, then the worker-letter deltas. Never a Profile root, a
+Fact path, `### Fit`, `### Left out`, or this file. Expect `### Outcome`.
+
+- `pass` → emit the review below and stop
+- `repair` → rewrite the prose from the same plan rows (repair count += 1; max 2) → re-dispatch
+- `reject` → return to Phase 2 (reject count += 1; max 1) → replan → re-dispatch
+- repair count already 2, or reject count already 1 and still not `pass` → **STOP** and
+  name the surviving check
+
+Stage proposed form values in the review only.
 Do not create/sign in to an account or submit before approval.
 
 Label is not authority: an Apply, Easy Apply, or Start application control that only
@@ -188,7 +226,8 @@ whenever Phase 0 printed it.
 ### Draft
 
 Print the letter as it would be sent, then quote its first sentence. The first sentence
-states fit, not interest.
+states fit, not interest. Letter channel `none` prints
+`_(n/a — the form takes no letter)_` and nothing else.
 
 ### Form fields
 
@@ -222,7 +261,8 @@ A failed in-band check stops before review.
 `id` is `tailored` when the chained resume PASS won or step (1) won, the
 `data/cvs.yaml` row id when step (2) won, or `fallback` when step (3) won.
 `file` is the absolute path of the PDF (never a `.tex`). `why` is one clause
-naming what selected that row (chained or step (1): `job-resume PASS`).
+naming what selected that row (chained or step (1): `job-resume PASS`; a base
+built at the gate: `built from cv/{stem}.tex`).
 Exactly one CV, chosen and proven openable at the ad gate. Submit uploads
 those reviewed bytes even when the ATS already shows the same filename.
 
