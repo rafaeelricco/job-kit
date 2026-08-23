@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
-# Corpus smoke: four score-9 status:new dossiers + compile.sh on predicted bases.
+# Toolchain smoke: every base CV in the profile still compiles through compile.sh.
 # Usage: smoke.sh PROFILE_ROOT
-# Does not write scout/applications/. Does not open posting URLs.
+# Catches a missing pdflatex/pdfinfo/pdftotext and a base .tex that stopped
+# compiling — both of which otherwise surface mid-run as a confusing Loop B failure.
+# Does not read scout/, write scout/applications/, or open posting URLs.
 # compile.sh exit 0 or 3 is pass (profile bases still carry Education).
 # exit 1 or 2 fails the smoke.
 
 set -euo pipefail
 
 ROOT=${1:-${PROFILE_ROOT:-}}
-if [[ -z "${ROOT}" || ! -d "${ROOT}/scout/jobs" || ! -d "${ROOT}/cv" ]]; then
+if [[ -z "${ROOT}" || ! -d "${ROOT}/cv" ]]; then
   echo "usage: smoke.sh PROFILE_ROOT" >&2
   exit 1
 fi
@@ -24,41 +26,9 @@ need pdftotext
 
 fail=0
 
-check_dossier() {
-  local rel=$1
-  local f="${ROOT}/${rel}"
-  echo "dossier ${rel}"
-  if [[ ! -f "${f}" ]]; then
-    echo "  FAIL missing file"
-    fail=1
-    return
-  fi
-  local st sc
-  st=$(awk '/^status:/{print $2; exit}' "${f}")
-  sc=$(awk '/^score:/{print $2; exit}' "${f}")
-  if [[ "${st}" != "new" ]]; then
-    echo "  FAIL status=${st} want new"
-    fail=1
-  fi
-  if [[ "${sc}" != "9" ]]; then
-    echo "  FAIL score=${sc} want 9"
-    fail=1
-  fi
-  if ! grep -q '^url: "' "${f}"; then
-    echo "  FAIL no url"
-    fail=1
-  fi
-}
-
 compile_base() {
-  local id=$1
-  local tex="${ROOT}/cv/resume-${id}.tex"
-  echo "compile resume-${id}.tex"
-  if [[ ! -f "${tex}" ]]; then
-    echo "  FAIL missing tex"
-    fail=1
-    return
-  fi
+  local tex=$1
+  echo "compile $(basename "${tex}")"
   local out rc
   out=$(mktemp -d)
   set +e
@@ -73,20 +43,18 @@ compile_base() {
   rm -rf "${out}"
 }
 
-# Vanta / Sr. Fullstack — predict senior-fullstack
-check_dossier "scout/jobs/2026-08-19-vanta--sr-fullstack-software-engineer-integrations-platform.md"
-compile_base senior-fullstack
+shopt -s nullglob
+bases=("${ROOT}"/cv/resume-*.tex)
+shopt -u nullglob
 
-# Oddball / Lead Front End — predict senior-frontend
-check_dossier "scout/jobs/2026-08-20-oddball--lead-front-end-engineer.md"
-compile_base senior-frontend
+if [[ ${#bases[@]} -eq 0 ]]; then
+  echo "FAIL no cv/resume-*.tex in ${ROOT}" >&2
+  exit 1
+fi
 
-# Avenue Code / Senior AI Engineer — predict ai-systems
-check_dossier "scout/jobs/2026-08-18-avenue-code--senior-ai-engineer.md"
-compile_base ai-systems
+for tex in "${bases[@]}"; do
+  compile_base "${tex}"
+done
 
-# Vercel / Internal Agent — predict product-engineer-agents
-check_dossier "scout/jobs/2026-08-18-vercel--member-of-the-technical-staff-internal-agent.md"
-compile_base product-engineer-agents
-
+echo "${#bases[@]} base(s) compiled"
 exit "${fail}"
