@@ -200,8 +200,9 @@ Initial render is not a rewrite.
 Apply `### Repairs` from Facts. No new claims. Filter `never_say`, then re-read
 what you wrote against the `redact`-class checks (6, 7, 8, 9-absent, 10, 11, 13):
 a repair that introduces one of them spends the run's single redaction, and a
-second one ends the run in `redact exhausted`. Write the next `attempt-N.tex`.
-Do not compile here.
+second one ends the run in `redact exhausted`. Re-read it against checks 20 and
+23 as well: a rewrite that reintroduces a banned word or a dense sentence is
+not a repair. Write the next `attempt-N.tex`. Do not compile here.
 
 ## Phase 4b — redact (main)
 
