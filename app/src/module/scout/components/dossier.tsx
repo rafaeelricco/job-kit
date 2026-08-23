@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { CopyButton } from "@/components/ui/copy"
 import { ColumnDef, DataTable } from "@/components/ui/datatable"
 import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
 import {
@@ -28,6 +29,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toApplyPrompt } from "@/module/scout/helpers/apply-prompt"
 import type { ColumnId } from "@/module/scout/helpers/columns"
 import { COLUMNS, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
+import { toDossierText } from "@/module/scout/helpers/dossier-text"
 import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
 import { httpHref } from "@/module/scout/helpers/href"
 import { assertNever } from "@/module/scout/result"
@@ -410,6 +412,12 @@ function DossierSheet(props: DossierSheetProps) {
                     <ExternalLinkIcon className="size-3" />
                   </a>
                 )}
+              </div>
+              {/* Its own row, not the meta line: SheetHeader is flex-col, and
+                  the header's pr-12 already clears the sheet's own close
+                  button at absolute top-3 right-3 (sheet.tsx:63). */}
+              <div className="flex flex-wrap items-center gap-2 pt-3">
+                <CopyButton value={() => toDossierText(dossier)} label="Copy dossier" />
               </div>
             </SheetHeader>
 
