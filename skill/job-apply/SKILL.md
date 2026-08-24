@@ -14,5 +14,8 @@ One posting at a time.
 
 When the operator message is explicit `sent`, `submitted`, or `applied`
 confirmation, read `./references/flow-record.md` now.
+When the operator message resumes a paused Submit or approves added fields
+(`yes`, `done`, `ok`, and not `sent`/`submitted`/`applied`), read
+`./references/flow-submit.md` now.
 Otherwise read `./references/flow-prepare.md` now.
 Load each additional reference only when that flow names it.
