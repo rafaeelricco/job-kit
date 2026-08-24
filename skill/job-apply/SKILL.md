@@ -12,5 +12,7 @@ Skill-local files: `./references/*` only.
 
 One posting at a time.
 
-Read `./references/flow-prepare.md` now.
+When the operator message is explicit `sent`, `submitted`, or `applied`
+confirmation, read `./references/flow-record.md` now.
+Otherwise read `./references/flow-prepare.md` now.
 Load each additional reference only when that flow names it.
