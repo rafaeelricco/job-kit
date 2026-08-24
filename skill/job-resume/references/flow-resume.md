@@ -55,6 +55,8 @@ Then `pdfinfo` and `pdftotext -layout`. Missing binary → STOP, name it.
 
 A TeX error is an environment or macro fault: fix it and recompile. That is
 not a Facts fault and does not compact.
+If the error is in the copied preamble (through `\begin{document}`), STOP
+with the log excerpt; do not edit the base preamble.
 
 Overflow = not one complete page, or `Overfull \vbox` in `{dir}/{stem}.log`.
 Overfull `\hbox` is not overflow.
