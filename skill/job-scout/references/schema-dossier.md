@@ -42,7 +42,7 @@ status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
 score: 9 # 0–9, or — when the row is unscored
-bucket: direct # bucket_short vocab, flow-rank.md `## Bucket`
+bucket: direct # bucket_short vocab, contract-rank.md `## Bucket`
 channel: ats
 ---
 
@@ -56,7 +56,7 @@ score **9** · direct · live · {the search `why` string verbatim}
 | -----: | --------: | -------: | --: |
 |      7 |         2 |        — |   9 |
 
-Factors and sum exactly as `flow-rank.md` `## Score` computed them. A mismatch is
+Factors and sum exactly as `contract-rank.md` `## Score` computed them. A mismatch is
 a defect.
 
 Unscored row — `## Score` returned `—` because the posting printed no
@@ -93,7 +93,7 @@ did not print it.
 | jd_date         | 2026-08-01         |
 | blocker         | —                  |
 
-`blocker` is main-derived (`flow-rank.md` `## Bucket`), not a gated column — recompute
+`blocker` is main-derived (`contract-rank.md` `## Bucket`), not a gated column — recompute
 it here; never read it off a row.
 
 ## From the posting

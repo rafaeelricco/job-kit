@@ -23,7 +23,11 @@ identifier punctuation (`+`, `#`, `.`) so `C++`, `C#`, and `Node.js`
 stay distinct. Match normalized values exactly; never infer aliases.
 
 If `R` is absent/`—`, or `C` is empty, the row is unscored (`score: —`) and
-lists under Gaps.
+lists under Gaps. `R` absent while the row's `jd_excerpt` itself prints a
+Requirements / Qualifications / Must have / You have section that names at
+least one value `contract-extract.md` `required_skills` admits is a defect:
+re-extract once per that file's `## How a field is read`. Still absent after
+that pass, or the section names no such value → unscored, as above.
 
 `skills = floor(cap × |R ∩ C| / |R|)` where `cap=7`, or `cap=5` when geo/auth
 participates.
@@ -64,7 +68,11 @@ Derived from extract output plus kit `employment_routes` and `job_search.yaml`
    `employment_routes.direct_contractor != Yes` → `unbucketed`;
    blocker `Contractor route not enabled in profile`
 5. Printed jurisdiction/work-auth or country/region restriction → `restricted-geo`,
-   blocker = printed restriction
+   blocker = printed restriction. The restriction must come from `work_auth` or
+   `hiring_route`, or from a `location` that itself prints a restricting word
+   (`only`, `must`, `based in`, `residents of`, `eligible to work in`). A bare
+   place name in `location` — `Germany`, `United States`, `Berlin`, a timezone —
+   is not a restriction and falls to rung 6.
 6. Otherwise → `unbucketed`
 
 `unbucketed` enters no ranked table or Do this first — it still gets a dossier and
@@ -73,6 +81,11 @@ country. `direct` and `EOR` name the hire-from route the JD prints, not its loca
 
 `bucket_short` is the bucket value itself — `direct` | `EOR` | `restricted-geo` |
 `unbucketed`, spelled exactly as the ladder above mints it. Nothing abbreviates it.
+
+Print `url | bucket | rung | blocker` in chat for every scored row, before
+`format-report.md`'s Header. `rung` is the ladder number, 1–6, that minted the
+bucket. A bucket with no rung, or a rung whose printed condition the row does
+not meet, is a defect: fix the row, do not adjust the bucket.
 
 ## Channel sort (report tables)
 

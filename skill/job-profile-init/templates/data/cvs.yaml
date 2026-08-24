@@ -3,9 +3,15 @@
 # edits it. Absent file, empty `cvs`, or no `default` → job-apply falls back to
 # `cv/en-us-resume.pdf`, so a profile without this file still applies.
 # file = path under `cv/`; must open as a PDF. NEVER a `.tex`.
-# targets = prose job-apply matches against the ad. Write what the CV is for.
-# default = the id used when no row clearly matches the ad.
+# targets = prose job-apply matches against the ad when it is not tailoring.
+# default = the id used as the job-resume LaTeX base, and as the attach
+# fallback when no row's targets fit.
+# adapt_per_vacancy = true → job-apply chains job-resume on a status:new
+# dossier. false → never chain; attach a registry PDF. Absent key → true.
+# job-resume source is cv/resume-{default}.tex (else the default row's
+# .pdf stem → .tex). This file never names a .tex.
 
 default: ""
+adapt_per_vacancy: true
 
 cvs: []

@@ -34,6 +34,10 @@ Glob `data/*.{yaml,yml}`. Conflict: candidate wins people prefs; job_search wins
    driver that can open a page, click a control, and hold a logged-in session →
    **STOP** before the pack pick and name what is missing. A text fetcher is not
    a driver.
+   Print `Runtime: workers` when this session can spawn an independent
+   subagent to run a worker file, else `Runtime: inline`. Inline is not a
+   defect — it changes who emits the per-unit blocks in Phases 1 and 3,
+   never whether they are emitted.
    `job_search.yaml` carrying a key scout does not consume → **STOP**: name the
    file and the key, and say to migrate via `/job-profile-me`. Consumed keys are
    exactly `work_model`, `seniority_level`, `job_types`, `date_posted`,
@@ -84,6 +88,10 @@ append the selected surface delta. Do not run a pack when either `surface` names
 `worker-search-*.md` in this skill or `entry` is not one `http(s)` URL. Main emits
 empty `### Candidates`, then `### Defect log` with this contract-shaped Defect row:
 `{id} | 0 | 0 | defect: unsupported_pack {id}`.
+`Runtime: inline` → main itself runs the loaded worker file for that pack, one
+pack at a time, and prints that pack's `### Candidates` + `### Defect log`
+before starting the next pack. Every rule that binds a worker in this phase
+binds main here.
 Legacy `entry` (source-row list, or `from data/sources.yaml <group>`) is a dry pack,
 not `unsupported_pack`. Gaps: each source row its own pack with that row's URL as
 `entry`, or drop the pack.
@@ -108,7 +116,7 @@ terminal and merge-eligible as an empty set. Carry the actual
 Every chosen pack id must have Defect log row before extract.
 
 Merge per `./references/contract-search.md` "URL normalize". One row per normalized URL.
-Prefer non-`—` author; best channel per `flow-rank.md` `## Channel sort`.
+Prefer non-`—` author; best channel per `contract-rank.md` `## Channel sort`.
 
 ## Phase 3 — EXTRACT
 
@@ -118,6 +126,10 @@ Batch size = 5 job URLs. For each unique job URL batch run `worker-extract`;
 independent batches may parallel up to 5; each batch opens URLs one at a time.
 Batches that would gate-pass the same host are not independent — serialize them, same
 rule as Phase 1. Expect `### Verified` rows.
+`Runtime: inline` → main itself runs the loaded `worker-extract` file, one
+batch at a time, no parallelism, and prints each batch's `### Verified` rows
+before starting the next batch. Every rule that binds a worker in this phase
+binds main here.
 
 ## Phase 4 — CONTRACT GATE (main)
 
@@ -138,8 +150,8 @@ Drop dead from scored tables. Uncertain = unscored; lands under Gaps only;
 never displace a scored row; never enter Do this first / the ranked table.
 Location-gate drops already excluded above — do not score them.
 
-Load `./references/flow-rank.md`, `./references/format-report.md`, and
-`./references/contract-check.md`. Apply flow-rank hard-contradiction then
+Load `./references/contract-rank.md`, `./references/format-report.md`, and
+`./references/contract-check.md`. Apply contract-rank hard-contradiction then
 score, bucket, eligibility, and ordering; render with format-report.md.
 A row whose factors do not sum to its printed score is a defect: fix
 the row, do not adjust the sum. Then Phase 6.

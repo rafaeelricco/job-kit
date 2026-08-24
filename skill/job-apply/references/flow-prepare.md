@@ -14,20 +14,20 @@ Read the named file; stop if unreadable. Absent is absent — never guess. Never
 read story bodies. Never answer from a prior draft or memory. Legacy fallbacks
 remain readable when present.
 
-| Fact                                                         | Read from                                                                                                                                                         |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
-| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                             |
-| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                              |
-| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
-| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                |
-| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                              |
-| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                            |
-| public portfolio projects                                    | `data/projects.yml`                                                                                                                                               |
-| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
-| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                             |
-| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
-| CV variants and which to attach                              | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent, empty, or undecidable → `cv/en-us-resume.pdf`                                |
+| Fact                                                         | Read from                                                                                                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                                           |
+| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                                           |
+| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                                            |
+| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                                 |
+| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                              |
+| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                                            |
+| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                                          |
+| public portfolio projects                                    | `data/projects.yml`                                                                                                                                                             |
+| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                              |
+| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                                           |
+| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say`               |
+| CV variants and which to attach                              | `data/cvs.yaml` `adapt_per_vacancy` (absent → true), `default`, `cvs[]` (`id`, `file` under `cv/`, `targets`); absent file, empty `cvs`, or undecidable → `cv/en-us-resume.pdf` |
 
 Deduplicate every `never_say` entry as run-global bans on outbound free-text.
 Exact or semantically equivalent claims fail the draft checker.
@@ -77,7 +77,8 @@ store stops and names the path. For either non-blocking outcome, also print
 
 ### Chained job-resume (status: new dossier only)
 
-When Duplicate check resolved a dossier whose normalized frontmatter URL
+When `data/cvs.yaml` `adapt_per_vacancy` is true (absent key → true) **and**
+Duplicate check resolved a dossier whose normalized frontmatter URL
 exactly equals the current ad's normalized URL, with `status: new`:
 
 1. Print `Chained job-resume · {filename}`.
@@ -87,13 +88,14 @@ exactly equals the current ad's normalized URL, with `status: new`:
        Argument: {filename}
        PROFILE_ROOT: {abs}
 
-   Do not paste `flow-resume.md`, `contract-resume.md`, Facts, or this file.
+   Do not paste `contract-resume.md`, Facts, or this file.
    The child loads `job-profile-root` and resume refs itself. The child **is**
-   resume main: it may call `compile.sh` and spawn Loop A (`worker-verify`).
+   resume main: it may spawn the verifier.
 
 3. After the child returns, continue Prepare only when **this child
    invocation** printed `verdict: **PASS**` (its own output — not a leftover
-   file) **and** `scout/applications/{slug}/resume.pdf` opens as a PDF **and**
+   file) **and** exactly one `scout/applications/{slug}/*_Curriculo.pdf`
+   opens as a PDF **and**
    `scout/applications/{slug}/match-report.md` prints `verdict: **PASS**`.
    `{slug}` = `{filename}` minus `.md` — never rebuilt from company and title.
    That path is this run's only CV (`id: tailored`, `why: job-resume PASS`).
@@ -106,26 +108,34 @@ exactly equals the current ad's normalized URL, with `status: new`:
 No matched dossier, a company/title-only match, or matched `status:` ≠ `new`:
 do not fire the chain. Use the pick below.
 
+`adapt_per_vacancy: false`: print `Skipped job-resume · adapt_per_vacancy: false`.
+Do not fire the chain. Use the pick below, and skip leftover step (1) so this
+run attaches a registry PDF rather than a prior tailored file.
+
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
-released by the operator. Missing or unopenable PDF stops the run. Exactly one CV per
+released by the operator. A PDF still missing or unopenable stops the run. Exactly one CV per
 submission, chosen in this order and never more than one — **skip this pick when the
-chain above already supplied the tailored PDF**: (1)
-`scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
+chain above already supplied the tailored PDF**. Skip step (1) when
+`adapt_per_vacancy` is false: (1)
+exactly one `scout/applications/{slug}/*_Curriculo.pdf` when that file opens
+as a PDF, the
 matching report (`match-report.md`) prints `verdict: **PASS**`, and the matched dossier's
 normalized frontmatter URL exactly equals the current ad's normalized URL.
 `{slug}` is that exact-URL dossier's filename minus `.md` — never rebuilt from
 company and title. A company/title-only duplicate never supplies this leftover
-`{slug}`; a FAIL report, a missing PDF, or a missing report is not this step;
+`{slug}`; a FAIL report, a missing PDF, more than one `*_Curriculo.pdf`, or a
+missing report is not this step;
 (2) `data/cvs.yaml` readable with a non-empty `cvs` — read every
 row's `targets`, take the one row the ad fits best, and when no row clearly
 fits take the `default` id (ties go to `default`; never blend two rows; never
 invent an id or filename); (3) no registry, unreadable registry, empty `cvs`,
 or a `default` naming no row → `cv/en-us-resume.pdf`. Step (1) `file` is that
 canonical PDF. Steps (2)–(3) resolve under `cv/` and must open as a PDF.
-Apply never typesets and never attaches `.tex`. The only producer of a tailored
-LaTeX/PDF package is the `job-resume` child (or a prior `/job-resume` PASS
-leftover consumed at step (1)). Never call `compile.sh` or `pdflatex` from Apply.
+Missing PDF → **STOP**, name the path. Apply never authors LaTeX, never
+compiles, and never attaches `.tex`. The only producer of a
+tailored LaTeX/PDF package is the `job-resume` child (or a prior `/job-resume`
+PASS leftover consumed at step (1)).
 
 ## Phase 1 — FIT
 
@@ -152,18 +162,47 @@ carrying project exists, and supports are at most two. Only then open Phase 3.
 
 ## Phase 3 — PLAN → draft → review
 
+Classify the letter channel first and print `Letter: {required|optional|none} · {why}`.
+`direct_email`, `dm_request`, and `founder` are always `required`: the letter is the
+message. On `ats`, reveal the application form (navigation, below) and read its fields.
+An ad or form that states a letter, statement, or written answer is `required`; a
+cover-letter, message, or free-text field offered without being demanded is `optional`;
+no such field and no such ad line is `none`. Judge a field by the question it asks, never
+by its tag: a hidden, disabled, or bot-check field is not a letter field, and a form whose
+only `textarea` is `g-recaptcha-response` takes no letter.
+
+`none` skips the rest of this phase's letter work: no `### Letter plan`, no draft, no
+verify loop. Print `### Draft` as `_(n/a — the form takes no letter)_` and go to Review
+with the CV pick and staged form values unchanged. Never attach a letter as an
+unrequested file, and never paste one into a field that did not ask for it.
+
 Build `### Letter plan` in fixed slot order. Each always-on slot (1–4 and 7) has
 evidence; slots 5–6 state `fired` with trigger and evidence or `not fired` with trigger.
 Add `### Forbidden claims` containing every run-global `never_say` entry and its source.
+Add `### Ad formats` naming the ad's stated subject, links, salary, project count, and
+length, each with its value or `none` — precedence 2 in `contract-letter.md` binds these
+only when the plan carries them.
 Do not write prose until the plan is complete.
 
 The drafting brief contains only the completed `### Letter plan`, its exact approved
 evidence rows and sources, `### Forbidden claims`, and the verbatim contents of
-`./references/letter-contract.md`. It contains no Profile root, Fact paths, `### Fit`,
+`./references/contract-letter.md`. It contains no Profile root, Fact paths, `### Fit`,
 or `### Left out`.
 
-Run the checker in `letter-contract.md` before Review. Failure returns to Phase 2;
-pass emits the review below and stops. Stage proposed form values in the review only.
+Verify the draft before Review. Load `./references/worker-letter.md` and dispatch one
+isolated `spawn_subagent`, read-only. The brief is **only** the completed
+`### Letter plan` (including `### Ad formats`), `### Forbidden claims`, the letter text,
+every staged free-text value with the question it answers, and the verbatim contents of
+`./references/contract-letter.md`, then the worker-letter deltas. Never a Profile root, a
+Fact path, `### Fit`, `### Left out`, or this file. Expect `### Outcome`.
+
+- `pass` → emit the review below and stop
+- `repair` → rewrite the prose from the same plan rows (repair count += 1; max 2) → re-dispatch
+- `reject` → return to Phase 2 (reject count += 1; max 1) → replan → re-dispatch
+- repair count already 2, or reject count already 1 and still not `pass` → **STOP** and
+  name the surviving check
+
+Stage proposed form values in the review only.
 Do not create/sign in to an account or submit before approval.
 
 Label is not authority: an Apply, Easy Apply, or Start application control that only
@@ -188,7 +227,8 @@ whenever Phase 0 printed it.
 ### Draft
 
 Print the letter as it would be sent, then quote its first sentence. The first sentence
-states fit, not interest.
+states fit, not interest. Letter channel `none` prints
+`_(n/a — the form takes no letter)_` and nothing else.
 
 ### Form fields
 
@@ -203,7 +243,7 @@ operator rows remain for the operator to finish.
 
 ### Salary derivation
 
-Print whenever salary is staged; otherwise `_(none)_`. Use `screening.md` and print:
+Print whenever salary is staged; otherwise `_(none)_`. Use `contract-screening.md` and print:
 
     ours:       {ours.min} - {ours.max} USD
     ad printed: {job.min} - {job.max} USD, or `none`

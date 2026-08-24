@@ -1,6 +1,6 @@
 # job-kit
 
-Nine agent skills for running a job search at volume: sweep the surfaces you
+Ten agent skills for running a job search at volume: sweep the surfaces you
 care about, score fit against a real profile, tailor a one-page résumé, draft applications from profile
 facts, read back what a run saved, and update status from Gmail replies. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
@@ -23,6 +23,7 @@ coding agents (Claude Code, Codex, Grok).
 | `job-list`         | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-inbox`        | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-stories`      | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
+| `job-pitch`        | Render the story deck as a vetting video script or work-experience bullets          | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
@@ -47,15 +48,15 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                                                            |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                              |
-| `aside`        | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` (fails if no Aside)     |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` (fails if no agent home)      |
-| `browser-use`  | `job-scout` + `job-apply` + `job-resume` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
-| `fetch`        | Nothing — refresh the cached checkout only                                                                                          |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                                                         |
-| `-h`, `--help` | Nothing — print usage                                                                                                               |
+| Argument       | Installs                                                                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                        |
+| `aside`        | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside) |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)  |
+| `browser-use`  | `job-scout` + `job-apply` + `job-resume` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer           |
+| `fetch`        | Nothing — refresh the cached checkout only                                                                                                    |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                                                   |
+| `-h`, `--help` | Nothing — print usage                                                                                                                         |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -159,11 +160,15 @@ apply never submits without your explicit yes on the review.
 
 Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains `/job-resume`
-(isolated subagent) and attaches `scout/applications/{slug}/resume.pdf` only
-when `match-report.md` prints `verdict: **PASS**` (`{slug}` = that dossier
-filename minus `.md`). Resume STOP or FAIL stops that Prepare — leftover
-PASS files from a prior run do not count; no fallthrough to a generic CV.
-Without a URL-matched `new` dossier, a prior PASS leftover at that path
+when `data/cvs.yaml` `adapt_per_vacancy` is true (absent → true) and attaches
+the single `scout/applications/{slug}/*_Curriculo.pdf`
+(`Nome_Sobrenome_Cargo_Curriculo.pdf`) only when `match-report.md` prints
+`verdict: **PASS**` (`{slug}` = that dossier filename minus `.md`). Resume
+STOP or FAIL stops that Prepare — leftover PASS files from a prior run do
+not count; no fallthrough to a generic CV. `adapt_per_vacancy: false` skips
+the chain and leftover tailored PDFs; attach a registry row instead.
+Without a URL-matched `new` dossier, a prior PASS leftover
+`*_Curriculo.pdf` in that `{slug}` dir
 still wins when the dossier URL matches; otherwise job-apply reads
 `data/cvs.yaml`, matches each row's `targets` against the ad, and uses
 `default` when none fit. With no registry it attaches `cv/en-us-resume.pdf`.
@@ -172,9 +177,9 @@ resolvable PDF, job-apply stops. Edit the registry with `/job-profile-me cvs`.
 Standalone `/job-resume` remains valid.
 
 `/job-resume` needs a LaTeX base under `cv/`, named `resume-{id}.tex` for the
-`data/cvs.yaml` row it tailors (or a `.tex` sibling of that row's PDF). It
-compiles, but never authors, that base — without one it stops and names the
-path it wanted.
+`data/cvs.yaml` `default` id (or a `.tex` sibling of that row's PDF). It
+copies that file whole and edits it for the ad — without one it stops and
+names the path it wanted.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
@@ -277,8 +282,8 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 
 | Choice / target | Removes                                                                                                                                                              |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aside           | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-inbox` + `job-profile-root` kit copies                                               |
-| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-inbox` + `job-profile-root` kit links (+ legacy `profile-init`)                            |
+| Aside           | `job-scout` + `job-apply` + `job-resume` + `job-profile-me` + `job-list` + `job-pitch` + `job-inbox` + `job-profile-root` kit copies                                 |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` kit links (+ legacy `profile-init`)              |
 | browser-use     | `job-scout` + `job-apply` + `job-resume` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser |
 | Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                                     |
 | Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                                    |
@@ -352,13 +357,14 @@ multi-target install also removes legacy kit links there, which the
 | ------------------------- | --------------------------------------------------------------- |
 | `skill/job-scout/`        | Scout law, contracts, surfaces                                  |
 | `skill/job-apply/`        | Apply law, draft contract, approve-gated submit                 |
-| `skill/job-resume/`       | Tailor one-page résumé PDF; Loop B CLI + match-report           |
+| `skill/job-resume/`       | Tailor one-page résumé PDF; isolated verifier + match-report    |
 | `skill/job-profile-init/` | Intake + templates for empty profiles                           |
 | `skill/job-profile-me/`   | Show + edit search intent and boards                            |
 | `skill/job-profile-root/` | Resolve Profile root; never writes                              |
 | `skill/job-list/`         | Read the profile's scout store; never writes                    |
 | `skill/job-inbox/`        | Gmail replies → lifecycle status on strong evidence             |
 | `skill/job-stories/`      | Write and check the interview story deck                        |
+| `skill/job-pitch/`        | Vetting script and work-experience bullets from the deck        |
 | `scripts/install.sh`      | Single install: plan, confirm, apply (aside+agents+browser-use) |
 | `scripts/aside/`          | Aside lib + thin install wrapper                                |
 | `scripts/agents/`         | Agents lib + thin install wrapper                               |

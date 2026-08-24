@@ -1,6 +1,6 @@
 # Contract (check) — job scout kit gate
 
-Main-side law, applied by `flow-rank.md` before score and bucket. Never paste
+Main-side law, applied by `contract-rank.md` before score and bucket. Never paste
 into a worker brief.
 
 === READ-ONLY + JUDGE-ONLY ===
@@ -76,7 +76,10 @@ A country named only in `location` does not turn that phrase into a wall.
 
 ## Verdict per row
 
-Record one verdict per Phase 4 row, in the order received:
+Print in chat one verdict per Phase 4 row, in the order received, before any
+score is computed. Judge each row against the table above directly — a regex,
+keyword list, or other compiled stand-in for this table is a defect whatever
+verdict it returns.
 
 `url | verdict | reason`
 
