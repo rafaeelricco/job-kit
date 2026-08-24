@@ -27,11 +27,12 @@ The fixed-vocabulary keys (`status`, `bucket`, `channel`), dates, and `score`
 stay bare.
 
 Body fields that are also posting-controlled (`company` / `title` in the H1,
-`why`, posting-facts table values, `jd_excerpt`, provenance) must not invent
-structure. Collapse every newline or run of whitespace in a single-line field to
+posting-facts table values, the `## The role` snapshot and bullets, provenance)
+must not invent structure. Collapse every newline or run of whitespace in a single-line field to
 one space before writing it into the body. Never emit the ownership marker
-`<!-- scout never writes below this line -->` from any posting-derived value —
-`jd_excerpt` stays line-prefixed with `>`.
+`<!-- scout never writes below this line -->` from any posting-derived value. A
+`## The role` bullet is one `- ` line: collapse it first, so a newline inside the
+value cannot open a second bullet or a bare top-level line.
 
 ```markdown
 ---
@@ -50,7 +51,7 @@ channel: ats
 
 ## Verdict
 
-score **9** · direct · live · {the search `why` string verbatim}
+score **9** · direct · live
 
 | skills | seniority | geo/auth |   = |
 | -----: | --------: | -------: | --: |
@@ -63,7 +64,7 @@ Unscored row — `## Score` returned `—` because the posting printed no
 `required_skills`, or the profile carries no skills. Frontmatter `score: —`, the
 Verdict line prints `score **—**`, and the `=` cell is `—`:
 
-score **—** · direct · live · {the search `why` string verbatim}
+score **—** · direct · live
 
 | skills | seniority | geo/auth |   = |
 | -----: | --------: | -------: | --: |
@@ -75,39 +76,59 @@ is unscored, not unbucketed.
 
 ## Posting facts
 
-Every extract key from `contract-extract.md` except `jd_excerpt` (its own
-`## From the posting` section), plus main-derived `blocker`. `—` = the page
-did not print it.
+Every extract key from `contract-extract.md` except the three `role_*` keys (their
+own `## The role` section) and `status_reason` (the closure log line below), plus
+main-derived `blocker`. `—` = the page did not print it.
 
-| key             | value              |
-| --------------- | ------------------ |
-| status          | live               |
-| status_reason   | —                  |
-| seniority       | Senior             |
-| work_model      | Remote             |
-| location        | United Kingdom     |
-| salary          | —                  |
-| work_auth       | —                  |
-| hiring_route    | contractor / B2B   |
-| required_skills | TypeScript, Python |
-| jd_date         | 2026-08-01         |
-| blocker         | —                  |
+| key              | value              |
+| ---------------- | ------------------ |
+| status           | live               |
+| seniority        | Senior             |
+| work_model       | Remote             |
+| location         | United Kingdom     |
+| salary           | —                  |
+| equity           | —                  |
+| years_experience | 6+                 |
+| work_auth        | —                  |
+| hiring_route     | contractor / B2B   |
+| required_skills  | TypeScript, Python |
+| jd_date          | 2026-08-01         |
+| blocker          | —                  |
 
 `blocker` is main-derived (`contract-rank.md` `## Bucket`), not a gated column — recompute
 it here; never read it off a row.
 
-## From the posting
+## The role
 
-`jd_excerpt` verbatim in a blockquote, or `_(not printed)_` when `—`.
+Each subhead is the matching extract key, copied. A subhead whose key is `—` is
+omitted whole — no empty heading, no `_(not printed)_` line. Every one `—` → omit
+`## The role` itself.
+
+`role_do` and `role_must` arrive as one cell whose items are joined by
+space-bullet-space (`contract-extract.md`): split on that separator and write one
+`- ` line per item, in the order the cell carries them. Never write
+`## From the posting` — the retired excerpt section. A dossier that still carries
+one is pre-redesign; the re-run rewrite drops it.
+
+**Snapshot** — {role_snapshot, collapsed to one line}
+
+**What you'd do**
+
+- {role_do item}
+
+**Must have**
+
+- {role_must item}
 
 ## Provenance
 
 Labeled `source {value} · channel {value} · author {value} · date {value}` from the
 search columns, `—` if unknown. Channel matches frontmatter. Include
-` · contact {value}` only when contact is known; omit the slot when `—`.
+` · contact {value}` and ` · query {value}` only when each is known; omit the slot
+when `—`. `query` is the search column `matched_query`, verbatim.
 Never re-derive; never invent a contact.
 
-source ambar · channel ats · author — · date 2026-08-08
+source ambar · channel ats · author — · query "Senior Software Engineer" · date 2026-08-08
 
 <!-- scout never writes below this line -->
 
@@ -148,15 +169,16 @@ Everything from the opening `---` down to the ownership marker is scout-owned an
 rewritten each run. Below that line, and `status:` in frontmatter, belong to the
 operator, `job-apply`, and `job-inbox`.
 
-| On re-run                                             | Do                                                                                                                                  |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                                         |
-| `status:` already set                                 | Never touch it — not even back to `new`                                                                                             |
-| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                                                    |
-| Row now `dead`                                        | Append a log line; set no status; leave the body                                                                                    |
-| Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                                                 |
-| No file yet                                           | Create with `status: new`                                                                                                           |
-| File exists with no `## Verdict` (a `job-apply` stub) | Treat as an existing dossier: fill the scout-owned body for the first time, keep `status:`, `first_seen`, the filename, and the log |
+| On re-run                                              | Do                                                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Same normalized `url` exists                           | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                                         |
+| Body carries a retired section (`## From the posting`) | Replaced, not merged: the rewritten body holds only the sections this file prints                                                   |
+| `status:` already set                                  | Never touch it — not even back to `new`                                                                                             |
+| Ownership marker / log tail                            | Append below the marker; never rewrite or reorder existing log/application lines                                                    |
+| Row now `dead`                                         | Append a log line; set no status; leave the body                                                                                    |
+| Row `live` again after dead                            | Append a reopen log line; set no status; rewrite the body as normal                                                                 |
+| No file yet                                            | Create with `status: new`                                                                                                           |
+| File exists with no `## Verdict` (a `job-apply` stub)  | Treat as an existing dossier: fill the scout-owned body for the first time, keep `status:`, `first_seen`, the filename, and the log |
 
 A closure is an event in the log, not a field. Append the reopen line whenever a
 URL whose last scout posting-state line was a closure is extracted live again.

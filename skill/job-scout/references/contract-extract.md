@@ -39,12 +39,16 @@ Emit rows under `### Verified`.
 
 ## Extract adds
 
-`status | status_reason | seniority | work_model | location | salary | required_skills | work_auth | hiring_route | jd_date | jd_excerpt`
+`status | status_reason | seniority | work_model | location | salary | equity | years_experience | required_skills | work_auth | hiring_route | jd_date | role_snapshot | role_do | role_must`
 
 - `status` ∈ `live` | `dead` | `uncertain`
   - `live` — opened; role open
   - `dead` — opened; 404 / expired / filled / withdrawn
   - `uncertain` — could not open (timeout, render failure, gate, dead host)
+- `status_reason` — why a `dead` or `uncertain` row is not live, as the page printed
+  it ("this role is no longer accepting applications", "404"). `live` → `—`: restating
+  "opened" says nothing `status` has not already said. It is not a Posting facts row;
+  it feeds the closure log line in `schema-dossier.md`.
 - `work_model` — remote / hybrid / onsite as printed; comma-join when the page
   prints more than one (`hybrid, remote`). "Remote — US" is remote plus a
   `location` label, not onsite.
@@ -67,6 +71,25 @@ Emit rows under `### Verified`.
   NEVER restrict to a closed bag or vocabulary. NEVER intersect with profile `C`
   at extract. NEVER drop a printed required name because it is not a programming
   language.
-- `jd_excerpt` — the responsibilities and requirements prose as printed, ≤1500 chars,
-  truncated at a sentence boundary with `…`. Copy; never summarize, never paraphrase.
-  Page did not open, or prints no such prose → `—`.
+- `equity` — equity or option range as printed ("0.20% - 0.40%"). Else `—`.
+- `years_experience` — years of experience the page names as required ("6+"). Else `—`.
+- `role_snapshot` — 2–3 whole sentences copied from the page: what the company does
+  and what the role is. Select sentences; NEVER write one. Stage and size ride along
+  when the page's own opening prints them. ≤400 chars. Else `—`.
+- `role_do` — the responsibilities list as printed, one item per bullet, copied. A
+  "What you'll do" / "Responsibilities" / "In this role" section is the source. Else `—`.
+- `role_must` — the requirements list as printed, one item per bullet, copied. The same
+  section that feeds `required_skills`: read it once. Years, degrees and soft skills
+  belong here even though they are not `required_skills`. Else `—`.
+
+`role_do` and `role_must` are lists inside one cell: items joined by space-bullet-space
+(`" • "`), each item ≤220 chars, at most 8 items in the page's own order — drop the
+overflow, never reorder, never merge two items to fit. Strip any bullet glyph the page
+itself prints, so that separator never appears inside an item. A row is one line:
+collapse every newline in a role value to one space before emitting it.
+
+All three role keys carry the posting's prose and nothing else. Page furniture is never
+role text: nav and header links, "Skip to main content", sign-in / "Post a job" /
+"Save" / "Apply" controls, board safety notices ("never send money to companies"),
+cookie and privacy text, share widgets, benefits lists, and EEO or pay-transparency
+boilerplate. An item the page truncates is dropped, never emitted half-written.

@@ -132,9 +132,14 @@ const EMPTY_FILTER: Filter = {
 // the glyph into the corpus would let a search for "—" match every gap.
 const known = (value: FactValue): string => (value.kind === "known" ? value.text : "")
 
-// Same fields the previous viewer searched, in the same order.
+// Mirrors what the sheet renders, so a search matches text the reader can
+// actually see: the role snapshot, or the legacy excerpt on a dossier written
+// before scout wrote roles.
+const prose = (d: Dossier): string =>
+  d.role.snapshot !== "" ? d.role.snapshot : d.excerpt.kind === "printed" ? d.excerpt.text : ""
+
 const corpus = (d: Dossier): string =>
-  [d.company, d.title, d.verdict.why, known(d.facts.required_skills), known(d.facts.location), d.host]
+  [d.company, d.title, prose(d), known(d.facts.required_skills), known(d.facts.location), d.host]
     .join("\n")
     .toLowerCase()
 

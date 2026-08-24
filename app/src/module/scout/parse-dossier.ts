@@ -1,7 +1,7 @@
 export { parseDossier }
 
 import { err, ok } from "@/module/scout/result"
-import { FACT_KEYS, UNKNOWN_TEXT, isBucket, isChannel, isLifecycle, isWriter, toIsoDate } from "@/module/scout/types"
+import { UNKNOWN_TEXT, isBucket, isChannel, isFactKey, isLifecycle, isWriter, toIsoDate } from "@/module/scout/types"
 import type {
   Dossier,
   Excerpt,
@@ -13,6 +13,7 @@ import type {
   ParsedDossier,
   Posting,
   Provenance,
+  Role,
   Score,
   Verdict,
 } from "@/module/scout/types"
@@ -38,10 +39,17 @@ const FRONTMATTER_KEYS = [
   "channel",
 ] as const
 
-const SECTIONS = ["## Verdict", "## Posting facts", "## From the posting", "## Provenance"] as const
+// Only these two are required by heading. `## The role` post-dates most of the
+// corpus and `## From the posting` pre-dates the rest, so both are read when
+// present. `## Provenance` stays mandatory in effect — parseProvenance fails on
+// a missing line.
+const REQUIRED_SECTIONS = ["## Verdict", "## Posting facts"] as const
 
 const OWNERSHIP_MARKER = "<!-- scout never writes below this line -->"
-const LABELED_PROVENANCE = /^source (.+?) · channel (.+?) · author (.+?)(?: · contact (.+?))? · date (.+)$/
+// Named, not positional: slotting `query` between `contact` and `date` would
+// shift every index after it.
+const LABELED_PROVENANCE =
+  /^source (?<source>.+?) · channel (?<channel>.+?) · author (?<author>.+?)(?: · contact (?<contact>.+?))?(?: · query (?<query>.+?))? · date (?<date>.+)$/
 
 const VERDICT_LINE = /^score \*\*(.+?)\*\* · (.+?) · (.+?)(?: · (.*))?$/
 const LOG_LINE = /^- (\d{4}-\d{2}-\d{2}) · (.*) — ([a-z-]+)$/
@@ -164,13 +172,15 @@ function parseDossier(file: string, raw: string): ParsedDossier {
       score,
       bucket,
       channel,
-      verdict: { why: "", factors: [] },
-      facts: blankFacts(),
+      verdict: { factors: [] },
+      facts: factsFrom(new Map()),
+      role: EMPTY_ROLE,
       excerpt: { kind: "absent" },
       provenance: {
         source: UNKNOWN_TEXT,
         author: { kind: "unknown" },
         contact: { kind: "unknown" },
+        matchedQuery: { kind: "unknown" },
         date: UNKNOWN_TEXT,
       },
       log,
@@ -179,29 +189,21 @@ function parseDossier(file: string, raw: string): ParsedDossier {
     })
   }
 
-  const starts: number[] = []
-  let cursor = 0
-  for (const heading of SECTIONS) {
-    const at = body.indexOf(heading, cursor)
-    if (at === -1) return fail(heading, { kind: "section", heading })
-    starts.push(at)
-    cursor = at + 1
+  const sections = sectionMap(body)
+  for (const heading of REQUIRED_SECTIONS) {
+    if (!sections.has(heading)) return fail(heading, { kind: "section", heading })
   }
-  const sectionAt = (index: number): readonly string[] => {
-    const start = starts[index]
-    if (start === undefined) return []
-    return body.slice(start + 1, starts[index + 1] ?? body.length)
-  }
+  const sectionAt = (heading: string): readonly string[] => sections.get(heading) ?? []
 
   /* -- verdict ------------------------------------------------------------ */
 
-  const verdictBody = sectionAt(0)
+  const verdictBody = sectionAt("## Verdict")
   const headline = verdictBody.map((line) => line.trim()).find((line) => line !== "" && !line.startsWith("|"))
+  // Group 4 is the legacy `why` tail. Still matched so old files parse; never read.
   const match = headline === undefined ? null : VERDICT_LINE.exec(headline)
   if (match === null) {
     return fail("## Verdict line", { kind: "section", heading: "## Verdict" })
   }
-  const why = match[4] ?? ""
 
   const pipes = verdictBody.filter((line) => line.trim().startsWith("|"))
   const headerLine = pipes[0]
@@ -232,7 +234,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
     label,
     points: value(row[index] ?? UNKNOWN_TEXT),
   }))
-  const verdict: Verdict = { why, factors }
+  const verdict: Verdict = { factors }
 
   const total = row[row.length - 1] ?? UNKNOWN_TEXT
   const score: Score = NUMERIC.test(total) ? { kind: "scored", value: Number(total) } : { kind: "unscored" }
@@ -246,7 +248,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   /* -- posting facts ------------------------------------------------------ */
 
-  const factLines = sectionAt(1).filter((line) => line.trim().startsWith("|"))
+  const factLines = sectionAt("## Posting facts").filter((line) => line.trim().startsWith("|"))
   const factHeader = factLines[0]
   // Column padding varies between files, so the header is matched on cells.
   if (factHeader === undefined || cells(factHeader).join(" | ") !== FACTS_HEADER) {
@@ -255,43 +257,26 @@ function parseDossier(file: string, raw: string): ParsedDossier {
       detail: `no | ${FACTS_HEADER} | header`,
     })
   }
-  const factRows = factLines.slice(2)
-  if (factRows.length !== FACT_KEYS.length) {
-    return fail("## Posting facts", {
-      kind: "table",
-      detail: `expected ${FACT_KEYS.length} rows, got ${factRows.length}`,
-    })
+  const factRows = factLines.slice(2).map(splitFactRow)
+  const oneCell = factRows.indexOf(null)
+  if (oneCell !== -1) {
+    return fail(`## Posting facts row ${oneCell + 1}`, { kind: "table", detail: "row has one cell" })
   }
-  const collected: Partial<Record<FactKey, FactValue>> = {}
-  for (const [index, line] of factRows.entries()) {
-    const at = `## Posting facts row ${index + 1}`
-    const inner = unpipe(line)
-    // First remaining pipe only: five values print a raw pipe of their own.
-    const split = inner.indexOf("|")
-    if (split === -1) {
-      return fail(at, { kind: "table", detail: "row has one cell" })
-    }
-    const key = inner.slice(0, split).trim()
-    const expected = FACT_KEYS[index]
-    if (expected === undefined || key !== expected) {
-      return fail(at, {
-        kind: "table",
-        detail: `expected ${expected ?? "?"}, got ${key}`,
-      })
-    }
-    collected[expected] = value(inner.slice(split + 1).trim())
-  }
-  const facts = complete(collected)
-  if (facts === null) {
-    return fail("## Posting facts", {
-      kind: "table",
-      detail: "incomplete fact set",
-    })
-  }
+  // Keyed, not positional: a row this build has retired (`status_reason`, on
+  // every pre-redesign file) is dropped here, not treated as a defect. A Map
+  // rather than a Partial<Record> — exactOptionalPropertyTypes makes the record
+  // form fight Object.fromEntries, and `get` returns the optionality for free.
+  const facts = factsFrom(
+    new Map(factRows.flatMap((row) => (row !== null && isFactKey(row.key) ? [[row.key, row.value] as const] : [])))
+  )
+
+  /* -- role ---------------------------------------------------------------- */
+
+  const role = parseRole(sectionAt("## The role"))
 
   /* -- excerpt ------------------------------------------------------------ */
 
-  const quoted = sectionAt(2).filter((line) => line.startsWith(">"))
+  const quoted = sectionAt("## From the posting").filter((line) => line.startsWith(">"))
   // No text key at all when absent — the body reads "_(not printed)_".
   const excerpt: Excerpt =
     quoted.length === 0
@@ -306,7 +291,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
 
   /* -- provenance --------------------------------------------------------- */
 
-  const provLine = sectionAt(3).find((line) => line.trim() !== "")
+  const provLine = sectionAt("## Provenance").find((line) => line.trim() !== "")
   const provenance = parseProvenance(provLine)
   if (provenance === null) {
     return fail("## Provenance", {
@@ -331,6 +316,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
     channel,
     verdict,
     facts,
+    role,
     excerpt,
     provenance,
     log,
@@ -403,12 +389,13 @@ function parseProvenance(provLine: string | undefined): Provenance | null {
   const line = provLine.trim()
   const labeled = LABELED_PROVENANCE.exec(line)
   if (labeled !== null) {
-    const [, source, , author, contact, date] = labeled
+    const { source, author, contact, query, date } = labeled.groups ?? {}
     if (source === undefined || author === undefined || date === undefined) return null
     return {
       source: source.trim(),
       author: value(author.trim()),
       contact: value((contact ?? UNKNOWN_TEXT).trim()),
+      matchedQuery: value((query ?? UNKNOWN_TEXT).trim()),
       date: date.trim(),
     }
   }
@@ -425,17 +412,73 @@ function parseProvenance(provLine: string | undefined): Provenance | null {
     source: source.trim(),
     author: value(author.trim()),
     contact: value(contact.trim()),
+    matchedQuery: { kind: "unknown" },
     date: seen.trim(),
   }
 }
 
-function blankFacts(): Readonly<Record<FactKey, FactValue>> {
-  const out: Partial<Record<FactKey, FactValue>> = {}
-  for (const key of FACT_KEYS) {
-    out[key] = { kind: "unknown" }
-  }
-  return out as Readonly<Record<FactKey, FactValue>>
+const UNKNOWN: FactValue = { kind: "unknown" }
+
+// A key the table did not print is unknown, not a parse failure: the corpus
+// spans two vocabularies, and the sheet renders nothing for an unknown anyway.
+// Written out rather than folded over FACT_KEYS so the record is total by
+// construction — no assertion, and the compiler owns completeness.
+const factsFrom = (found: ReadonlyMap<FactKey, FactValue>): Readonly<Record<FactKey, FactValue>> => ({
+  status: found.get("status") ?? UNKNOWN,
+  seniority: found.get("seniority") ?? UNKNOWN,
+  work_model: found.get("work_model") ?? UNKNOWN,
+  location: found.get("location") ?? UNKNOWN,
+  salary: found.get("salary") ?? UNKNOWN,
+  equity: found.get("equity") ?? UNKNOWN,
+  years_experience: found.get("years_experience") ?? UNKNOWN,
+  work_auth: found.get("work_auth") ?? UNKNOWN,
+  hiring_route: found.get("hiring_route") ?? UNKNOWN,
+  required_skills: found.get("required_skills") ?? UNKNOWN,
+  jd_date: found.get("jd_date") ?? UNKNOWN,
+  blocker: found.get("blocker") ?? UNKNOWN,
+})
+
+// Headings located once and sliced to the next, so a section the file does not
+// carry is absence rather than a parse failure.
+const sectionMap = (lines: readonly string[]): ReadonlyMap<string, readonly string[]> => {
+  const heads = lines.flatMap((line, at) => (line.startsWith("## ") ? [{ heading: line.trim(), at }] : []))
+  return new Map(
+    heads.map((head, index) => [head.heading, lines.slice(head.at + 1, heads[index + 1]?.at ?? lines.length)])
+  )
 }
+
+// First remaining pipe only: five values print a raw pipe of their own. `null`
+// is a row with no second cell, which the caller turns into one parse failure.
+const splitFactRow = (line: string): { readonly key: string; readonly value: FactValue } | null => {
+  const inner = unpipe(line)
+  const split = inner.indexOf("|")
+  return split === -1 ? null : { key: inner.slice(0, split).trim(), value: value(inner.slice(split + 1).trim()) }
+}
+
+const SNAPSHOT = "**Snapshot** — "
+const EMPTY_ROLE: Role = { snapshot: "", responsibilities: [], requirements: [] }
+
+// A line either opens a subhead or belongs to the one already open, so the
+// section folds: the accumulator carries which list is receiving.
+type RoleFold = { readonly role: Role; readonly open: "none" | "do" | "must" }
+
+const foldRoleLine = (acc: RoleFold, raw: string): RoleFold => {
+  const line = raw.trim()
+  const { role } = acc
+  if (line.startsWith(SNAPSHOT)) return { role: { ...role, snapshot: line.slice(SNAPSHOT.length) }, open: "none" }
+  if (line === "**What you'd do**") return { ...acc, open: "do" }
+  if (line === "**Must have**") return { ...acc, open: "must" }
+  if (!line.startsWith("- ")) return acc
+  const item = line.slice(2).trim()
+  if (acc.open === "do") return { ...acc, role: { ...role, responsibilities: [...role.responsibilities, item] } }
+  if (acc.open === "must") return { ...acc, role: { ...role, requirements: [...role.requirements, item] } }
+  return acc
+}
+
+// Two fixed subheads, both optional. Anything else in the section is ignored
+// rather than guessed at.
+const parseRole = (lines: readonly string[]): Role =>
+  lines.reduce(foldRoleLine, { role: EMPTY_ROLE, open: "none" }).role
 
 // One leading and one trailing quote; the writer has no escape mechanism.
 function unquote(raw: string): string {
@@ -455,18 +498,6 @@ const cells = (line: string): string[] =>
     .map((cell) => cell.trim())
 
 const value = (text: string): FactValue => (text === UNKNOWN_TEXT ? { kind: "unknown" } : { kind: "known", text })
-
-// Verified key by key, so the assertion below only restates what the loop
-// already proved.
-function complete(partial: Partial<Record<FactKey, FactValue>>): Readonly<Record<FactKey, FactValue>> | null {
-  const out: Partial<Record<FactKey, FactValue>> = {}
-  for (const key of FACT_KEYS) {
-    const found = partial[key]
-    if (found === undefined) return null
-    out[key] = found
-  }
-  return out as Readonly<Record<FactKey, FactValue>>
-}
 
 function hostOf(url: string): string | null {
   try {

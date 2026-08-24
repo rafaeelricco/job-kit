@@ -5,10 +5,12 @@ Phase 5 chat shape. Main-only. Never paste into a worker brief.
 Emit markdown **exactly** in this section order, then hand back to `flow-scout.md`
 Phase 6. **STOP** is the end of that phase, not here.
 Chat only. Never a run file; never copy ranked tables or score factors to disk.
-No preamble. No apply / message / connect / open-form language. The
-`### Kit read` block (`contract-check.md`) and the per-row bucket audit
-(`contract-rank.md` `## Bucket`) print immediately before this section, in that
-order — required audit output, not preamble.
+No preamble. No apply / message / connect / open-form language. Three blocks
+print immediately before this section, in this order — required audit output,
+not preamble: `### Kit read` (`contract-check.md`), the per-row
+`url | verdict | reason` gate audit (`contract-check.md` `## Verdict per row`,
+before any score), then the per-row `url | bucket | rung | blocker` audit
+(`contract-rank.md` `## Bucket`).
 
 ### Header
 
