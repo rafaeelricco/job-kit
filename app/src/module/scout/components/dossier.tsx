@@ -474,14 +474,12 @@ function StackChips({ value, skills }: { readonly value: FactValue; readonly ski
   )
 }
 
-// Whole-token containment, the same rule the corpus uses: "go" never matches
-// inside "golang", and "React" matches "React and TypeScript" but not "Reactive".
 const namesSkill = (line: string, skill: string): boolean => {
   const at = line.toLowerCase().indexOf(skill.toLowerCase())
   if (at === -1) return false
   const before = at === 0 ? "" : line.charAt(at - 1)
   const after = line.charAt(at + skill.length)
-  return !/[a-z0-9]/i.test(before) && !/[a-z0-9]/i.test(after)
+  return !/[a-z0-9+.#]/i.test(before) && !/[a-z0-9+.#]/i.test(after)
 }
 
 // A requirement line counts as matched when it names a skill the profile holds.
