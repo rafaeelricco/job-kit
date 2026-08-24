@@ -47,7 +47,7 @@ first.
 
 3. **CV.** First write: `mkdir -p scout/applications/{slug}`; unlink
    `resume.pdf` / `resume.tex` if present.
-   Copy the entire base `.tex` to `resume.tex`. Rewrite summary, bullets, and
+   Copy the entire base `.tex` to `resume.tex`. Rewrite Experience bullets and
    skills from Facts (`experiences.yml`, `skills.yaml`, story frontmatter
    `claim` / `evidence.*` / verified outcome numbers) so the page fits this ad.
    `experiences.yml` `summary` is a pool, not a dump: print only the bullets
