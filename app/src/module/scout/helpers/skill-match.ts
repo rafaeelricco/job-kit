@@ -8,9 +8,7 @@ export { holdsSkill, splitSkills }
 const norm = (raw: string): string => raw.trim().toLowerCase()
 
 const prefixAtBoundary = (long: string, short: string): boolean =>
-  long.length > short.length &&
-  long.startsWith(short) &&
-  /[^a-z0-9+.#]/.test(long.charAt(short.length))
+  long.length > short.length && long.startsWith(short) && /[^a-z0-9+.#]/.test(long.charAt(short.length))
 
 // The contract says comma-separated, and most of the corpus is — but a minority
 // of dossiers semicolon-join instead. Splitting on either keeps that file from
