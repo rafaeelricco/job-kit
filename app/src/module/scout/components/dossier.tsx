@@ -694,6 +694,13 @@ function DossierSheet(props: DossierSheetProps) {
                     </TableBody>
                   </Table>
                 )}
+                {dossier.applications > 0 && (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {dossier.applications.toLocaleString()} application record
+                    {dossier.applications === 1 ? "" : "s"} live below the log in the file itself and
+                    are not parsed here.
+                  </p>
+                )}
               </Fold>
             </div>
           </>
