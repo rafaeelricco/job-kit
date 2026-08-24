@@ -155,7 +155,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
 
       <SelectionBar rows={selectedRows} onDelete={onDelete} onClear={() => setSelected(new Set())} />
 
-      <DossierSheet dossier={openDossier} onClose={() => setOpen(null)} />
+      <DossierSheet dossier={openDossier} skills={store.skills} onClose={() => setOpen(null)} />
     </>
   )
 }

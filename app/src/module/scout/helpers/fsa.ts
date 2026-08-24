@@ -6,6 +6,7 @@ export {
   pickDirectory,
   queryWrite,
   readJobs,
+  readSkills,
   requestWrite,
   snapshotProbe,
   trashJobs,
@@ -183,6 +184,24 @@ async function snapshotProbe(root: FileSystemDirectoryHandle): Promise<ProbeFile
     () => false
   )
   return { candidate, jobSearch }
+}
+
+// Every item line in data/skills.yaml, flat. The file is
+// `skills: [{ category, items: [...] }]` — only the quoted item lines are
+// wanted, and the optional leading dash also accepts block style. A missing or
+// unreadable file is an empty list, never an error: Stack then renders unmarked,
+// the same shape snapshotProbe uses for a data/ that is not there.
+const SKILL_ITEM = /^\s*(?:-\s*)?"([^"]+)",?\s*$/
+
+async function readSkills(root: FileSystemDirectoryHandle): Promise<readonly string[]> {
+  try {
+    const data = await root.getDirectoryHandle("data")
+    const handle = await data.getFileHandle("skills.yaml")
+    const text = await (await handle.getFile()).text()
+    return text.split("\n").flatMap((line) => SKILL_ITEM.exec(line)?.[1] ?? [])
+  } catch {
+    return []
+  }
 }
 
 async function readJobs(
