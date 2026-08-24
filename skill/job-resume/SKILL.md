@@ -38,17 +38,24 @@ first.
    Print company, title, and each requirement with Fact evidence
    (`direct` | `adjacent` | `none`).
 
-2. **Profile.** Load `./references/contract-resume.md`. Pick one
-   `data/cvs.yaml` `cvs[]` row (`targets` vs the ad; tie → `default`). Never
-   blend rows. Source = `cv/resume-{id}.tex` (or the row's `.pdf` stem → `.tex`).
-   Missing `.tex` → STOP: `No LaTeX base for {id}.` This skill never generates
-   the base.
+2. **Profile.** Load `./references/contract-resume.md`. Pick the
+   `data/cvs.yaml` `default` id as the base. Never pick by `targets`. Empty
+   `default` → STOP: `No default CV in data/cvs.yaml.`
+   Source = `cv/resume-{id}.tex` if that file exists; else the `default`
+   row's `file` stem → `.tex` under `cv/`. Missing `.tex` → STOP:
+   `No LaTeX base for {id}.` This skill never generates the base.
 
 3. **CV.** First write: `mkdir -p scout/applications/{slug}`; unlink
    `resume.pdf` / `resume.tex` if present.
-   Copy the base preamble and macros only. Fill from Facts under the contract.
-   Off-domain work does not print. Education prints when `data/education.yaml`
-   is readable and non-empty.
+   Copy the entire base `.tex` to `resume.tex`. Rewrite summary, bullets, and
+   skills from Facts (`experiences.yml`, `skills.yaml`, story frontmatter
+   `claim` / `evidence.*` / verified outcome numbers) so the page fits this ad.
+   `experiences.yml` `summary` is a pool, not a dump: print only the bullets
+   that raise fit for this ad; omit the rest even if true. One page is the
+   budget. Do not invent an employer, date, school, number, or client. A
+   skill token prints only if it is in `skills.yaml`.
+   Identity and role headings that disagree with Facts are corrected from Facts.
+   Education stays when `data/education.yaml` is readable and non-empty.
    Compile with `pdflatex -interaction=nonstopmode -halt-on-error
 -output-directory={dir} {tex}`. Set `TEXINPUTS` to the directory of
    `kpsewhich glyphtounicode.tex` plus the `.tex` dir (bases

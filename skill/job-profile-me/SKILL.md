@@ -28,18 +28,18 @@ Every other path under Profile root is read-only in this skill.
 
 ## Commands
 
-| Utterance                                                            | Do                                   | Writes                   |
-| -------------------------------------------------------------------- | ------------------------------------ | ------------------------ |
-| show my profile / profile card / what's my search config             | `show`                               | —                        |
-| what's missing for scout                                             | `gaps`                               | —                        |
-| change keywords / set positions / add location                       | `set`                                | `data/job_search.yaml`   |
-| add a board / remove HiringCafe                                      | `packs add` / `packs remove`         | `data/search_packs.yaml` |
-| refresh profile card from data                                       | `refresh-card`                       | `data/profile_card.yaml` |
-| list my boards / list my packs / disable a pack / edit a formulation | `packs`                              | `data/search_packs.yaml` |
-| list my CVs / which CV goes out by default                           | `cvs`                                | —                        |
-| add a CV / remove a CV / set the default CV / retarget a CV          | `cvs add` / `cvs remove` / `cvs set` | `data/cvs.yaml`          |
-| create a profile / set one up from my CV                             | hand off `job-profile-init`, STOP    | —                        |
-| find jobs / scout openings                                           | hand off `job-scout`, STOP           | —                        |
+| Utterance                                                                           | Do                                   | Writes                   |
+| ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------ |
+| show my profile / profile card / what's my search config                            | `show`                               | —                        |
+| what's missing for scout                                                            | `gaps`                               | —                        |
+| change keywords / set positions / add location                                      | `set`                                | `data/job_search.yaml`   |
+| add a board / remove HiringCafe                                                     | `packs add` / `packs remove`         | `data/search_packs.yaml` |
+| refresh profile card from data                                                      | `refresh-card`                       | `data/profile_card.yaml` |
+| list my boards / list my packs / disable a pack / edit a formulation                | `packs`                              | `data/search_packs.yaml` |
+| list my CVs / which CV goes out by default                                          | `cvs`                                | —                        |
+| add a CV / remove a CV / set the default CV / retarget a CV / set adapt per vacancy | `cvs add` / `cvs remove` / `cvs set` | `data/cvs.yaml`          |
+| create a profile / set one up from my CV                                            | hand off `job-profile-init`, STOP    | —                        |
+| find jobs / scout openings                                                          | hand off `job-scout`, STOP           | —                        |
 
 ## References
 

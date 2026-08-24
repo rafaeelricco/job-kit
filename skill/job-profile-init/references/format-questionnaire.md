@@ -13,6 +13,21 @@ language/skill/education row, and every `job_search.yaml` key:
 
 Ask each `search_packs.yaml` `packs[].enabled` flag.
 
+Ask CV registry policy after packs and before Stories (independent enums
+in one turn; the `default` id only when a branch needs it):
+
+- `adapt_per_vacancy`: **yes (Recommended)** | no. Write `true`/`false`.
+- Multiple compiled CVs to pick among when not tailoring: yes | **no
+  (Recommended)**.
+
+Then, sequential when a branch needs it:
+
+- Multiple = yes, or adapt = yes: which `cvs[]` `id` is `default` (LaTeX
+  base and attach fallback). Propose `base`. The id need not exist in
+  `cvs[]` yet — operator lists rows later via `/job-profile-me cvs`.
+- Adapt = yes: if `cv/resume-{default}.tex` is missing, ask for an
+  existing `.tex` path to copy there. Never generate LaTeX.
+
 Do not ask pack `entry` URLs, pack implementation metadata, derived
 profile URLs, or kit-owned `salary_expectations.tip`. Do not collect
 demographic/EEO data.

@@ -23,13 +23,16 @@ Drafting contract: `./references/contract-letter.md`. Letter verifier:
 never loaded in-session. Phase 3 skips the letter entirely when the channel takes none.
 
 Prepare emits the complete review and stops. A bare `done` or `ok` does not confirm
-submission. When Duplicate check resolves a dossier with `status: new` whose normalized
-frontmatter URL exactly equals the current ad's, Prepare
+submission. When `data/cvs.yaml` `adapt_per_vacancy` is true (absent key →
+true) and Duplicate check resolves a dossier with `status: new` whose
+normalized frontmatter URL exactly equals the current ad's, Prepare
 prints `Chained job-resume · {filename}` and `spawn_subagent`s `job-resume` (brief:
 load that skill end-to-end; Argument `{filename}`; `PROFILE_ROOT`) — never load
 resume in-session (its STOP would end Apply). Resume STOP, FAIL, or a PASS+PDF
 pair this child did not print stops Prepare; leftover files from a prior run
 do not satisfy the gate. Do not fall through to `data/cvs.yaml` or
-`cv/en-us-resume.pdf` on that run. After Record closes, load `job-inbox` in
+`cv/en-us-resume.pdf` on that run. When `adapt_per_vacancy` is false, do not
+spawn; print `Skipped job-resume · adapt_per_vacancy: false` and use the
+generic pick (skip leftover tailored PDF too). After Record closes, load `job-inbox` in
 this session on its default candidate set. Its report is this run's last
 output. An inbox stop is not an apply failure — the record already landed.
