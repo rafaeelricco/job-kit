@@ -14,20 +14,20 @@ Read the named file; stop if unreadable. Absent is absent — never guess. Never
 read story bodies. Never answer from a prior draft or memory. Legacy fallbacks
 remain readable when present.
 
-| Fact                                                         | Read from                                                                                                                                                         |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
-| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                             |
-| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                              |
-| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
-| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                |
-| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                              |
-| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                            |
-| public portfolio projects                                    | `data/projects.yml`                                                                                                                                               |
-| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
-| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                             |
-| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
-| CV variants and which to attach                              | `data/cvs.yaml` `cvs[]` (`id`, `file` under `cv/`, `targets`) and `default`; absent, empty, or undecidable → `cv/en-us-resume.pdf`                                |
+| Fact                                                         | Read from                                                                                                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                               | `data/languages.yaml` `languages[].level` with `name`                                                                                                                           |
+| salary, notice, authorization, employment routes, relocation | `data/candidate.yaml`                                                                                                                                                           |
+| remote / in-person and relocation preference                 | `data/candidate.yaml` `work_preferences_from_resume`                                                                                                                            |
+| assessments, drug tests, background checks                   | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                                 |
+| name, email, phone, site                                     | `data/basics.yaml`                                                                                                                                                              |
+| LinkedIn, GitHub                                             | `data/profiles.yaml`                                                                                                                                                            |
+| roles, employers, dates, public work bullets                 | `data/experiences.yml`                                                                                                                                                          |
+| public portfolio projects                                    | `data/projects.yml`                                                                                                                                                             |
+| skills / stack inventory                                     | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                              |
+| project depth, technical cause, outcomes                     | `data/experiences.yml` `summary`, `data/projects.yml`                                                                                                                           |
+| story claims and verified outcomes                           | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say`               |
+| CV variants and which to attach                              | `data/cvs.yaml` `adapt_per_vacancy` (absent → true), `default`, `cvs[]` (`id`, `file` under `cv/`, `targets`); absent file, empty `cvs`, or undecidable → `cv/en-us-resume.pdf` |
 
 Deduplicate every `never_say` entry as run-global bans on outbound free-text.
 Exact or semantically equivalent claims fail the draft checker.
@@ -77,7 +77,8 @@ store stops and names the path. For either non-blocking outcome, also print
 
 ### Chained job-resume (status: new dossier only)
 
-When Duplicate check resolved a dossier whose normalized frontmatter URL
+When `data/cvs.yaml` `adapt_per_vacancy` is true (absent key → true) **and**
+Duplicate check resolved a dossier whose normalized frontmatter URL
 exactly equals the current ad's normalized URL, with `status: new`:
 
 1. Print `Chained job-resume · {filename}`.
@@ -106,11 +107,16 @@ exactly equals the current ad's normalized URL, with `status: new`:
 No matched dossier, a company/title-only match, or matched `status:` ≠ `new`:
 do not fire the chain. Use the pick below.
 
+`adapt_per_vacancy: false`: print `Skipped job-resume · adapt_per_vacancy: false`.
+Do not fire the chain. Use the pick below, and skip leftover step (1) so this
+run attaches a registry PDF rather than a prior tailored file.
+
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
 openable, ad-stated hard-format prechecks satisfied, and any non-`new` duplicate match
 released by the operator. A PDF still missing or unopenable stops the run. Exactly one CV per
 submission, chosen in this order and never more than one — **skip this pick when the
-chain above already supplied the tailored PDF**: (1)
+chain above already supplied the tailored PDF**. Skip step (1) when
+`adapt_per_vacancy` is false: (1)
 `scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
 matching report (`match-report.md`) prints `verdict: **PASS**`, and the matched dossier's
 normalized frontmatter URL exactly equals the current ad's normalized URL.

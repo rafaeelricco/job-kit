@@ -11,7 +11,7 @@ Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                                       |
 | `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                                 |
 | `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, tokens — one pack is one board                                                                         |
-| `data/cvs.yaml`                                         | CVs: `default`, and per row `id`, `file`, `targets`                                                                                        |
+| `data/cvs.yaml`                                         | CVs: `adapt_per_vacancy` (absent → true), `default`, and per row `id`, `file`, `targets`                                                   |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
 An unreadable file → stop and name it.
@@ -33,7 +33,8 @@ this file exists (emit via `/job-profile-init` or add packs via `/job-profile-me
 `### CVs` fourth when `data/cvs.yaml` is readable: `id · file · default? · targets`,
 plus `missing` on any row whose `file` does not resolve under `cv/` — a registry row
 pointing at nothing is the one CV state worth surfacing, and it prints here, not as a
-Gap. Absent or empty → one line saying job-apply will attach `cv/en-us-resume.pdf`.
+Gap. Also print `adapt_per_vacancy: true|false` (absent → true). Absent or empty
+`cvs` → one line saying job-apply will attach `cv/en-us-resume.pdf`.
 
 Unknown value = `—`, never invented. Card field source rules: full per-field
 table in `./schema-profile-card.md` (single SSOT — load it here too, not only

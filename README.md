@@ -160,10 +160,12 @@ apply never submits without your explicit yes on the review.
 
 Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains `/job-resume`
-(isolated subagent) and attaches `scout/applications/{slug}/resume.pdf` only
-when `match-report.md` prints `verdict: **PASS**` (`{slug}` = that dossier
-filename minus `.md`). Resume STOP or FAIL stops that Prepare — leftover
-PASS files from a prior run do not count; no fallthrough to a generic CV.
+when `data/cvs.yaml` `adapt_per_vacancy` is true (absent → true) and attaches
+`scout/applications/{slug}/resume.pdf` only when `match-report.md` prints
+`verdict: **PASS**` (`{slug}` = that dossier filename minus `.md`). Resume
+STOP or FAIL stops that Prepare — leftover PASS files from a prior run do
+not count; no fallthrough to a generic CV. `adapt_per_vacancy: false` skips
+the chain and leftover tailored PDFs; attach a registry row instead.
 Without a URL-matched `new` dossier, a prior PASS leftover at that path
 still wins when the dossier URL matches; otherwise job-apply reads
 `data/cvs.yaml`, matches each row's `targets` against the ad, and uses
@@ -173,9 +175,9 @@ resolvable PDF, job-apply stops. Edit the registry with `/job-profile-me cvs`.
 Standalone `/job-resume` remains valid.
 
 `/job-resume` needs a LaTeX base under `cv/`, named `resume-{id}.tex` for the
-`data/cvs.yaml` row it tailors (or a `.tex` sibling of that row's PDF). It
-compiles, but never authors, that base — without one it stops and names the
-path it wanted.
+`data/cvs.yaml` `default` id (or a `.tex` sibling of that row's PDF). It
+copies that file whole and edits it for the ad — without one it stops and
+names the path it wanted.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
