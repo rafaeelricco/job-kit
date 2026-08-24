@@ -12,8 +12,11 @@ Load `./references/contract-resume.md` now.
 
 Argument = one `scout/jobs/` filename, `{name}.md`, or URL.
 Two postings → STOP. No dossier → STOP: `No dossier for {arg}. Run /job-scout.`
-Lookup is exact filename or normalized frontmatter `url`
-(`job-scout/references/contract-search.md` "URL normalize"). Never company+title.
+Lookup is exact filename or normalized frontmatter `url`.
+Never company+title. URL normalize: lowercase host; strip trailing slash
+on path (except root); drop fragment; drop tracker query keys (`utm_*`,
+`li_*`, `ref`, `trk`, and similar) when path alone is unique; keep job-id
+query keys only when path alone is non-unique.
 `status:` must be `new`. Any other → STOP, name
 `{status} per scout/jobs/{filename}`. Do not write.
 `slug` = filename minus `.md`.
