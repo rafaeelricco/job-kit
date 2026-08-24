@@ -24,8 +24,7 @@ client, or skill token that does not exist in a Fact file.
 Read the named file; stop if unreadable. Absent is absent — never guess.
 Never read story bodies. Never answer from a prior draft or memory.
 `observations.yaml` is not a Fact file. `README.md` and `_`-prefixed
-basenames: `job-stories` `schema-story.md`. Main loads that schema when
-reading stories.
+basenames under `data/stories/` are not stories.
 
 | Fact                             | Read from                                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------------------------ |
