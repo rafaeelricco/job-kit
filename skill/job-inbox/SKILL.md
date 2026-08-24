@@ -8,6 +8,7 @@ description: "Read this when you need to check Gmail for replies to tracked appl
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
 Resolve `scout/` and every `data/*` path against Profile root (not CWD, not skill dir).
+Unreadable required file under a resolved root → stop and say so.
 
 Skill-local files: `./references/*` only.
 
