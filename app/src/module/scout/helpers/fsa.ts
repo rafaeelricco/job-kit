@@ -6,6 +6,7 @@ export {
   pickDirectory,
   queryWrite,
   readJobs,
+  readSkills,
   requestWrite,
   snapshotProbe,
   trashJobs,
@@ -183,6 +184,35 @@ async function snapshotProbe(root: FileSystemDirectoryHandle): Promise<ProbeFile
     () => false
   )
   return { candidate, jobSearch }
+}
+
+const INLINE_ITEMS = /^\s*items:\s*\[(.*)\]\s*(?:#.*)?$/
+const BLOCK_ITEM = /^\s*-\s+(?:"([^"]+)"|'([^']+)'|([^:#]+))\s*$/
+
+const splitInlineItems = (raw: string): readonly string[] =>
+  [...raw.matchAll(/"([^"]+)"|'([^']+)'/g)]
+    .map((match) => match[1] ?? match[2])
+    .filter((item): item is string => item !== undefined)
+
+const parseSkillItems = (text: string): readonly string[] =>
+  text.split("\n").flatMap((line) => {
+    const inline = INLINE_ITEMS.exec(line)
+    if (inline?.[1] !== undefined) return splitInlineItems(inline[1])
+    const block = BLOCK_ITEM.exec(line)
+    if (!block) return []
+    const item = (block[1] ?? block[2] ?? block[3])?.trim() ?? ""
+    return item !== "" ? [item] : []
+  })
+
+async function readSkills(root: FileSystemDirectoryHandle): Promise<readonly string[]> {
+  try {
+    const data = await root.getDirectoryHandle("data")
+    const handle = await data.getFileHandle("skills.yaml")
+    const text = await (await handle.getFile()).text()
+    return parseSkillItems(text)
+  } catch {
+    return []
+  }
 }
 
 async function readJobs(
