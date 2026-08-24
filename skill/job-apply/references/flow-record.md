@@ -76,7 +76,7 @@ For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 {same-session record or later-session placeholder}
 ```
 
-Do not fabricate Verdict, Posting facts, or Provenance.
+Do not fabricate Verdict, Posting facts, The role, or Provenance.
 
 ## Later-session record
 
@@ -105,10 +105,5 @@ did not print and the operator did not approve.
 ## Close
 
 After the schema-compliant write and lock release, print the dossier filename, log line,
-and resulting `status:`. Then load the `job-inbox` skill and obey it end-to-end on its
-default candidate set. Do not narrow that set to the job just filed. The inbox report is
-this run's last output.
-
-The inbox leg runs only after a successful write. A record that failed or never opened
-ends here. An inbox stop is not an apply failure — print inbox's own stop line, say the
-application is still recorded, and end.
+and resulting `status:`. Load the `job-inbox` skill only after that write, and obey it
+end-to-end on its default candidate set. The inbox report is this run's last output.

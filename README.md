@@ -15,7 +15,7 @@ coding agents (Claude Code, Codex, Grok).
 | Skill              | Role                                                                                | Channel                              | Installed under                                                     |
 | ------------------ | ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- |
 | `job-scout`        | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-apply`        | Draft, stage, and after approve submit one posting                                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| `job-apply`        | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-resume`       | Tailor a one-page résumé PDF for one scout dossier                                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
 | `job-profile-init` | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
 | `job-profile-me`   | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
@@ -29,8 +29,7 @@ Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
 applications. It may use an existing session; account creation, signup terms,
 passwords, and verification remain operator actions.
-job-apply clicks Submit / Send / final Confirm only after an explicit review
-approve.
+job-apply clicks Submit / Send / final Confirm after it emits the review.
 
 ## Install
 
@@ -129,8 +128,8 @@ to the sites you scout.
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
 ranks the job rows it extracts. Application drafts and stages one posting at a
-time; it opens an Apply control only when that control reveals the form, stops at
-review, and on explicit yes submits (account wall, required terms, Submit).
+time; it opens an Apply control only when that control reveals the form, emits the
+review, then submits (account wall, required terms, Submit).
 
 Scout writes one dossier per live job to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
@@ -150,26 +149,26 @@ The three run as one loop. Scout and inbox stay operator-pasted; inside
 ```text
 /job-scout   ranks rows, writes dossiers, STOP (list-only)
 /job-apply   Prepare may spawn job-resume for a status:new dossier;
-             review → yes → submit → record → job-inbox in-session
+             review → submit → record → job-inbox in-session
 job-inbox    reports replies, writes status, prints  Next: /job-scout
 ```
 
-You paste the pointer at the two ends. Neither end auto-fires on purpose: scout
-stays list-only and cannot judge which ranked row is worth an application, and
-apply never submits without your explicit yes on the review.
+You paste the pointer at the two ends. Scout stays list-only and cannot judge
+which ranked row is worth an application.
 
 Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains `/job-resume`
 when `data/cvs.yaml` `adapt_per_vacancy` is true (absent → true) and attaches
-the single `scout/applications/{slug}/*_Curriculo.pdf`
-(`Nome_Sobrenome_Cargo_Curriculo.pdf`) only when `match-report.md` prints
+the single `scout/applications/{slug}/*_Resume.pdf`
+(`Nome_Sobrenome_Cargo_Resume.pdf`) only when `match-report.md` prints
 `verdict: **PASS**` (`{slug}` = that dossier filename minus `.md`). Resume
 STOP or FAIL stops that Prepare — leftover PASS files from a prior run do
-not count; no fallthrough to a generic CV. `adapt_per_vacancy: false` skips
+not count; no fallthrough to a generic CV. A posting that prints it is not
+accepting applications stops Prepare before that chain. `adapt_per_vacancy: false` skips
 the chain and leftover tailored PDFs; attach a registry row instead.
-Without a URL-matched `new` dossier, a prior PASS leftover
-`*_Curriculo.pdf` in that `{slug}` dir
-still wins when the dossier URL matches; otherwise job-apply reads
+Without a URL-matched `new` dossier, a prior leftover `*_Resume.pdf` in
+that `{slug}` dir still wins when the dossier URL matches and
+`match-report.md` there prints `verdict: **PASS**`; otherwise job-apply reads
 `data/cvs.yaml`, matches each row's `targets` against the ad, and uses
 `default` when none fit. With no registry it attaches `cv/en-us-resume.pdf`.
 The review's `### Attachments` prints the pick and why. With neither a
@@ -356,7 +355,7 @@ multi-target install also removes legacy kit links there, which the
 | Path                      | Role                                                            |
 | ------------------------- | --------------------------------------------------------------- |
 | `skill/job-scout/`        | Scout law, contracts, surfaces                                  |
-| `skill/job-apply/`        | Apply law, draft contract, approve-gated submit                 |
+| `skill/job-apply/`        | Apply law, draft contract, submit after review                  |
 | `skill/job-resume/`       | Tailor one-page résumé PDF; isolated verifier + match-report    |
 | `skill/job-profile-init/` | Intake + templates for empty profiles                           |
 | `skill/job-profile-me/`   | Show + edit search intent and boards                            |
