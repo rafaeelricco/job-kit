@@ -76,8 +76,9 @@ page is full.
 ## 4. Verifier
 
 Isolated `spawn_subagent`, read-only. Brief: PROFILE_ROOT, the printed ad,
-PDF_TEXT (inline), verbatim `contract-resume.md`, then
-`./references/worker-verify.md`. Not the `.tex`. Not this file.
+PDF_TEXT (inline), `n_base` (base `.tex` Skills token count), verbatim
+`contract-resume.md`, then `./references/worker-verify.md`. Not the `.tex`.
+Not this file.
 
 ## 5. Outcome
 
