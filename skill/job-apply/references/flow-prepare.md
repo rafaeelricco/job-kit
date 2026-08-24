@@ -94,7 +94,8 @@ exactly equals the current ad's normalized URL, with `status: new`:
 
 3. After the child returns, continue Prepare only when **this child
    invocation** printed `verdict: **PASS**` (its own output — not a leftover
-   file) **and** `scout/applications/{slug}/resume.pdf` opens as a PDF **and**
+   file) **and** exactly one `scout/applications/{slug}/*_Curriculo.pdf`
+   opens as a PDF **and**
    `scout/applications/{slug}/match-report.md` prints `verdict: **PASS**`.
    `{slug}` = `{filename}` minus `.md` — never rebuilt from company and title.
    That path is this run's only CV (`id: tailored`, `why: job-resume PASS`).
@@ -117,12 +118,14 @@ released by the operator. A PDF still missing or unopenable stops the run. Exact
 submission, chosen in this order and never more than one — **skip this pick when the
 chain above already supplied the tailored PDF**. Skip step (1) when
 `adapt_per_vacancy` is false: (1)
-`scout/applications/{slug}/resume.pdf` when that file opens as a PDF, the
+exactly one `scout/applications/{slug}/*_Curriculo.pdf` when that file opens
+as a PDF, the
 matching report (`match-report.md`) prints `verdict: **PASS**`, and the matched dossier's
 normalized frontmatter URL exactly equals the current ad's normalized URL.
 `{slug}` is that exact-URL dossier's filename minus `.md` — never rebuilt from
 company and title. A company/title-only duplicate never supplies this leftover
-`{slug}`; a FAIL report, a missing PDF, or a missing report is not this step;
+`{slug}`; a FAIL report, a missing PDF, more than one `*_Curriculo.pdf`, or a
+missing report is not this step;
 (2) `data/cvs.yaml` readable with a non-empty `cvs` — read every
 row's `targets`, take the one row the ad fits best, and when no row clearly
 fits take the `default` id (ties go to `default`; never blend two rows; never
