@@ -34,7 +34,8 @@ first. Same default candidate set.
 ## Candidates
 
 `job-list/references/flow-read.md` is the reader SSOT. An unparseable dossier
-is a Gap; keep going.
+is a Gap; keep going. The parse-failure STOP in `contract-persistence.md` still
+binds under the lock.
 
 Default candidate set: frontmatter `status:` ∈ `applied` | `interview` | `offer`.
 Operator named a company, title, or file → that dossier only, any status but `dropped`.
