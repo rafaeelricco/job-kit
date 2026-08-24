@@ -1,38 +1,16 @@
 ---
 name: job-apply
-description: "Prepare one job application from a posting, then submit it after explicit approval and record only confirmed submission. Use for cover letters, application forms, and Easy Apply; not for reply tracking."
+description: "Prepare one job application from a posting, then submit it and record only confirmed submission. Use for cover letters, application forms, and Easy Apply; not for reply tracking."
 ---
 
 # Job application
 
-Load `job-profile-root` first. Resolve every profile path against its canonical
-root, never the session CWD. One posting at a time.
+Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
-| State   | Opens when                                                                   | Authority and mutation                                                                                                                                                                                   |
-| ------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prepare | A posting or application request is available                                | Read `./references/flow-prepare.md`; read-only profile and browser navigation; stage proposed values only — except an isolated `job-resume` child may write `scout/applications/` when Prepare chains it |
-| Submit  | The operator explicitly approves the current review                          | Read `./references/flow-submit.md`; live browser fields, attachments, terms, and submission                                                                                                              |
-| Record  | Clear success evidence or explicit `sent`/`submitted`/`applied` confirmation | Read `./references/flow-record.md`; dossier-store writes only                                                                                                                                            |
+Resolve every profile path against Profile root (not CWD, not skill dir).
+Skill-local files: `./references/*` only.
 
-Read `./references/contract-screening.md` only when the posting or live form asks about
-salary, authorization, sponsorship, employment route, work location, assessments,
-background checks, or related screening. The operator owns demographic and EEO fields.
+One posting at a time.
 
-Drafting contract: `./references/contract-letter.md`. Letter verifier:
-`./references/worker-letter.md`, dispatched as an isolated child in Prepare Phase 3 and
-never loaded in-session. Phase 3 skips the letter entirely when the channel takes none.
-
-Prepare emits the complete review and stops. A bare `done` or `ok` does not confirm
-submission. When `data/cvs.yaml` `adapt_per_vacancy` is true (absent key →
-true) and Duplicate check resolves a dossier with `status: new` whose
-normalized frontmatter URL exactly equals the current ad's, Prepare
-prints `Chained job-resume · {filename}` and `spawn_subagent`s `job-resume` (brief:
-load that skill end-to-end; Argument `{filename}`; `PROFILE_ROOT`) — never load
-resume in-session (its STOP would end Apply). Resume STOP, FAIL, or a PASS+PDF
-pair this child did not print stops Prepare; leftover files from a prior run
-do not satisfy the gate. Do not fall through to `data/cvs.yaml` or
-`cv/en-us-resume.pdf` on that run. When `adapt_per_vacancy` is false, do not
-spawn; print `Skipped job-resume · adapt_per_vacancy: false` and use the
-generic pick (skip leftover tailored PDF too). After Record closes, load `job-inbox` in
-this session on its default candidate set. Its report is this run's last
-output. An inbox stop is not an apply failure — the record already landed.
+Read `./references/flow-prepare.md` now.
+Load each additional reference only when that flow names it.

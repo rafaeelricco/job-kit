@@ -1,7 +1,7 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout; passes login gates to list)
-and **job-apply** (draft → approve → submit → record),
+and **job-apply** (draft → submit → record),
 read back by **job-list** (read-only). Later lifecycle status from mail is **job-inbox**.
 Skills live in **job-kit**, not in this tree.
 
@@ -63,8 +63,8 @@ roots stay active until the tree is deleted.
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only (never apply/message/connect). It may use an existing
   session; account creation, signup terms, passwords, and verification remain
-  operator actions. job-apply stops at review, waits for
-  an explicit yes, then clears whatever the form puts in the path — account, terms,
+  operator actions. job-apply emits the review, then
+  clears whatever the form puts in the path — account, terms,
   Submit; records to `scout/jobs/` on submit success (or when you confirm you
   submitted outside it). job-inbox reads Gmail for replies and writes
   `interview` / `offer` / `rejected` when evidence is strong.
