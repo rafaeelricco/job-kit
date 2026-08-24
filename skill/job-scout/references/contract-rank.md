@@ -23,9 +23,8 @@ identifier punctuation (`+`, `#`, `.`) so `C++`, `C#`, and `Node.js`
 stay distinct. Match normalized values exactly; never infer aliases.
 
 If `R` is absent/`—`, or `C` is empty, the row is unscored (`score: —`) and
-lists under Gaps. `R` absent while the row's `jd_excerpt` itself prints a
-Requirements / Qualifications / Must have / You have section that names at
-least one value `contract-extract.md` `required_skills` admits is a defect:
+lists under Gaps. `R` absent while `role_must` names at least one value
+`contract-extract.md` `required_skills` admits is a defect:
 re-extract once per that file's `## How a field is read`. Still absent after
 that pass, or the section names no such value → unscored, as above.
 

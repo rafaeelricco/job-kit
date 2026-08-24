@@ -2,12 +2,14 @@ export {
   BUCKETS,
   CHANNELS,
   FACT_KEYS,
+  FACT_LABELS,
   LIFECYCLES,
   UNKNOWN_TEXT,
   WRITERS,
   factText,
   isBucket,
   isChannel,
+  isFactKey,
   isLifecycle,
   isWriter,
   toIsoDate,
@@ -25,6 +27,7 @@ export {
   type ParsedDossier,
   type Posting,
   type Provenance,
+  type Role,
   type Score,
   type Store,
   type TrashFailure,
@@ -46,11 +49,12 @@ const CHANNELS = ["direct_email", "dm_request", "founder", "ats"] as const
 const WRITERS = ["job-scout", "job-apply", "job-inbox", "job-application", "operator"] as const
 const FACT_KEYS = [
   "status",
-  "status_reason",
   "seniority",
   "work_model",
   "location",
   "salary",
+  "equity",
+  "years_experience",
   "work_auth",
   "hiring_route",
   "required_skills",
@@ -74,6 +78,28 @@ const isLifecycle = memberOf(LIFECYCLES)
 const isBucket = memberOf(BUCKETS)
 const isChannel = memberOf(CHANNELS)
 const isWriter = memberOf(WRITERS)
+// The corpus spans two vocabularies, so the parser reads fact rows by key and
+// must recognize one this build no longer carries (`status_reason`).
+const isFactKey = memberOf(FACT_KEYS)
+
+// What the sheet renders. The markdown on disk keeps the snake_case keys, so
+// this map is the whole of the rename — parser and skill contract are untouched
+// by it. `status` is relabeled because the header also shows a lifecycle called
+// status; `jd_date` takes the name every board prints.
+const FACT_LABELS: Readonly<Record<FactKey, string>> = {
+  status: "Posting state",
+  seniority: "Seniority",
+  work_model: "Work model",
+  location: "Location",
+  salary: "Salary",
+  equity: "Equity",
+  years_experience: "Years experience",
+  work_auth: "Work authorization",
+  hiring_route: "Hiring route",
+  required_skills: "Required skills",
+  jd_date: "Posted",
+  blocker: "Blocker",
+}
 
 /* -- branded scalars ------------------------------------------------------ */
 
@@ -104,7 +130,18 @@ type Posting = { readonly kind: "live" } | { readonly kind: "dead"; readonly sin
 
 type Factor = { readonly label: string; readonly points: FactValue }
 
-type Verdict = { readonly why: string; readonly factors: readonly Factor[] }
+// No free-text `why`: across the corpus it mostly restated provenance.source,
+// jd_date, or the score factors, and the one thing it alone carried — the pack
+// query — is now provenance.matchedQuery.
+type Verdict = { readonly factors: readonly Factor[] }
+
+// Copied from the posting, never summarized. Empty means the page printed no
+// such section; the sheet renders nothing rather than a placeholder.
+type Role = {
+  readonly snapshot: string
+  readonly responsibilities: readonly string[]
+  readonly requirements: readonly string[]
+}
 
 type LogEntry = {
   readonly date: IsoDate
@@ -116,6 +153,7 @@ type Provenance = {
   readonly source: string
   readonly author: FactValue
   readonly contact: FactValue
+  readonly matchedQuery: FactValue
   readonly date: string
 }
 
@@ -133,6 +171,10 @@ type Dossier = {
   readonly channel: Channel
   readonly verdict: Verdict
   readonly facts: Readonly<Record<FactKey, FactValue>>
+  readonly role: Role
+  // Legacy. Scout no longer writes `## From the posting`, and the sheet shows
+  // this only when `role` is empty — so dossiers written before the redesign
+  // keep their prose until scout next opens them.
   readonly excerpt: Excerpt
   readonly provenance: Provenance
   readonly log: readonly LogEntry[]
@@ -174,6 +216,9 @@ type Store =
       readonly label: string
       readonly generatedAt: string
       readonly dossiers: readonly Dossier[]
+      // Flat skill names from the profile's data/skills.yaml. Empty when that
+      // file is absent or unreadable — Stack then renders every token unmarked.
+      readonly skills: readonly string[]
       readonly gaps: readonly ParseError[]
     }
   | {

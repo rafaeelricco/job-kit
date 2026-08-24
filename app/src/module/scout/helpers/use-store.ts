@@ -3,7 +3,7 @@ export { useStore, type StoreState }
 import { useCallback, useEffect, useState } from "react"
 
 import { toStore } from "@/module/scout/helpers/assemble-store"
-import { loadHandle, readJobs, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
+import { loadHandle, readJobs, readSkills, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
 import { parseDossier } from "@/module/scout/parse-dossier"
 import { err } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
@@ -44,6 +44,7 @@ function useStore(enabled: boolean): {
         const handle = loaded.value
         const files = await snapshotProbe(handle)
         const jobs = await readJobs(handle)
+        const skills = await readSkills(handle)
         if (ignore) return
         if (jobs.kind === "err") {
           setState({ kind: "read-failed", detail: jobs.error })
@@ -53,7 +54,7 @@ function useStore(enabled: boolean): {
           item.kind === "ok" ? parseDossier(item.value.file, item.value.raw) : item
         )
         const generatedAt = new Date().toISOString().slice(0, 10)
-        setState({ kind: "loaded", store: toStore(handle.name, generatedAt, files, parsed) })
+        setState({ kind: "loaded", store: toStore(handle.name, generatedAt, files, parsed, skills) })
       } catch (error) {
         if (ignore) return
         setState({ kind: "read-failed", detail: error instanceof Error ? error.message : String(error) })

@@ -99,11 +99,14 @@ exceptions, empty log included.
 
 ## Search Candidate (fixed columns, pipe table)
 
-`company | title | url | source | channel | author | contact | date | why`
+`company | title | url | source | channel | author | contact | date | matched_query`
 
 - `channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`
 - `author` = poster name + role when known; else `—`
 - `contact` = public email or @handle when printed; else `—`
+- `matched_query` = the pack formulation that returned this row, verbatim. NEVER a
+  restatement of `source`, the posting date, or why the row looks good — those are
+  already columns or score factors.
 - Unknown value = `—`. NEVER omit a column. NEVER invent a value.
 
 ## Defect
