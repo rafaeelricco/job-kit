@@ -110,8 +110,9 @@ exceptions, empty log included.
 
 `pack | formulations_run | zero_result_runs | verdict`
 
-- `formulations_run` = formulations run for the pack. MUST equal the pack's
-  formulation count or verdict names the defect.
+- `formulations_run` = count of formulations whose step 5 proof-the-query-ran
+  check passed. Never assert this number from memory; it MUST equal the
+  pack's formulation count or verdict names the defect.
 - `zero_result_runs` = submitted queries that returned no rows.
 - `verdict` ∈ `pass` | `auth_gate` | `defect: {name}`
   - `pass` — every formulation in the pack ran. A pack that ran clean and found

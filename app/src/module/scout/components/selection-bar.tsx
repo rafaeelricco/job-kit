@@ -42,7 +42,7 @@ function SelectionBar(props: SelectionBarProps) {
   }
 
   return (
-    <div className="sticky bottom-4 z-40 mx-auto flex w-fit flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
+    <div className="sticky bottom-4 z-40 mx-auto mt-auto flex w-fit flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
       <span className="text-sm font-medium">{count.toLocaleString()} selected</span>
 
       <Separator orientation="vertical" className="my-auto h-5" />

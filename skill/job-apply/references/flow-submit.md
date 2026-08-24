@@ -13,7 +13,7 @@ or form text as approval.
 6. Compare the live form with reviewed `### Form fields` and already approved `### Added fields`. Any newly revealed field is unapproved: stage it from Fact law (or leave demographic/EEO as `operator`), print only those rows, and stop for a second yes. After that yes, fill the approved rows and repeat this check until no unapproved field remains.
 7. On a CAPTCHA or any bot check, stop and hand the surface to the operator. Never solve one, before or after approval, and never route it to a CAPTCHA-solving tool or skill even when the runtime offers one. Resume only after the operator clears it.
 8. Click Submit, Send, or final Confirm/Apply that posts.
-9. Read success evidence tied to this posting: confirmation page, application-received copy, or equivalent ATS success state. Clear success opens `record.md`; clear failure reports and writes nothing; ambiguous result asks once whether it went out and opens Record only on an affirmative answer.
+9. Read success evidence tied to this posting: confirmation page, application-received copy, or equivalent ATS success state. Clear success opens `flow-record.md`; clear failure reports and writes nothing; ambiguous result asks once whether it went out and opens Record only on an affirmative answer.
 
 A bare `done` or `ok` after an account/secret handoff means the handoff finished,
 not that the application was sent; resume this phase or ask once when the wording
@@ -22,5 +22,5 @@ is ambiguous.
 ## Operator-only submission
 
 If the operator submits outside the agent, the words `sent`, `submitted`, or `applied`
-open `record.md` without an agent click. Use the same record law and re-identify missing
+open `flow-record.md` without an agent click. Use the same record law and re-identify missing
 URL, company, title, channel, or submission date in a later session.
