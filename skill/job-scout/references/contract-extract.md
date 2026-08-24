@@ -35,7 +35,7 @@ Emit rows under `### Verified`.
 
 ## Search columns (must keep)
 
-`company | title | url | source | channel | author | contact | date | why`
+`company | title | url | source | channel | author | contact | date | matched_query`
 
 ## Extract adds
 
