@@ -96,5 +96,6 @@ Protocol write path. Empty fields stay `""` / `[]`.
 | experiences, skills, languages, projects, basics, profiles                             | Read-only here.                                                                                              |
 | identity (LinkedIn username)                                                           | Read-only here.                                                                                              |
 | "find me boards"                                                                       | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
+| Copy another profile's data                                                            | Refuse. Never read a donor Profile root; values come from the operator for *this* profile.                   |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.
