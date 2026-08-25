@@ -15,8 +15,8 @@ One story per confirm cycle. Print `Profile root: /abs/path` before the first di
 Draft `evidence.problem`, `evidence.decision`, `evidence.difficulty`,
 `evidence.impact`. Then `claim`, conclusion first.
 
-Specific or it says nothing: `difficulty` names the failure modes, including what
-was tried and failed. "It was hard but I solved it" is a rejected draft.
+`difficulty` names failure modes, including what was tried and failed.
+"It was hard but I solved it" is a rejected draft.
 
 ## Adversarial pass
 
@@ -37,9 +37,8 @@ Unified diff in a fenced `diff` block anchored to `<file>:<line>`. Wait for an
 explicit **yes**. Silence, a question, or edits are not a yes. Edits → re-draft
 and re-diff.
 
-On yes: if `data/stories/` is missing, create it (`mkdir`) after confirming that
-path is Profile root `data/stories/` (never a path outside the writable set).
-Then render to a sibling `<slug>.md.tmp`, re-parse its frontmatter, then rename
-over the target. Parse failure → delete the staged file, say nothing was written,
-name the error. Never edit a live file in place. Print `wrote <abs path>` and the
-derived `status`.
+On yes: missing `data/stories/` → `mkdir` only if that path is Profile root
+`data/stories/`. Render to sibling `<slug>.md.tmp`, re-parse frontmatter, then
+rename over the target. Parse failure → delete the staged file, say nothing was
+written, name the error. Never edit a live file in place. Print `wrote <abs path>`
+and the derived `status`.

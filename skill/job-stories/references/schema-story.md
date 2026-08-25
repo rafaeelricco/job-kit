@@ -30,8 +30,8 @@ was happy", and "shipped to production" are not impact.
 
 ## Body
 
-Everything below the frontmatter is written for speech and never reaches a letter
-or a form. `job-apply` reads frontmatter only.
+Everything below the frontmatter is for speech and never reaches a letter or a
+form. `job-apply` reads frontmatter only.
 
 ## Status law
 

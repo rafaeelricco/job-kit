@@ -1,6 +1,10 @@
 # Show
 
-Read-only. `show` and `gaps` never write. `refresh-card` is the only card write.
+Read-only: `show`, `gaps`, and `cvs` (display). Writes are `flow-mutate.md`.
+Load `./schema-profile-card.md` now for card field sources (cache absent, hybrid,
+or any `### Profile card` print).
+
+Packs **list** only (list my boards / packs): print `### Packs` and stop — no write.
 
 ## Read set (all under Profile root)
 
@@ -19,7 +23,7 @@ An unreadable file → stop and name it.
 ## Blocks
 
 Print `### Profile card`, then `### Constraints` — same field vocabulary as
-job-scout Phase 0, so the two never disagree:
+job-scout Phase 0:
 
 - Profile card: primary role · top skills · industries · languages
 - Constraints: work model · job types · positions · locations ·
@@ -31,16 +35,13 @@ enabled|disabled · tokens`. Absent → one line saying job-scout will STOP unti
 this file exists (emit via `/job-profile-init` or add packs via `/job-profile-me`).
 
 `### CV` fourth when `data/cvs.yaml` is readable: `base`, plus `missing` when it
-does not resolve under `cv/`, and `no latex` when its `.tex` sibling is absent —
-a base pointing at nothing is the one CV state worth surfacing, and it prints
-here, not as a Gap. Also print `adapt_per_vacancy: true|false` (absent → true).
+does not resolve under `cv/`, and `no latex` when its `.tex` sibling is absent.
+Also print `adapt_per_vacancy: true|false` (absent → true).
 Empty `base` → one line saying job-apply will attach `cv/en-us-resume.pdf`.
+A base pointing at nothing prints here, not as a Gap.
 
-Unknown value = `—`, never invented. Card field source rules: full per-field
-table in `./schema-profile-card.md` (single SSOT — load it here too, not only
-for `refresh-card`). Cache present → its non-empty fields win except
-`primary_role`, always re-derived from current
-`job_search.yaml`.
+Unknown value = `—`. Cache present → its non-empty fields win except
+`primary_role`, always re-derived from current `job_search.yaml`.
 
 Say which: `card: profile_card.yaml`, `card: derived`, or `card: hybrid`
 (cache present but at least one always-derived field came from facts).

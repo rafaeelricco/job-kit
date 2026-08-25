@@ -3,11 +3,16 @@
 One mutation per confirm cycle. Several related edits in one user message are one
 batch — still one diff, one yes.
 
+Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/add/remove),
+`refresh-card` (`profile_card.yaml`), `cvs set` (`cvs.yaml`).
+Load `./schema-profile-card.md` when the verb is `refresh-card` or when a
+`positions` write clears `primary_role`.
+
 ## Protocol
 
 1. Parse intent → target file + key paths + new values. Ambiguous key → ask. Never guess a key.
-2. Read the file. Parse fails → **STOP**; print the parser error and the path; write
-   nothing. A broken file is repaired by a human, never overwritten.
+2. Read the file. Parse fails → **STOP**; print the parser error and the path; write nothing.
+   A broken file is repaired by a human, never overwritten.
 3. Print the proposed change as a unified diff in a fenced `diff` block, anchored to
    `<file>:<line>`, showing only the lines that change.
 4. Wait for an explicit **yes**. Silence, a question, or edits are not a yes. Edits →
@@ -19,17 +24,15 @@ batch — still one diff, one yes.
    keys outside the diff. A live file is never edited in place.
 7. Re-parse **every** staged file. Any staging write or parse that fails →
    delete the staged files and say nothing was written, naming the failing path
-   and its error. No live file was touched, so there is nothing to undo — a full
-   disk or a truncated write lands here, before the profile changes.
+   and its error.
 8. All staged files parse → rename each over its original. Rename is the only
-   step that mutates a live file, and it allocates nothing, so the conditions
-   that break a write cannot half-apply a cycle.
+   step that mutates a live file.
 9. A rename that fails after an earlier one succeeded → restore those originals
    from the step-5 contents and report the cycle rolled back. Never print
    `wrote` for a cycle that did not complete: the card-clear and its
    `job_search.yaml` edit stand or fall together.
 10. All renames done → print `wrote <abs path>` per file and re-print only the
-    affected `### Constraints` (or `### Packs` / `### CV`) slice.
+    affected `### Constraints` / `### Packs` / `### CV` / `### Profile card` slice.
 11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
@@ -51,12 +54,10 @@ a key still present in `job_search.yaml` that is not in the writable table above
 delete that key only — show the deletion in the same confirm cycle as any other
 write. Never invent a replacement value for a deleted key.
 
-After a yes that writes `positions`: if
-`data/profile_card.yaml` exists, also clear `primary_role`
-in that file in the **same** confirm cycle (show it empty in the
-diff). `show` already re-derives that from `job_search.yaml`; clearing
-keeps the cache from advertising a stale value if read raw. Do not rewrite other
-card fields; do not invent a full refresh — that is `refresh-card`.
+After a yes that writes `positions`: if `data/profile_card.yaml` exists, also
+clear `primary_role` in that file in the **same** confirm cycle (show it empty
+in the diff). Do not rewrite other card fields; do not invent a full refresh —
+that is `refresh-card`.
 
 ## `search_packs.yaml` — writable
 
@@ -80,6 +81,12 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 
 Nothing else in this file is written. Clearing `base` → say in the same message
 that job-apply falls back to `cv/en-us-resume.pdf`.
+
+## `refresh-card`
+
+Derive every field in `./schema-profile-card.md` from files on disk only.
+Print the full proposed `data/profile_card.yaml` as the cycle diff, then the
+Protocol write path. Empty fields stay `""` / `[]`.
 
 ## Refuse (redirect, never write)
 
