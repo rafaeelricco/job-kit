@@ -1,6 +1,6 @@
 # Job scout — dossier format
 
-Phase 6 output. Main-only. Never paste into a worker brief. Workers never write.
+Phase 6 output. Main writes; a spawned search/extract subagent never does.
 
 ## Layout (under Profile root)
 
@@ -18,6 +18,22 @@ Name taken by a file whose `url` differs → append `-2`, `-3`.
 The date is a label, never a key. Re-run lookup is by frontmatter `url` across the
 whole directory — the same job re-found lands on the file it already owns, whatever
 date that name carries.
+
+## URL normalize
+
+Identity is this normalized URL (search emit, merge, persist, apply, resume):
+
+1. Lowercase host; strip trailing slash on path (except root).
+
+2. Drop fragment (`#…`).
+
+3. Drop query keys matching: `utm_*`, `li_*`, `ref`, `trk`, `trackingId`, `trkInfo`,
+   `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId` (and similar trackers)
+   when path alone is unique.
+
+4. Keep path. Keep job-id query keys only when path alone is non-unique.
+
+5. One row per normalized URL.
 
 ## File format
 
@@ -38,12 +54,12 @@ value cannot open a second bullet or a bare top-level line.
 ---
 company: "Ambar"
 title: "Senior Software Engineer"
-url: "https://example.com/jobs/123" # normalized, per contract-search.md "URL normalize"
+url: "https://example.com/jobs/123" # normalized, per "URL normalize" above
 status: new # new | applied | rejected | interview | offer | dropped
 first_seen: 2026-08-08
 last_seen: 2026-08-08
-score: 9 # 0–9, or — when the row is unscored
-bucket: direct # bucket_short vocab, contract-rank.md `## Bucket`
+score: 10 # 0–10, or — when the row is unscored
+bucket: direct # direct | EOR | restricted-geo | unbucketed
 channel: ats
 ---
 
@@ -51,24 +67,24 @@ channel: ats
 
 ## Verdict
 
-score **9** · direct · live
+score **10** · direct · live
 
-| skills | seniority | geo/auth |   = |
-| -----: | --------: | -------: | --: |
-|      7 |         2 |        — |   9 |
+| skills |   = |
+| -----: | --: |
+|     10 |  10 |
 
-Factors and sum exactly as `contract-rank.md` `## Score` computed them. A mismatch is
-a defect.
+The `=` cell and frontmatter `score` carry the number job-scout `SKILL.md` Rank
+gave the row. A mismatch is a defect.
 
-Unscored row — `## Score` returned `—` because the posting printed no
+Unscored row — Rank returned `—` because the posting printed no
 `required_skills`, or the profile carries no skills. Frontmatter `score: —`, the
 Verdict line prints `score **—**`, and the `=` cell is `—`:
 
 score **—** · direct · live
 
-| skills | seniority | geo/auth |   = |
-| -----: | --------: | -------: | --: |
-|      — |         2 |        — |   — |
+| skills |   = |
+| -----: | --: |
+|      — |   — |
 
 Every factor keeps what it computed; one with no evidence stays `—`. Never write `0`
 for an unknown factor, never omit the table, and never drop the row's bucket — a row
@@ -76,9 +92,8 @@ is unscored, not unbucketed.
 
 ## Posting facts
 
-Every extract key from `contract-extract.md` except the three `role_*` keys (their
-own `## The role` section) and `status_reason` (the closure log line below), plus
-main-derived `blocker`. `—` = the page did not print it.
+The keys below, plus main-derived `blocker`. `role_*` have `## The role`;
+`status_reason` is the closure log line. `—` = the page did not print it.
 
 | key              | value              |
 | ---------------- | ------------------ |
@@ -95,7 +110,7 @@ main-derived `blocker`. `—` = the page did not print it.
 | jd_date          | 2026-08-01         |
 | blocker          | —                  |
 
-`blocker` is main-derived (`contract-rank.md` `## Bucket`), not a gated column — recompute
+`blocker` is main-derived (job-scout `SKILL.md` Bucket), not a gated column — recompute
 it here; never read it off a row.
 
 ## The role
@@ -105,7 +120,7 @@ omitted whole — no empty heading, no `_(not printed)_` line. Every one `—` �
 `## The role` itself.
 
 `role_do` and `role_must` arrive as one cell whose items are joined by
-space-bullet-space (`contract-extract.md`): split on that separator and write one
+space-bullet-space (`" • "`): split on that separator and write one
 `- ` line per item, in the order the cell carries them. Never write
 `## From the posting` — the retired excerpt section. A dossier that still carries
 one is pre-redesign; the re-run rewrite drops it.

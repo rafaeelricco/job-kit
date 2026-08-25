@@ -5,7 +5,7 @@ dossier store.
 
 Before writing, obey `job-scout/references/schema-dossier.md` and
 `job-scout/references/contract-persistence.md`. Do not reproduce or replace those mechanics.
-Normalize identity with `job-scout/references/contract-search.md`.
+Normalize identity with `job-scout/references/schema-dossier.md` "URL normalize".
 
 ## Write scope and lifecycle
 

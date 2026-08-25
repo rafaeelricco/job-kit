@@ -29,40 +29,33 @@ batch — still one diff, one yes.
    `wrote` for a cycle that did not complete: the card-clear and its
    `job_search.yaml` edit stand or fall together.
 10. All renames done → print `wrote <abs path>` per file and re-print only the
-    affected `### Constraints` (or `### Packs` / `### CVs`) slice.
+    affected `### Constraints` (or `### Packs` / `### CV`) slice.
 11. On no (step 4): abort; say nothing was written.
 
 Print `Profile root: /abs/path` before the first diff of the session.
 
 ## `job_search.yaml` — writable keys
 
-| Key                                              | Shape                                                       |
-| ------------------------------------------------ | ----------------------------------------------------------- |
-| `positions`                                      | list of strings                                             |
-| `keywords.<group>`                               | list of strings; create a group only when the user names it |
-| `locations`                                      | list of strings                                             |
-| `location_scope`                                 | `worldwide` \| `listed`, only when explicit                 |
-| `direct_regions`                                 | list of strings                                             |
-| `market_currencies`                              | list of strings                                             |
-| `work_model.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                                    |
-| `seniority_level`                                | string, only when explicit                                  |
+| Key                                              | Shape                                       |
+| ------------------------------------------------ | ------------------------------------------- |
+| `positions`                                      | list of strings                             |
+| `locations`                                      | list of strings                             |
+| `location_scope`                                 | `worldwide` \| `listed`, only when explicit |
+| `direct_regions`                                 | list of strings                             |
+| `market_currencies`                              | list of strings                             |
+| `exclude_locations`                              | list of strings                             |
+| `work_model.*` / `job_types.*` / `date_posted.*` | bool, only when explicit                    |
 
 Nothing else in this file is written. When scout Phase 0 (or the operator) names
 a key still present in `job_search.yaml` that is not in the writable table above,
 delete that key only — show the deletion in the same confirm cycle as any other
-write. Never invent a replacement value for a deleted key. Deleting a pre-
-`seniority_level` shape does not create `seniority_level`: ask for that value and
-write it per the table when the operator wants it.
+write. Never invent a replacement value for a deleted key.
 
-A `keywords` group name becomes a `[skill:<group>]` token job-scout packs expand.
-Renaming or deleting a group a pack names leaves an un-expandable token — say so in
-the same message as the diff; the user decides.
-
-After a yes that writes `positions`, any `keywords.*`, or `seniority_level`: if
-`data/profile_card.yaml` exists, also clear `primary_role`, `seniority`, and
-`target_stack` in that file in the **same** confirm cycle (show them empty in the
-diff). `show` already re-derives those three from `job_search.yaml`; clearing
-keeps the cache from advertising stale values if read raw. Do not rewrite other
+After a yes that writes `positions`: if
+`data/profile_card.yaml` exists, also clear `primary_role`
+in that file in the **same** confirm cycle (show it empty in the
+diff). `show` already re-derives that from `job_search.yaml`; clearing
+keeps the cache from advertising a stale value if read raw. Do not rewrite other
 card fields; do not invent a full refresh — that is `refresh-card`.
 
 ## `search_packs.yaml` — writable
@@ -71,32 +64,22 @@ card fields; do not invent a full refresh — that is `refresh-card`.
 - `enable` / `disable` — flip `enabled` on a named `id`. No id match → say so.
 - `formulations` — replace the list on one pack with strings the user typed. Never
   compose a formulation, never widen one, never look a term up. Empty list → refuse.
-  A typed line that contains `[skill:` or `[industry]` → warn (contract-search drops
-  those tokens), then let the user decide.
+  A typed line that contains `[industry]` → warn (scout drops an empty
+  `[industry]` token), then let the user decide.
 - `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥1 formulation
-  from the user. `surface` must match a `worker-search-<surface>.md` in the installed
-  job-scout skill; unknown → refuse, name the valid ones. `entry` is one `http(s)`
-  URL. A board is a pack, never a row inside one.
-
-A `[skill:<group>]` token in a formulation whose group is absent from
-`job_search.yaml` is dropped at search time — say so alongside the diff.
+  from the user. `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or
+  another); scout opens `entry`, it does not load a playbook file. `entry` is one
+  `http(s)` URL. A board is a pack, never a row inside one.
 
 ## `cvs.yaml` — writable keys
 
-| Key                 | Shape                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `adapt_per_vacancy` | `true` or `false`; never a synonym. `cvs set` toggles this. Absent today → writing `true` is an explicit keep |
-| `default`           | one `id` that exists in `cvs`; never an id the file does not hold                                             |
-| `cvs[].id`          | slug the operator names                                                                                       |
-| `cvs[].file`        | filename under `cv/`; **must already exist and open as a PDF** — probe it before the diff, refuse otherwise   |
-| `cvs[].targets`     | one prose line the operator typed; never composed, never widened                                              |
+| Key                 | Rule                                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `adapt_per_vacancy` | `true` or `false`; never a synonym. Absent today → writing `true` is an explicit keep                       |
+| `base`              | filename under `cv/`; **must already exist and open as a PDF** — probe it before the diff, refuse otherwise |
 
-Nothing else in this file is written. Surgical edit: do not drop `adapt_per_vacancy`
-when mutating a row. `remove` of the row `default` names must set
-`default` in the same confirm cycle — show both edits in one diff, and ask which id
-takes over rather than choosing one. Removing the last row empties `cvs` and clears
-`default` (leave `adapt_per_vacancy` as-is): say in the same message that job-apply
-falls back to `cv/en-us-resume.pdf`.
+Nothing else in this file is written. Clearing `base` → say in the same message
+that job-apply falls back to `cv/en-us-resume.pdf`.
 
 ## Refuse (redirect, never write)
 
@@ -105,6 +88,6 @@ falls back to `cv/en-us-resume.pdf`.
 | salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*` | Print what is on disk. Editing is `job-profile-init` blocker fill, or a human editing `data/candidate.yaml`. |
 | experiences, skills, languages, projects, basics, profiles                             | Read-only here.                                                                                              |
 | identity (LinkedIn username)                                                           | Read-only here.                                                                                              |
-| "look up better keywords" / "find me boards"                                           | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
+| "find me boards"                                                                       | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.

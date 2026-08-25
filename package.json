@@ -2,7 +2,9 @@
   "name": "job-kit",
   "private": true,
   "scripts": {
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "eval:scout": "python3 skill/job-scout/evals/run.py",
+    "eval:scout:fast": "python3 skill/job-scout/evals/run.py --repeat 1 --jobs 8"
   },
   "devDependencies": {
     "prettier": "^3.8.3",

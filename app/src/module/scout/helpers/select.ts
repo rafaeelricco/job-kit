@@ -46,9 +46,9 @@ const BLOCKER_LABELS: Readonly<Record<Blocker, string>> = {
   no: "No blocker",
 }
 
-// The scale is ten integers with the rubric's own cuts — scout keeps ≥ 7 and
-// ranks ≥ 8 (skill/job-scout/references/contract-rank.md `## Score`). Bands rather
-// than a min/max pair: every question worth asking of ten integers is one of
+// The scale is 0–10 with the rubric's own cuts — scout keeps ≥ 7 and
+// ranks ≥ 8 (skill/job-scout/SKILL.md Rank). Bands rather
+// than a min/max pair: every question worth asking of 0–10 is one of
 // these four, and a band is one click where a range is two controls.
 const SCORE_BANDS = ["strong", "keep", "low", "unscored"] as const
 
@@ -56,7 +56,7 @@ type Segment = (typeof SEGMENTS)[number]
 type ScoreBand = (typeof SCORE_BANDS)[number]
 
 const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
-  strong: "Strong 8–9",
+  strong: "Strong 8–10",
   keep: "Keep 7",
   low: "Low ≤6",
   unscored: "Unscored",

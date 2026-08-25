@@ -25,19 +25,19 @@ Hard refuses: `../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent
 
 ## Invent matrix
 
-| Class                                                                               | SoT present                                                                                                                                                         | SoT silent                                                                                        |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Salary, notice, work auth, visa, sponsorship, EOR                                   | Propose only verbatim / clear synonym, then require questionnaire confirmation                                                                                      | Ask explicitly; skip leaves empty and may produce a Gap                                           |
-| Kit-owned `salary_expectations.tip`                                                 | Keep the emitted template string; never propose from SoT                                                                                                            | Keep the emitted string; never ask; never empty                                                   |
-| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)          | Propose only when SoT prints a clear answer, then require confirmation                                                                                              | Ask explicitly; skip leaves empty; **do not** list under Gaps                                     |
-| Positions, keywords groups, locations                                               | Propose from SoT only; questionnaire confirmation is required                                                                                                       | Ask explicitly; skip → `[]`; Gaps per the allowlist below                                         |
-| `location_scope`, `direct_regions`, `market_currencies`                             | Propose only from SoT; confirm                                                                                                                                      | Ask; skip → `""` / `[]`; Gap if `location_scope` empty                                            |
-| Search filters (`work_model`, `job_types`, `date_posted`), `seniority_level`        | Propose only from SoT or template as **proposals**; require confirm/keep/edit                                                                                       | Ask; skip → empty/`false` / `""` — **not** Gaps; never retain shipped template trues without keep |
-| Experiences, skills, projects, languages, education (incl. levels, experience URLs) | Propose only what is printed, then require row/field confirmation                                                                                                   | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps                         |
-| Story names (moment + employer link)                                                | Propose only titles the SoT prints as a role or project, then require confirmation                                                                                  | Ask explicitly; skip → no stub; **do not** list under Gaps                                        |
-| CV binary                                                                           | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                                                                | Report only under **### CV** (not Gaps)                                                           |
-| CV registry                                                                         | Write questionnaire `adapt_per_vacancy` and `default` into `data/cvs.yaml`. Copy operator `.tex` → `cv/resume-{default}.tex` when adapt is yes and they gave a path | Report only under **### CV** (not Gaps)                                                           |
-| Identity (name, email, LI, GH)                                                      | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill                                                   | Ask explicitly; required fields cannot be skipped                                                 |
+| Class                                                                               | SoT present                                                                                                                                                                              | SoT silent                                                                                 |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Salary, notice, work auth, visa, sponsorship, EOR                                   | Propose only verbatim / clear synonym, then require questionnaire confirmation                                                                                                           | Ask explicitly; skip leaves empty and may produce a Gap                                    |
+| Kit-owned `salary_expectations.tip`                                                 | Keep the emitted template string; never propose from SoT                                                                                                                                 | Keep the emitted string; never ask; never empty                                            |
+| Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)          | Propose only when SoT prints a clear answer, then require confirmation                                                                                                                   | Ask explicitly; skip leaves empty; **do not** list under Gaps                              |
+| Positions, locations                                                                | Propose from SoT only; questionnaire confirmation is required                                                                                                                            | Ask explicitly; skip → `[]`; Gaps per the allowlist below                                  |
+| `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`        | Propose only from SoT; confirm                                                                                                                                                           | Ask; skip → `""` / `[]`; Gap if `location_scope` empty                                     |
+| Search filters (`work_model`, `job_types`, `date_posted`)                           | Propose only from SoT or template as **proposals**; require confirm/keep/edit                                                                                                            | Ask; skip → empty/`false` — **not** Gaps; never retain shipped template trues without keep |
+| Experiences, skills, projects, languages, education (incl. levels, experience URLs) | Propose only what is printed, then require row/field confirmation                                                                                                                        | Ask explicitly; skip leaves `[]` / empty rows; **do not** list under Gaps                  |
+| Story names (moment + employer link)                                                | Propose only titles the SoT prints as a role or project, then require confirmation                                                                                                       | Ask explicitly; skip → no stub; **do not** list under Gaps                                 |
+| CV binary                                                                           | Copy/place user file → `cv/en-us-resume.pdf` when a PDF SoT is given                                                                                                                     | Report only under **### CV** (not Gaps)                                                    |
+| CV policy                                                                           | Write questionnaire `adapt_per_vacancy` and the placed PDF's filename as `base` into `data/cvs.yaml`. Copy operator `.tex` → `cv/{base stem}.tex` when adapt is yes and they gave a path | Report only under **### CV** (not Gaps)                                                    |
+| Identity (name, email, LI, GH)                                                      | Tokens from **Approve** (SoT draft + operator fixes). Questionnaire confirmation required; do not clobber on fill                                                                        | Ask explicitly; required fields cannot be skipped                                          |
 
 Hard: never default sponsorship/visa/EOR to `No` or `Yes` because it is convenient.
 EOR bucket needs `employment_routes.employer_of_record: Yes` only when SoT or user says so.
@@ -49,9 +49,7 @@ win over extracted or template-provided proposals. Apply only confirmed values,
 explicit skips, and confirmed pack enablement choices.
 
 - Write all confirmed candidate, basics, collection (experiences, skills, projects, languages, education), and job-search fields.
-- Write `adapt_per_vacancy` and `default` on `data/cvs.yaml`. Do not invent
-  `cvs[]` rows; listing variants is `/job-profile-me cvs`.
-- Write `seniority_level` as the single confirmed seniority string.
+- Write `adapt_per_vacancy` and `base` on `data/cvs.yaml`.
 - Write empty values/lists for explicit skips where supported.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
 - Write one `data/stories/<slug>.md` stub per confirmed story name — `status: draft`,
@@ -63,12 +61,8 @@ explicit skips, and confirmed pack enablement choices.
 
 ## Questionnaire-derived suggestions and packs
 
-- Write the single confirmed `seniority_level`; do not recreate a boolean
-  seniority map.
 - Write only confirmed `enabled:` values on named packs. Never edit
   formulations, add a pack, or write a search term the operator did not type.
-- A pack whose `[skill:<group>]` group is missing from confirmed
-  `job_search.yaml` is named in the fill report; do not rewrite the pack.
 
 ## CV
 
@@ -76,11 +70,12 @@ explicit skips, and confirmed pack enablement choices.
    (overwrite only if user confirms when a different PDF already exists). Do not
    re-parse PDF text when the SoT buffer already holds facts.
 2. PDF/LaTeX generation is a Hard refuse (`../SKILL.md`). Non-PDF SoT → report under **### CV** only (not Gaps).
-3. Write `data/cvs.yaml` `adapt_per_vacancy` and `default` from the
-   questionnaire (never leave `adapt_per_vacancy` implicit on a new profile).
-4. Adapt = yes and operator gave a `.tex` path: copy it to
-   `cv/resume-{default}.tex` (overwrite only on confirm). Missing path and
-   missing dest → report under **### CV** (`no LaTeX base`); not a Gap.
+3. Write `data/cvs.yaml` `adapt_per_vacancy` from the questionnaire (never
+   leave it implicit on a new profile) and `base` = the filename placed at
+   step 1.
+4. Adapt = yes and operator gave a `.tex` path: copy it to `cv/{base stem}.tex`
+   (overwrite only on confirm). Missing path and missing dest → report under
+   **### CV** (`no LaTeX base`); not a Gap.
 
 ## Post-fill leak gate
 
@@ -104,8 +99,8 @@ Both must pass before gap report / next-steps:
 ### CV
 - placed: yes path | no — operator must add cv/en-us-resume.pdf
 - adapt_per_vacancy: true | false
-- default: {id or empty}
-- latex: yes cv/resume-{id}.tex | no — job-resume will STOP without it
+- base: {filename or empty}
+- latex: yes cv/{stem}.tex | no — job-resume-refine stops without it
 ### Stories
 - stubs: <slugs, or none>
 ### Observations
@@ -118,7 +113,7 @@ Partial fill is OK. **Gaps allowlist only** — omit a line when that key is fil
 - `availability.notice_period`
 - `legal_authorization.*`
 - `employment_routes.employer_of_record`
-- `job_search` `positions` / `keywords.primary`
+- `job_search` `positions`
 - `job_search` `location_scope`; `locations` when `location_scope` is `listed`
   and the list is empty
 
