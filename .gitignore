@@ -2,4 +2,3 @@
 *.backup-*
 .job-kit-lifecycle-state
 node_modules
-skill/job-scout/evals/runs/
