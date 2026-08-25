@@ -72,7 +72,8 @@ explicit skips, and confirmed pack enablement choices.
 2. PDF/LaTeX generation is a Hard refuse (`../SKILL.md`). Non-PDF SoT → report under **### CV** only (not Gaps).
 3. Write `data/cvs.yaml` `adapt_per_vacancy` from the questionnaire (never
    leave it implicit on a new profile) and `base` = the filename placed at
-   step 1.
+   step 1. No PDF at step 1 and adapt = yes with a `.tex` path → set `base`
+   to `{tex stem}.pdf` (never leave `base` empty).
 4. Adapt = yes and operator gave a `.tex` path: copy it to `cv/{base stem}.tex`
    (overwrite only on confirm). Missing path and missing dest → report under
    **### CV** (`no LaTeX base`); not a Gap.
