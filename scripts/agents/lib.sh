@@ -6,14 +6,18 @@
 SKILL_NAMES="job-profile-init job-profile-me job-list job-stories job-pitch job-inbox job-profile-root"
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
-BROWSER_SKILL_NAMES="job-scout job-apply job-resume"
+BROWSER_SKILL_NAMES="job-scout job-apply job-resume-refine"
+# Prior basenames for browser-channel skills only. A browser-use uninstall
+# sweeps these and not LEGACY_SKILL_NAMES below: those orphans belong to the
+# agents target, and the two channels share the same agent homes.
+BROWSER_LEGACY_SKILL_NAMES="job-resume"
 # Every basename this channel may own under an agent home. Removal and the
 # cache-purge survivor scan use the union, so an agents uninstall reaches
 # browser-channel links no matter which target installed them.
 ALL_SKILL_NAMES="${SKILL_NAMES} ${BROWSER_SKILL_NAMES}"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
-LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker"
+LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker job-resume"
 
 # AGENT_TARGETS — space-separated ids. Dest map matches personal dotfiles:
 #   claude → $HOME/.claude/skills   (parent $HOME/.claude)

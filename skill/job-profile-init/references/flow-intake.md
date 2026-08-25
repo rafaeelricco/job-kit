@@ -135,8 +135,8 @@ plan in chat per `plan-format`. Plan what will be written, not what was asked:
 - `<target>`, activation choice, source mode
 - the emit tree, one line per file
 - per data file, every value fill will write and every explicit skip —
-  including `seniority_level`, pack choices, story stubs, observations,
-  `adapt_per_vacancy`, and `default`
+  including pack choices, story stubs, observations,
+  `adapt_per_vacancy`, and `base`
 - Gaps the fill report will carry; CV source → destination; LaTeX base
   copy when adapt is yes
 
