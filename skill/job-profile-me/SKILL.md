@@ -16,8 +16,8 @@ Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.
 `data/cvs.yaml`, and their `*.yaml.tmp` staging siblings during atomic rename.
 
 When the operator asks to create a profile / set one up from a CV, hand off
-`job-profile-init`.
-When the operator asks to find jobs / scout openings, hand off `job-scout`.
+`job-profile-init`, STOP.
+When the operator asks to find jobs / scout openings, hand off `job-scout`, STOP.
 When the operator mutates search config, packs, the profile card, or CV settings
 (`set` / `packs` / `refresh-card` / `cvs set`), or asks to change salary, notice,
 visa, sponsorship, EOR, Fact fields, or identity, read `./references/flow-mutate.md` now.
