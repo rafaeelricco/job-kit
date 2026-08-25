@@ -1,9 +1,9 @@
 # Intent packs for job scout. One pack = one site × one intent.
 # job-scout reads this file from the Profile root only (required).
-# surface → ./references/worker-search-{surface}.md in job-scout: the playbook to run.
+# surface is a label (linkedin-jobs, open-web, social, …); scout opens entry.
 # entry = the one URL this pack starts from.
-# [role] = job_search.yaml positions. [skill:<group>] = keywords.<group>.
-# [industry] = profile card. Create the group in job_search.yaml before naming it here.
+# [role] = job_search.yaml positions.
+# [industry] = profile card.
 # enabled: false keeps a pack in the file but out of the run (absent = true).
 
 packs:

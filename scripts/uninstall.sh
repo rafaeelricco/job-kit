@@ -289,9 +289,9 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-resume, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root)
+  aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root)
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
-  browser-use  Browser skills (job-scout, job-apply, job-resume) in coding-agent homes, plus
+  browser-use  Browser skills (job-scout, job-apply, job-resume-refine) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
   profile   Delete profile root(s) + matching profile-root pointers
@@ -302,7 +302,7 @@ Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-resume | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
                 agents | browser-use | claude | codex | grok
                 profile | cache
                 (claude|codex|grok narrow a channel named alongside them;
@@ -410,11 +410,12 @@ uninstall_browser_use() {
 
     # unlink_browser_skills_from ROOT — uninstall_skills_from narrowed to
     # BROWSER_SKILL_NAMES, so this target never reaches an agents-channel link.
-    # No legacy sweep: these two names have never lived under an agent home
-    # under any other basename.
+    # The legacy sweep uses BROWSER_LEGACY_SKILL_NAMES, not the agents-channel
+    # list: both channels share these homes, so sweeping the other target's
+    # orphans here would remove links this uninstall was never asked for.
     unlink_browser_skills_from() {
       local root="$1" n d
-      for n in ${BROWSER_SKILL_NAMES}; do
+      for n in ${BROWSER_SKILL_NAMES} ${BROWSER_LEGACY_SKILL_NAMES}; do
         d="$(skill_dest "${root}" "${n}")"
         unlink_skill "${d}" "${repo}" "${n}"
       done
@@ -911,9 +912,9 @@ plan_rows_agents() {
 # plan_rows_browser_use — rows for the browser-use target. No mutation.
 # Mirrors plan_rows_agents over BROWSER_SKILL_NAMES, then adds the driver
 # section. Two deliberate differences from that mirror:
-#   - no legacy rows: job-scout and job-apply have never lived under an agent
-#     home under another basename, so there is no orphan to sweep, and no legacy
-#     Codex root either — this channel never installed there;
+#   - legacy rows come from BROWSER_LEGACY_SKILL_NAMES, not the agents-channel
+#     list, and there is no legacy Codex root — this channel never installed
+#     there;
 #   - the override branch does not end the walk: a prior --target install may
 #     still sit under the default homes, and --path may have written the
 #     driver under CLAUDE_SKILLS as well.
@@ -931,6 +932,9 @@ plan_rows_browser_use() {
       printf 'H%sbrowser-use (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
       for name in ${BROWSER_SKILL_NAMES}; do
         plan_row "$(skill_dest "${override}" "${name}")" "${name}" current 1
+      done
+      for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
+        plan_row "$(skill_dest "${override}" "${name}")" "${name}" legacy 1
       done
     else
       for target in ${AGENT_TARGETS}; do
@@ -950,6 +954,9 @@ plan_rows_browser_use() {
         printf 'H%sbrowser-use · %s%s%s\n' "${ROW_FS}" "${label}" "${ROW_FS}" "${root}"
         for name in ${BROWSER_SKILL_NAMES}; do
           plan_row "$(skill_dest "${root}" "${name}")" "${name}" current 1
+        done
+        for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
+          plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
         done
       done
     fi
@@ -1265,7 +1272,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
+      job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -1276,7 +1283,7 @@ expand_only() {
       grok)   named_agent=1; want_grok=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
     esac
   done
   # Matches the installer: a bare agent-home token still means the agents

@@ -98,7 +98,7 @@
      an absolute kit root or the README Install recipe. Operator is often only
      in a profile directory.
    - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
-     file, **or** `"$REPO/data/cvs.yaml"` names at least one `file` that exists and
+     file, **or** `"$REPO/data/cvs.yaml"` names a `base` that exists and
      is non-empty under `"$REPO/cv/"`: set to **empty** (omit the line). Else set to:
      `- If CV not placed: add a PDF under cv/ before job-apply attachments.`
      Register-existing: probe the same paths under `<target>`.
@@ -118,7 +118,7 @@
    - Agents: the channel links seven skills — `job-profile-init`,
      `job-profile-me`, `job-list`, `job-stories`, `job-pitch`, `job-inbox`,
      and `job-profile-root` (`SKILL_NAMES` in
-     `scripts/agents/lib.sh`). `job-resume` is browser-channel and is not
+     `scripts/agents/lib.sh`). `job-resume-refine` is browser-channel and is not
      probed here. For each of
      `$HOST_HOME/{.claude,.agents,.grok}` that is a directory, compare bare
      `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
@@ -127,7 +127,7 @@
      installed only when the whole set matches; matching some is _partial_, and
      partial is not installed. Installed = at least one complete home.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
-     Installed = for each of `job-scout`, `job-apply`, `job-resume`,
+     Installed = for each of `job-scout`, `job-apply`, `job-resume-refine`,
      `job-profile-me`, `job-list`, `job-pitch`, `job-inbox`, `job-profile-root`,
      the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
      `$KIT_ROOT/skill/<name>`.
@@ -158,7 +158,7 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
      checked. Commands are absolute; CWD does not matter.
 
    **If unresolved** — probe Aside repo-agnostically first: all eight
-   `$ASIDE_ROOT/{job-scout,job-apply,job-resume,job-profile-me,job-list,job-pitch,job-inbox,job-profile-root}/.job-kit`
+   `$ASIDE_ROOT/{job-scout,job-apply,job-resume-refine,job-profile-me,job-list,job-pitch,job-inbox,job-profile-root}/.job-kit`
    exist → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):

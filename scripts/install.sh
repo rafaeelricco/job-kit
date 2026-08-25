@@ -44,9 +44,9 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-resume, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
+  aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-pitch, job-inbox, job-profile-root) — full copy
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-stories, job-pitch, job-inbox, job-profile-root)
-  browser-use  Browser skills (job-scout, job-apply, job-resume) plus the browser-use
+  browser-use  Browser skills (job-scout, job-apply, job-resume-refine) plus the browser-use
                driver skill into coding-agent homes; driven by the local browser-use CLI
   all       aside + agents + browser-use
 
@@ -55,13 +55,11 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-resume | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-pitch | job-inbox | job-profile-root
                 agents | browser-use | claude | codex | grok
                 (claude|codex|grok narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-profile-me also installs job-scout — packs mutate
-                needs its worker-search-*.md stems)
-                (job-apply also installs job-resume — Prepare chains it
+                (job-apply also installs job-resume-refine — Prepare chains it
                 for a status:new dossier)
   --skip-claude|--skip-codex|--skip-grok
                 Applied only when agents runs
@@ -137,7 +135,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
+      job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -146,7 +144,7 @@ expand_only() {
       claude) named_agent=1; want_claude=1 ;;
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -160,29 +158,19 @@ expand_only() {
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
-  # job-profile-me packs add/remove validates impl against job-scout's
-  # worker-search-*.md stems; standalone config without scout is unusable.
-  # job-apply Prepare chains job-resume for a status:new dossier; a subset
+  # job-apply Prepare chains job-resume-refine for a status:new dossier; a subset
   # without resume cannot complete that path.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
-      *" job-profile-me "*)
-        case " ${ASIDE_ONLY} " in
-          *" job-scout "*) ;;
-          *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
-        esac
-        ;;
-    esac
-    case " ${ASIDE_ONLY} " in
       *" job-apply "*)
         case " ${ASIDE_ONLY} " in
-          *" job-resume "*) ;;
-          *) ASIDE_ONLY="${ASIDE_ONLY} job-resume" ;;
+          *" job-resume-refine "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-resume-refine" ;;
         esac
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-resume "*|*" job-profile-me "*|*" job-list "*|*" job-pitch "*|*" job-inbox "*)
+      *" job-scout "*|*" job-apply "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-pitch "*|*" job-inbox "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
@@ -836,7 +824,7 @@ interactive_menu() {
   select choice in \
     "Aside skills" \
     "Coding-agent skills" \
-    "browser-use skills (job-scout + job-apply + job-resume in coding agents)" \
+    "browser-use skills (job-scout + job-apply + job-resume-refine in coding agents)" \
     "All of the above" \
     "Quit"
   do

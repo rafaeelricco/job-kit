@@ -3,19 +3,17 @@
 Optional cache of the card `show` otherwise derives. Written only by `refresh-card`,
 only after diff → yes. job-scout globs `data/*.{yaml,yml}` and may sweep this
 file in — which is exactly why the same-cycle stale-field clearing below matters.
-`show` never prefers this cache for `primary_role`, `seniority`, or `target_stack`
-(always re-derived from `job_search.yaml`); a `set` that touches those sources also
-clears the three fields here so a raw read cannot advertise stale values.
+`show` never prefers this cache for `primary_role`
+(always re-derived from `job_search.yaml`); a `set` that touches that source also
+clears the field here so a raw read cannot advertise a stale value.
 
 ## Schema
 
 ```yaml
 primary_role: ""
-seniority: ""
 top_skills: []
 industries: []
 languages: []
-target_stack: []
 summary: "" # 1-3 sentences, facts only
 updated_at: "" # ISO date this file was written
 ```
@@ -25,11 +23,9 @@ updated_at: "" # ISO date this file was written
 | Field          | Source                                                                                       |
 | -------------- | -------------------------------------------------------------------------------------------- |
 | `primary_role` | `job_search.yaml` `positions[0]`, else most recent `experiences.yml` `position`              |
-| `seniority`    | `job_search.yaml` `seniority_level`, verbatim                                                |
 | `top_skills`   | `skills.yaml` `skills[].items`, categories in file order; never re-ranked by judgement       |
 | `industries`   | `experiences.yml` `company` / `summary` only where the summary names one; else `[]`          |
 | `languages`    | `languages.yaml` `languages[].name` + `level` verbatim; never invent a cert or numeric scale |
-| `target_stack` | `job_search.yaml` `keywords.*` values, groups in file order                                  |
 | `summary`      | 1-3 sentences built only from the fields above                                               |
 | `updated_at`   | ISO date at write time                                                                       |
 

@@ -7,26 +7,21 @@ Ask every user-owned field before profile Approve.
 Ask identity, basics, every `candidate.yaml` key, every experience/project/
 language/skill/education row, and every `job_search.yaml` key:
 
-- work model, `seniority_level`, job types, date filters
-- positions, keyword groups, locations, `location_scope` (`worldwide` | `listed`),
-  `direct_regions`, `market_currencies`
+- work model, job types, date filters
+- positions, locations, `location_scope` (`worldwide` | `listed`),
+  `direct_regions`, `market_currencies`, `exclude_locations`
 
 Ask each `search_packs.yaml` `packs[].enabled` flag.
 
-Ask CV registry policy after packs and before Stories (independent enums
-in one turn; the `default` id only when a branch needs it):
+Ask CV policy after packs and before Stories:
 
-- `adapt_per_vacancy`: **yes (Recommended)** | no. Write `true`/`false`.
-- Multiple compiled CVs to pick among when not tailoring: yes | **no
-  (Recommended)**.
+- `adapt_per_vacancy`: **yes (Recommended)** | no. Yes → for each posting,
+  job-resume-refine re-selects which `experiences.yml` bullets print and
+  compiles a one-page PDF; it never writes new bullet text. No → the base CV
+  goes out unchanged. Write `true`/`false`.
 
-Then, sequential when a branch needs it:
-
-- Multiple = yes, or adapt = yes: which `cvs[]` `id` is `default` (LaTeX
-  base and attach fallback). Propose `base`. The id need not exist in
-  `cvs[]` yet — operator lists rows later via `/job-profile-me cvs`.
-- Adapt = yes: if `cv/resume-{default}.tex` is missing, ask for an
-  existing `.tex` path to copy there. Never generate LaTeX.
+Then, only when adapt is yes and `cv/` holds no `.tex`: ask for an existing
+`.tex` path to copy in as the base. Never generate LaTeX.
 
 Do not ask pack `entry` URLs, pack implementation metadata, derived
 profile URLs, or kit-owned `salary_expectations.tip`. Do not collect
@@ -46,9 +41,6 @@ answers once per country. Write each as one `legal_authorization.jurisdictions[]
 row (`country`, `work_authorization`, `legally_allowed_to_work`, `requires_visa`,
 `requires_sponsorship`). Never copy one country's answers onto another. An empty
 list means no stored answer for any jurisdiction.
-
-Ask one seniority value and write it as `seniority_level`, for example `entry`,
-`mid-level`, `senior`, or `director`.
 
 ## Stories
 
