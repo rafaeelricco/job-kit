@@ -116,8 +116,8 @@
    that cannot run reports _unknown_, never _installed_.
 
    - Agents: the channel links seven skills — `job-profile-init`,
-     `job-profile-me`, `job-list`, `job-stories`, `job-pitch`, `job-inbox`,
-     and `job-profile-root` (`SKILL_NAMES` in
+     `job-profile-me`, `job-list`, `job-stories`, `job-pitch`,
+     `job-inbox`, and `job-profile-root` (`SKILL_NAMES` in
      `scripts/agents/lib.sh`). `job-resume-refine` is browser-channel and is not
      probed here. For each of
      `$HOST_HOME/{.claude,.agents,.grok}` that is a directory, compare bare
@@ -128,7 +128,8 @@
      partial is not installed. Installed = at least one complete home.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
      Installed = for each of `job-scout`, `job-apply`, `job-resume-refine`,
-     `job-profile-me`, `job-list`, `job-pitch`, `job-inbox`, `job-profile-root`,
+     `job-profile-me`, `job-list`, `job-pitch`, `job-inbox`,
+     `job-profile-root`,
      the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
      `$KIT_ROOT/skill/<name>`.
    - **Never probe by directory existence.** Legacy `skills/user/job-application` and

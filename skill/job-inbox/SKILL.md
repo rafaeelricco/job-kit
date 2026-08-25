@@ -5,12 +5,10 @@ description: "Read this when you need to check Gmail for replies to tracked appl
 
 # Job inbox
 
-Profile root: load the `job-profile-root` skill now; obey it end-to-end.
+Load `job-profile-root`. Resolve `scout/` and `data/*` against Profile root
+(not CWD, not skill dir). Unreadable required file → stop and say so.
 
-Resolve `scout/` and every `data/*` path against Profile root (not CWD, not skill dir).
-Unreadable required file under a resolved root → stop and say so.
-
-Skill-local files: `./references/*` only.
+Skill-local: `./references/*` only.
 
 Read `./references/flow-inbox.md` now.
 Load each additional reference only when that flow names it.
