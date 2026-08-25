@@ -18,23 +18,23 @@ Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Browser:` (opens a p
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
 
-List enabled packs as `N. {id}`; last line `{N+1}. Search in all`. Wait. `enabled: false` is unlisted.
+Enabled packs empty → STOP; enable a pack via `/job-profile-me`. Else list enabled packs as `N. {id}`; last line `{N+1}. Search in all`. Wait. `enabled: false` is unlisted.
 
 Print `### Profile card` (role · skills · industries · languages) and `### Constraints` (those keys plus salary_range_usd, work auth, employment_routes, relocation). Pass both into every search.
 
-Auth: existing session. Never create an account. Password/OTP/2FA are operator-only. Signed-out limited page → ask once; still blocked → `auth_gate` (search) or `status=uncertain` (extract).
+Auth: existing session. Never create an account. Password/OTP/2FA are operator-only. Signed-out limited page → ask once only if the redirect stays on the target registrable domain or a known IdP (Google, Microsoft, Apple, LinkedIn, GitHub, Okta); any other host → STOP before asking. Still blocked → `auth_gate` (search) or `status=uncertain` (extract).
 
 ## 1 Search
 
 One pack at a time; never two on the same host.
 
-Open `entry`. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
+Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
 
 Coverage, not keep: `worldwide` → each formulation once, unfiltered. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
 
 Proof: surface echo is the submitted string, else `defect: query_not_submitted`.
 
-Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Cap 40. Normalize URL per `schema-dossier.md`.
+Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40. Normalize URL per `schema-dossier.md`.
 
 `channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`. Unknown = `—`.
 
@@ -61,7 +61,7 @@ Batches of 5, one URL at a time, same host serialized. Listed URLs only. No page
 
 Every search and extract key present. Missing → Gaps, halt.
 
-Drop when the posting cannot hire this seeker (first match): named onsite place with no shared work_model flag; remote bound to a country the kit has no authorization for; hire-from only in `exclude_locations`; salary currencies none of which are in `market_currencies`. Blank is not a drop. Never infer authorization or currency from a company or country name. Hire-from is printed location, `work_auth`, `hiring_route`, or a title country tag — never the company's country.
+Drop when the posting cannot hire this seeker (first match): `listed` onsite or location-restricted place that matches no named `locations` (and `Anywhere` not listed); named onsite place with no shared work_model flag; remote bound to a country the kit has no authorization for; hire-from only in `exclude_locations`; salary currencies none of which are in `market_currencies`. Blank is not a drop. Never infer authorization or currency from a company or country name. Hire-from is printed location, `work_auth`, `hiring_route`, or a title country tag — never the company's country.
 
 ## 5 Rank + report
 
