@@ -1,11 +1,9 @@
 # profile_card.yaml
 
-Optional cache of the card `show` otherwise derives. Written only by `refresh-card`,
-only after diff → yes. job-scout globs `data/*.{yaml,yml}` and may sweep this
-file in — which is exactly why the same-cycle stale-field clearing below matters.
-`show` never prefers this cache for `primary_role`
-(always re-derived from `job_search.yaml`); a `set` that touches that source also
-clears the field here so a raw read cannot advertise a stale value.
+Optional cache of the card `show` otherwise derives. Full rewrite: `refresh-card`
+via `flow-mutate.md` after diff → yes. Same-cycle clear of `primary_role` on a
+`positions` write is also `flow-mutate.md`. job-scout may glob this file in.
+`show` never prefers this cache for `primary_role` (always from `job_search.yaml`).
 
 ## Schema
 

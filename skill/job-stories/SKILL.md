@@ -5,23 +5,19 @@ description: "Read this when you need to write or check the interview story deck
 
 # Job stories
 
-Author and check the story deck a profile carries. Creating the profile is
-`job-profile-init`, which emits empty stubs; this skill fills them from evidence.
-`job-apply` reads the frontmatter those files hold, never the body. Every
-write is diff → confirm → write.
+Fill Profile root `data/stories/` from evidence. Profile creation is
+`job-profile-init` (empty stubs). Every write is diff → confirm → write.
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
 Writable here: `data/stories/*.md` and their `*.md.tmp` staging siblings during
-atomic rename.
-Every other path under Profile root is read-only in this skill.
+atomic rename. Every other path under Profile root is read-only in this skill.
 
-1. Read `./references/schema-story.md` now; it is the field law for both verbs.
-2. `add`: obey `./references/flow-author.md` end-to-end (evidence → four parts →
-   adversarial pass → diff → yes → write).
-3. `audit`: obey `./references/flow-audit.md`. Read-only; never repairs a story.
+1. Read `./references/schema-story.md` now; field law for both verbs.
+2. `add`: obey `./references/flow-author.md` end-to-end.
+3. `audit`: obey `./references/flow-audit.md`. Read-only; never repairs.
 4. No verb intent → run `audit`, then STOP.
 
 ## Commands
@@ -35,9 +31,9 @@ Every other path under Profile root is read-only in this skill.
 
 ## References
 
-- Story shape: `./references/schema-story.md` (frontmatter fields, verified/kind law, body boundary)
-- Authoring: `./references/flow-author.md` (evidence gate, four parts, adversarial pass, diff → yes → write)
-- Audit: `./references/flow-audit.md` (read-only deck report, gaps)
+- Story shape: `./references/schema-story.md`
+- Authoring: `./references/flow-author.md`
+- Audit: `./references/flow-audit.md`
 
 ## Hard refuses
 

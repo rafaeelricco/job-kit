@@ -6,10 +6,10 @@ description: "Find and rank live job openings from operator-selected search pack
 # Job scout
 
 Load `job-profile-root`. Resolve `data/*` against Profile root.
-Skill-local: `./references/schema-dossier.md` and `./references/contract-persistence.md` only.
+Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`.
 
 List only. Never apply, message, or connect.
-Write-set: `scout/jobs/*.md` and `contract-persistence.md` lock furniture. Nothing else. Never `scout/runs/`.
+Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`. Never `scout/runs/`.
 
 ## 0 Preflight
 
@@ -18,7 +18,7 @@ Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Browser:` (opens a p
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
 
-Enabled packs empty → STOP; enable a pack via `/job-profile-me`. Else list enabled packs as `N. {id}`; last line `{N+1}. Search in all`. Wait. `enabled: false` is unlisted.
+Enabled packs empty → STOP; enable via `/job-profile-me`. Else list enabled packs as `N. {id}`; last line `{N+1}. Search in all`. Wait. `enabled: false` is unlisted.
 
 Print `### Profile card` (role · skills · industries · languages) and `### Constraints` (those keys plus salary_range_usd, work auth, employment_routes, relocation). Pass both into every search.
 
@@ -30,7 +30,7 @@ One pack at a time; never two on the same host.
 
 Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
 
-Coverage, not keep: `worldwide` → each formulation once, unfiltered. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
+`worldwide` → each formulation once, unfiltered. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
 
 Proof: surface echo is the submitted string, else `defect: query_not_submitted`.
 
@@ -88,6 +88,6 @@ Then `{n} dossiers → {abs Profile root}/scout/jobs/`
 
 ## 6 Persist
 
-Obey `schema-dossier.md` and `contract-persistence.md`. One dossier per `status=live` row that passed the gate, including `score<7`. No dossier for a kit drop or uncertain. Existing dead dossier → closure log only.
+Obey `schema-dossier.md` and `contract-persistence.md`. One dossier per persist-set row. No dossier for kit drop or uncertain. Existing dead dossier → closure log only.
 
 STOP.
