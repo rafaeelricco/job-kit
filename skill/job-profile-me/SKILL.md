@@ -1,6 +1,6 @@
 ---
 name: job-profile-me
-description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Never create a profile, never run a search, never write without an explicit yes. Never invent salary, visa, sponsorship, EOR, employers, or numbers. Use when the user runs /job-profile-me, asks to show their profile or search config, change keywords / positions / locations, add or remove a job board, or asks what is missing for scout."
+description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Never create a profile, never run a search, never write without an explicit yes. Never invent salary, visa, sponsorship, EOR, employers, or numbers. Use when the user runs /job-profile-me, asks to show their profile or search config, change positions / locations, add or remove a job board, or asks what is missing for scout."
 ---
 
 # Job profile me
@@ -28,22 +28,22 @@ Every other path under Profile root is read-only in this skill.
 
 ## Commands
 
-| Utterance                                                                           | Do                                   | Writes                   |
-| ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------ |
-| show my profile / profile card / what's my search config                            | `show`                               | —                        |
-| what's missing for scout                                                            | `gaps`                               | —                        |
-| change keywords / set positions / add location                                      | `set`                                | `data/job_search.yaml`   |
-| add a board / remove HiringCafe                                                     | `packs add` / `packs remove`         | `data/search_packs.yaml` |
-| refresh profile card from data                                                      | `refresh-card`                       | `data/profile_card.yaml` |
-| list my boards / list my packs / disable a pack / edit a formulation                | `packs`                              | `data/search_packs.yaml` |
-| list my CVs / which CV goes out by default                                          | `cvs`                                | —                        |
-| add a CV / remove a CV / set the default CV / retarget a CV / set adapt per vacancy | `cvs add` / `cvs remove` / `cvs set` | `data/cvs.yaml`          |
-| create a profile / set one up from my CV                                            | hand off `job-profile-init`, STOP    | —                        |
-| find jobs / scout openings                                                          | hand off `job-scout`, STOP           | —                        |
+| Utterance                                                            | Do                                | Writes                   |
+| -------------------------------------------------------------------- | --------------------------------- | ------------------------ |
+| show my profile / profile card / what's my search config             | `show`                            | —                        |
+| what's missing for scout                                             | `gaps`                            | —                        |
+| set positions / add location                                         | `set`                             | `data/job_search.yaml`   |
+| add a board / remove HiringCafe                                      | `packs add` / `packs remove`      | `data/search_packs.yaml` |
+| refresh profile card from data                                       | `refresh-card`                    | `data/profile_card.yaml` |
+| list my boards / list my packs / disable a pack / edit a formulation | `packs`                           | `data/search_packs.yaml` |
+| which CV goes out, and is it refined per job                         | `cvs`                             | —                        |
+| set the base CV / turn per-job refinement on or off                  | `cvs set`                         | `data/cvs.yaml`          |
+| create a profile / set one up from my CV                             | hand off `job-profile-init`, STOP | —                        |
+| find jobs / scout openings                                           | hand off `job-scout`, STOP        | —                        |
 
 ## References
 
-- Show: `./references/flow-show.md` (read set, card + constraints + packs + CVs blocks, gaps)
+- Show: `./references/flow-show.md` (read set, card + constraints + packs + CV blocks, gaps)
 - Mutate: `./references/flow-mutate.md` (writable keys, diff → confirm → write, refuses)
 - Card schema: `./references/schema-profile-card.md` (`profile_card.yaml` shape + derivation)
 
@@ -52,8 +52,8 @@ Every other path under Profile root is read-only in this skill.
 - Invent salary, notice, visa, sponsorship, EOR, employers, boards, skills, or numbers
 - Write `data/candidate.yaml` or any Fact file (experiences, skills, languages, basics)
 - Write anything before printing the diff and receiving an explicit yes
-- Network: no board lookup, no keyword research, no scrape, no sign-up
+- Network: no board lookup, no scrape, no sign-up
 - Run job-scout or job-apply; edit skill-local files under `skill/job-scout/`
 - Copy another profile's data
-- Register a CV whose file is not already present under `cv/`, or compile / generate any
-  PDF or LaTeX. This skill names files the operator built; it never builds one.
+- Set `base` to a file not already present under `cv/`, or compile / generate any PDF
+  or LaTeX. This skill names files the operator built; it never builds one.

@@ -1,17 +1,10 @@
-# Compiled CVs available for attachment. job-apply reads this file from the
-# Profile root and attaches exactly one row per application; job-profile-me
-# edits it. Absent file, empty `cvs`, or no `default` → job-apply falls back to
-# `cv/en-us-resume.pdf`, so a profile without this file still applies.
-# file = path under `cv/`; must open as a PDF. NEVER a `.tex`.
-# targets = prose job-apply matches against the ad when it is not tailoring.
-# default = the id used as the job-resume LaTeX base, and as the attach
-# fallback when no row's targets fit.
-# adapt_per_vacancy = true → job-apply chains job-resume on a status:new
-# dossier. false → never chain; attach a registry PDF. Absent key → true.
-# job-resume source is cv/resume-{default}.tex (else the default row's
-# .pdf stem → .tex). This file never names a .tex.
+# The one CV job-apply attaches. job-profile-me edits this file.
+# base = filename under `cv/`; must open as a PDF. NEVER a `.tex`.
+# The LaTeX source job-resume-refine copies is the same stem with `.tex`.
+# adapt_per_vacancy = true → job-apply chains job-resume-refine on a
+# status:new dossier and attaches the tailored PDF. false → attach `base`
+# unchanged. Absent key → true.
+# Absent file or empty `base` → job-apply falls back to cv/en-us-resume.pdf.
 
-default: ""
+base: ""
 adapt_per_vacancy: true
-
-cvs: []

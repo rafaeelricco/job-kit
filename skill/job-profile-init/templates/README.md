@@ -11,7 +11,7 @@ Skills live in **job-kit**, not in this tree.
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data/`         | Canonical YAML about you. Edit here first.                                                                                                                                |
 | `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, the body is not                                                                                  |
-| `cv/`           | Compiled resume PDF(s) for attachments                                                                                                                                    |
+| `cv/`           | The base resume PDF plus its LaTeX source                                                                                                                                 |
 | `scout/`        | Written by job-scout; `status:` and Application-log records by job-apply and job-inbox; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
 `data/` may mix `.yaml` and `.yml`. `data/stories/` holds markdown files with
@@ -49,8 +49,8 @@ roots stay active until the tree is deleted.
    write for one approval. Source values and defaults require explicit
    confirmation, edits, or skips.
 2. Review Gaps in the fill report; fix any empty fields scout needs.
-3. Compiled CV PDFs go in `cv/`; list them in `data/cvs.yaml` (add or retarget via
-   `/job-profile-me cvs`). Set `adapt_per_vacancy` there too. With no registry,
+3. The compiled CV PDF goes in `cv/`; name it in `data/cvs.yaml` `base` (set via
+   `/job-profile-me cvs`). Set `adapt_per_vacancy` there too. With no `base`,
    job-apply attaches `cv/en-us-resume.pdf`.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
    there or via `/job-profile-me packs`.
