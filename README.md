@@ -10,21 +10,21 @@ Three install channels. Scout, apply, and résumé need a browser: run them in
 [Aside Browser](https://aside.com), or in a coding agent driving your own Chrome
 through the local [browser-use](https://docs.browser-use.com) CLI. Profile init
 and stories (plus config, tracker, inbox, and profile-root as symlinks) run in
-coding agents (Claude Code, Codex, Grok).
+coding agents (Claude Code, Codex, Grok, Hermes Agent).
 
-| Skill               | Role                                                                                | Channel                              | Installed under                                                     |
-| ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------- |
-| `job-scout`         | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-apply`         | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-resume-refine` | Re-select which résumé bullets print for one scout dossier; one page                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-init`  | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-profile-me`    | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-profile-root`  | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-list`          | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-match`         | Deep-rank existing scout dossiers with one shared MatchingPolicy; chat report only  | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-inbox`         | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
-| `job-stories`       | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`                                 |
-| `job-pitch`         | Render the story deck as a vetting video script or work-experience bullets          | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok` |
+| Skill               | Role                                                                                | Channel                              | Installed under                                                                  |
+| ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
+| `job-scout`         | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-apply`         | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-resume-refine` | Re-select which résumé bullets print for one scout dossier; one page                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-profile-init`  | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
+| `job-profile-me`    | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-profile-root`  | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-list`          | Read the profile's `scout/jobs/` store: dossiers and application status             | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-match`         | Deep-rank existing scout dossiers with one shared MatchingPolicy; chat report only  | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-inbox`         | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-stories`       | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
+| `job-pitch`         | Render the story deck as a vetting video script or work-experience bullets          | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
@@ -65,16 +65,16 @@ Options after the argument are forwarded to the installer. `all` forwards only
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents --skip-codex
 ```
 
-| Knob                                             | Default                  | Role                                                              |
-| ------------------------------------------------ | ------------------------ | ----------------------------------------------------------------- |
-| `--force`                                        | off                      | Replace a foreign (non-kit) destination                           |
-| `--skip-claude` / `--skip-codex` / `--skip-grok` | off                      | Skip one agent target                                             |
-| `JOB_KIT_HOME`                                   | `$XDG_DATA_HOME/job-kit` | Cached checkout                                                   |
-| `JOB_KIT_REF`                                    | `main`                   | Branch or tag                                                     |
-| `JOB_KIT_SLUG`                                   | `rafaeelricco/job-kit`   | GitHub `owner/repo`                                               |
-| `ASIDE_ACCOUNT`                                  | `0`                      | Aside account profile                                             |
-| `ASIDE_SKILLS`                                   | —                        | Custom Aside builtin root, absolute (legacy: `ASIDE_SKILLS_USER`) |
-| `CLAUDE_SKILLS`                                  | —                        | Single absolute agent dest; skip flags ignored                    |
+| Knob                                                               | Default                  | Role                                                              |
+| ------------------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------- |
+| `--force`                                                          | off                      | Replace a foreign (non-kit) destination                           |
+| `--skip-claude` / `--skip-codex` / `--skip-grok` / `--skip-hermes` | off                      | Skip one agent target                                             |
+| `JOB_KIT_HOME`                                                     | `$XDG_DATA_HOME/job-kit` | Cached checkout                                                   |
+| `JOB_KIT_REF`                                                      | `main`                   | Branch or tag                                                     |
+| `JOB_KIT_SLUG`                                                     | `rafaeelricco/job-kit`   | GitHub `owner/repo`                                               |
+| `ASIDE_ACCOUNT`                                                    | `0`                      | Aside account profile                                             |
+| `ASIDE_SKILLS`                                                     | —                        | Custom Aside builtin root, absolute (legacy: `ASIDE_SKILLS_USER`) |
+| `CLAUDE_SKILLS`                                                    | —                        | Single absolute agent dest; skip flags ignored                    |
 
 Re-runs are safe: kit-owned destinations re-sync, foreign ones fail unless you
 pass `--force`. Uses `git` when present (shallow clone, shallow fetch on
@@ -90,7 +90,7 @@ work-auth data, no login to any service.
 ## Getting started
 
 **1. Create or register a profile.** Install the agents channel, then run the
-skill in Claude Code, Codex, or Grok:
+skill in Claude Code, Codex, Grok, or Hermes Agent:
 
 ```text
 /job-profile-init
@@ -109,7 +109,7 @@ voluntary and per-employer, so you answer them in the ATS form.
 
 **2. Scout and apply.** Pick a runtime for the two browser skills: install the
 Aside channel and run them in Aside Browser, or install the `browser-use`
-channel and run them in Claude Code, Codex, or Grok, where the local
+channel and run them in Claude Code, Codex, Grok, or Hermes Agent, where the local
 browser-use CLI drives your own Chrome. Either way:
 
 ```text
@@ -122,7 +122,7 @@ no Browser Use account, no cloud browser, no API key. It needs an agent home,
 the `browser-use` CLI, a Chromium-family browser, and the browser-use driver
 skill in that home. When the CLI is present, the installer runs
 `browser-use skill install` into each home (`--target claude`, `--target agents`,
-`--path ~/.grok/skills/browser-use`; `CLAUDE_SKILLS` also uses `--path`).
+`--path ~/.grok/skills/browser-use`, `--path ~/.hermes/skills/browser-use`; `CLAUDE_SKILLS` also uses `--path`).
 Missing CLI or browser still prints an offer. After that: open
 `chrome://inspect/#remote-debugging`, tick Allow remote debugging, and sign in
 to the sites you scout.
@@ -298,7 +298,7 @@ profile or cache data requires typing `yes`; a plan of re-installable links take
 `agents`, `browser-use`), by Aside skill (`job-scout`, `job-apply`,
 `job-resume-refine`, `job-profile-me`, `job-list`, `job-match`, `job-inbox`,
 `job-profile-root`), or by agent home
-(`claude`, `codex`, `grok`), plus `profile` and `cache`. An Aside skill subset
+(`claude`, `codex`, `grok`, `hermes`), plus `profile` and `cache`. An Aside skill subset
 cannot be combined with `cache`: the unselected skill would still point at it.
 
 ```bash
@@ -314,7 +314,7 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 ```
 
 `uninstall agents` and `uninstall browser-use` via remote still accept
-`--skip-claude` / `--skip-codex` / `--skip-grok`. `--purge` is full-skills
+`--skip-claude` / `--skip-codex` / `--skip-grok` / `--skip-hermes`. `--purge` is full-skills
 uninstall only (refused on partial targets or while `CLAUDE_SKILLS` /
 `ASIDE_SKILLS` narrow a channel).
 
@@ -330,7 +330,7 @@ bash scripts/install.sh   # interactive menu, or: all | aside | agents | browser
 ```
 
 Prerequisites: Bash, plus the target for whichever channel you install — at
-least one agent home (`~/.claude`, `~/.agents`, or `~/.grok`; open that agent
+least one agent home (`~/.claude`, `~/.agents`, `~/.grok`, or `~/.hermes`; open that agent
 once if missing), and an Aside account profile (`~/.aside/u/0`, including a
 `skills` parent). For `browser-use`: an agent home, the `browser-use` CLI, a
 Chromium-family browser you are signed into, and the driver skill the installer

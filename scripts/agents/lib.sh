@@ -46,7 +46,8 @@ LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker job-resume"
 #   claude → $HOME/.claude/skills   (parent $HOME/.claude)
 #   codex  → $HOME/.agents/skills   (parent $HOME/.agents; not ~/.codex/skills)
 #   grok   → $HOME/.grok/skills     (parent $HOME/.grok)
-AGENT_TARGETS="claude codex grok"
+#   hermes → $HOME/.hermes/skills   (parent $HOME/.hermes)
+AGENT_TARGETS="claude codex grok hermes"
 
 # resolve_repo_root
 # Prints absolute job-kit root (parent of scripts/).
@@ -98,12 +99,13 @@ resolve_override_skills() {
 }
 
 # agent_skills_root TARGET
-# Prints default skills directory for TARGET (claude|codex|grok).
+# Prints default skills directory for TARGET (claude|codex|grok|hermes).
 agent_skills_root() {
   case "$1" in
     claude) printf '%s\n' "${HOME}/.claude/skills" ;;
     codex)  printf '%s\n' "${HOME}/.agents/skills" ;;
     grok)   printf '%s\n' "${HOME}/.grok/skills" ;;
+    hermes) printf '%s\n' "${HOME}/.hermes/skills" ;;
     *)
       echo "error: unknown agent target: $1" >&2
       return 1
@@ -118,6 +120,7 @@ agent_parent_dir() {
     claude) printf '%s\n' "${HOME}/.claude" ;;
     codex)  printf '%s\n' "${HOME}/.agents" ;;
     grok)   printf '%s\n' "${HOME}/.grok" ;;
+    hermes) printf '%s\n' "${HOME}/.hermes" ;;
     *)
       echo "error: unknown agent target: $1" >&2
       return 1
@@ -131,6 +134,7 @@ agent_label() {
     claude) printf '%s\n' "Claude Code" ;;
     codex)  printf '%s\n' "Codex" ;;
     grok)   printf '%s\n' "Grok" ;;
+    hermes) printf '%s\n' "Hermes Agent" ;;
     *) printf '%s\n' "$1" ;;
   esac
 }

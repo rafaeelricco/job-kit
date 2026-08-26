@@ -120,7 +120,7 @@
      `job-inbox`, and `job-profile-root` (`SKILL_NAMES` in
      `scripts/agents/lib.sh`). `job-resume-refine` is browser-channel and is not
      probed here. For each of
-     `$HOST_HOME/{.claude,.agents,.grok}` that is a directory, compare bare
+     `$HOST_HOME/{.claude,.agents,.grok,.hermes}` that is a directory, compare bare
      `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
      `scripts/agents/lib.sh` `is_kit_skill_link`) against
      `$KIT_ROOT/skill/<name>` for **every** one of the seven. A home counts

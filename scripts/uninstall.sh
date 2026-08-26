@@ -23,6 +23,7 @@ YES=0
 SKIP_CLAUDE=0
 SKIP_CODEX=0
 SKIP_GROK=0
+SKIP_HERMES=0
 DRY_RUN=0
 ONLY_TARGETS=""
 # Space-separated target list for the current run_plan; used by browser-use plan
@@ -306,12 +307,12 @@ Options:
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-profile-root
-                agents | browser-use | claude | codex | grok
+                agents | browser-use | claude | codex | grok | hermes
                 profile | cache
-                (claude|codex|grok narrow a channel named alongside them;
+                (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
                 (job-list / job-profile-me refuse while job-match remains)
-  --skip-claude|--skip-codex|--skip-grok
+  --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents or browser-use runs
 
 Every run prints a plan first. A plan holding profile or cache data requires
@@ -359,6 +360,7 @@ uninstall_aside() {
 uninstall_agents() {
   local repo="${REPO_ROOT}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -379,6 +381,7 @@ uninstall_agents() {
         claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
         codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
         grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
+        hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: skipped (--skip-hermes)."; continue; } ;;
       esac
       parent="$(agent_parent_dir "${target}")"
       dest_root="$(agent_skills_root "${target}")"
@@ -405,6 +408,7 @@ uninstall_agents() {
 uninstall_browser_use() {
   local repo="${REPO_ROOT}" state
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   state="$(browser_harness_state)"
   (
     # shellcheck source=agents/lib.sh
@@ -452,6 +456,7 @@ uninstall_browser_use() {
           claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
           codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
           grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
+          hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: skipped (--skip-hermes)."; continue; } ;;
         esac
         parent="$(agent_parent_dir "${target}")"
         dest_root="$(agent_skills_root "${target}")"
@@ -487,6 +492,7 @@ uninstall_browser_use() {
         claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: driver skipped (--skip-claude)."; continue; } ;;
         codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: driver skipped (--skip-codex)."; continue; } ;;
         grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: driver skipped (--skip-grok)."; continue; } ;;
+        hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: driver skipped (--skip-hermes)."; continue; } ;;
       esac
       dest="$(agent_skills_root "${target}")/browser-use"
       if [ -n "${override}" ] && [ "${dest}" = "${override}/browser-use" ]; then
@@ -902,6 +908,7 @@ plan_rows_aside() {
 plan_rows_agents() {
   local repo="${REPO_ROOT}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -923,6 +930,8 @@ plan_rows_agents() {
         printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
       elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
         printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+      elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
+        printf 'N%sskipped (--skip-hermes)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
       fi
       parent="$(agent_parent_dir "${target}")"
       if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
@@ -958,6 +967,7 @@ plan_rows_agents() {
 plan_rows_browser_use() {
   local repo="${REPO_ROOT}" state
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   state="$(browser_harness_state)"
   (
     # shellcheck source=agents/lib.sh
@@ -1006,6 +1016,8 @@ plan_rows_browser_use() {
           printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
         elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
           printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
+        elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
+          printf 'N%sskipped (--skip-hermes)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
         fi
         parent="$(agent_parent_dir "${target}")"
         if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
@@ -1047,6 +1059,8 @@ plan_rows_browser_use() {
         skipped="--skip-codex"
       elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
         skipped="--skip-grok"
+      elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
+        skipped="--skip-hermes"
       fi
       if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
         continue
@@ -1336,6 +1350,7 @@ expand_only() {
   local list="$1" tok
   local want_aside=0 want_agents=0 want_profile=0 want_cache=0 want_browser=0
   local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
+  local want_hermes=0
   local channel_named=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
@@ -1344,14 +1359,15 @@ expand_only() {
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1; want_hermes=1 ;;
       browser-use) want_browser=1; channel_named=1 ;;
       claude) named_agent=1; want_claude=1 ;;
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
+      hermes) named_agent=1; want_hermes=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
     esac
   done
   # Matches the installer: a bare agent-home token still means the agents
@@ -1365,6 +1381,7 @@ expand_only() {
     [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
+    [ "${want_hermes}" -eq 1 ] || SKIP_HERMES=1
   fi
   # `aside` names the whole channel, so it dominates any subset item in the same
   # list — cleared after the loop, not inside it, or `aside,job-scout` would
@@ -1463,6 +1480,7 @@ links_owned_by() {
         claude) [ "${SKIP_CLAUDE}" -eq 1 ] ;;
         codex) [ "${SKIP_CODEX}" -eq 1 ] ;;
         grok) [ "${SKIP_GROK}" -eq 1 ] ;;
+        hermes) [ "${SKIP_HERMES}" -eq 1 ] ;;
         *) return 1 ;;
       esac
     }
@@ -1768,6 +1786,8 @@ preflight_targets() {
               elif [ "${target}" = codex ] && [ "${SKIP_CODEX}" -eq 1 ]; then
                 continue
               elif [ "${target}" = grok ] && [ "${SKIP_GROK}" -eq 1 ]; then
+                continue
+              elif [ "${target}" = hermes ] && [ "${SKIP_HERMES}" -eq 1 ]; then
                 continue
               fi
               agent_skills_root "${target}"
@@ -2128,6 +2148,7 @@ main() {
       --skip-claude) SKIP_CLAUDE=1 ;;
       --skip-codex) SKIP_CODEX=1 ;;
       --skip-grok) SKIP_GROK=1 ;;
+      --skip-hermes) SKIP_HERMES=1 ;;
       aside|agents|browser-use|profile|cache|all)
         targets[${#targets[@]}]="$1"
         ;;
