@@ -58,6 +58,7 @@ Write `state.matches[]`. Malformed → `state.gaps`.
 Load `./worker-validate.md`. Rows with `match_score >= 75` or `confidence < 0.7` as match wrote them (the set does not shrink if a later role lowers the score).
 Roles run in order: evidence, then classify, then arith. Never mix roles in one worker. Parallelize dossiers inside a role.
 Each role pastes the MatchResult currently in `state.matches` (after the previous role applied). `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it. Arith that cannot hold the contract formula → `state.gaps` and drop the row.
+Malformed or failed validate output → `state.gaps` and drop the row.
 Non-reviewed rows stay as match wrote them.
 
 ## rank
