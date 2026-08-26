@@ -46,8 +46,8 @@ Usage: install.sh                 # interactive menu (TTY required)
 
 Targets:
   aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-profile-root) — full copy
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-profile-root)
-  browser-use  Browser skills (job-scout, job-apply, job-resume-refine) plus the browser-use
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-profile-root, job-resume-refine)
+  browser-use  Browser skills (job-scout, job-apply) plus the browser-use
                driver skill into coding-agent homes; driven by the local browser-use CLI
   all       aside + agents + browser-use
 
@@ -867,7 +867,7 @@ interactive_menu() {
   select choice in \
     "Aside skills" \
     "Coding-agent skills" \
-    "browser-use skills (job-scout + job-apply + job-resume-refine in coding agents)" \
+    "browser-use skills (job-scout + job-apply in coding agents)" \
     "All of the above" \
     "Quit"
   do
