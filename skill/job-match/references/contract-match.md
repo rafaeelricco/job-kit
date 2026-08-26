@@ -14,7 +14,9 @@ First match wins → blocked. Reuse scout gate vocabulary; do not invent auth pa
 4. Hire-from only in `exclude_locations`.
 5. Salary currencies none of which are in `market_currencies`.
 6. Explicit language requirement the profile `languages.yaml` cannot meet
-   (printed must-have only; blank → not a block).
+   (printed must-have only; blank → not a block). Compare levels only when
+   posting and profile print the same scheme; cross-scheme or incomparable
+   tokens (e.g. `fluent` vs `C1`) → unknown, not a block.
 
 Blank is not a drop. Never infer authorization or currency from a company name.
 
