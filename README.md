@@ -213,7 +213,7 @@ and just want the board refreshed — in Aside or any coding-agent session:
 /job-inbox
 ```
 
-Searches Gmail for mail that matches open applications (`applied` / `interview` / `offer`), opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
+Default searches Gmail for companies of open applications (`applied` / `interview` / `offer`) only — no inbox-wide keyword sweep. `/job-inbox all` adds every parseable dossier except `dropped` and the keyword sweep. Named company, title, or file is that dossier only. Opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
 
 An apply session with no Gmail transport stops the inbox leg and says so — the
 application is recorded either way, and you can run `/job-inbox` later from a
