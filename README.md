@@ -53,7 +53,7 @@ bash remote.sh all
 | `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                                             |
 | `aside`        | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside) |
 | `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)         |
-| `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer                         |
+| `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
 | `fetch`        | Nothing — refresh the cached checkout only                                                                                                                         |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                        |
 | `-h`, `--help` | Nothing — print usage                                                                                                                                              |
