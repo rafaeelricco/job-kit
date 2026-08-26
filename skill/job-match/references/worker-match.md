@@ -27,7 +27,7 @@ Profile root. Never fetch a URL. Never change the policy.
     "role_type": 0,
     "location": 0,
     "domain": 0,
-    "language": 0,
+    "language": null,
     "preferences": 0
   }
 }
@@ -35,6 +35,8 @@ Profile root. Never fetch a URL. Never change the policy.
 
 3. `match_score` is the sum of scored breakdown cells after renormalization
    per contract. `decision` from the band table. `confidence` ∈ 0–1.
+   Unscored factor (`—` per policy) → cell is `null`; omit `null` cells
+   from the sum and renormalization. Never encode unknown as `0`.
 4. Every `strengths` / `gaps` / `blockers` item must quote a printed fact.
    No inferred skill without a dossier or profile token.
 5. Emit the JSON array (or one object per dossier), then stop.
