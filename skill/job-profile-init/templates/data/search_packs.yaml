@@ -25,6 +25,12 @@ packs:
     formulations:
       - "[role]"
 
+  - id: wellfound
+    surface: open-web
+    entry: https://wellfound.com
+    formulations:
+      - "[role]"
+
   - id: we-work-remotely
     surface: open-web
     entry: https://weworkremotely.com
@@ -34,6 +40,12 @@ packs:
   - id: himalayas
     surface: open-web
     entry: https://himalayas.app
+    formulations:
+      - "[role]"
+
+  - id: remote-ok
+    surface: open-web
+    entry: https://remoteok.com
     formulations:
       - "[role]"
 
@@ -88,6 +100,7 @@ packs:
   - id: dice
     surface: open-web
     entry: https://www.dice.com/jobs
+    enabled: false
     formulations:
       - "[role]"
 
