@@ -63,7 +63,7 @@ Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused on a partial target such as `uninstall aside`,
                       and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
-  --skip-claude|codex|grok  Forwarded only with `uninstall agents` or
+  --skip-claude|codex|grok|hermes  Forwarded only with `uninstall agents` or
                       `uninstall browser-use`
 
 Environment:
@@ -442,7 +442,8 @@ agents_ready() {
   if [ -n "${CLAUDE_SKILLS:-}" ]; then
     return 0
   fi
-  [ -d "${HOME}/.claude" ] || [ -d "${HOME}/.agents" ] || [ -d "${HOME}/.grok" ]
+  [ -d "${HOME}/.claude" ] || [ -d "${HOME}/.agents" ] || [ -d "${HOME}/.grok" ] \
+    || [ -d "${HOME}/.hermes" ]
 }
 
 # main
@@ -485,7 +486,7 @@ main() {
           ;;
         agents)
           case "${arg}" in
-            --skip-claude|--skip-codex|--skip-grok)
+            --skip-claude|--skip-codex|--skip-grok|--skip-hermes)
               agent_flags[${#agent_flags[@]}]="${arg}"
               ;;
             *)
@@ -496,7 +497,7 @@ main() {
         browser-use)
           # Same agent homes as `agents`, so the same skip flags apply.
           case "${arg}" in
-            --skip-claude|--skip-codex|--skip-grok)
+            --skip-claude|--skip-codex|--skip-grok|--skip-hermes)
               agent_flags[${#agent_flags[@]}]="${arg}"
               ;;
             *)
@@ -608,7 +609,7 @@ main() {
         bash "${JOB_KIT_HOME}/scripts/agents/install.sh" "$@"
         ran=1
       else
-        echo "Coding agents: no agent home (~/.claude, ~/.agents, ~/.grok); skipping."
+        echo "Coding agents: no agent home (~/.claude, ~/.agents, ~/.grok, ~/.hermes); skipping."
       fi
       # Browser channel lands in the same agent homes, so it rides the same
       # gate. A missing browser-use CLI or browser is an offer, not a failure.

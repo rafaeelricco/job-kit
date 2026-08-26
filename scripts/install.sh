@@ -11,6 +11,7 @@ YES=0
 SKIP_CLAUDE=0
 SKIP_CODEX=0
 SKIP_GROK=0
+SKIP_HERMES=0
 DRY_RUN=0
 ONLY_TARGETS=""
 # Aside skill subset from --only; empty means every SKILL_NAMES entry.
@@ -56,13 +57,13 @@ Options:
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
                 aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-profile-root
-                agents | browser-use | claude | codex | grok
-                (claude|codex|grok narrow a channel named alongside them;
+                agents | browser-use | claude | codex | grok | hermes
+                (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
                 (job-apply also installs job-resume-refine — Prepare chains it
                 for a status:new dossier; job-match also installs job-list and
                 job-profile-me — Bind loads those refs)
-  --skip-claude|--skip-codex|--skip-grok
+  --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents runs
   -h, --help    Show this help
 
@@ -133,6 +134,7 @@ expand_only() {
   local want_aside=0 want_agents=0
   local want_browser=0 channel_named=0
   local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
+  local want_hermes=0
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
@@ -140,12 +142,13 @@ expand_only() {
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1 ;;
+      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1; want_hermes=1 ;;
       browser-use) want_browser=1; channel_named=1 ;;
       claude) named_agent=1; want_claude=1 ;;
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok)" ;;
+      hermes) named_agent=1; want_hermes=1 ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|hermes)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -157,6 +160,7 @@ expand_only() {
     [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
     [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
     [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
+    [ "${want_hermes}" -eq 1 ] || SKIP_HERMES=1
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-apply Prepare chains job-resume-refine for a status:new dossier; a subset
@@ -306,6 +310,7 @@ plan_rows_aside() {
 plan_rows_agent_home() {
   local sel="$1" label="$2" repo="${REPO_ROOT}" force="${FORCE}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -352,6 +357,9 @@ plan_rows_agent_home() {
         continue
       elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
         printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"
+        continue
+      elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
+        printf 'N%sskipped (--skip-hermes)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"
         continue
       fi
       parent="$(agent_parent_dir "${target}")"
@@ -499,7 +507,7 @@ confirm_plan() {
 
 # browser_use_driver_cmd ROOT — official CLI that writes ROOT/browser-use.
 # claude → --target claude; codex (job-kit: ~/.agents/skills) → --target agents;
-# anything else (Grok, CLAUDE_SKILLS) → --path ROOT/browser-use.
+# anything else (Grok, Hermes, CLAUDE_SKILLS) → --path ROOT/browser-use.
 # --no-install: place the skill file only; never uv-upgrade the CLI.
 browser_use_driver_cmd() {
   local root="$1"
@@ -538,8 +546,10 @@ browser_use_missing_drivers() {
         [ "${SKIP_CLAUDE}" -eq 0 ] || continue
       elif [ "${target}" = codex ]; then
         [ "${SKIP_CODEX}" -eq 0 ] || continue
-      else
+      elif [ "${target}" = grok ]; then
         [ "${SKIP_GROK}" -eq 0 ] || continue
+      elif [ "${target}" = hermes ]; then
+        [ "${SKIP_HERMES}" -eq 0 ] || continue
       fi
       root="$(agent_skills_root "${target}")"
       [ -d "$(agent_parent_dir "${target}")" ] || [ -d "${root}" ] || continue
@@ -663,7 +673,7 @@ install_aside() {
 
 # install_driver_into ROOT — write ROOT/browser-use via the official CLI.
 # No-op if dest exists or CLI missing (preflight names the command).
-# claude/codex use --target; Grok and CLAUDE_SKILLS use --path.
+# claude/codex use --target; Grok, Hermes, and CLAUDE_SKILLS use --path.
 install_driver_into() {
   local root="$1" dest="${1}/browser-use"
   if [ -e "${dest}" ] || [ -L "${dest}" ]; then
@@ -691,6 +701,7 @@ install_driver_into() {
 install_agent_home() {
   local sel="$1" label="$2" repo="${REPO_ROOT}" force="${FORCE}" soft="${SOFT_SKIP}"
   local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
+  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -715,6 +726,7 @@ install_agent_home() {
         claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
         codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
         grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
+        hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: skipped (--skip-hermes)."; continue; } ;;
       esac
       parent="$(agent_parent_dir "${target}")"
       dest_root="$(agent_skills_root "${target}")"
@@ -741,7 +753,7 @@ install_agent_home() {
         exit 0
       fi
       echo "error: no agent targets installed (need parent dirs or CLAUDE_SKILLS)" >&2
-      echo "  expected one of: ~/.claude  ~/.agents  ~/.grok" >&2
+      echo "  expected one of: ~/.claude  ~/.agents  ~/.grok  ~/.hermes" >&2
       exit 1
     fi
     echo "Install completed (${linked}/${attempted} targets)"
@@ -900,6 +912,7 @@ main() {
       --skip-claude) SKIP_CLAUDE=1 ;;
       --skip-codex) SKIP_CODEX=1 ;;
       --skip-grok) SKIP_GROK=1 ;;
+      --skip-hermes) SKIP_HERMES=1 ;;
       aside|agents|browser-use|all)
         targets[${#targets[@]}]="$1"
         ;;
