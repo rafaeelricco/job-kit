@@ -366,7 +366,7 @@ uninstall_agents() {
 
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
-      uninstall_skills_from "${override}" "${repo}" || exit 1
+      uninstall_skills_from "${override}" "${repo}" "$(agents_names_for_root "${override}" "${repo}")" || exit 1
       echo "Uninstall completed for ${override}"
       exit 0
     fi
@@ -385,7 +385,7 @@ uninstall_agents() {
         continue
       fi
       echo "== ${label} (${dest_root}) =="
-      uninstall_skills_from "${dest_root}" "${repo}" || exit 1
+      uninstall_skills_from "${dest_root}" "${repo}" "$(agents_names_for_root "${dest_root}" "${repo}")" || exit 1
     done
 
     remove_legacy_codex_skills_dir "${repo}" || exit 1
@@ -906,7 +906,7 @@ plan_rows_agents() {
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       printf 'H%sagents (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
-      for name in ${LEGACY_SKILL_NAMES} ${SKILL_NAMES}; do
+      for name in ${LEGACY_SKILL_NAMES} $(agents_names_for_root "${override}" "${repo}"); do
         plan_row "$(skill_dest "${override}" "${name}")" "${name}" current 1
       done
       exit 0
@@ -929,7 +929,7 @@ plan_rows_agents() {
       for name in ${LEGACY_SKILL_NAMES}; do
         plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
       done
-      for name in ${SKILL_NAMES}; do
+      for name in $(agents_names_for_root "${root}" "${repo}"); do
         plan_row "$(skill_dest "${root}" "${name}")" "${name}" current 1
       done
     done
@@ -1903,6 +1903,17 @@ unremovable_skill_entries() {
     for name in ${names}; do
       dest="${root}/${name}"
       [ -e "${dest}" ] || [ -L "${dest}" ] || continue
+      if [ "${target}" = agents ]; then
+        case " ${BROWSER_SHARED_DEPS} " in
+          *" ${name} "*)
+            for n in ${BROWSER_SKILL_NAMES}; do
+              if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
+                continue 2
+              fi
+            done
+            ;;
+        esac
+      fi
       if [ "${target}" = browser-use ]; then
         case " ${BROWSER_SHARED_DEPS} " in
           *" ${name} "*)
