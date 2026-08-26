@@ -19,23 +19,23 @@ Orchestrator holds this object in-session. Nodes write only their keys. Never a 
 
 `state.candidate`. Derive once from disk. Workers never re-read Profile root.
 
-| Field                             | Source                                                                                              |
-| --------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `roles`                           | `job_search.yaml` `positions[]`                                                                     |
-| `skills`                          | `job-profile-me/references/schema-profile-card.md` `top_skills`                                     |
-| `domains`                         | same file, `industries`                                                                             |
-| `languages`                       | same file, `languages` as `{name: level}`                                                           |
-| `experience`                      | `experiences.yml` `date` · `position` · `company` per role; no `summary`                            |
-| `years_experience`                | floor(unique calendar months / 12) from `experience[].date` matching `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}` where `<sep>` is `--`, `-`, `–`, or `—` with optional spaces (full or 3-letter month, optional `.`, inclusive union, `Present` = current month); no parseable roles or `experience=[]` → `null` not 0 |
-| `preferences.remote`              | `candidate.yaml` `work_preferences_from_resume.remote_work`                                         |
-| `preferences.in_person`           | `in_person_work`                                                                                    |
-| `preferences.relocation`          | `open_to_relocation`                                                                                |
-| `constraints.work_model`          | `job_search.yaml` `work_model`                                                                      |
-| `constraints.locations`           | `job_search.yaml` `locations`                                                                       |
-| `constraints.location_scope`      | `job_search.yaml` `location_scope`                                                                  |
-| `constraints.exclude_locations`   | `job_search.yaml` `exclude_locations`                                                               |
-| `constraints.market_currencies`   | `job_search.yaml` `market_currencies`                                                               |
-| `constraints.legal_authorization` | `candidate.yaml` `legal_authorization`                                                              |
+| Field                             | Source                                                                                                 |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `roles`                           | `job_search.yaml` `positions[]`                                                                        |
+| `skills`                          | `job-profile-me/references/schema-profile-card.md` `top_skills`                                        |
+| `domains`                         | same file, `industries`                                                                                |
+| `languages`                       | same file, `languages` as `{name: level}`                                                              |
+| `experience`                      | `experiences.yml` `date` · `position` · `company` per role; no `summary`                               |
+| `years_experience`                | floor(unique calendar months / 12) from `experience[].date` matching `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}`where`<sep>`is`--`, `-`, `–`, or `—`with optional spaces (full or 3-letter month, optional`.`, inclusive union, `Present`= current month); no parseable roles or`experience=[]`→`null` not 0 |
+| `preferences.remote`              | `candidate.yaml` `work_preferences_from_resume.remote_work`                                            |
+| `preferences.in_person`           | `in_person_work`                                                                                       |
+| `preferences.relocation`          | `open_to_relocation`                                                                                   |
+| `constraints.work_model`          | `job_search.yaml` `work_model`                                                                         |
+| `constraints.locations`           | `job_search.yaml` `locations`                                                                          |
+| `constraints.location_scope`      | `job_search.yaml` `location_scope`                                                                     |
+| `constraints.exclude_locations`   | `job_search.yaml` `exclude_locations`                                                                  |
+| `constraints.market_currencies`   | `job_search.yaml` `market_currencies`                                                                  |
+| `constraints.legal_authorization` | `candidate.yaml` `legal_authorization`                                                                 |
 
 ```json
 {
