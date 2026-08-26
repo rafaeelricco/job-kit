@@ -1,6 +1,7 @@
 ---
 name: job-scout
 description: "Find and rank live job openings from operator-selected search packs, report results, and persist scout dossiers. List-only: never applies or contacts. Not for dossier reading, applications, inbox triage, or profile configuration."
+argument-hint: "[all | <pack-id>…]"
 ---
 
 # Job scout
@@ -18,7 +19,13 @@ Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Browser:` (opens a p
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
 
-Enabled packs empty → STOP; enable via `/job-profile-me`. Else list enabled packs as `N. {id}`; last line `{N+1}. Search in all`. Wait. `enabled: false` is unlisted.
+Enabled packs empty → STOP; enable via `/job-profile-me`. `enabled: false` is unlisted.
+Tokens after `/job-scout` bind the run set (enabled deck `id:`).
+Empty → list as `N. {id}`; last line `{N+1}. Search in all`. Wait.
+`all` alone → every enabled pack, no wait.
+One or more ids → those packs (file order, unique), no wait.
+Unknown `--` flag, leftover token, `all` plus another token, unknown id, or named disabled id → stop.
+Skip-wait → print `Packs: {id} …`.
 
 Print `### Profile card` (role · skills · industries · languages) and `### Constraints` (those keys plus salary_range_usd, work auth, employment_routes, relocation). Pass both into every search.
 
