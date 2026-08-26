@@ -409,14 +409,24 @@ uninstall_browser_use() {
     local override dest_root target parent label name dest
     local cli_failed=0
 
-    # unlink_browser_skills_from ROOT — uninstall_skills_from narrowed to
-    # BROWSER_SKILL_NAMES, so this target never reaches an agents-channel link.
-    # The legacy sweep uses BROWSER_LEGACY_SKILL_NAMES, not the agents-channel
-    # list: both channels share these homes, so sweeping the other target's
-    # orphans here would remove links this uninstall was never asked for.
+    # unlink_browser_skills_from ROOT — browser channel names plus shared deps
+    # when this home is not still an agents install.
     unlink_browser_skills_from() {
-      local root="$1" n d
+      local root="$1" n d agents_owned=0
       for n in ${BROWSER_SKILL_NAMES} ${BROWSER_LEGACY_SKILL_NAMES}; do
+        d="$(skill_dest "${root}" "${n}")"
+        unlink_skill "${d}" "${repo}" "${n}"
+      done
+      for n in job-profile-init job-stories job-pitch job-inbox; do
+        if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${repo}" "${n}"; then
+          agents_owned=1
+          break
+        fi
+      done
+      if [ "${agents_owned}" -eq 1 ]; then
+        return 0
+      fi
+      for n in ${BROWSER_SHARED_DEPS}; do
         d="$(skill_dest "${root}" "${n}")"
         unlink_skill "${d}" "${repo}" "${n}"
       done
@@ -949,8 +959,23 @@ plan_rows_browser_use() {
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override target root parent label name dest bin skipped
+    local override target root parent label name dest bin skipped agents_owned n
     override="$(resolve_override_skills)" || exit 1
+    plan_browser_shared_deps() {
+      local plan_root="$1" agents_owned=0 pn pname
+      for pn in job-profile-init job-stories job-pitch job-inbox; do
+        if is_kit_skill_link "$(skill_dest "${plan_root}" "${pn}")" "${repo}" "${pn}"; then
+          agents_owned=1
+          break
+        fi
+      done
+      if [ "${agents_owned}" -eq 1 ]; then
+        return 0
+      fi
+      for pname in ${BROWSER_SHARED_DEPS}; do
+        plan_row "$(skill_dest "${plan_root}" "${pname}")" "${pname}" current 1
+      done
+    }
     if [ -n "${override}" ]; then
       printf 'H%sbrowser-use (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
       for name in ${BROWSER_SKILL_NAMES}; do
@@ -959,6 +984,7 @@ plan_rows_browser_use() {
       for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
         plan_row "$(skill_dest "${override}" "${name}")" "${name}" legacy 1
       done
+      plan_browser_shared_deps "${override}"
     else
       for target in ${AGENT_TARGETS}; do
         root="$(agent_skills_root "${target}")"
@@ -981,6 +1007,7 @@ plan_rows_browser_use() {
         for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
           plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
         done
+        plan_browser_shared_deps "${root}"
       done
     fi
     # The driver is browser-use's own installation, not kit-owned, so there is no
@@ -1859,7 +1886,7 @@ unremovable_skill_entries() {
     # will never unlink would block a run that was always going to succeed.
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
-    names="${BROWSER_SKILL_NAMES} browser-use"
+    names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS} browser-use"
   elif [ "${target}" = aside ]; then
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
@@ -1876,6 +1903,17 @@ unremovable_skill_entries() {
     for name in ${names}; do
       dest="${root}/${name}"
       [ -e "${dest}" ] || [ -L "${dest}" ] || continue
+      if [ "${target}" = browser-use ]; then
+        case " ${BROWSER_SHARED_DEPS} " in
+          *" ${name} "*)
+            for n in job-profile-init job-stories job-pitch job-inbox; do
+              if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
+                continue 2
+              fi
+            done
+            ;;
+        esac
+      fi
       # Foreign-owned entry in sticky root: this user cannot unlink it.
       [ -O "${dest}" ] \
         || die "refusing to start: the ${target} target cannot unlink ${dest} (owned by another user inside sticky ${root})"
