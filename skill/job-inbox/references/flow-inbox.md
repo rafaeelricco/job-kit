@@ -26,12 +26,14 @@ Chained from `job-apply` flow-record.md Close → print `Chained from job-apply 
 Reader SSOT: `job-list/references/flow-read.md`. Unparseable → Gap; keep going.
 Parse-failure STOP in `contract-persistence.md` still binds under the lock.
 
+Tokens after `/job-inbox` bind the set.
 Default: `status:` ∈ `applied` | `interview` | `offer`.
 Operator named company, title, or file → that dossier only, any status but `dropped`.
+Operator named `all` → every parseable dossier except `dropped`.
 
 Per candidate: `company`, `title`, `url`, `status`; Application log bottom-up → latest `applied via` date, every `(account_uid, thread_id, outcome)`, any legacy naked `thread:{id}`. Filename is not an id.
 
-Print candidate count. Zero: `No open applications to match mail against.` and end.
+Print `{n} candidates · {default | named | all}`. Zero: `No open applications to match mail against.` and end.
 
 ## Harvest
 
@@ -39,8 +41,8 @@ Window: `after:{earliest candidate applied date}`, else `newer_than:21d`.
 
 Queries, in order:
 
-1. Per candidate: `"{company}"` + window.
-2. Intent sweep: `(interview OR "phone screen" OR "next steps" OR "not moving forward" OR "unfortunately" OR "offer letter" OR "application received")` + window.
+1. Per candidate: `("{company}" OR from:{from_token})` + window. `{from_token}` = lowercase `company` with every non-alphanumeric removed (Gmail `-` is NOT).
+2. Operator named `all` only: intent sweep: `(interview OR "phone screen" OR "next steps" OR "not moving forward" OR "unfortunately" OR "offer letter" OR "application received")` + window.
 
 Cap queries, not results. Paginate each per-candidate query until no further page. Page ceiling → candidate **truncated** — cannot report silent.
 
