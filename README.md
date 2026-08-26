@@ -132,7 +132,7 @@ ranks the job rows it extracts. Application drafts and stages one posting at a
 time; it opens an Apply control only when that control reveals the form, emits the
 review, then submits (account wall, required terms, Submit).
 
-Scout writes one dossier per live job to
+Scout writes one dossier per persist-set row (live, gate, `score` > 7, match not skip) to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; chat lists those dossiers by score (high to low).
 `data/` and `cv/` stay read-only to it. Set `status:` in a
@@ -154,8 +154,8 @@ The three run as one loop. Scout and inbox stay operator-pasted; inside
 job-inbox    reports replies, writes status, prints  Next: /job-scout
 ```
 
-You paste the pointer at the two ends. Scout stays list-only and cannot judge
-which ranked row is worth an application.
+You paste the pointer at the two ends. Scout stays list-only (never applies);
+it persists only rows that pass the score and match gates.
 
 Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains
