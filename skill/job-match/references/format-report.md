@@ -17,7 +17,7 @@ Then optional `### Top detail` for rank 1–5 (or all if ≤5):
 `match {n} · {decision} · conf {n}`
 `strengths: …`
 `gaps: …`
-`breakdown: primary_stack={n} …`
+`breakdown: primary_stack={n} …` (`null` cells print `—`)
 
 Then `### Blocked` (Stage 1) if any: `company — title · reason`
 
