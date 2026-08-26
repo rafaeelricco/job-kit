@@ -6,7 +6,29 @@ already in the brief. Never open Profile root. Never fetch a URL. Never score.
 
 ## Deltas
 
-1. Open nothing. The pasted excerpts are the whole evidence set.
-2. For each excerpt emit one JobProfile per `./schema-state.md`. Facts `—` → `null` / `[]`. A token not in the excerpt is absent.
+1. Open nothing. The pasted excerpts and the JobProfile shape below are the whole evidence set.
+2. For each excerpt emit one JobProfile. Facts `—` → `null` / `[]`. A token not in the excerpt is absent.
+
+```json
+{
+  "url": "",
+  "company": "",
+  "title": "",
+  "scout_score": null,
+  "seniority": null,
+  "work_model": null,
+  "location": null,
+  "salary": null,
+  "years_experience": null,
+  "work_auth": null,
+  "hiring_route": null,
+  "required_skills": [],
+  "preferred_skills": [],
+  "languages_required": [],
+  "languages_preferred": [],
+  "domain": null
+}
+```
+
 3. Do not emit `match_score`, `decision`, `strengths`, `gaps`, or `blockers`.
 4. Emit the JSON array, then stop.
