@@ -160,7 +160,8 @@ expand_only() {
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-apply Prepare chains job-resume-refine for a status:new dossier; a subset
-  # without resume cannot complete that path. job-match Bind loads
+  # without resume cannot complete that path. job-scout persist loads
+  # job-match/references/* (flow-match-gate.md). job-match Bind loads
   # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
@@ -168,6 +169,14 @@ expand_only() {
         case " ${ASIDE_ONLY} " in
           *" job-resume-refine "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-resume-refine" ;;
+        esac
+        ;;
+    esac
+    case " ${ASIDE_ONLY} " in
+      *" job-scout "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-match "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-match" ;;
         esac
         ;;
     esac
@@ -301,7 +310,11 @@ plan_rows_agent_home() {
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
     local override target root parent agent_label_s name source dest names
-    if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
+    if [ "${sel}" = browser ]; then
+      names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
+    else
+      names="${SKILL_NAMES}"
+    fi
     # Requirement rows sit under their own header, or under `all` they would
     # read as the tail of the preceding channel's section.
     if [ "${sel}" = browser ]; then
@@ -682,7 +695,11 @@ install_agent_home() {
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
     local override dest_root target parent agent_label_s linked=0 attempted=0 names
-    if [ "${sel}" = browser ]; then names="${BROWSER_SKILL_NAMES}"; else names="${SKILL_NAMES}"; fi
+    if [ "${sel}" = browser ]; then
+      names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
+    else
+      names="${SKILL_NAMES}"
+    fi
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="

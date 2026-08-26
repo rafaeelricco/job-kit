@@ -1,42 +1,37 @@
 # worker-match
 
-Caller pastes `### Profile card` + `### Constraints` + `### Experience`
-(`experiences.yml` `date` · `position` · `company` per role; never `summary`) +
-MatchingPolicy (`contract-match.md` body) + one or more dossier excerpts
-(Posting facts + `## The role` + frontmatter company/title/url). Never open
-Profile root. Never fetch a URL. Never change the policy.
+Caller pastes CandidateProfile JSON + MatchingPolicy (`contract-match.md` body)
+
+- one or more JobProfile JSON objects. Never open Profile root. Never fetch a
+  URL. Never change the policy. No dossier prose.
 
 ## Deltas
 
-1. Open nothing. The pasted blocks are the whole evidence set.
-2. For each dossier emit exactly one JSON object:
+1. Open nothing. The pasted JSON, policy text, and the MatchResult shape below are the whole evidence set.
+2. For each JobProfile emit one MatchResult.
 
 ```json
 {
   "url": "",
   "match_score": 0,
-  "decision": "strong_match",
+  "decision": "skip",
   "confidence": 0.0,
   "blockers": [],
   "strengths": [],
   "gaps": [],
   "score_breakdown": {
-    "primary_stack": 0,
-    "experience": 0,
-    "seniority": 0,
-    "role_type": 0,
-    "location": 0,
-    "domain": 0,
+    "primary_stack": null,
+    "experience": null,
+    "seniority": null,
+    "role_type": null,
+    "location": null,
+    "domain": null,
     "language": null,
-    "preferences": 0
+    "preferences": null
   }
 }
 ```
 
-3. `match_score` is the sum of scored breakdown cells after renormalization
-   per contract. `decision` from the band table. `confidence` ∈ 0–1.
-   Unscored factor (`—` per policy) → cell is `null`; omit `null` cells
-   from the sum and renormalization. Never encode unknown as `0`.
-4. Every `strengths` / `gaps` / `blockers` item must quote a printed fact.
-   No inferred skill without a dossier or profile token.
-5. Emit the JSON array (or one object per dossier), then stop.
+3. `match_score`, `decision`, `confidence` per contract. Unscored factor → JSON `null`.
+4. Every `strengths` / `gaps` / `blockers` item quotes a token from the two JSON objects.
+5. Emit the JSON array, then stop.

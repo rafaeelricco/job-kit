@@ -53,7 +53,7 @@ bash remote.sh all
 | `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                                             |
 | `aside`        | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside) |
 | `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)         |
-| `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer                         |
+| `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
 | `fetch`        | Nothing — refresh the cached checkout only                                                                                                                         |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                        |
 | `-h`, `--help` | Nothing — print usage                                                                                                                                              |
@@ -132,7 +132,7 @@ ranks the job rows it extracts. Application drafts and stages one posting at a
 time; it opens an Apply control only when that control reveals the form, emits the
 review, then submits (account wall, required terms, Submit).
 
-Scout writes one dossier per live job to
+Scout writes one dossier per persist-set row (live, gate, `score` > 7, match not skip) to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; chat lists those dossiers by score (high to low).
 `data/` and `cv/` stay read-only to it. Set `status:` in a
@@ -154,8 +154,8 @@ The three run as one loop. Scout and inbox stay operator-pasted; inside
 job-inbox    reports replies, writes status, prints  Next: /job-scout
 ```
 
-You paste the pointer at the two ends. Scout stays list-only and cannot judge
-which ranked row is worth an application.
+You paste the pointer at the two ends. Scout stays list-only (never applies);
+it persists only rows that pass the score and match gates.
 
 Applying needs exactly one CV PDF that opens. For a `status: new` dossier
 whose normalized URL equals the current ad's, Prepare chains

@@ -19,9 +19,7 @@ Then optional `### Top detail` for rank 1–5 (or all if ≤5):
 `gaps: …`
 `breakdown: primary_stack={n} …` (`null` cells print `—`)
 
-Then `### Blocked` (Stage 1) if any: `company — title · reason`
+Then `### Blocked` (`state.blocked`) if any: `company — title · reason`
 
-Then `### Gaps` — unparseable files, malformed worker output, review failures.
-Omit if empty.
-
-Never write a dossier. Never alter frontmatter `score` or `bucket`.
+Then `### Gaps` — unparseable files, malformed extract/match/validate output,
+arith that cannot hold. Omit if empty.
