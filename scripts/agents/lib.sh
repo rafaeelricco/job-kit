@@ -7,6 +7,29 @@ SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply job-resume-refine"
+# Extra names `install browser-use` links beside BROWSER_SKILL_NAMES.
+# Uninstall removes them only when the home has no agents-only kit link.
+BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-profile-root"
+
+# agents_names_for_root ROOT REPO
+# Prints SKILL_NAMES, omitting BROWSER_SHARED_DEPS when ROOT still has a
+# browser-channel kit link.
+agents_names_for_root() {
+  local root="$1" repo="$2" n names=""
+  for n in ${BROWSER_SKILL_NAMES}; do
+    if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${repo}" "${n}"; then
+      for n in ${SKILL_NAMES}; do
+        case " ${BROWSER_SHARED_DEPS} " in
+          *" ${n} "*) continue ;;
+        esac
+        names="${names} ${n}"
+      done
+      printf '%s\n' "${names# }"
+      return 0
+    fi
+  done
+  printf '%s\n' "${SKILL_NAMES}"
+}
 # Prior basenames for browser-channel skills only. A browser-use uninstall
 # sweeps these and not LEGACY_SKILL_NAMES below: those orphans belong to the
 # agents target, and the two channels share the same agent homes.

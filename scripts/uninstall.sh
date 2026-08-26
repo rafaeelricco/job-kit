@@ -25,6 +25,9 @@ SKIP_CODEX=0
 SKIP_GROK=0
 DRY_RUN=0
 ONLY_TARGETS=""
+# Space-separated target list for the current run_plan; used by browser-use plan
+# and preflight to account for combined agents+browser-use apply order.
+UNINSTALL_TARGETS=""
 # Aside skill subset from --only; empty means every SKILL_NAMES entry.
 ASIDE_ONLY=""
 # The shared resolver every other Aside skill loads on its first step. Removing
@@ -366,7 +369,7 @@ uninstall_agents() {
 
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
-      uninstall_skills_from "${override}" "${repo}" || exit 1
+      uninstall_skills_from "${override}" "${repo}" "$(agents_names_for_root "${override}" "${repo}")" || exit 1
       echo "Uninstall completed for ${override}"
       exit 0
     fi
@@ -385,7 +388,7 @@ uninstall_agents() {
         continue
       fi
       echo "== ${label} (${dest_root}) =="
-      uninstall_skills_from "${dest_root}" "${repo}" || exit 1
+      uninstall_skills_from "${dest_root}" "${repo}" "$(agents_names_for_root "${dest_root}" "${repo}")" || exit 1
     done
 
     remove_legacy_codex_skills_dir "${repo}" || exit 1
@@ -409,14 +412,24 @@ uninstall_browser_use() {
     local override dest_root target parent label name dest
     local cli_failed=0
 
-    # unlink_browser_skills_from ROOT — uninstall_skills_from narrowed to
-    # BROWSER_SKILL_NAMES, so this target never reaches an agents-channel link.
-    # The legacy sweep uses BROWSER_LEGACY_SKILL_NAMES, not the agents-channel
-    # list: both channels share these homes, so sweeping the other target's
-    # orphans here would remove links this uninstall was never asked for.
+    # unlink_browser_skills_from ROOT — browser channel names plus shared deps
+    # when this home is not still an agents install.
     unlink_browser_skills_from() {
-      local root="$1" n d
+      local root="$1" n d agents_owned=0
       for n in ${BROWSER_SKILL_NAMES} ${BROWSER_LEGACY_SKILL_NAMES}; do
+        d="$(skill_dest "${root}" "${n}")"
+        unlink_skill "${d}" "${repo}" "${n}"
+      done
+      for n in job-profile-init job-stories job-pitch job-inbox; do
+        if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${repo}" "${n}"; then
+          agents_owned=1
+          break
+        fi
+      done
+      if [ "${agents_owned}" -eq 1 ]; then
+        return 0
+      fi
+      for n in ${BROWSER_SHARED_DEPS}; do
         d="$(skill_dest "${root}" "${n}")"
         unlink_skill "${d}" "${repo}" "${n}"
       done
@@ -896,7 +909,7 @@ plan_rows_agents() {
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       printf 'H%sagents (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
-      for name in ${LEGACY_SKILL_NAMES} ${SKILL_NAMES}; do
+      for name in ${LEGACY_SKILL_NAMES} $(agents_names_for_root "${override}" "${repo}"); do
         plan_row "$(skill_dest "${override}" "${name}")" "${name}" current 1
       done
       exit 0
@@ -919,7 +932,7 @@ plan_rows_agents() {
       for name in ${LEGACY_SKILL_NAMES}; do
         plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
       done
-      for name in ${SKILL_NAMES}; do
+      for name in $(agents_names_for_root "${root}" "${repo}"); do
         plan_row "$(skill_dest "${root}" "${name}")" "${name}" current 1
       done
     done
@@ -949,8 +962,31 @@ plan_rows_browser_use() {
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override target root parent label name dest bin skipped
+    local override target root parent label name dest bin skipped agents_owned n
     override="$(resolve_override_skills)" || exit 1
+    plan_browser_shared_deps() {
+      local plan_root="$1" agents_owned=0 pn pname
+      case " ${UNINSTALL_TARGETS} " in
+        *" agents "*)
+          for pname in ${BROWSER_SHARED_DEPS}; do
+            plan_row "$(skill_dest "${plan_root}" "${pname}")" "${pname}" current 1
+          done
+          return 0
+          ;;
+      esac
+      for pn in job-profile-init job-stories job-pitch job-inbox; do
+        if is_kit_skill_link "$(skill_dest "${plan_root}" "${pn}")" "${repo}" "${pn}"; then
+          agents_owned=1
+          break
+        fi
+      done
+      if [ "${agents_owned}" -eq 1 ]; then
+        return 0
+      fi
+      for pname in ${BROWSER_SHARED_DEPS}; do
+        plan_row "$(skill_dest "${plan_root}" "${pname}")" "${pname}" current 1
+      done
+    }
     if [ -n "${override}" ]; then
       printf 'H%sbrowser-use (override)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${override}"
       for name in ${BROWSER_SKILL_NAMES}; do
@@ -959,6 +995,7 @@ plan_rows_browser_use() {
       for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
         plan_row "$(skill_dest "${override}" "${name}")" "${name}" legacy 1
       done
+      plan_browser_shared_deps "${override}"
     else
       for target in ${AGENT_TARGETS}; do
         root="$(agent_skills_root "${target}")"
@@ -981,6 +1018,7 @@ plan_rows_browser_use() {
         for name in ${BROWSER_LEGACY_SKILL_NAMES}; do
           plan_row "$(skill_dest "${root}" "${name}")" "${name}" legacy 1
         done
+        plan_browser_shared_deps "${root}"
       done
     fi
     # The driver is browser-use's own installation, not kit-owned, so there is no
@@ -1859,7 +1897,7 @@ unremovable_skill_entries() {
     # will never unlink would block a run that was always going to succeed.
     # shellcheck source=agents/lib.sh
     . "${REPO_ROOT}/scripts/agents/lib.sh"
-    names="${BROWSER_SKILL_NAMES} browser-use"
+    names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS} browser-use"
   elif [ "${target}" = aside ]; then
     # shellcheck source=aside/lib.sh
     . "${REPO_ROOT}/scripts/aside/lib.sh"
@@ -1876,6 +1914,33 @@ unremovable_skill_entries() {
     for name in ${names}; do
       dest="${root}/${name}"
       [ -e "${dest}" ] || [ -L "${dest}" ] || continue
+      if [ "${target}" = agents ]; then
+        case " ${BROWSER_SHARED_DEPS} " in
+          *" ${name} "*)
+            for n in ${BROWSER_SKILL_NAMES}; do
+              if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
+                continue 2
+              fi
+            done
+            ;;
+        esac
+      fi
+      if [ "${target}" = browser-use ]; then
+        case " ${BROWSER_SHARED_DEPS} " in
+          *" ${name} "*)
+            case " ${UNINSTALL_TARGETS} " in
+              *" agents "*) ;;
+              *)
+            for n in job-profile-init job-stories job-pitch job-inbox; do
+              if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
+                continue 2
+              fi
+            done
+              ;;
+            esac
+            ;;
+        esac
+      fi
       # Foreign-owned entry in sticky root: this user cannot unlink it.
       [ -O "${dest}" ] \
         || die "refusing to start: the ${target} target cannot unlink ${dest} (owned by another user inside sticky ${root})"
@@ -1957,6 +2022,7 @@ run_plan() {
   local seen_aside=0 seen_agents=0 seen_browser=0 has_cache=0 scope=all
   ordered="$(plan_order "$@")"
   [ -n "${ordered}" ] || die "no targets selected"
+  UNINSTALL_TARGETS="${ordered}"
   for t in ${ordered}; do
     case "${t}" in
       aside) seen_aside=1 ;;
