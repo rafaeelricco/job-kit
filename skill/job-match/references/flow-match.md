@@ -68,7 +68,7 @@ Ask: is every strength/gap/blocker supported by printed facts?
 Output: `APPROVED` or `CORRECTION_REQUIRED` with a full corrected matcher
 JSON per `worker-match.md` (every field consistent with the revised score) +
 one-line reason. Apply that object before rank. Non-reviewed rows keep Stage 2
-values.
+values. Review failed or malformed → Gap that url; do not rank the row.
 
 ## Report
 
