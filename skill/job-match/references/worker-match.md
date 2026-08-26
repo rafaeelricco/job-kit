@@ -14,7 +14,7 @@ Caller pastes CandidateProfile JSON + MatchingPolicy (`contract-match.md` body)
 {
   "url": "",
   "match_score": 0,
-  "decision": "strong_match",
+  "decision": "skip",
   "confidence": 0.0,
   "blockers": [],
   "strengths": [],

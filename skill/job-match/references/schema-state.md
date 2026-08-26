@@ -26,7 +26,7 @@ Orchestrator holds this object in-session. Nodes write only their keys. Never a 
 | `domains`                         | same file, `industries`                                                                             |
 | `languages`                       | same file, `languages` as `{name: level}`                                                           |
 | `experience`                      | `experiences.yml` `date` · `position` · `company` per role; no `summary`                            |
-| `years_experience`                | floor(unique calendar months / 12) from `experience[].date` matching `{Mon[.] YYYY} -- {Mon[.] YYYY | Present}`(full or 3-letter month, optional`.`, inclusive union, `Present`= current month); no parseable roles or`experience=[]`→`null` not 0 |
+| `years_experience`                | floor(unique calendar months / 12) from `experience[].date` matching `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}` where `<sep>` is `--`, `-`, `–`, or `—` with optional spaces (full or 3-letter month, optional `.`, inclusive union, `Present` = current month); no parseable roles or `experience=[]` → `null` not 0 |
 | `preferences.remote`              | `candidate.yaml` `work_preferences_from_resume.remote_work`                                         |
 | `preferences.in_person`           | `in_person_work`                                                                                    |
 | `preferences.relocation`          | `open_to_relocation`                                                                                |
@@ -84,7 +84,7 @@ Extractor output. Unknown → `null` or `[]`. Copy printed tokens only.
 }
 ```
 
-Posting-facts keys copy when not `—`. Human-language names printed under **Must have** → `languages_required` (name as printed); "advantage" / nice-to-have → `languages_preferred`. Programming languages stay in `required_skills`. Other `preferred_skills` / `domain` from `## The role` only when printed. `scout_score` = frontmatter `score` (`—` → `null`).
+Posting-facts keys copy when not `—`. Human-language names printed under **Must have** → `languages_required` as `{name, level}` (`level` null when unprinted); "advantage" / nice-to-have → `languages_preferred` the same way. Programming languages stay in `required_skills`. Other `preferred_skills` / `domain` from `## The role` only when printed. `scout_score` = frontmatter `score` (`—` → `null`).
 
 ## MatchResult
 
@@ -94,7 +94,7 @@ Matcher output.
 {
   "url": "",
   "match_score": 0,
-  "decision": "strong_match",
+  "decision": "skip",
   "confidence": 0.0,
   "blockers": [],
   "strengths": [],
