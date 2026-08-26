@@ -41,7 +41,7 @@ Window: `after:{earliest candidate applied date}`, else `newer_than:21d`.
 
 Queries, in order:
 
-1. Per candidate: `"{company}"` + window.
+1. Per candidate: `("{company}" OR from:{company})` + window.
 2. Operator named `all` only: intent sweep: `(interview OR "phone screen" OR "next steps" OR "not moving forward" OR "unfortunately" OR "offer letter" OR "application received")` + window.
 
 Cap queries, not results. Paginate each per-candidate query until no further page. Page ceiling → candidate **truncated** — cannot report silent.
