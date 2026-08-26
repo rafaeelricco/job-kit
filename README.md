@@ -6,9 +6,9 @@ facts, read back what a run saved, and update status from Gmail replies. Procedu
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
 
-Three install channels. Scout, apply, and résumé need a browser: run them in
+Three install channels. Scout and apply need a browser: run them in
 [Aside Browser](https://aside.com), or in a coding agent driving your own Chrome
-through the local [browser-use](https://docs.browser-use.com) CLI. Profile init
+through the local [browser-use](https://docs.browser-use.com) CLI. Résumé refine, profile init
 and stories (plus config, tracker, inbox, and profile-root as symlinks) run in
 coding agents (Claude Code, Codex, Grok, Hermes Agent).
 
@@ -16,7 +16,7 @@ coding agents (Claude Code, Codex, Grok, Hermes Agent).
 | ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
 | `job-scout`         | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-apply`         | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
-| `job-resume-refine` | Re-select which résumé bullets print for one scout dossier; one page                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-resume-refine` | Re-select which résumé bullets print for one scout dossier; one page                | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-init`  | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
 | `job-profile-me`    | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-root`  | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
@@ -52,7 +52,7 @@ bash remote.sh all
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                                                                                        |
 | `aside`        | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside)                                            |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)                                                    |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` + `job-resume-refine` (fails if no agent home)                              |
 | `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
 | `fetch`        | Nothing — refresh the cached checkout only                                                                                                                                                                    |
 | `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                                                                   |
@@ -281,14 +281,14 @@ bash scripts/uninstall.sh
 bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Choice / target | Removes                                                                                                                                                                     |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aside           | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` kit copies                   |
-| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` kit links (+ legacy `profile-init`)       |
-| browser-use     | `job-scout` + `job-apply` + `job-resume-refine` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser |
-| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                                            |
-| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                                           |
-| **All**         | Aside + agents + browser-use + **profile** + cache                                                                                                                          |
+| Choice / target | Removes                                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aside           | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` kit copies                                   |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` + `job-resume-refine` kit links (+ legacy `profile-init`) |
+| browser-use     | `job-scout` + `job-apply` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser                                       |
+| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                                                            |
+| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                                                           |
+| **All**         | Aside + agents + browser-use + **profile** + cache                                                                                                                                          |
 
 Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
 profile or cache data requires typing `yes`; a plan of re-installable links takes
