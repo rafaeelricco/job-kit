@@ -115,15 +115,14 @@
    **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
    that cannot run reports _unknown_, never _installed_.
 
-   - Agents: the channel links seven skills — `job-profile-init`,
-     `job-profile-me`, `job-list`, `job-stories`, `job-pitch`,
-     `job-inbox`, and `job-profile-root` (`SKILL_NAMES` in
-     `scripts/agents/lib.sh`). `job-resume-refine` is browser-channel and is not
-     probed here. For each of
+   - Agents: the channel links nine skills — `job-profile-init`,
+     `job-profile-me`, `job-list`, `job-match`, `job-stories`, `job-pitch`,
+     `job-inbox`, `job-profile-root`, and `job-resume-refine` (`SKILL_NAMES` in
+     `scripts/agents/lib.sh`). For each of
      `$HOST_HOME/{.claude,.agents,.grok,.hermes}` that is a directory, compare bare
      `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
      `scripts/agents/lib.sh` `is_kit_skill_link`) against
-     `$KIT_ROOT/skill/<name>` for **every** one of the seven. A home counts
+     `$KIT_ROOT/skill/<name>` for **every** one of the nine. A home counts
      installed only when the whole set matches; matching some is _partial_, and
      partial is not installed. Installed = at least one complete home.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
