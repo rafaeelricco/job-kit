@@ -58,17 +58,18 @@ letter. Prefer the title whose printed stack overlaps `data/skills.yaml`; a titl
 printed stack wins only when it is the sole title.
 
 If the opened page or pasted ad prints that the role is not accepting
-applications (`dead`: 404 / expired / filled / withdrawn), quote that line and end. No review.
+applications (`dead`: 404 / expired / filled / withdrawn) or that this identity
+already applied, quote that line and end. No review. `sent`/`submitted`/`applied` still opens Record.
 
 An ad printing no requirement list is not a stop: say so under `### Ad`, then run Fit
 against the description the posting prints. Requirements are what the ad states, never
 what you expect it to want.
 
-Then print `### Duplicate check` in parallel with Fit. Normalize the URL first using
-`job-scout/references/schema-dossier.md` "URL normalize". A dossier whose normalized
-URL, or company and title, match and whose `status:` is not `new` prints
-`Duplicate check: {status} per scout/jobs/{filename}` and blocks for the operator's
-release. No match or `status: new` prints `Duplicate check: no prior application recorded.`
+Then print `### Duplicate check` before the chain decision. Fit may start after this
+print. Normalize the URL using `job-scout/references/schema-dossier.md` "URL normalize".
+Scan every `scout/jobs/` file. A non-`new` match on normalized URL **or** company+title
+prints `Duplicate check: {status} per scout/jobs/{filename}` and blocks for the
+operator's release. No such match prints `Duplicate check: no prior application recorded.`
 
 `{filename}` is the dossier's name as listed on disk, date prefix included. Never
 rebuild it from `company` and `title`: the prefix is that dossier's `first_seen`, and a
@@ -81,9 +82,9 @@ store stops and names the path. For either non-blocking outcome, also print
 
 ### Chained job-resume-refine (status: new dossier only)
 
-When `data/cvs.yaml` `adapt_per_vacancy` is true (absent key → true) **and**
-Duplicate check resolved a dossier whose normalized frontmatter URL
-exactly equals the current ad's normalized URL, with `status: new`:
+Spawn only when Duplicate check printed `no prior application recorded` **and**
+`data/cvs.yaml` `adapt_per_vacancy` is true (absent key → true) **and** a dossier's
+normalized frontmatter URL exactly equals the current ad's, with `status: new`:
 
 1. Print `Chained job-resume-refine · {filename}`.
 2. `spawn_subagent` isolated. Brief **only**:
@@ -107,11 +108,9 @@ exactly equals the current ad's normalized URL, with `status: new`:
    pair from a prior run does not count. Generic pick applies only when this
    chain was not fired.
 
-No matched dossier, a company/title-only match, or matched `status:` ≠ `new`:
-use the pick below.
-
-`adapt_per_vacancy: false`: print `Skipped job-resume-refine · adapt_per_vacancy: false`.
-Use the pick below; skip leftover step (1) so this run attaches the `base` PDF
+Otherwise print `Skipped job-resume-refine · {Duplicate check line | adapt_per_vacancy: false}`
+and use the pick below. A non-`new` Duplicate check stays a skip after operator release.
+`adapt_per_vacancy: false` still skips leftover step (1) so this run attaches the `base` PDF
 rather than a prior tailored file.
 
 The all-green ad gate requires: untrusted harvest complete, CV path resolvable and PDF
