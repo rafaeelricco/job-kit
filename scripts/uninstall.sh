@@ -25,6 +25,9 @@ SKIP_CODEX=0
 SKIP_GROK=0
 DRY_RUN=0
 ONLY_TARGETS=""
+# Space-separated target list for the current run_plan; used by browser-use plan
+# and preflight to account for combined agents+browser-use apply order.
+UNINSTALL_TARGETS=""
 # Aside skill subset from --only; empty means every SKILL_NAMES entry.
 ASIDE_ONLY=""
 # The shared resolver every other Aside skill loads on its first step. Removing
@@ -963,6 +966,14 @@ plan_rows_browser_use() {
     override="$(resolve_override_skills)" || exit 1
     plan_browser_shared_deps() {
       local plan_root="$1" agents_owned=0 pn pname
+      case " ${UNINSTALL_TARGETS} " in
+        *" agents "*)
+          for pname in ${BROWSER_SHARED_DEPS}; do
+            plan_row "$(skill_dest "${plan_root}" "${pname}")" "${pname}" current 1
+          done
+          return 0
+          ;;
+      esac
       for pn in job-profile-init job-stories job-pitch job-inbox; do
         if is_kit_skill_link "$(skill_dest "${plan_root}" "${pn}")" "${repo}" "${pn}"; then
           agents_owned=1
@@ -1917,11 +1928,16 @@ unremovable_skill_entries() {
       if [ "${target}" = browser-use ]; then
         case " ${BROWSER_SHARED_DEPS} " in
           *" ${name} "*)
+            case " ${UNINSTALL_TARGETS} " in
+              *" agents "*) ;;
+              *)
             for n in job-profile-init job-stories job-pitch job-inbox; do
               if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
                 continue 2
               fi
             done
+              ;;
+            esac
             ;;
         esac
       fi
@@ -2006,6 +2022,7 @@ run_plan() {
   local seen_aside=0 seen_agents=0 seen_browser=0 has_cache=0 scope=all
   ordered="$(plan_order "$@")"
   [ -n "${ordered}" ] || die "no targets selected"
+  UNINSTALL_TARGETS="${ordered}"
   for t in ${ordered}; do
     case "${t}" in
       aside) seen_aside=1 ;;
