@@ -6,7 +6,7 @@ description: "Find and rank live job openings from operator-selected search pack
 # Job scout
 
 Load `job-profile-root`. Resolve `data/*` against Profile root.
-Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`.
+Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`, `./references/flow-match-gate.md`.
 
 List only. Never apply, message, or connect.
 Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`. Never `scout/runs/`.
@@ -69,7 +69,7 @@ Drop when the posting cannot hire this seeker (first match): `listed` onsite or 
 
 Bucket, first match — dossier frontmatter only, never chat: printed EOR route and kit EOR Yes → `EOR`; printed contractor/B2B and kit contractor Yes, or location matches `direct_regions` → `direct`; printed hire-from restriction → `restricted-geo`; else `unbucketed`.
 
-Persist set = every `status=live` row that passed the gate, including score<7 and unscored. Chat lists that set, score desc, `—` last. No other sort.
+Persist set = `./references/flow-match-gate.md`. Chat lists that set, score desc. No other sort.
 
 `# Job Scout · {YYYY-MM-DD} · {n} live · {n} contacts · {n} defects`
 
@@ -84,7 +84,7 @@ Then each persist-set row:
 
 Then `{n} dossiers → {abs Profile root}/scout/jobs/`
 
-`### Gaps` — skipped, tool defects, uncertain, kit drop. Omit if empty.
+`### Gaps` — skipped, tool defects, uncertain, kit drop, score≤7, match skip, match blocked. Omit if empty.
 
 ## 6 Persist
 

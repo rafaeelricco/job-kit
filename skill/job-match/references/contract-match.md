@@ -4,38 +4,33 @@ Workers do not invent criteria.
 
 ## Hard filters (pass / fail)
 
-First match wins → blocked. Reuse scout gate vocabulary; do not invent auth paths.
+First match wins → blocked. Do not invent auth paths.
 
-1. `listed` onsite or location-restricted place that matches no named
-   `locations` (and `Anywhere` not listed).
-2. Named onsite place with no shared `work_model` flag in Constraints.
-3. Remote bound to a country the kit has no authorization for
-   (`candidate.yaml` legal_authorization / employment_routes as scout uses).
-4. Hire-from only in `exclude_locations`.
-5. Salary currencies none of which are in `market_currencies`.
-6. Explicit language requirement the profile `languages.yaml` cannot meet
-   (printed must-have only; blank → not a block). Compare levels only when
-   posting and profile print the same scheme; cross-scheme or incomparable
-   tokens (e.g. `fluent` vs `C1`) → unknown, not a block.
-
-Blank is not a drop. Never infer authorization or currency from a company name.
+1–5. `job-scout/SKILL.md` `## 4 Gate` drop rule (the paragraph starting
+`Drop when the posting cannot hire this seeker`), against
+`state.candidate.constraints` + JobProfile / Posting facts. 6. Explicit language requirement `state.candidate.languages` cannot meet
+(printed must-have only; blank → not a block). Compare levels only when
+posting and profile print the same scheme; cross-scheme or incomparable
+tokens → unknown, not a block.
 
 ## Soft weights (sum = 100)
 
 Cells are integers. Do not invent a scale beyond this table.
 Round each scored cell to nearest integer (halves up) before the sum.
-After renormalization, round `match_score` the same way.
+Let S = factors whose cell is not `—`. S empty → Gap that url, no score.
+`match_score = round(100 × sum(points of S) / sum(weights of S))` (halves up).
+`confidence = round(sum(weights of S) / 100, 2)`.
 
-| Criterion         | Weight | Points                                                                                                                                                      |
-| ----------------- | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Primary stack     |     25 | `25 × \|∩\| / \|required_skills\|` (direct hold, not adjacent); either list empty → —                                                                       |
-| Experience        |     20 | Floored years from Experience `date` vs posting `years_experience`: meet or exceed → 20; short → 10; posting blank → —                                      |
-| Seniority         |     15 | Same printed token as posting `seniority` in card / recent titles → 15; one step on intern–junior–mid–senior–staff–principal → 8; else 0. Posting blank → — |
-| Role type         |     15 | Posting title matches a Constraints `positions[]` entry (synonym OK) → 15; else 0. `positions[]` empty → —                                                  |
-| Location / remote |     10 | Shared `work_model` and (remote or named-location match) → 10; shared `work_model` only → 5; else 0. Both unknown → —                                       |
-| Domain            |      5 | Printed domain cue holds in card `industries` → 5; cue present, no hold → 0; no cue → —                                                                     |
-| Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                             |
-| Preferences       |      5 | `remote_work` / `in_person_work` / `open_to_relocation` agree with posting `work_model` / location → 5; conflict → 0; all blank → —                         |
+| Criterion         | Weight | Points                                                                                                                                                                                               |
+| ----------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary stack     |     25 | `25 × \|∩\| / \|required_skills\|` (direct hold); either list empty → —                                                                                                                              |
+| Experience        |     20 | Job token with no integer → —; else min N = first integer (`6+ years`→6, `8-10 years`→8, `12+`→12); candidate ≥ N → 20; short → 10; candidate `null` or job `null` → —                               |
+| Seniority         |     15 | Same printed token as JobProfile `seniority` in `experience[].position` → 15; one step on intern–junior–mid–senior–staff–principal → 8; posting token not on that ladder → —; else 0. Job `null` → — |
+| Role type         |     15 | JobProfile `title` contains a `candidate.roles[]` string (case-insensitive, punctuation ignored) → 15; else 0. `roles` empty → —                                                                     |
+| Location / remote |     10 | Shared `work_model` and (remote or named-location match) → 10; shared `work_model` only → 5; else 0. Both unknown → —                                                                                |
+| Domain            |      5 | Printed domain cue holds in `candidate.domains` → 5; cue present, no hold → 0; no cue → —                                                                                                            |
+| Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                                                                      |
+| Preferences       |      5 | `candidate.preferences` agree with JobProfile `work_model` / `location` → 5; conflict → 0; all blank → —                                                                                             |
 
 No evidence for a factor → that factor contributes `—` (omit from sum, renormalize
 over scored factors). Never write `0` for unknown.
@@ -52,4 +47,4 @@ over scored factors). Never write `0` for unknown.
 
 ## Skill hold
 
-Direct only: `React.js` covers `React`; Vue does not. Never adjacent transfer here.
+Direct hold as `job-scout/SKILL.md` `## 5 Rank` (covered is direct, not adjacent).
