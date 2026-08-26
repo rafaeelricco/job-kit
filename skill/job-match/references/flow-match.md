@@ -62,7 +62,8 @@ Malformed worker output → Gap that url; do not invent a score.
 ## Stage 3 — Review
 
 Main only. Review when `match_score >= 75` **or** `confidence < 0.7`.
-Input: Profile card + Experience + dossier facts + matcher JSON.
+Input: Profile card + Constraints + Experience + MatchingPolicy text (same
+as Stage 2) + dossier facts + matcher JSON.
 Ask: is every strength/gap/blocker supported by printed facts?
 Output: `APPROVED` or `CORRECTION_REQUIRED` with a full corrected matcher
 JSON per `worker-match.md` (every field consistent with the revised score) +
