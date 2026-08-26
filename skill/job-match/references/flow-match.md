@@ -42,7 +42,7 @@ Main. Contract hard filters 1–5 on Posting facts + frontmatter `title` + `stat
 
 ## extract
 
-Load `./worker-extract.md`. Paste per that file. Write `state.jobs[]`. Malformed → `state.gaps`.
+Load `./worker-extract.md`. Paste per that file, including its JobProfile JSON block. Write `state.jobs[]`. Malformed → `state.gaps`.
 
 ## filter₂
 
@@ -50,7 +50,7 @@ Main. Contract HF6 on JobProfile + `state.candidate`. Hit → move to `state.blo
 
 ## match
 
-Load `./worker-match.md`. Input per worker: the same CandidateProfile JSON + the same contract body + its JobProfile batch. No dossier prose.
+Load `./worker-match.md`. Input per worker: the same CandidateProfile JSON + the same contract body + its JobProfile batch + the MatchResult JSON block from that file. No dossier prose.
 Write `state.matches[]`. Malformed → `state.gaps`.
 
 ## validate

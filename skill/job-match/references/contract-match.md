@@ -47,4 +47,4 @@ over scored factors). Never write `0` for unknown.
 
 ## Skill hold
 
-Direct hold as `job-scout/SKILL.md` `## 5 Rank` (covered is direct, not adjacent).
+Direct only: `React.js` covers `React`; Vue does not. Never adjacent transfer here.
