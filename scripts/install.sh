@@ -311,7 +311,7 @@ plan_rows_agent_home() {
     . "${repo}/scripts/agents/lib.sh"
     local override target root parent agent_label_s name source dest names
     if [ "${sel}" = browser ]; then
-      names="${BROWSER_SKILL_NAMES} job-match job-list job-profile-me job-profile-root"
+      names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
     else
       names="${SKILL_NAMES}"
     fi
@@ -696,7 +696,7 @@ install_agent_home() {
     . "${repo}/scripts/agents/lib.sh"
     local override dest_root target parent agent_label_s linked=0 attempted=0 names
     if [ "${sel}" = browser ]; then
-      names="${BROWSER_SKILL_NAMES} job-match job-list job-profile-me job-profile-root"
+      names="${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
     else
       names="${SKILL_NAMES}"
     fi

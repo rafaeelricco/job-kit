@@ -7,6 +7,9 @@ SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply job-resume-refine"
+# Extra names `install browser-use` links beside BROWSER_SKILL_NAMES.
+# Uninstall removes them only when the home has no agents-only kit link.
+BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-profile-root"
 # Prior basenames for browser-channel skills only. A browser-use uninstall
 # sweeps these and not LEGACY_SKILL_NAMES below: those orphans belong to the
 # agents target, and the two channels share the same agent homes.
