@@ -48,15 +48,15 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                                                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                                             |
-| `aside`        | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside) |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)         |
+| Argument       | Installs                                                                                                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all`          | All three channels; an absent target is skipped, not an error — fails only if all are absent (default)                                                                                                        |
+| `aside`        | `job-scout` + `job-apply` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no Aside)                                            |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-profile-root` (fails if no agent home)                                                    |
 | `browser-use`  | `job-scout` + `job-apply` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
-| `fetch`        | Nothing — refresh the cached checkout only                                                                                                                         |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                        |
-| `-h`, `--help` | Nothing — print usage                                                                                                                                              |
+| `fetch`        | Nothing — refresh the cached checkout only                                                                                                                                                                    |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                                                                   |
+| `-h`, `--help` | Nothing — print usage                                                                                                                                                                                         |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
