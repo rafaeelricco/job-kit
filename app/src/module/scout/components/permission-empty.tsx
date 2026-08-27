@@ -47,7 +47,7 @@ function PermissionEmpty({ kind, onPrimary, onReview }: PermissionEmptyProps) {
   return (
     <div className="grid flex-1 place-items-center px-6 py-12">
       <div className="flex w-full max-w-100 flex-col items-center text-center">
-        <img src="/permission-not-granted.png" alt="" className="size-56 object-contain" />
+        <img src={`${import.meta.env.BASE_URL}permission-not-granted.png`} alt="" className="size-56 object-contain" />
         <h1 className="pt-3 text-xl font-semibold">{copy.title}</h1>
         <p className="pt-1 text-sm text-balance text-muted-foreground">{copy.body}</p>
         {copy.primary === null ? null : (

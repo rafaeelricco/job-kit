@@ -8,6 +8,8 @@ import { AppLayout } from "@/components/app-layout"
 const DossiersPage = lazy(() => import("@/pages/dossiers"))
 const HomePage = lazy(() => import("@/pages/home"))
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "")
+
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
@@ -30,7 +32,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-])
+], { basename })
 
 function Router() {
   return <RouterProvider router={router} />
