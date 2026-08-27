@@ -63,7 +63,7 @@ function AppSidebar() {
       {/* Icon mode leaves a 3rem rail; 12px of padding would squash the mark. */}
       <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <img src="/job-kit-mark.png" alt="" className="size-7 shrink-0 object-contain" />
+          <img src={`${import.meta.env.BASE_URL}job-kit-mark.png`} alt="" className="size-7 shrink-0 object-contain" />
           <span className="truncate text-[15px] font-semibold group-data-[collapsible=icon]:hidden">Job Kit</span>
           <SidebarTrigger className="ml-auto group-data-[collapsible=icon]:hidden" />
         </div>
