@@ -34,6 +34,9 @@ ASIDE_ONLY=""
 # The shared resolver every other Aside skill loads on its first step. Removing
 # it under a subset while a dependent stays installed is what the guard in
 # plan_preflight refuses.
+# Required siblings. Removing one while another Aside skill stays leaves that
+# skill unable to load it.
+ASIDE_RESOLVERS="job-profile-root job-humanize"
 ASIDE_RESOLVER="job-profile-root"
 # Row field separator. Not TAB: TAB is IFS-whitespace, so `read` collapses an
 # empty field and shifts the path left into the label.
@@ -293,8 +296,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-profile-root)
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-profile-root, job-resume-refine)
+  aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root)
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
@@ -306,12 +309,13 @@ Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-profile-root
+                aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root
                 agents | browser-use | claude | codex | grok | hermes
                 profile | cache
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-list / job-profile-me refuse while job-match remains)
+                (job-list / job-profile-me refuse while job-match remains;
+                job-profile-root / job-humanize refuse while other Aside skills remain)
   --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents or browser-use runs
 
@@ -813,12 +817,13 @@ aside_selected() {
   esac
 }
 
-# resolver_dependents_left — Aside skills that load ASIDE_RESOLVER, are still
+# resolver_dependents_left NAME — Aside skills that need NAME, are still
 # kit-installed, and this --only run leaves behind. Prints the names, space
 # separated; empty when none. Ownership uses is_kit_owned, the same predicate
 # the mutators read, so a foreign directory at the path is not counted.
 # Side effects: none.
 resolver_dependents_left() {
+  local skip="${1:?}"
   local repo="${REPO_ROOT}"
   (
     # shellcheck source=aside/lib.sh
@@ -826,7 +831,7 @@ resolver_dependents_left() {
     local dest_root name left=""
     dest_root="$(resolve_aside_skills_root)" || exit 1
     for name in ${SKILL_NAMES}; do
-      [ "${name}" = "${ASIDE_RESOLVER}" ] && continue
+      [ "${name}" = "${skip}" ] && continue
       aside_selected "${name}" && continue
       is_kit_owned "$(skill_dest "${dest_root}" "${name}")" "${repo}" "${name}" || continue
       left="${left} ${name}"
@@ -1307,14 +1312,18 @@ plan_preflight() {
     if [ "${t}" = aside ]; then
       ( . "${REPO_ROOT}/scripts/aside/lib.sh"; resolve_aside_skills_root >/dev/null ) \
         || die "refusing to start: the aside target cannot resolve its skills root"
-      # Every other Aside skill opens by loading ASIDE_RESOLVER. Removing it
-      # alone leaves those installed and unusable, so a subset that drops it
-      # must drop them too. Checked against what is actually on disk: a
-      # resolver installed by itself has nothing to break.
-      if [ -n "${ASIDE_ONLY}" ] && aside_selected "${ASIDE_RESOLVER}"; then
-        left="$(resolver_dependents_left)" || exit 1
-        [ -z "${left}" ] \
-          || die "refusing to remove ${ASIDE_RESOLVER} while these Aside skills still need it: ${left} (add them to --only, or select 'aside')"
+      # Required siblings: every other Aside skill is installed with them.
+      # Removing one alone leaves those installed and unusable, so a subset
+      # that drops one must drop them too. Checked against what is actually
+      # on disk: a resolver installed by itself has nothing to break.
+      if [ -n "${ASIDE_ONLY}" ]; then
+        for r in ${ASIDE_RESOLVERS}; do
+          if aside_selected "${r}"; then
+            left="$(resolver_dependents_left "${r}")" || exit 1
+            [ -z "${left}" ] \
+              || die "refusing to remove ${r} while these Aside skills still need it: ${left} (add them to --only, or select 'aside')"
+          fi
+        done
       fi
       # job-match Bind loads job-list and job-profile-me. Removing either
       # while job-match stays leaves /job-match unable to run.
@@ -1355,7 +1364,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root)
+      job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -1367,7 +1376,7 @@ expand_only() {
       hermes) named_agent=1; want_hermes=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-profile-root|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
     esac
   done
   # Matches the installer: a bare agent-home token still means the agents

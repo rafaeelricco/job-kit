@@ -45,6 +45,12 @@ slugify: letters and digits stay, every other run becomes one `_`, edges strippe
 Copy the base `.tex` to `{dir}/{stem}.tex`, then apply the contract's four
 allowed edits. Recomposing the Summary needs `./format-summary.md`.
 
+Load the `job-humanize` skill and obey it end-to-end on the Summary block
+only (sentences 1 and 3; sentence 2 stays verbatim). Brief: `Surface: summary`,
+verbatim `contract-refine.md` as `CONTRACT`, Summary prose as `DRAFT`. Write
+the returned text into the `.tex`. If the skill does not resolve, stop and
+name it. Never pass bullets, Skills tokens, or the preamble.
+
 `TEXINPUTS` = the `kpsewhich` directory for each preamble `\input{...}` not
 already in `{dir}` or `cv/`, then `{dir}`, then a trailing `:`.
 Compile with
