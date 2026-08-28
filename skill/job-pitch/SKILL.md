@@ -21,7 +21,15 @@ Read-only; never writes. No path under Profile root is writable in this skill.
    timed to the word budget).
 3. `experience`: render per `./references/format-experience.md` (S.T.A.R.T.
    bullets per company, stacks kept out of the prose).
-4. No verb intent → list the `ready` stories with what each covers, then **STOP**.
+4. After a render, load the `job-humanize` skill and obey it end-to-end on the
+   composed blocks (`script`: Opener and timed speech; `experience`: S.T.A.R.T.
+   bullets). Brief: `Surface: script` or `experience`; `CONTRACT` is verbatim
+   `contract-say.md`, and for `script` also the Word budget from
+   `format-script.md`; those blocks as `DRAFT`. Replace them with the returned
+   text. If the skill does not resolve, stop and name it. For `script`, recount
+   `{n} words · ~{s}s` and cut to range. Then apply the `never_say` filter in
+   `contract-say.md` and print.
+5. No verb intent → list the `ready` stories with what each covers, then **STOP**.
 
 ## Commands
 

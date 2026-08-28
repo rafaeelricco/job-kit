@@ -93,3 +93,4 @@ Mechanical, against the compiled PDF and `.tex`. A miss → name it, fix, recomp
 5. identity, employers, positions, locations, dates, and education byte-equal to base
 6. no salary, sponsorship, visa, notice, or route on the page
 7. every Summary clause traces to a source above, with no `never_say` hit
+8. the Summary block is exactly three sentences

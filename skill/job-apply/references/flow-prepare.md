@@ -187,6 +187,12 @@ evidence rows and sources, `### Forbidden claims`, and the verbatim contents of
 `./references/contract-letter.md`. It contains no Profile root, Fact paths, `### Fit`,
 or `### Left out`.
 
+Write the letter from that brief. Then load the `job-humanize` skill and obey
+it end-to-end. Brief: `Surface: letter`, the verbatim `contract-letter.md` as
+`CONTRACT`, and the letter plus every staged free-text value as `DRAFT`.
+Replace that prose with the returned text. If the skill does not resolve, stop
+and name it. Letter channel `none` skips this load.
+
 Verify the draft before Review. Load `./references/worker-letter.md` and dispatch one
 isolated `spawn_subagent`, read-only. The brief is **only** the completed
 `### Letter plan` (including `### Ad formats`), `### Forbidden claims`, the letter text,
@@ -195,7 +201,7 @@ every staged free-text value with the question it answers, and the verbatim cont
 Fact path, `### Fit`, `### Left out`, or this file. Expect `### Outcome`.
 
 - `pass` → emit the review below
-- `repair` → rewrite the prose from the same plan rows (repair count += 1; max 2) → re-dispatch
+- `repair` → rewrite the prose from the same plan rows (repair count += 1; max 2) → job-humanize again → re-dispatch
 - `reject` → return to Phase 2 (reject count += 1; max 1) → replan → re-dispatch
 - still not `pass` after those caps → name the surviving check and end
 
