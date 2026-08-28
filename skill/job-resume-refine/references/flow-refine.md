@@ -41,6 +41,8 @@ slugify: letters and digits stay, every other run becomes one `_`, edges strippe
 `{dir}/*_Resume.pdf`, which is what job-apply globs for.
 `{dir}` = `scout/applications/{slug}`.
 
+Load the `job-humanize` skill. If it does not resolve, stop and name it.
+
 `mkdir -p {dir}`; unlink `*.pdf`, `*.tex`, and `match-report.md` there.
 Copy the base `.tex` to `{dir}/{stem}.tex`, then apply the contract's four
 allowed edits. Recomposing the Summary needs `./format-summary.md`.
