@@ -38,13 +38,13 @@ A skill gap belongs in slot 2 or 3.
 
 ### Number firewall
 
-- Ship a number only when the Letter plan prints it.
+- Ship a number only when a story's frontmatter prints it as a verified outcome.
 - A process number counts activity (PRs, LOC, commits, review comments, commit share). It never ships, as a digit or in words. `Dozens of PRs` is the same banned number spelled differently.
-- No number in the plan → qualitative outcome only. Never estimate, never turn a date range into an achievement.
+- No such number → qualitative outcome only. Never estimate, never turn a date range into an achievement.
 
 ### Credit
 
-- Keep the plan's person. A plan that says `we` stays `we`. Never promote it to `I`.
+- Keep the source's person. A claim that says `we` stays `we`. Never promote it to `I`.
 - Never invent facts about the team, codebase, or hiring reason. Slot 2 may sharpen only a requirement printed in the ad.
 
 ### Surface
