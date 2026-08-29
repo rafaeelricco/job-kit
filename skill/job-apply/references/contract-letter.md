@@ -41,7 +41,7 @@ A skill gap belongs in slot 2 or 3; a geo or authorization gap belongs in slot 6
 
 - Slot 3 names what was chosen and what it replaced. A sentence that only names what was built is not a method.
 - Slot 4 is the resulting outcome. `It worked`, `the client was happy`, and `shipped to production` are not proof.
-- Prefer the verb a human would say over a résumé compound noun.
+- Prefer the verb a human would say over a resume compound noun.
 
 ### Number firewall
 

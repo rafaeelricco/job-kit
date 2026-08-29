@@ -59,7 +59,7 @@ rounding up. `never_say` wins over any phrasing that contradicts it.
 Every role the base prints keeps its place, reverse-chrono, with at least one
 bullet — a role that vanishes reads as an unexplained gap in the timeline.
 A role in `experiences.yml` the base never printed stays off the page: adding
-one is authoring a résumé rather than refining one.
+one is authoring a resume rather than refining one.
 
 Keep a bullet when the ad raises its work or its stack; drop it otherwise.
 Omitting a true bullet is not a fault.
