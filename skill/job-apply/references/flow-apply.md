@@ -50,7 +50,8 @@ Exactly one CV per submission, first match:
    including `refinement is off`, falls through.
 
 2. A leftover `scout/applications/{slug}/*_Resume.pdf` whose `match-report.md`
-   prints `verdict: **PASS**`, when the chain did not fire.
+   prints `verdict: **PASS**`, when the chain did not fire and
+   `adapt_per_vacancy` is true.
 3. `data/cvs.yaml` `base` under `cv/`; absent, unreadable, or empty →
    `cv/en-us-resume.pdf`.
 
