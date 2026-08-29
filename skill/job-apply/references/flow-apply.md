@@ -75,7 +75,8 @@ letter, and never paste one into a field that did not ask. Judge a field by the
 question it asks, never by its tag: a form whose only `textarea` is
 `g-recaptcha-response` takes no letter.
 
-Write the letter from `./references/contract-letter.md`. Then load the `job-humanize`
+No letter skips this paragraph. Write the letter from
+`./references/contract-letter.md`. Then load the `job-humanize`
 skill and obey it end-to-end. Brief: `Surface: letter`, the verbatim
 `contract-letter.md` as `CONTRACT`, the letter and every staged free-text value as
 `DRAFT`. Replace that prose with the returned text. If the skill does not resolve,
