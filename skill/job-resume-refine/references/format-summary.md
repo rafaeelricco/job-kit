@@ -84,4 +84,4 @@ A quoted phrase below is the failure, not a paraphrase of one.
   count the work, not the result.
 
 Specific or it says nothing: a reader who cannot picture the thing you built
-cannot judge it, and reaches for the next résumé instead.
+cannot judge it, and reaches for the next resume instead.

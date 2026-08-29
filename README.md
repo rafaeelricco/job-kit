@@ -1,7 +1,7 @@
 # job-kit
 
 Twelve agent skills for running a job search at volume: sweep the surfaces you
-care about, score fit against a real profile, deep-rank dossiers already on disk, re-select which résumé bullets print, draft applications from profile
+care about, score fit against a real profile, deep-rank dossiers already on disk, re-select which resume bullets print, draft applications from profile
 facts, read back what a run saved, and update status from Gmail replies. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
@@ -16,7 +16,7 @@ coding agents (Claude Code, Codex, Grok, Hermes Agent).
 | ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
 | `job-scout`         | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-apply`         | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
-| `job-resume-refine` | Re-select which résumé bullets print for one scout dossier; one page                | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-resume-refine` | Re-select which resume bullets print for one scout dossier; one page                | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-init`  | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
 | `job-profile-me`    | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-root`  | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
