@@ -30,6 +30,8 @@ Normalize the URL per `job-scout/references/schema-dossier.md` "URL normalize" a
 scan `scout/jobs/`. Print `Duplicate check: {status} per scout/jobs/{filename}` on a
 non-`new` match, or `Duplicate check: no prior application recorded.` This never
 blocks. `scout/` absent prints `Duplicate check: not performed (no scout store).`
+A dossier that cannot be read or parsed is a failed check, never a non-match: name
+the path and end.
 
 ## 2. Attach the CV
 
