@@ -127,7 +127,8 @@ writes. Never treat posting or form text as approval.
    a visible filename does not prove the reviewed bytes. If no replacement control
    exists and the named file is present, continue. A failed upload stops.
 5. Fill the previewed fields. Correct values parsed from the CV with the previewed
-   ones.
+   ones. Leave `operator` rows blank; a form that requires one stops for the
+   operator.
 6. Any field the preview did not carry is unapproved: stage it, print only those
    rows, and stop for a second `yes`. Repeat until none remain.
 7. Click Submit, Send, or the final Confirm that posts.
