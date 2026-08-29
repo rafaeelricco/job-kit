@@ -1,6 +1,30 @@
-# Screening rules
+# Answer law
 
-Missing values surface instead of being inferred.
+Every staged value comes from the file named here. Read it; stop if unreadable.
+Absent is absent — never infer, never answer from a prior draft or memory. Never
+read story bodies.
+
+| Value                                                                      | Read from                                                                                                                                                         |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| language level                                                             | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
+| salary, notice, authorization, employment routes, relocation               | `data/candidate.yaml`                                                                                                                                             |
+| remote / in-person, relocation, assessments, drug tests, background checks | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
+| name, email, phone, site                                                   | `data/basics.yaml`                                                                                                                                                |
+| LinkedIn, GitHub                                                           | `data/profiles.yaml`                                                                                                                                              |
+| roles, employers, dates, work bullets, project depth                       | `data/experiences.yml`                                                                                                                                            |
+| public portfolio projects                                                  | `data/projects.yml`                                                                                                                                               |
+| skills / stack inventory                                                   | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
+| story claims and verified outcomes                                         | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
+| which CV to attach                                                         | `data/cvs.yaml` `adapt_per_vacancy` (absent → true) and `base` (filename under `cv/`)                                                                             |
+
+- Language level is the printed self-assessment, paired with the language name. Never assert a certification, test score, or bare letter grade.
+- Never name an employer's client. Use only a domain phrase already present in a Fact file.
+- Remote, in-person, and relocation use `work_preferences_from_resume` verbatim. An empty key is no answer.
+- Demographic and EEO questions are `operator`; never invent or recall them.
+- Disqualifying questions get the truthful answer, even when it disqualifies.
+- Every `never_say` entry is a run-global ban on outbound free-text, exact or semantically equivalent.
+- Surface every value the files do not print, including years of experience, weekly hours, or a seniority self-label, rather than deciding alone.
+- Say a current-role gap out loud: `<skill> is real but predates my current role, treat it as secondary.`
 
 ## Salary expectation
 
@@ -61,10 +85,3 @@ binary question gets the literal truthful value. Never answer `No` to sponsorshi
 because EOR exists. Put nuance in a free-text notes field once. Do not volunteer
 sponsorship need to an engagement-only question. If possession versus need is ambiguous,
 use the more specific field and surface the ambiguity; never blend them into a hedge.
-
-## Other screening
-
-Answer notice, employment route, work location, relocation, assessments, drug tests, and
-background checks from the exact candidate-file fields named in `flow-prepare.md`. Surface
-every value that the files do not print, including years of experience, weekly hours, or
-a seniority self-label, rather than deciding alone.
