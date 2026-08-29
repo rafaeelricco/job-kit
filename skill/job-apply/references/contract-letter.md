@@ -1,16 +1,8 @@
 # Letter contract
 
-Paste this file verbatim into the Phase 3 drafting brief. The only evidence available
-to the drafter is the completed `### Letter plan`; do not read files, use memory, or
-recover claims from `### Left out`.
+Paste this file verbatim as `CONTRACT` when loading `job-humanize`.
 
-## Precedence
-
-1. Fact evidence in the Letter plan is absolute.
-2. Ad requirements and formats in the plan beat Voice law.
-3. Voice law governs everything else.
-
-## Letter shape
+## Shape
 
 Fixed order. Unfired slots are absent, not empty.
 
@@ -24,8 +16,9 @@ Fixed order. Unfired slots are absent, not empty.
 | 6 Terms     | conditional | Geo, authorization, or engagement position, with the decision handed back                         |
 | 7 Ask       | always      | One sentence proposing the conversation                                                           |
 
-Slot 6 fires only for a `none` Fit row covering geo, authorization, or engagement.
-A skill gap belongs in slot 2 or 3; a geo or authorization gap belongs in slot 6.
+The carrying project is the one whose stack overlaps the ad most; at most two
+supporting facts. Slot 6 fires only when geo, authorization, or engagement is unmet.
+A skill gap belongs in slot 2 or 3.
 
 ## Voice law
 
@@ -65,52 +58,7 @@ A skill gap belongs in slot 2 or 3; a geo or authorization gap belongs in slot 6
 - Slot 6 states the position, hands the decision back, and stops. Never apologize, ask for an exception, or fold it into slot 7.
 - Slot 7 is an ask, never a thank-you or a courtesy wait. `I look forward to hearing from you` is the failure.
 
-## Forbidden claims and checker
+## Forbidden claims
 
-Reject any exact or paraphrased claim semantically equivalent to a `### Forbidden claims`
-entry. Scan the letter, subject line, form notes, and any other outbound free-text value.
-
-## Checker (verify)
-
-Every check is `pass`, `fail`, or `unjudgeable`. Unjudgeable → `reject` for the run.
-LETTER_TEXT empty, or a brief with no `### Letter plan` → `unjudgeable`.
-
-| #   | Check                                                                                    | fail is  |
-| --- | ---------------------------------------------------------------------------------------- | -------- |
-| 1   | every factual claim traces to one exact `### Letter plan` row                            | `reject` |
-| 2   | no `### Forbidden claims` hit, exact or semantic, in the letter or any staged free-text  | `reject` |
-| 3   | no relation the plan does not print: cause, scale, audience, leadership, credit          | `reject` |
-| 4   | the plan's person is kept: a `we` row stays `we`, never promoted to `I`                  | `reject` |
-| 5   | every number ships from a plan row                                                       | `reject` |
-| 6   | a staged free-text value answers only its question and cites nothing outside the plan    | `reject` |
-| 7   | no process number, as digit or words                                                     | `repair` |
-| 8   | every fired slot present, every unfired slot absent, in slot order                       | `repair` |
-| 9   | first sentence states fit, not interest and not the act of writing                       | `repair` |
-| 10  | slots 1 and 2 open on the reader, not on `I`                                             | `repair` |
-| 11  | slot 3 names what was chosen and what it replaced; slot 4 is an outcome, not an activity | `repair` |
-| 12  | no em dash, no hedge, no confidence theater; slot 7 is an ask, not a thank-you           | `repair` |
-| 13  | the ad's stated subject, links, salary, project count, and length are followed           | `repair` |
-
-Pick exactly one Outcome, first match:
-
-1. any check `unjudgeable` or `reject`-class `fail` → `reject`
-2. else any `repair`-class `fail` → `repair`
-3. else `pass`
-
-Never warn-and-pass a `reject`. A `reject` means the evidence is wrong and planning must
-run again; do not weaken the contract or fill the gap from memory. A `repair` names what
-must change, never the replacement wording.
-
-## Output sections
-
-```
-### Outcome
-{pass|repair|reject}
-
-### Checks
-| check | result | evidence |
-result ∈ pass | fail | unjudgeable
-
-### Repairs
-{what must change, not the wording — or _(none)_}
-```
+Every `never_say` entry in `data/stories/*.md` frontmatter, exact or semantically
+equivalent, in the letter, the subject line, and every staged free-text value.
