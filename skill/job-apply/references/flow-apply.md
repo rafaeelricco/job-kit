@@ -23,19 +23,25 @@ Print `Browser: <driver>`. The driver must open a page, fill a form, attach a
 file, and hold a logged-in session. A text fetcher is not a driver. If none
 qualifies, stop and name what is missing.
 
-Parse tokens. At most one selector: `<file>` | `<url>` | `--new`.
-`--yolo` is a modifier; it consumes no token and is legal with any selector.
-Two selectors, an unknown `--` flag, or a leftover token → stop.
+Parse tokens. Selectors are `<file>` | `<url>` | `--new`; `--new` never combines
+with the others. `--yolo` is a modifier; it consumes no token and is legal with
+any selector. Prose around the selectors is context, not a token: read it for
+the postings it names, ignore the rest. An unknown `--` flag, or `--new` beside
+a `<file>` or `<url>` → stop.
 
-1. `<file>` or `<url>`, or no selector and the message already names one dossier
-   or posting URL → that one posting. `<file>` is a `scout/jobs/` filename; none
+1. `<file>` or `<url>`, or no selector and the message names dossiers or posting
+   URLs → those postings, in the order the message prints them. A line under a
+   `Skip:` heading is never queued. `<file>` is a `scout/jobs/` filename; none
    there by that name → stop and say which. `<url>` matches normalized
    frontmatter `url` per `job-scout/references/schema-dossier.md`
-   "URL normalize". Never match company+title: one company posts many roles.
-2. Empty or `--new` → load the `job-list` skill and obey it end-to-end, asking
-   for `## All jobs`. It has no status selector, so filter its rows yourself:
-   keep `status` `new`, drop any whose `posting` column prints `dead {date}`.
-   The `file` column carries the dossier filename each later step passes on.
+   "URL normalize"; a `<url>` beside a `<file>` on one line is that file's
+   posting, not a second one. Never match company+title: one company posts
+   many roles.
+2. Empty or `--new` → glob `scout/jobs/` and read each dossier per
+   `job-list/references/flow-read.md`; never load `job-list/SKILL.md`, whose
+   step 4 STOPs the run. Keep `status` `new`, drop any whose latest
+   posting-state log line reads dead per that file. The filename each kept
+   dossier carries is what later steps pass on.
 
 A selected dossier whose `status:` is not `new` → print
 `Already {status} per scout/jobs/{filename}` and continue; it never blocks.
