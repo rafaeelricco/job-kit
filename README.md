@@ -25,7 +25,7 @@ coding agents (Claude Code, Codex, Grok, Hermes Agent).
 | `job-inbox`         | Check Gmail for replies to tracked applications; write status on strong evidence    | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-stories`       | Write and check the interview story deck at `data/stories/`; diff → confirm → write | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
 | `job-pitch`         | Render the story deck as a vetting video script or work-experience bullets          | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
-| `job-humanize`      | Rewrite already-drafted letter, Summary, or pitch prose; keep every claim           | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-humanize`      | Rewrite already-drafted Summary, resume, or pitch prose; keep every claim           | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 
 Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
@@ -368,7 +368,7 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-inbox/`         | Gmail replies → lifecycle status on strong evidence              |
 | `skill/job-stories/`       | Write and check the interview story deck                         |
 | `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck         |
-| `skill/job-humanize/`      | Rewrite pass for already-drafted letter, Summary, or pitch prose |
+| `skill/job-humanize/`      | Rewrite pass for already-drafted Summary, resume, or pitch prose |
 | `scripts/install.sh`       | Single install: plan, confirm, apply (aside+agents+browser-use)  |
 | `scripts/aside/`           | Aside lib + thin install wrapper                                 |
 | `scripts/agents/`          | Agents lib + thin install wrapper                                |
