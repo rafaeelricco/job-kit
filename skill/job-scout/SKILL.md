@@ -22,15 +22,15 @@ Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Runtime: workers` if
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
 
-Enabled packs empty → STOP; enable via `/job-profile-me`. `enabled: false` is unlisted.
+Enabled packs empty and no URL token → STOP; enable via `/job-profile-me`. `enabled: false` is unlisted.
 Tokens after `/job-scout` bind the run set (enabled deck `id:`). A token that
-is an http(s) URL or bare domain binds an ad-hoc pack instead: `id` and
-`source` = its host, `entry` = the URL (`https://` assumed when bare),
-formulations = `[role]` — under every deck law (ATS-root, filters, caps,
-defect log).
+is an http(s) URL or bare domain binds an ad-hoc pack instead: `source` = its
+host, `id` = its host (`-2`, `-3` on collision), `entry` = the URL (`https://`
+assumed when bare), formulations = `[role]` — under every deck law (ATS-root,
+filters, caps, defect log).
 Empty → list as `N. {id}`; last line `{N+1}. Search in all`. Wait.
 Any token → no wait. Run set: `all` → every enabled pack, else the named ids
-(file order, unique), then each ad-hoc pack in token order; unique by host.
+(file order, unique), then each ad-hoc pack in token order; unique by `entry`.
 Unknown `--` flag, leftover non-URL token, `all` plus a non-URL token, unknown id, or named disabled id → stop.
 Skip-wait → print `Packs: {id}, …` in run order.
 
@@ -42,7 +42,7 @@ Auth: existing session. Never create an account. Password/OTP/2FA are operator-o
 
 One pack at a time; never two on the same host.
 
-Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
+Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead; an `entry` with a path is not a root, open it directly. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
 
 `worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
 
