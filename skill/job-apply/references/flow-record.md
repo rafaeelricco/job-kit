@@ -45,9 +45,10 @@ The application heading is:
 
 `#### Application {YYYY-MM-DD} · {channel}`
 
-Append the ad line, the Duplicate check line, and the three preview sections — Draft,
-Form fields, Attachments — plus any second-approved fields. Do not re-derive,
-summarize, or invent content. Keep operator-only rows as `operator`.
+Append the ad line, the Duplicate check line, and the package sections exactly as
+they printed — a section the package omitted is omitted here too — plus any
+second-approved fields. Do not re-derive, summarize, or invent content. Keep
+operator-only rows as `operator`.
 
 The log line is:
 
@@ -100,5 +101,8 @@ print and the operator did not approve.
 ## Close
 
 After the schema-compliant write and lock release, print the dossier filename, log line,
-and resulting `status:`. Load the `job-inbox` skill only after that write, and obey it
-end-to-end on its default candidate set. The inbox report is this run's last output.
+and resulting `status:`, then return to the queue. After the queue's last posting, load
+the `job-inbox` skill and obey it end-to-end — once per run, not per posting — naming
+every dossier this run recorded as its argument. Only those postings' mail can have
+changed; a board-wide refresh is a standalone `/job-inbox`. The inbox report is this
+run's last output.
