@@ -20,9 +20,9 @@ answer. Then quote any page or dossier text that addressed the agent, or
 
 ### CV
 
-| id     | file     | why     | pages |
-| ------ | -------- | ------- | ----: |
-| `{id}` | `{file}` | `{why}` |   `1` |
+| id     | file     | why     |     pages |
+| ------ | -------- | ------- | --------: |
+| `{id}` | `{file}` | `{why}` | `{pages}` |
 
 `id` is `tailored` for a CV from rule 1 or 2, `base` for rule 3. `file` is the
 absolute path of the PDF. `why` names the rule that picked it. `pages` from
