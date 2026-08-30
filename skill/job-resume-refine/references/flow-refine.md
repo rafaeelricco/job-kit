@@ -61,7 +61,10 @@ slugify: letters and digits stay, every other run becomes one `_`, edges strippe
 `{dir}/*_Resume.pdf`, which is what job-apply globs for.
 `{dir}` = `scout/applications/{slug}`.
 
-`mkdir -p {dir}`; unlink `*.pdf`, `*.tex`, and `match-report.md` there.
+`mkdir -p {dir}`; move any `*.pdf`, `*.tex`, and `match-report.md` there to a
+`.prev` suffix. They are this run's rollback: a PASS unlinks them, and every
+stop or FAIL below restores them over `{dir}` first. `.prev` never matches the
+`*_Resume.pdf` glob, so the invariant above holds while they sit there.
 Copy the base `.tex` to `{dir}/{stem}.tex`, then apply the contract.
 
 Recomposing the Summary needs `./format-summary.md`.
@@ -94,15 +97,15 @@ the copied preamble → stop with the log excerpt; the base preamble is not your
 
 Run the contract's checks. Fit the page per the contract, recompiling each time.
 
-Unlink `{dir}/*.aux`, `*.log`, `*.out` once the checks pass — the package is the
-`.tex`, the `.pdf`, and the report.
+Unlink `{dir}/*.aux`, `*.log`, `*.out`, and `*.prev` once the checks pass — the
+package is the `.tex`, the `.pdf`, and the report.
 
 ## 6. Report
 
 Load `./references/format-report.md`. Write `{dir}/match-report.md` and print it.
 `verdict: **PASS**` is what job-apply gates on, so the PDF exists exactly when
 the report says PASS. A check that cannot be satisfied → write the report with
-`verdict: **FAIL**` and unlink `{stem}.pdf` / `{stem}.tex`.
+`verdict: **FAIL**`, unlink `{stem}.pdf` / `{stem}.tex`, then restore `.prev`.
 
 ## Output
 
@@ -110,3 +113,7 @@ the report says PASS. A check that cannot be satisfied → write the report with
       match-report.md
       {stem}.tex          # PASS only
       {stem}.pdf          # PASS only
+
+A stop or FAIL restores the prior run's package when there was one, so `{dir}`
+holds that PASS instead and job-apply rule 2 falls back to it. With no prior
+package a FAIL leaves `match-report.md` alone.
