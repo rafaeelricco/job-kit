@@ -1,7 +1,5 @@
 # Job resume refine — flow
 
-Chained from job-apply Prepare → print `Chained from job-apply · {filename}` first.
-
 Load `./references/contract-refine.md` now.
 
 ## 1. Posting
