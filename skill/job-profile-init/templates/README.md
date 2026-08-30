@@ -1,7 +1,7 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout; passes login gates to list)
-and **job-apply** (draft → submit → record),
+and **job-apply** (queue → package → your yes → submit → record),
 read back by **job-list** (read-only). Later lifecycle status from mail is **job-inbox**.
 Skills live in **job-kit**, not in this tree.
 
@@ -10,7 +10,7 @@ Skills live in **job-kit**, not in this tree.
 | Folder          | What's in it                                                                                                                                                              |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data/`         | Canonical YAML about you. Edit here first.                                                                                                                                |
-| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, the body is not                                                                                  |
+| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, job-pitch, and job-resume-refine, the body is not                                                |
 | `cv/`           | The base resume PDF plus its LaTeX source                                                                                                                                 |
 | `scout/`        | Written by job-scout; `status:` and Application-log records by job-apply and job-inbox; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
@@ -63,8 +63,10 @@ roots stay active until the tree is deleted.
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only (never apply/message/connect). It may use an existing
   session; account creation, signup terms, passwords, and verification remain
-  operator actions. job-apply emits the review, then
-  clears whatever the form puts in the path — account, terms,
-  Submit; records to `scout/jobs/` on submit success (or when you confirm you
-  submitted outside it). job-inbox reads Gmail for replies and writes
+  operator actions. job-apply queues postings, fills the form from Facts, and
+  hands you a package; after your yes it clears what the form puts in the path —
+  terms, upload, Submit — and records to `scout/jobs/` on submit success (or
+  when you confirm you submitted outside it). A posting whose ad is behind a
+  login is skipped; a captcha at submit hands the filled form back to you.
+  job-inbox reads Gmail for replies and writes
   `interview` / `offer` / `rejected` when evidence is strong.
