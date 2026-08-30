@@ -16,8 +16,8 @@ Ask each `search_packs.yaml` `packs[].enabled` flag.
 Ask CV policy after packs and before Stories:
 
 - `adapt_per_vacancy`: **yes (Recommended)** | no. Yes → for each posting,
-  job-resume-refine re-selects which `experiences.yml` bullets print and
-  compiles a one-page PDF; it never writes new bullet text. No → the base CV
+  job-resume-refine tailors roles, bullets, Skills, and the Summary from
+  profile Facts and compiles a one-page PDF. No → the base CV
   goes out unchanged. Write `true`/`false`.
 
 Then, only when adapt is yes and `cv/` holds no `.tex`: ask for an existing

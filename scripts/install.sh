@@ -60,7 +60,7 @@ Options:
                 agents | browser-use | claude | codex | grok | hermes
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-apply also installs job-resume-refine — Prepare chains it
+                (job-apply also installs job-resume-refine — its CV step chains it
                 for a status:new dossier; job-match also installs job-list and
                 job-profile-me — Bind loads those refs; every Aside skill also
                 installs job-humanize)
@@ -164,7 +164,7 @@ expand_only() {
     [ "${want_hermes}" -eq 1 ] || SKIP_HERMES=1
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
-  # job-apply Prepare chains job-resume-refine for a status:new dossier; a subset
+  # job-apply's CV step chains job-resume-refine for a status:new dossier; a subset
   # without resume cannot complete that path. job-scout persist loads
   # job-match/references/* (flow-match-gate.md). job-match Bind loads
   # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.

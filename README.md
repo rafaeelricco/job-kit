@@ -1,7 +1,7 @@
 # job-kit
 
 Twelve agent skills for running a job search at volume: sweep the surfaces you
-care about, score fit against a real profile, deep-rank dossiers already on disk, re-select which resume bullets print, draft applications from profile
+care about, score fit against a real profile, deep-rank dossiers already on disk, tailor a one-page resume from profile Facts, fill and submit applications from profile
 facts, read back what a run saved, and update status from Gmail replies. Procedure lives here. Facts — salary band,
 work authorization, experience — live in a profile directory you control (default
 `${XDG_CONFIG_HOME:-~/.config}/job-kit`) and never enter this repo.
@@ -15,8 +15,8 @@ coding agents (Claude Code, Codex, Grok, Hermes Agent).
 | Skill               | Role                                                                                | Channel                              | Installed under                                                                  |
 | ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------- |
 | `job-scout`         | Run the packs you pick from the profile deck and rank the job rows                  | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
-| `job-apply`         | Draft, stage, and submit one posting                                                | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
-| `job-resume-refine` | Re-select which resume bullets print for one scout dossier; one page                | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-apply`         | Queue postings; package, review, submit, record — one at a time                     | Aside (copy) + browser-use (symlink) | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
+| `job-resume-refine` | Tailor one resume page to one scout dossier from profile Facts; compile a PDF       | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-init`  | Create a data-only profile, or register/activate an existing one                    | Coding agents (symlink)              | `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes`                                 |
 | `job-profile-me`    | Show an existing profile and edit search intent or boards; diff → confirm → write   | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
 | `job-profile-root`  | Resolve the absolute Profile root; never writes                                     | Aside (copy) + agents (symlink)      | `~/.aside/u/0/skills/builtin/`, `~/.claude`, `~/.agents`, `~/.grok`, `~/.hermes` |
@@ -31,7 +31,9 @@ Each lands under its own name — coding-agent skills at
 `<agent home>/skills/<skill>`. Scout never applies, messages, connects, or submits
 applications. It may use an existing session; account creation, signup terms,
 passwords, and verification remain operator actions.
-job-apply clicks Submit / Send / final Confirm after it emits the review.
+job-apply finds postings with job-list, packages them one at a time, and clicks
+Submit only after your yes. A posting whose ad sits behind a login or account
+wall is skipped; a captcha at submit hands the filled form back to you.
 
 ## Install
 
@@ -102,8 +104,6 @@ every user-owned profile field, then presents one plan of everything it will
 write and waits for your yes. Source values and
 template defaults require explicit confirmation, edits, or skips. Facts are
 never invented; final extra observations land in `data/observations.yaml`.
-Letter depth comes from
-`data/experiences.yml` and `data/projects.yml`.
 
 No demographic or EEO self-identification is stored — those questions are
 voluntary and per-employer, so you answer them in the ATS form.
@@ -129,59 +129,57 @@ Missing CLI or browser still prints an offer. After that: open
 to the sites you scout.
 
 Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
-ranks the job rows it extracts. Application drafts and stages one posting at a
-time; it opens an Apply control only when that control reveals the form, emits the
-review, then submits (account wall, required terms, Submit).
+ranks the job rows it extracts. Apply queues postings through job-list and takes
+them one at a time: it reads the dossier and the live ad, resolves the CV, fills
+the form from profile Facts, and prints a package for you to review; on your yes
+it submits and records.
 
 Scout writes one dossier per persist-set row (live, gate, `score` > 7, match not skip) to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; chat lists those dossiers by score (high to low).
-`data/` and `cv/` stay read-only to it. Set `status:` in a
-dossier's frontmatter as you apply — job-apply changes `new` to `applied` after
-confirmed submission (or once you confirm you submitted outside it), preserves
-an existing advanced lifecycle status, and records the letter, the form answers,
-and the ad under the dossier's Application log; later statuses (`interview`,
-`offer`, `rejected`) are set by `/job-inbox` from Gmail when evidence is strong;
-`dropped` stays yours. Re-running scout never overwrites
-`status:`, and never renames the file.
+`data/` and `cv/` stay read-only to it. Set `status:` in a dossier's frontmatter
+as you apply — job-apply changes `new` to `applied` after confirmed submission
+(or once you confirm you submitted outside it), preserves an existing advanced
+lifecycle status, and records the package under the dossier's Application log;
+later statuses (`interview`, `offer`, `rejected`) are set by `/job-inbox` from
+Gmail when evidence is strong; `dropped` stays yours.
+Re-running scout never overwrites `status:`, and never renames the file.
 
 The three run as one loop. Scout and inbox stay operator-pasted; inside
-`/job-apply`, Prepare may chain `job-resume-refine`, and Record chains `job-inbox`:
+`/job-apply`, the CV step may chain `job-resume-refine`, and Record chains
+`job-inbox` once after the last posting, scoped to the dossiers it just
+recorded — run `/job-inbox` standalone to refresh the whole board:
 
 ```text
 /job-scout   ranks rows, writes dossiers, STOP (list-only)
-/job-apply   Prepare may spawn job-resume-refine for a status:new dossier;
-             review → submit → record → job-inbox in-session
+/job-apply   queues via job-list; CV step may spawn job-resume-refine for a
+             status:new dossier; package → your yes → submit → record;
+             job-inbox in-session after the last posting
 job-inbox    reports replies, writes status, prints  Next: /job-scout
 ```
 
 You paste the pointer at the two ends. Scout stays list-only (never applies);
 it persists only rows that pass the score and match gates.
 
-Applying needs exactly one CV PDF that opens. For a `status: new` dossier
-whose normalized URL equals the current ad's, Prepare chains
-`/job-resume-refine` when `data/cvs.yaml` `adapt_per_vacancy` is true
-(absent → true) and attaches the single
+Each application carries exactly one CV PDF that opens. For a `status: new`
+dossier, job-apply's CV step chains `/job-resume-refine` when `data/cvs.yaml`
+`adapt_per_vacancy` is true (absent → true) and carries the single
 `scout/applications/{slug}/*_Resume.pdf` (`Nome_Sobrenome_Cargo_Resume.pdf`)
 only when `match-report.md` prints `verdict: **PASS**` (`{slug}` = that
-dossier filename minus `.md`). A refine STOP or FAIL stops that Prepare —
-leftover PASS files from a prior run do not count; no fallthrough to a
-generic CV. A posting that prints it is not accepting applications stops
-Prepare before that chain. `adapt_per_vacancy: false` skips the chain and
-leftover refined PDFs; attach the base instead.
-Without a URL-matched `new` dossier, a prior leftover `*_Resume.pdf` in
-that `{slug}` dir still wins when the dossier URL matches and
-`match-report.md` there prints `verdict: **PASS**`; otherwise job-apply
-attaches `data/cvs.yaml` `base`. With no `data/cvs.yaml` it attaches
-`cv/en-us-resume.pdf`. The review's `### Attachments` prints the pick and
-why. With neither a resolvable PDF, job-apply stops. `/job-profile-me cvs`
+dossier filename minus `.md`). A refine STOP or FAIL falls through to a leftover
+PASS `*_Resume.pdf` in that `{slug}` dir, then to the base. A posting that prints
+it is not accepting applications is skipped before that chain.
+`adapt_per_vacancy: false` skips the chain and the leftovers; carry the base
+instead. The base is `data/cvs.yaml` `base`; with no `data/cvs.yaml` it is
+`cv/en-us-resume.pdf`. The package's `### CV` prints the pick and why. With
+neither a resolvable PDF that posting is skipped. `/job-profile-me cvs`
 still edits that file — it sets the base CV and the per-vacancy refinement
 toggle. Standalone `/job-resume-refine` remains valid.
 
 `/job-resume-refine` needs a LaTeX base under `cv/` — the `.tex` sibling of
-the `data/cvs.yaml` `base` PDF. It copies that file whole and re-selects which
-`data/experiences.yml` bullets print — without one it stops and names the path
-it wanted.
+the `data/cvs.yaml` `base` PDF. It copies that file whole and tailors roles,
+bullets, Skills, and the Summary from profile Facts — without a `.tex` it
+stops and names the path it wanted.
 
 **3. Tune the search.** Day-2 edits on a profile that already exists, in Aside
 or a coding agent:
@@ -207,14 +205,15 @@ Resolves your Profile root, prints `scout/jobs/`, and answers from the dossiers
 already on disk. It never writes one.
 
 **5. Check replies on their own.** `/job-apply` already runs this leg at the end
-of every submit. Run it standalone when you have not applied to anything today
-and just want the board refreshed — in Aside or any coding-agent session:
+of every run that submitted something. Run it standalone when you have not
+applied to anything today and just want the board refreshed — in Aside or any
+coding-agent session:
 
 ```text
 /job-inbox
 ```
 
-Default searches Gmail for companies of open applications (`applied` / `interview` / `offer`) only — no inbox-wide keyword sweep. `/job-inbox all` adds every parseable dossier except `dropped` and the keyword sweep. Named company, title, or file is that dossier only. Opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
+Default searches Gmail for companies of open applications (`applied` / `interview` / `offer`) only — no inbox-wide keyword sweep. `/job-inbox all` adds every parseable dossier except `dropped` and the keyword sweep. Named company, title, or one or more files is those dossiers only. Opens surviving threads, and writes frontmatter `status:` plus one Application-log line (`— job-inbox`) when match and outcome are strong. Ambiguous mail is skipped, not asked. It never sends mail and never creates a dossier from unmatched recruiters.
 
 An apply session with no Gmail transport stops the inbox leg and says so — the
 application is recorded either way, and you can run `/job-inbox` later from a
@@ -356,25 +355,25 @@ Codex skills live under `~/.agents/skills`, not `~/.codex/skills`; a default
 multi-target install also removes legacy kit links there, which the
 `CLAUDE_SKILLS` single-dest escape hatch skips.
 
-| Path                       | Role                                                                     |
-| -------------------------- | ------------------------------------------------------------------------ |
-| `skill/job-scout/`         | Scout law, contracts, surfaces                                           |
-| `skill/job-apply/`         | Apply law, draft contract, submit after review                           |
-| `skill/job-resume-refine/` | Re-select which `experiences.yml` bullets print; one page + match-report |
-| `skill/job-profile-init/`  | Intake + templates for empty profiles                                    |
-| `skill/job-profile-me/`    | Show + edit search intent and boards                                     |
-| `skill/job-profile-root/`  | Resolve Profile root; never writes                                       |
-| `skill/job-list/`          | Read the profile's scout store; never writes                             |
-| `skill/job-match/`         | Deep-rank scout dossiers; chat report only                               |
-| `skill/job-inbox/`         | Gmail replies → lifecycle status on strong evidence                      |
-| `skill/job-stories/`       | Write and check the interview story deck                                 |
-| `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck                 |
-| `skill/job-humanize/`      | Rewrite pass for already-drafted letter, Summary, or pitch prose         |
-| `scripts/install.sh`       | Single install: plan, confirm, apply (aside+agents+browser-use)          |
-| `scripts/aside/`           | Aside lib + thin install wrapper                                         |
-| `scripts/agents/`          | Agents lib + thin install wrapper                                        |
-| `scripts/uninstall.sh`     | Single uninstall: plan, confirm, apply                                   |
-| `scripts/remote.sh`        | Fetch to cache + install or uninstall (no clone)                         |
+| Path                       | Role                                                             |
+| -------------------------- | ---------------------------------------------------------------- |
+| `skill/job-scout/`         | Scout law, contracts, surfaces                                   |
+| `skill/job-apply/`         | Apply law: queue, package, review, submit, record                |
+| `skill/job-resume-refine/` | Tailor one page from profile Facts; one page + match-report      |
+| `skill/job-profile-init/`  | Intake + templates for empty profiles                            |
+| `skill/job-profile-me/`    | Show + edit search intent and boards                             |
+| `skill/job-profile-root/`  | Resolve Profile root; never writes                               |
+| `skill/job-list/`          | Read the profile's scout store; never writes                     |
+| `skill/job-match/`         | Deep-rank scout dossiers; chat report only                       |
+| `skill/job-inbox/`         | Gmail replies → lifecycle status on strong evidence              |
+| `skill/job-stories/`       | Write and check the interview story deck                         |
+| `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck         |
+| `skill/job-humanize/`      | Rewrite pass for already-drafted letter, Summary, or pitch prose |
+| `scripts/install.sh`       | Single install: plan, confirm, apply (aside+agents+browser-use)  |
+| `scripts/aside/`           | Aside lib + thin install wrapper                                 |
+| `scripts/agents/`          | Agents lib + thin install wrapper                                |
+| `scripts/uninstall.sh`     | Single uninstall: plan, confirm, apply                           |
+| `scripts/remote.sh`        | Fetch to cache + install or uninstall (no clone)                 |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
