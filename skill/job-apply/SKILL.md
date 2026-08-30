@@ -14,8 +14,10 @@ cleared. It never authors prose: a cover-letter or essay field is the operator's
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
 Resolve every profile path against Profile root (not CWD, not skill dir).
-Unreadable Profile root or `data/cvs.yaml` → stop and say so. A dossier that will
-not read or parse is one posting's failure, not the run's — `flow-apply.md` §2.
+Unreadable Profile root, or a present but unreadable `data/cvs.yaml` → stop and
+say so; an absent `data/cvs.yaml` falls back per `flow-apply.md` §3. A dossier
+that will not read or parse is one posting's failure, not the run's —
+`flow-apply.md` §2.
 
 Write-set: `scout/jobs/` only, and only after a confirmed submission
 (`flow-record.md`). A chained `job-resume-refine` writes
