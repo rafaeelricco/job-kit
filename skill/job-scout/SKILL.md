@@ -49,7 +49,8 @@ Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jo
 Surface filter controls matching Constraints `date_posted`, `work_model`,
 `job_types`, and location — no others → set them before scanning, location per
 the scope rule above; the keep rules below still apply. Paginate every result
-list up to 5 pages per formulation run; stop early when a page adds no new keep.
+list until no next page or a page adds no new result URL, cap 5 pages per
+formulation run. A zero-keep page is not a stop. Cap hit → `defect: list_truncated`.
 
 Proof: surface echo is the submitted string, else `defect: query_not_submitted`.
 
