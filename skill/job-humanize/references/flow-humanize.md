@@ -16,14 +16,14 @@ heading, tech-tag line, or a sentence the CONTRACT marks verbatim.
 
 ## Surfaces
 
-| Surface    | In                              | Out                                                |
-| ---------- | ------------------------------- | -------------------------------------------------- |
-| letter     | letter prose + staged free-text | plan rows, screening values                        |
-| summary    | Summary sentences 1 and 3       | sentence 2, bullets, Skills tokens, rest of `.tex` |
-| script     | Opener and timed speech blocks  | `Do not say`, Gaps, numbers list, headings         |
-| experience | S.T.A.R.T. bullets              | `position`, tech tags, Gaps                        |
+| Surface    | In                             | Out                                                     |
+| ---------- | ------------------------------ | ------------------------------------------------------- |
+| summary    | Summary sentences 1 and 3      | sentence 2, bullets, Skills tokens, rest of `.tex`      |
+| resume     | reworded resume bullets        | the Summary block, Skills tokens, headings, role fields |
+| script     | Opener and timed speech blocks | `Do not say`, Gaps, numbers list, headings              |
+| experience | S.T.A.R.T. bullets             | `position`, tech tags, Gaps                             |
 
-Unknown surface → stop and name `letter|summary|script|experience`.
+Unknown surface → stop and name `summary|resume|script|experience`.
 
 ## Deltas
 

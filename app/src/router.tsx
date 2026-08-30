@@ -10,29 +10,32 @@ const HomePage = lazy(() => import("@/pages/home"))
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "")
 
-const router = createBrowserRouter([
-  {
-    element: <AppLayout />,
-    children: [
-      {
-        path: "/",
-        element: (
-          <Suspense>
-            <HomePage />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/dossiers",
-        element: (
-          <Suspense>
-            <DossiersPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-], { basename })
+const router = createBrowserRouter(
+  [
+    {
+      element: <AppLayout />,
+      children: [
+        {
+          path: "/",
+          element: (
+            <Suspense>
+              <HomePage />
+            </Suspense>
+          ),
+        },
+        {
+          path: "/dossiers",
+          element: (
+            <Suspense>
+              <DossiersPage />
+            </Suspense>
+          ),
+        },
+      ],
+    },
+  ],
+  { basename }
+)
 
 function Router() {
   return <RouterProvider router={router} />

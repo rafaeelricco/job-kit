@@ -1,13 +1,12 @@
 ---
 name: job-resume-refine
-description: "Read this when you need a one-page resume tailored to one scout dossier by re-selecting which experiences.yml bullets print. Selects, never rewrites — no bullet text is authored, the Summary is recomposed from the same Facts, and no Fact is invented. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for submitting an application (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
+description: "Read this when you need a one-page resume tailored to one posting — a scout dossier, a job URL, or a pasted job description: pick and reword from Facts already in the profile, humanize the Summary, compile a PDF, and report what changed. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for preparing the whole application package (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
 ---
 
 # Job resume refine
 
-Picks which already-written bullets print, and recomposes the Summary from the
-same Facts. It never writes a bullet, a skill token, or any Fact — `data/` and
-the base `.tex` own those.
+Tailors one page to one posting from Facts already on disk. It never invents
+a role, a number, or a skill the profile does not have.
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
@@ -19,3 +18,17 @@ Skill-local files: `./references/*` only.
 
 Read `./references/flow-refine.md` now.
 Load each additional reference only when that flow names it.
+
+## References
+
+- `./references/flow-refine.md`
+- `./references/contract-refine.md`
+- `./references/format-summary.md`
+- `./references/format-report.md`
+
+## Hard refuses
+
+- Invent an employer, title, date, number, or skill with no Fact home
+- Write any path under `data/`, `cv/`, or `scout/jobs/`
+- Print salary, sponsorship, visa, notice, route, or a process count
+- Author or convert a base source, or change preamble, margins, or font size
