@@ -14,7 +14,7 @@ Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`. Nev
 
 ## 0 Preflight
 
-Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Browser:` (opens a page, clicks, holds a session), `Runtime: workers` if spawn works, else `inline`.
+Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Runtime: workers` if spawn works, else `inline`.
 
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
