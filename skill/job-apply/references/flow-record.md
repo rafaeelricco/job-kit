@@ -35,9 +35,9 @@ Never invent or store `—` as `url:`. In a later session also ask for any missi
 title, channel, and submission date (`YYYY-MM-DD`). Do not use the recording date as an
 unstated submission date. Channel `—` must be resolved from the operator; never infer it.
 
-If the Duplicate check matched on company and title only and the URL does not
-re-match, do not update that dossier. Re-scan under the URL lock and create a new URL
-identity when no match exists.
+A dossier matched on company and title only, whose URL does not re-match, is not
+updated. Re-scan under the URL lock and create a new URL identity when no match
+exists.
 
 ## Same-session record
 
@@ -45,10 +45,9 @@ The application heading is:
 
 `#### Application {YYYY-MM-DD} · {channel}`
 
-Append the ad line, the Duplicate check line, and the package sections exactly as
-they printed — a section the package omitted is omitted here too — plus any
-second-approved fields. Do not re-derive, summarize, or invent content. Keep
-operator-only rows as `operator`.
+Append the ad line and the package sections exactly as they printed — a section
+the package omitted is omitted here too — plus any second-approved fields. Do not
+re-derive, summarize, or invent content. Keep operator-only rows as `operator`.
 
 The log line is:
 
@@ -101,8 +100,6 @@ print and the operator did not approve.
 ## Close
 
 After the schema-compliant write and lock release, print the dossier filename, log line,
-and resulting `status:`, then return to the queue. After the queue's last posting, load
-the `job-inbox` skill and obey it end-to-end — once per run, not per posting — naming
-every dossier this run recorded as its argument. Only those postings' mail can have
-changed; a board-wide refresh is a standalone `/job-inbox`. The inbox report is this
-run's last output.
+and resulting `status:`, then return to the queue. The queue's terminal step in
+`flow-apply.md` owns the inbox leg, not this Close — a posting skipped after an
+earlier one recorded never reaches here.
