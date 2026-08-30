@@ -38,6 +38,13 @@ ASIDE_ONLY=""
 # skill unable to load it.
 ASIDE_RESOLVERS="job-profile-root job-humanize"
 ASIDE_RESOLVER="job-profile-root"
+# Runtime dependency edges, one per line: "<dependent> <dep>…". Mirrors the
+# --only closure install.sh:173-209 applies, so a subset that installs together
+# cannot be taken apart. job-profile-root / job-humanize are deliberately absent:
+# every Aside skill needs them, and ASIDE_RESOLVERS already guards that edge.
+ASIDE_RUNTIME_DEPS="job-apply job-resume-refine job-list
+job-scout job-match job-profile-me
+job-match job-list job-profile-me"
 # Row field separator. Not TAB: TAB is IFS-whitespace, so `read` collapses an
 # empty field and shifts the path left into the label.
 ROW_FS="$(printf '\037')"
@@ -314,7 +321,9 @@ Options:
                 profile | cache
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-list / job-profile-me refuse while job-match remains;
+                (job-apply needs job-resume-refine / job-list; job-scout needs
+                job-match / job-profile-me; job-match needs job-list /
+                job-profile-me — removing one while its dependent stays refuses;
                 job-profile-root / job-humanize refuse while other Aside skills remain)
   --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents or browser-use runs
@@ -840,25 +849,34 @@ resolver_dependents_left() {
   )
 }
 
-# match_runtime_deps_blocked — job-list / job-profile-me this --only run would
-# remove while kit-owned job-match stays. Prints the names, space separated;
-# empty when none. Same ownership predicate as resolver_dependents_left.
+# runtime_deps_blocked — for every ASIDE_RUNTIME_DEPS edge, the deps this --only
+# run would remove while the kit-owned skill that loads them stays installed.
+# Prints one "  <dependent> still needs: <dep>…" line per broken edge; empty when
+# none. Same ownership predicate as resolver_dependents_left.
 # Side effects: none.
-match_runtime_deps_blocked() {
-  local repo="${REPO_ROOT}"
+runtime_deps_blocked() {
+  local repo="${REPO_ROOT}" table="${ASIDE_RUNTIME_DEPS}"
   (
     # shellcheck source=aside/lib.sh
     . "${repo}/scripts/aside/lib.sh"
-    local dest_root name left=""
+    local dest_root row dependent deps name left
     dest_root="$(resolve_aside_skills_root)" || exit 1
-    aside_selected job-match && exit 0
-    is_kit_owned "$(skill_dest "${dest_root}" job-match)" "${repo}" job-match || exit 0
-    for name in job-list job-profile-me; do
-      aside_selected "${name}" || continue
-      is_kit_owned "$(skill_dest "${dest_root}" "${name}")" "${repo}" "${name}" || continue
-      left="${left} ${name}"
-    done
-    printf '%s\n' "${left# }"
+    while IFS= read -r row; do
+      [ -n "${row}" ] || continue
+      dependent="${row%% *}"
+      deps="${row#* }"
+      aside_selected "${dependent}" && continue
+      is_kit_owned "$(skill_dest "${dest_root}" "${dependent}")" "${repo}" "${dependent}" || continue
+      left=""
+      for name in ${deps}; do
+        aside_selected "${name}" || continue
+        is_kit_owned "$(skill_dest "${dest_root}" "${name}")" "${repo}" "${name}" || continue
+        left="${left} ${name}"
+      done
+      [ -z "${left}" ] || printf '  %s still needs: %s\n' "${dependent}" "${left# }"
+    done <<EOF
+${table}
+EOF
   )
 }
 
@@ -1325,12 +1343,15 @@ plan_preflight() {
           fi
         done
       fi
-      # job-match Bind loads job-list and job-profile-me. Removing either
-      # while job-match stays leaves /job-match unable to run.
+      # A skill another installed skill loads at runtime cannot go alone: the
+      # dependent stays on disk unable to run. Adding the dependent may pull in
+      # its own dependents, so the message asks for a re-run, not one fixed name.
       if [ -n "${ASIDE_ONLY}" ]; then
-        left="$(match_runtime_deps_blocked)" || exit 1
+        left="$(runtime_deps_blocked)" || exit 1
         [ -z "${left}" ] \
-          || die "refusing to remove ${left} while job-match still needs them (add job-match to --only, or select 'aside')"
+          || die "refusing to remove Aside skills that installed skills still load:
+${left}
+add each skill named on the left to --only and re-run (it may name more), or select 'aside'"
       fi
     elif [ "${t}" = agents ]; then
       ( . "${REPO_ROOT}/scripts/agents/lib.sh"; resolve_override_skills >/dev/null ) \

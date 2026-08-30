@@ -60,10 +60,10 @@ Options:
                 agents | browser-use | claude | codex | grok | hermes
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-apply also installs job-resume-refine — its CV step chains it
-                for a status:new dossier; job-match also installs job-list and
-                job-profile-me — Bind loads those refs; every Aside skill also
-                installs job-humanize)
+                (job-apply also installs job-resume-refine and job-list; job-scout
+                also installs job-match and job-profile-me; job-match installs
+                job-list and job-profile-me — each loads the others' refs; every
+                Aside skill also installs job-profile-root and job-humanize)
   --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents runs
   -h, --help    Show this help
@@ -167,9 +167,9 @@ expand_only() {
   # job-apply's CV step chains job-resume-refine for a status:new dossier; a subset
   # without resume cannot complete that path. job-apply Queue and Read both bind
   # job-list/references/flow-read.md, so a subset without job-list cannot queue.
-  # job-scout persist loads job-match/references/* (flow-match-gate.md). job-match
-  # Bind loads job-list/references/flow-read.md and
-  # job-profile-me/references/schema-profile-card.md.
+  # job-scout Preflight loads job-profile-me/references/*; its persist loads
+  # job-match/references/* (flow-match-gate.md). job-match Bind loads
+  # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-apply "*)
@@ -188,6 +188,10 @@ expand_only() {
         case " ${ASIDE_ONLY} " in
           *" job-match "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-match" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
+          *" job-profile-me "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-me" ;;
         esac
         ;;
     esac
