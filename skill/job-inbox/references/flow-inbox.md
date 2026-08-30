@@ -19,7 +19,7 @@ Missing capability: `No Gmail transport available.` and end.
 Unstable `uid` across runs → replay skip re-appends logged events.
 Profile email selects the account; not a `to:` filter — ATS mail lands on aliases.
 
-Chained from `job-apply` flow-record.md Close → print `Chained from job-apply · {dossier filename}` first. Same default candidate set.
+Chained from `job-apply` flow-record.md Close → print `Chained from job-apply · {dossier filename}` first, one line per dossier that run recorded. Those files are the set; see Candidates.
 
 ## Candidates
 
@@ -28,8 +28,8 @@ Parse-failure STOP in `contract-persistence.md` still binds under the lock.
 
 Tokens after `/job-inbox` bind the set.
 Default: `status:` ∈ `applied` | `interview` | `offer`.
-Operator named company, title, or file → that dossier only, any status but `dropped`.
-Operator named `all` → every parseable dossier except `dropped`.
+Named company, title, or one or more files → those dossiers only, any status but `dropped`. A skill that chains this one names files the same way; a caller that names none gets the default.
+Named `all` → every parseable dossier except `dropped`.
 
 Per candidate: `company`, `title`, `url`, `status`; Application log bottom-up → latest `applied via` date, every `(account_uid, thread_id, outcome)`, any legacy naked `thread:{id}`. Filename is not an id.
 
