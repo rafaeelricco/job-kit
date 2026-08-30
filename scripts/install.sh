@@ -165,15 +165,21 @@ expand_only() {
   fi
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-apply's CV step chains job-resume-refine for a status:new dossier; a subset
-  # without resume cannot complete that path. job-scout persist loads
-  # job-match/references/* (flow-match-gate.md). job-match Bind loads
-  # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
+  # without resume cannot complete that path. job-apply Queue and Read both bind
+  # job-list/references/flow-read.md, so a subset without job-list cannot queue.
+  # job-scout persist loads job-match/references/* (flow-match-gate.md). job-match
+  # Bind loads job-list/references/flow-read.md and
+  # job-profile-me/references/schema-profile-card.md.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-apply "*)
         case " ${ASIDE_ONLY} " in
           *" job-resume-refine "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-resume-refine" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
+          *" job-list "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-list" ;;
         esac
         ;;
     esac
