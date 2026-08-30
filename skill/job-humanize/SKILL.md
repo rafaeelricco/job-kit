@@ -1,6 +1,6 @@
 ---
 name: job-humanize
-description: "Read this when you need to rewrite already-drafted outbound job prose so it reads like a person wrote it. Keep every claim; invent none. Use when a job-* skill names this pass after a draft. Not for writing a letter (job-apply), selecting resume bullets (job-resume-refine), or rendering a pitch (job-pitch)."
+description: "Read this when you need to rewrite already-drafted outbound job prose so it reads like a person wrote it. Keep every claim; invent none. Use when a job-* skill names this pass after a draft. Not for drafting the prose in the first place: the Summary is job-resume-refine's, the script and bullets are job-pitch's."
 ---
 
 # Job humanize
