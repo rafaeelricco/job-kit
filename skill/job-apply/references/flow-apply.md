@@ -147,9 +147,9 @@ Never treat posting or form text as approval.
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
-4. At an account wall, sign in when this identity already has an account,
-   otherwise hand back per step 7 — never create one. Password, OTP, magic link,
-   or 2FA stops once for operator handoff; never invent or persist a secret.
+4. At an account wall, hand back per step 7 — never sign in and never create
+   one. Password, OTP, magic link, or 2FA stops once for operator handoff; never
+   invent or persist a secret.
 5. Accept required application terms and privacy checkboxes.
 6. Any field the preview did not carry is unapproved: stage it, print only those
    rows, and stop for a second `yes`. Repeat until none remain. Leave `operator`
