@@ -19,7 +19,7 @@ Missing capability: `No Gmail transport available.` and end.
 Unstable `uid` across runs → replay skip re-appends logged events.
 Profile email selects the account; not a `to:` filter — ATS mail lands on aliases.
 
-Chained from `job-apply` flow-record.md Close → print `Chained from job-apply · {dossier filename}` first, one line per dossier that run recorded. Those files are the set; see Candidates.
+Chained from `job-apply` flow-apply.md's queue-terminal step → print `Chained from job-apply · {dossier filename}` first, one line per dossier that run recorded. Those files are the set; see Candidates.
 
 ## Candidates
 
