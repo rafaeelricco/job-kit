@@ -128,13 +128,13 @@ Missing CLI or browser still prints an offer. After that: open
 `chrome://inspect/#remote-debugging`, tick Allow remote debugging, and sign in
 to the sites you scout.
 
-Scout runs the packs you pick from your profile's `data/search_packs.yaml` and
-ranks the job rows it extracts. Apply queues postings through job-list and takes
+Scout runs the packs you pick from your profile's `data/search_packs.yaml` —
+or an ad-hoc site URL you pass — and ranks the job rows it extracts. Apply queues postings through job-list and takes
 them one at a time: it reads the dossier and the live ad, resolves the CV, fills
 the form from profile Facts, and prints a package for you to review; on your yes
 it submits and records.
 
-Scout writes one dossier per persist-set row (live, gate, `score` > 7, match not skip) to
+Scout writes one dossier per persist-set row (live, gate, `score` > 7, match ≥70) to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
 writes; chat lists those dossiers by score (high to low).
 `data/` and `cv/` stay read-only to it. Set `status:` in a dossier's frontmatter

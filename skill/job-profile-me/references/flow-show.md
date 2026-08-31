@@ -22,8 +22,8 @@ An unreadable file → stop and name it.
 
 ## Blocks
 
-Print `### Profile card`, then `### Constraints` — same field vocabulary as
-job-scout Phase 0:
+Print `### Profile card`, then `### Constraints` — this Blocks law is the
+owner; job-scout Phase 0 derives its card and constraints from it:
 
 - Profile card: primary role · top skills · industries · languages
 - Constraints: work model · job types · positions · locations ·
