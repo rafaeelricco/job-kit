@@ -42,7 +42,7 @@ Auth: existing session. Never create an account. Password/OTP/2FA are operator-o
 
 One pack at a time; never two on the same host.
 
-Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead; an `entry` with a path is not a root, open it directly. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
+Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead; an `entry` with a path is not a root, open it directly. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
 
 `worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
 
