@@ -144,6 +144,21 @@ function Get-LinkTarget {
   }
 }
 
+# Resolve-PhysicalPath PATH
+# Physical directory PATH names, following junctions/symlinks (bounded), then
+# normalized. `[IO.Path]::GetFullPath` is lexical and never resolves a reparse
+# point, so deleting through it would only drop the alias and leave the target.
+function Resolve-PhysicalPath {
+  param([Parameter(Mandatory = $true)][string]$Path)
+  $cur = Get-FullPathNormalized $Path
+  for ($i = 0; $i -lt 32 -and (Test-ReparsePoint $cur); $i++) {
+    $target = Get-LinkTarget $cur
+    if (-not $target) { break }
+    $cur = $target
+  }
+  return $cur
+}
+
 # Remove-KitLinkOrItem PATH
 # Junction/symlink: delete the reparse point only (never walk into the target).
 # Real directory: recursive delete. File: delete.
