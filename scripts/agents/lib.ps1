@@ -137,6 +137,11 @@ function Get-LinkTarget {
     $t = $t.Substring(4)
   }
   if (-not $t) { return $null }
+  # A symlink made with a relative target (mklink /D LINK ..\dir) stores that
+  # text verbatim; anchor it to the link's parent, not the process CWD.
+  if (-not [IO.Path]::IsPathRooted($t)) {
+    $t = Join-Path (Split-Path $item.FullName -Parent) $t
+  }
   try {
     return (Get-FullPathNormalized $t)
   } catch {
