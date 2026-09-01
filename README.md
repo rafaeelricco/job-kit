@@ -81,8 +81,31 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 
 Re-runs are safe: kit-owned destinations re-sync, foreign ones fail unless you
 pass `--force`. Uses `git` when present (shallow clone, shallow fetch on
-re-run), otherwise `curl`/`wget` + `tar`. Windows needs Git Bash. Run as your
-normal user, not with `sudo`.
+re-run), otherwise `curl`/`wget` + `tar`. Run as your normal user, not with
+`sudo`.
+
+### Windows 11
+
+Aside Browser is not available on Windows. Native scripts install the **agents**
+and **browser-use** channels only (`all` means those two).
+
+```powershell
+# download then run (ExecutionPolicy Bypass is required on a default Win11 box)
+Invoke-RestMethod https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.ps1 -OutFile remote.ps1
+powershell -ExecutionPolicy Bypass -File remote.ps1 all
+```
+
+| Argument      | Installs                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| `all`         | agents + browser-use; skip if no agent home (default)                                      |
+| `agents`      | coding-agent skills (fails if no agent home)                                               |
+| `browser-use` | job-scout + job-apply + shared deps + driver skill; missing CLI or browser prints an offer |
+| `fetch`       | refresh the cached checkout only                                                           |
+| `uninstall`   | agents + browser-use skills (not profile data); `--purge` also drops the cache             |
+
+Local checkout: `powershell -ExecutionPolicy Bypass -File scripts\install.ps1` (menu, or `agents` / `browser-use` / `all`). Uninstall: `scripts\uninstall.ps1`. Cache default is `%USERPROFILE%\.local\share\job-kit` (same tree Git Bash uses when `HOME` is `%USERPROFILE%`). Skill dests are directory junctions into that cache — keep it.
+
+Git Bash + the `.sh` scripts still work, including the Aside channel if you later have Aside.
 
 **Keep the cached checkout in place** — coding-agent skills symlink into it, and
 Aside re-installs read it to prove kit ownership.
@@ -318,6 +341,8 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 uninstall only (refused on partial targets or while `CLAUDE_SKILLS` /
 `ASIDE_SKILLS` narrow a channel).
 
+Windows 11 (no Aside): `powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1` (menu, or `agents` / `browser-use` / `profile` / `cache` / `all`). Remote skills-only: `powershell -ExecutionPolicy Bypass -File remote.ps1 uninstall`. `--purge` drops the cache too.
+
 ## Work locally
 
 Clone when you want to edit skills and see the change without reinstalling — the
@@ -327,6 +352,14 @@ agents channel symlinks, so edits in the checkout are live:
 git clone https://github.com/rafaeelricco/job-kit.git
 cd job-kit
 bash scripts/install.sh   # interactive menu, or: all | aside | agents | browser-use
+```
+
+Windows 11 (agents + browser-use only):
+
+```powershell
+git clone https://github.com/rafaeelricco/job-kit.git
+cd job-kit
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1   # menu, or: all | agents | browser-use
 ```
 
 Prerequisites: Bash, plus the target for whichever channel you install — at
@@ -370,10 +403,13 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck         |
 | `skill/job-humanize/`      | Rewrite pass for already-drafted Summary, resume, or pitch prose |
 | `scripts/install.sh`       | Single install: plan, confirm, apply (aside+agents+browser-use)  |
+| `scripts/install.ps1`      | Windows install: plan, confirm, apply (agents+browser-use)       |
 | `scripts/aside/`           | Aside lib + thin install wrapper                                 |
-| `scripts/agents/`          | Agents lib + thin install wrapper                                |
+| `scripts/agents/`          | Agents lib + thin install wrapper (`.sh` and `.ps1`)             |
 | `scripts/uninstall.sh`     | Single uninstall: plan, confirm, apply                           |
+| `scripts/uninstall.ps1`    | Windows uninstall: agents+browser-use+profile+cache              |
 | `scripts/remote.sh`        | Fetch to cache + install or uninstall (no clone)                 |
+| `scripts/remote.ps1`       | Windows fetch + install or uninstall (agents+browser-use)        |
 
 Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
