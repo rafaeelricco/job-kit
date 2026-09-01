@@ -193,7 +193,7 @@ function Get-ResolvePhysical {
     $head = $parent
   }
   if (Test-Path -LiteralPath $head -PathType Container) {
-    try { $head = Get-FullPathNormalized $head } catch { }
+    try { $head = Resolve-PhysicalPath $head } catch { }
   }
   if ($head.EndsWith('\') -and $head.Length -eq 3) {
     return ($head.TrimEnd('\') + $tail)
@@ -229,7 +229,7 @@ function Assert-ProfilePath {
   }
   $cache = $script:JobKitHome
   if (Test-Path -LiteralPath $script:JobKitHome -PathType Container) {
-    try { $cache = Get-FullPathNormalized $script:JobKitHome } catch { $cache = $script:JobKitHome }
+    try { $cache = Resolve-PhysicalPath $script:JobKitHome } catch { $cache = $script:JobKitHome }
   }
   if ((Test-PathsOverlap $Path $script:JobKitHome) -or (Test-PathsOverlap $Path $cache)) {
     Write-KitDie "refusing to delete profile root overlapping the kit cache: $Path (cache: $cache)"
@@ -440,7 +440,7 @@ function Get-PlanRowsProfile {
     if (-not (Test-Path -LiteralPath $path) -and -not (Test-ReparsePoint $path)) { continue }
     if ((Test-ReparsePoint $path) -and (Test-Path -LiteralPath $path -PathType Container)) {
       $rows.Add((New-PlanRow 'X' 'remove alias' $path)) | Out-Null
-      $path = Get-FullPathNormalized $path
+      $path = Resolve-PhysicalPath $path
     }
     $seen = $false
     foreach ($e in $existing) {
@@ -472,9 +472,9 @@ function Get-PlanRowsCache {
   }
   $dest = $raw
   if (Test-ReparsePoint $raw) {
-    $dest = Get-FullPathNormalized $raw
+    $dest = Resolve-PhysicalPath $raw
   } elseif (Test-Path -LiteralPath $raw -PathType Container) {
-    $dest = Get-FullPathNormalized $raw
+    $dest = Resolve-PhysicalPath $raw
   }
   $rows.Add((New-PlanRow 'X' 'PURGE CACHE' $dest)) | Out-Null
   if (Test-ReparsePoint $raw) {
@@ -749,7 +749,7 @@ function Assert-ProfileInputs {
   foreach ($root in @((Get-JobKitConfig), (Get-HostDefaultRoot))) {
     if (-not (Test-ReparsePoint $root)) { continue }
     if (-not (Test-Path -LiteralPath $root -PathType Container)) { continue }
-    $target = Get-FullPathNormalized $root
+    $target = Resolve-PhysicalPath $root
     $missing = Get-ProfileProbeMissing $target
     if ($missing) {
       Write-KitDie @"
@@ -824,7 +824,7 @@ function Remove-Profile {
     if (-not (Test-Path -LiteralPath $path) -and -not (Test-ReparsePoint $path)) { continue }
     if ((Test-ReparsePoint $path) -and (Test-Path -LiteralPath $path -PathType Container)) {
       $aliases.Add($path) | Out-Null
-      $path = Get-FullPathNormalized $path
+      $path = Resolve-PhysicalPath $path
     }
     $seen = $false
     foreach ($e in $existing) {
@@ -892,7 +892,7 @@ function Get-LinksOwnedBy {
   param([string]$Dest, [string]$Scope = 'all')
   $phys = $Dest
   if (Test-Path -LiteralPath $Dest -PathType Container) {
-    try { $phys = Get-FullPathNormalized $Dest } catch { $phys = $Dest }
+    try { $phys = Resolve-PhysicalPath $Dest } catch { $phys = $Dest }
   }
   $found = New-Object System.Collections.Generic.List[string]
   $override = ''
@@ -932,16 +932,16 @@ function Invoke-PurgePreflight {
   }
   $dest = $raw
   if (Test-Path -LiteralPath $raw -PathType Container) {
-    $dest = Get-FullPathNormalized $raw
+    $dest = Resolve-PhysicalPath $raw
   }
   $missing = Get-KitOwnedMissing $dest
   if ($missing) {
     Write-KitDie "refusing to start: the cache purge would fail on a non-kit path (missing $missing): $dest"
   }
-  if (-not (Test-PathsEqual $dest $script:RepoRoot)) {
+  if (-not (Test-PathsEqual $dest (Resolve-PhysicalPath $script:RepoRoot))) {
     $Scope = 'all'
   }
-  $outstanding = @(Get-LinksOwnedBy $dest $Scope)
+  $outstanding = @(Get-LinksOwnedBy $raw $Scope)
   if ($outstanding.Count -gt 0) {
     $list = $outstanding -join "`n"
     Write-KitDie "refusing to start: installed skills point at $dest and this run will not remove them:`n$list`nuninstall those skills first, or run the uninstaller from $dest"
@@ -956,13 +956,13 @@ function Remove-Cache {
   }
   $dest = $raw
   if (Test-Path -LiteralPath $raw -PathType Container) {
-    $dest = Get-FullPathNormalized $raw
+    $dest = Resolve-PhysicalPath $raw
   }
   $missing = Get-KitOwnedMissing $dest
   if ($missing) {
     Write-KitDie "refusing to purge non-kit path (missing $missing): $dest"
   }
-  $outstanding = @(Get-LinksOwnedBy $dest)
+  $outstanding = @(Get-LinksOwnedBy $raw)
   if ($outstanding.Count -gt 0) {
     $list = $outstanding -join "`n"
     Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first (`uninstall.ps1 agents browser-use`, or `all`)"
