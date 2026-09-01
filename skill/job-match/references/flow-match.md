@@ -5,7 +5,6 @@ Main is the orchestrator. It does not score a job.
 State: `./schema-state.md`. Policy: `./contract-match.md` (load; never spawn a criteria agent).
 Reader law: `job-list/references/flow-read.md`.
 
-Print `Store: {root}/scout/jobs/` and `Runtime: workers` if spawn works, else `inline`.
 Store source (below) and the store is absent or unreadable → name the path and end. `--posting` does not need the store.
 
 ```
@@ -22,7 +21,7 @@ Load `./schema-state.md` and `./contract-match.md`. Init state: `candidate` null
 
 ## profile
 
-Derive `state.candidate` per schema-state CandidateProfile. Print the JSON. Unreadable required file → stop and name it.
+Derive `state.candidate` per schema-state CandidateProfile. Unreadable required file → stop and name it.
 
 ## candidates
 
@@ -33,7 +32,7 @@ Parse tokens. At most one selector: `--new` | `--all` | `--posting`.
 2. `--all`, or `--exclude` with no selector → store, every parseable dossier except `dropped` and dead-by-log, then drop `--exclude` statuses.
 3. Empty or `--new` → store, frontmatter `status:` = `new`, not dead-by-log, then drop `--exclude` statuses.
 
-Print count. Zero → `No dossiers to match.` and end.
+Zero → `No dossiers to match.` and end.
 `--posting`: extract next, then filter₁ on the JobProfile (no Posting facts table). Store sources keep the graph order below.
 
 ## filter₁
@@ -63,4 +62,4 @@ Non-reviewed rows stay as match wrote them.
 
 ## rank
 
-Load `./format-report.md`. Emit from state. End.
+Final message only: the prompt’s scaffold if it gave one, else ranked `- **{title} at {company}**` / url / first strength. Worker JSON and state stay off that message. End.
