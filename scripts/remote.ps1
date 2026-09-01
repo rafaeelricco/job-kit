@@ -338,6 +338,16 @@ function Invoke-EnsureKitCache {
   if ($missing) {
     Write-KitDie "cache path exists and is not a job-kit checkout (missing $missing): $Dest"
   }
+  # Caches fetched by the Git Bash installer before this channel pass the
+  # ownership probe but carry none of the Windows scripts, so the cached
+  # uninstaller would be missing. Refresh once instead of dying before
+  # anything is removed.
+  $missing = Get-KitPathsMissing $Dest $script:WindowsRequiredFiles
+  if ($missing) {
+    Write-Host "refreshing kit cache (windows scripts added, missing $missing): $Dest"
+    Invoke-FetchKit $Dest
+    Assert-Checkout $Dest
+  }
 }
 
 function Test-AgentsReady {
