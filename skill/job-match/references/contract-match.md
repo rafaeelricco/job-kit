@@ -15,11 +15,15 @@ First match wins → blocked. Do not invent auth paths.
 
 ## Soft weights (sum = 100)
 
-Cells are integers. Do not invent a scale beyond this table.
-Round each scored cell to nearest integer (halves up) before the sum.
-Let S = factors whose cell is not `—`. S empty → Gap that url, no score.
-`match_score = round(100 × sum(points of S) / sum(weights of S))` (halves up).
-`confidence = round(sum(weights of S) / 100, 2)`.
+Cells are integers, or `—` for a factor with no evidence, except Primary stack:
+a scored Primary stack cell must be `{"held": k, "required": n}` so
+`scripts/score.py` owns its point calculation and half-up rounding. The counts
+remain in `score_breakdown` through scoring and validation; a pre-rounded
+Primary stack integer is invalid. `k` and `n` must be integers with `n >= 1`
+and `0 <= k <= n`. Workers fill the cells; `scripts/score.py` computes
+`match_score`, `decision`, and `confidence` from them.
+Invalid cells receive a per-row `score_error`; they are never rounded or allowed
+to abort the remaining batch.
 
 | Criterion         | Weight | Points                                                                                                                                                                                               |
 | ----------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,8 +36,7 @@ Let S = factors whose cell is not `—`. S empty → Gap that url, no score.
 | Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                                                                      |
 | Preferences       |      5 | `candidate.preferences` agree with JobProfile `work_model` / `location` → 5; conflict → 0; all blank → —                                                                                             |
 
-No evidence for a factor → that factor contributes `—` (omit from sum, renormalize
-over scored factors). Never write `0` for unknown.
+No evidence for a factor → that factor's cell is `—`. Never write `0` for unknown.
 
 ## Decision bands
 

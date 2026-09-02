@@ -9,9 +9,9 @@ line and escape `|` inside table cells.
 
 Sections in this order.
 
-`## Summary` — one count per disposition, summing to the candidate count. At
-most three sentences, no table. Name every company now at `interview` or
-`offer`, and what needs the operator today.
+`## Summary` — one short paragraph, no table: one count per disposition,
+summing to the candidate count; every company now at `interview` or `offer`;
+and what needs the operator today.
 
 `## Replies` — every `interview`, `offer`, `rejected` row, matched or not,
 newest first:
