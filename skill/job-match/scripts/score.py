@@ -39,7 +39,11 @@ def cell_points(name, cell):
     """Return integer points for one factor, or None when unscored."""
     if cell is None:
         return None
-    if name == "primary_stack" and isinstance(cell, dict):
+    if name == "primary_stack":
+        if not isinstance(cell, dict):
+            raise ValueError(
+                "primary_stack: cell must carry held/required counts"
+            )
         held = require_integer("primary_stack.held", cell.get("held"))
         required = require_integer("primary_stack.required", cell.get("required"))
         if required < 1:
@@ -59,8 +63,9 @@ def score(row):
         raise ValueError("score_breakdown must be an object")
     scored = {}
     for name in WEIGHTS:
-        pts = cell_points(name, breakdown.get(name))
-        breakdown[name] = pts
+        cell = breakdown.get(name)
+        pts = cell_points(name, cell)
+        breakdown[name] = cell if name == "primary_stack" else pts
         if pts is not None:
             scored[name] = pts
     if not scored:

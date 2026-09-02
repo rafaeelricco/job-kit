@@ -12,6 +12,10 @@ Shared output per `url`:
 `verdict` ∈ `APPROVED` | `CORRECTION_REQUIRED`. `match` is `null` on APPROVED, a
 full MatchResult on CORRECTION_REQUIRED.
 
+In a corrected MatchResult, keep `primary_stack` `null` or raw
+`{"held": <count>, "required": <count>}` counts; never replace it with a
+pre-rounded integer.
+
 ## evidence
 
 Input: CandidateProfile + JobProfile + MatchResult.
