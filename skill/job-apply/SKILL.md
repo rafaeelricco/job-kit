@@ -1,6 +1,6 @@
 ---
 name: job-apply
-description: "Apply to postings from the scout store: find them with job-list, read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, hand back a package for approval, then submit and record after the operator's yes. A posting whose ad is behind a login or account wall is skipped, not cleared. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. The decision to apply is already made; never re-judge the posting. Not for searching (job-scout), scoring a posting (job-match), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
+description: "Apply to postings from the scout store: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, hand back a package for approval, then submit and record after the operator's yes. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
 argument-hint: "[<file> | <url> | --new | --yolo | <auto-detect>]"
 ---
 

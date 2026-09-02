@@ -46,7 +46,7 @@ records where that line falls.
 - `ready` → render.
 - `needs-numbers` → render, and name the missing outcome number in `### Gaps`. The
   render says so out loud rather than filling the hole.
-- `draft` → refuse. An `evidence` part is empty; point at `/job-stories` and **STOP**.
+- `draft` → refuse. An `evidence` part is empty; point at `/job-stories` and STOP.
 
 ## Coverage
 

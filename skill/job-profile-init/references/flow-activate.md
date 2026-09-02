@@ -81,7 +81,7 @@
 8. Best-effort: `export PROFILE_ROOT="$REPO"` for this session (or harness
    equivalent). State whether export ran. **Aside will not see this export** —
    dual-home pointers and path-convention cover Aside.
-9. Print `./format-next-steps.md` with placeholders filled, then STOP:
+9. Print `./format-next-steps.md` with placeholders filled:
    - `{{GAPS_LINE}}` — if the fill report has any scout-critical Gaps remaining,
      set to a single line:
      `- Resolve remaining Gaps from the fill report: <gap bullets or summary>.`
@@ -105,51 +105,39 @@
 
    **Resolve `KIT_ROOT` (optional):** take the real path of the skill root that
    holds `SKILL.md` (`…/skill/job-profile-init`), not this file's own
-   `references/` directory. Parent of `skill/` is a candidate
-   kit root if `$KIT_ROOT/scripts/install.sh` exists, **or** both channel
-   wrappers exist (`$KIT_ROOT/scripts/agents/install.sh` and
-   `$KIT_ROOT/scripts/aside/install.sh`) for older checkouts. Symlink installs
-   usually resolve; a copied skill with no kit tree does not — then treat as
-   unresolved.
+   `references/` directory. Parent of `skill/` is the kit root when
+   `$KIT_ROOT/scripts/install.sh` exists. Symlink installs usually resolve; a
+   copied skill with no kit tree does not — then treat as unresolved.
 
    **Probe install state (read-only; only when `KIT_ROOT` resolved).** A probe
    that cannot run reports _unknown_, never _installed_.
 
-   - Agents: the channel links ten skills — `job-profile-init`,
-     `job-profile-me`, `job-list`, `job-match`, `job-stories`, `job-pitch`,
-     `job-inbox`, `job-humanize`, `job-profile-root`, and `job-resume-refine` (`SKILL_NAMES` in
-     `scripts/agents/lib.sh`). For each of
+   - Agents: the skill set is `SKILL_NAMES` in `$KIT_ROOT/scripts/agents/lib.sh`
+     — read it; do not carry a copy here. For each of
      `$HOST_HOME/{.claude,.agents,.grok,.hermes}` that is a directory, compare bare
      `readlink "<home>/skills/<name>"` (no `-f`, no `realpath` — mirrors
      `scripts/agents/lib.sh` `is_kit_skill_link`) against
-     `$KIT_ROOT/skill/<name>` for **every** one of the ten. A home counts
+     `$KIT_ROOT/skill/<name>` for every name in that set. A home counts
      installed only when the whole set matches; matching some is _partial_, and
      partial is not installed. Installed = at least one complete home.
    - Aside: `ASIDE_ROOT="${ASIDE_SKILLS:-$HOST_HOME/.aside/u/${ASIDE_ACCOUNT:-0}/skills/builtin}"`.
-     Installed = for each of `job-scout`, `job-apply`, `job-resume-refine`,
-     `job-profile-me`, `job-list`, `job-pitch`, `job-inbox`,
-     `job-humanize`, `job-profile-root`,
-     the single line of `$ASIDE_ROOT/<name>/.job-kit` equals
-     `$KIT_ROOT/skill/<name>`.
-   - **Never probe by directory existence.** Legacy `skills/user/job-application` and
-     `job-discovery` links from other repos are left in place by the installer
-     on purpose and would false-positive.
+     The skill set is `SKILL_NAMES` in `$KIT_ROOT/scripts/aside/lib.sh`.
+     Installed = for every name in that set, the single line of
+     `$ASIDE_ROOT/<name>/.job-kit` equals `$KIT_ROOT/skill/<name>`.
+   - **Never probe by directory existence.** Those homes hold skill directories
+     the installer does not own, so presence alone proves nothing.
 
    **If `KIT_ROOT` resolved** — set `{{KIT_INSTALL}}` from the probe. Print
    commands the operator actually needs, never a conditional they must evaluate:
 
    - Both channels installed → `Kit channels already installed from <KIT_ROOT>.
 Nothing to run.`
-   - Aside not installed → prefer unified entry when present:
-     `Install Aside skills (scout, apply, config, tracker, inbox):
+   - Aside not installed →
+     `Install Aside skills (scout, apply, profile, match, list, pitch, inbox):
 bash "<KIT_ROOT>/scripts/install.sh" aside`
-     Fall back to `bash "<KIT_ROOT>/scripts/aside/install.sh"` when
-     `scripts/install.sh` is missing (older checkout).
-   - Agents probe matched no complete home → prefer:
+   - Agents probe matched no complete home →
      `Link the agent skills into your agent homes:
 bash "<KIT_ROOT>/scripts/install.sh" agents`
-     Fall back to `bash "<KIT_ROOT>/scripts/agents/install.sh"` when
-     `scripts/install.sh` is missing.
    - Agents probe matched some homes but not all, or matched a home only
      partially → name each home and the skills it is missing, then the same
      absolute command. A partial home is named here, never passed over as
@@ -157,9 +145,11 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    - Any probe _unknown_ → print its command with the reason it could not be
      checked. Commands are absolute; CWD does not matter.
 
-   **If unresolved** — probe Aside repo-agnostically first: all nine
-   `$ASIDE_ROOT/{job-scout,job-apply,job-resume-refine,job-profile-me,job-list,job-pitch,job-inbox,job-humanize,job-profile-root}/.job-kit`
-   exist → say Aside skills are already present from some checkout, so the
+   **If unresolved** — probe Aside repo-agnostically first: every
+   `$ASIDE_ROOT/<name>/.job-kit` for the Aside skill names this kit ships
+   (`job-scout`, `job-apply`, `job-resume-refine`, `job-profile-me`, `job-list`,
+   `job-match`, `job-pitch`, `job-inbox`, `job-humanize`, `job-profile-root`)
+   exists → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):
 
@@ -169,7 +159,7 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    > ```bash
    > git clone https://github.com/rafaeelricco/job-kit.git
    > cd job-kit
-   > bash scripts/install.sh aside    # scout/apply/config/tracker into Aside
+   > bash scripts/install.sh aside    # Aside skills
    > bash scripts/install.sh agents   # only if coding-agent homes lack job-profile-init
    > # or: bash scripts/install.sh all
    > ```

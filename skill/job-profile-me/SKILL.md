@@ -1,6 +1,6 @@
 ---
 name: job-profile-me
-description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Never create a profile, never run a search, never write without an explicit yes. Never invent salary, visa, sponsorship, EOR, employers, or numbers. Use when the user runs /job-profile-me, asks to show their profile or search config, change positions / locations, add or remove a job board, or asks what is missing for scout."
+description: "Read this when you need to view or change an existing job-search profile without hand-editing YAML. Use when the user runs /job-profile-me, asks to show their profile or search config, change positions / locations, add or remove a job board, or asks what is missing for scout. Not for creating a profile (job-profile-init) or finding jobs (job-scout)."
 ---
 
 # Job profile me
@@ -16,8 +16,9 @@ Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.
 `data/cvs.yaml`, and their `*.yaml.tmp` staging siblings during atomic rename.
 
 When the operator asks to create a profile / set one up from a CV, hand off
-`job-profile-init`, STOP.
-When the operator asks to find jobs / scout openings, hand off `job-scout`, STOP.
+`job-profile-init`, then end this skill.
+When the operator asks to find jobs / scout openings, hand off `job-scout`, then
+end this skill.
 When the operator mutates search config, packs, the profile card, or CV settings
 (`set` / `packs` / `refresh-card` / `cvs set`), or asks to change salary, notice,
 visa, sponsorship, EOR, Fact fields, or identity, read `./references/flow-mutate.md` now.
