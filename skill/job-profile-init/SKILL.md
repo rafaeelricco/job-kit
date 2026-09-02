@@ -1,6 +1,6 @@
 ---
 name: job-profile-init
-description: "Scaffold a job-search profile and fill Fact-law data from a user-provided source of truth (CV, LinkedIn export file, notes). Never invent facts; never network-import LinkedIn; never copy donor profile data. Use when the user runs /job-profile-init, asks to scaffold a profile, create a profile for job skills, or set up job scout data for someone new."
+description: "Scaffold a job-search profile and fill Fact-law data from a user-provided source of truth (CV, LinkedIn export file, notes). Use when the user runs /job-profile-init, asks to scaffold a profile, create a profile for job skills, or set up job scout data for someone new. Not for editing an existing profile (job-profile-me)."
 ---
 
 # Job profile init
@@ -19,13 +19,13 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 2. On Approve: obey `./references/flow-emit-tree.md` end-to-end (write → tokens → leak gate).
 3. After Approve, obey `./references/flow-fill.md`. No post-approval field questions.
 4. **Activate** Profile root for absolute `<target>`, branching on the Activate
-   ask. Exactly one bullet runs; none is nested under another.
-   - **Yes** → obey `./references/flow-activate.md` end-to-end. Then STOP.
+   ask. Exactly one bullet runs, and it ends the skill.
+   - **Yes** → obey `./references/flow-activate.md` end-to-end.
    - **No**, and `<target>` equals `JOB_KIT_CONFIG` / host-default
-     (path-convention probe without pointer) → STOP (this profile would
-     auto-activate on emit despite the refusal). Re-run Activate ask.
+     (path-convention probe without pointer) → this profile would
+     auto-activate on emit despite the refusal: re-run the Activate ask instead.
    - **No**, otherwise → obey `./references/flow-activate.md` for Activate-skipped handoff
-     (next-steps only). STOP.
+     (next-steps only).
 
 ## References
 
@@ -44,5 +44,5 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 - Generate a CV PDF or LaTeX
 - Run job-scout or job-apply
 - Edit a non-empty or donor profile
-- Run a **profile** `scripts/install.sh` (legacy/stale; kit does not emit one).
-  Kit install is the checkout's `scripts/install.sh`, never under the profile.
+- Run an installer from under the profile tree. Kit install is the checkout's
+  `scripts/install.sh`.

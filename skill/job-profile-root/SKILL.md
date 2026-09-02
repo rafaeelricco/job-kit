@@ -1,6 +1,6 @@
 ---
 name: job-profile-root
-description: "Read this when you need the absolute Profile root for any job-* skill. Use when another job skill says to load job-profile-root, or the user asks where is my profile / profile root / which job-kit folder. Prints one path or STOPs. Never writes. Never loads Fact YAML. Not for creating a profile (job-profile-init) or editing search config (job-profile-me)."
+description: "Read this when you need the absolute Profile root for any job-* skill. Use when another job skill says to load job-profile-root, or the user asks where is my profile / profile root / which job-kit folder. Prints one path; read-only. Not for creating a profile (job-profile-init) or editing search config (job-profile-me)."
 ---
 
 # Job profile root

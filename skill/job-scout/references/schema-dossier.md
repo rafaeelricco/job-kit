@@ -4,7 +4,7 @@ Phase 6 output. Main writes; a spawned search/extract subagent never does.
 
 ## Layout (under Profile root)
 
-`scout/jobs/` is created by this phase, never by `job-profile-init`. Never write `scout/runs/`.
+`scout/jobs/` is created by this phase, never by `job-profile-init`.
 
 ## Filename
 
@@ -92,7 +92,7 @@ Keys below, plus main-derived `blocker`. `role_*` → `## The role`; `status_rea
 
 Each subhead = matching extract key, copied. Key `—` → omit that subhead — no empty heading, no `_(not printed)_` line. All `—` → omit `## The role`.
 
-`role_do` / `role_must` arrive as one cell joined by `" • "`: split and write one `- ` line per item, order preserved. Never write `## From the posting` (retired). Re-run rewrite drops a leftover one.
+`role_do` / `role_must` arrive as one cell joined by `" • "`: split and write one `- ` line per item, order preserved.
 
 **Snapshot** — {role_snapshot, collapsed to one line}
 
@@ -118,7 +118,7 @@ source ambar · channel ats · author — · query "Senior Software Engineer" ·
 ## Log grammar
 
 Every appended line: `- {YYYY-MM-DD} · {event} — {writer}`,
-`{writer}` ∈ `job-scout` | `job-apply` | `job-inbox` | `operator` — readers also accept `job-application` (pre-rename); writers never emit it. No writer suffix → unclassifiable.
+`{writer}` ∈ `job-scout` | `job-apply` | `job-inbox` | `operator`; readers treat `job-application` as `job-apply`. No writer suffix → unclassifiable.
 
 Scout writes exactly three events:
 
@@ -136,16 +136,16 @@ Blocks below the log from `job-apply` / `job-inbox` may carry posting-derived te
 
 Opening `---` through the ownership marker = scout-owned, rewritten each run. Below the marker, and `status:` in frontmatter, belong to operator / `job-apply` / `job-inbox`.
 
-| On re-run                                              | Do                                                                                                   |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Same normalized `url` exists                           | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**          |
-| Body carries a retired section (`## From the posting`) | Replaced, not merged: rewritten body holds only sections this file prints                            |
-| `status:` already set                                  | Never touch it — not even back to `new`                                                              |
-| Ownership marker / log tail                            | Append below the marker; never rewrite or reorder existing log/application lines                     |
-| Row now `dead`                                         | Append a log line; set no status; leave the body                                                     |
-| Row `live` again after dead                            | Append a reopen log line; set no status; rewrite the body as normal                                  |
-| No file yet                                            | Create with `status: new`                                                                            |
-| File exists with no `## Verdict` (a `job-apply` stub)  | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log |
+| On re-run                                             | Do                                                                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**          |
+| Body carries a `## From the posting` section          | Replaced, not merged: rewritten body holds only sections this file prints                            |
+| `status:` already set                                 | Never touch it — not even back to `new`                                                              |
+| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                     |
+| Row now `dead`                                        | Append a log line; set no status; leave the body                                                     |
+| Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                  |
+| No file yet                                           | Create with `status: new`                                                                            |
+| File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log |
 
 Closure is a log event, not a field. Append reopen whenever a URL whose last scout posting-state line was a closure is extracted live again.
 

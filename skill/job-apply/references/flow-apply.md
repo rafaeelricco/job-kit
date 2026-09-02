@@ -38,8 +38,7 @@ a `<file>` or `<url>` → stop.
    posting, not a second one. Never match company+title: one company posts
    many roles.
 2. Empty or `--new` → glob `scout/jobs/` and read each dossier per
-   `job-list/references/flow-read.md`; never load `job-list/SKILL.md`, whose
-   step 4 STOPs the run. Keep `status` `new`, drop any whose latest
+   `job-list/references/flow-read.md`. Keep `status` `new`, drop any whose latest
    posting-state log line reads dead per that file. The filename each kept
    dossier carries is what later steps pass on.
 

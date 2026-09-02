@@ -10,26 +10,33 @@ on `hiringcafe.com` from page context via the browser (`js()` writing into a
 the SSR payload: `GET /?searchState={json}&page={N}`, then parse
 `#__NEXT_DATA__` → `props.pageProps`:
 
-| key                  | meaning                                                                 |
-| -------------------- | ----------------------------------------------------------------------- |
-| `ssrHits`            | ~77 job objects per page                                                |
-| `ssrTotalCount`      | total matches                                                           |
-| `ssrIsLastPage`      | pagination stop                                                         |
-| `initialSearchState` | JSON **string** — parse it before reading `searchQuery` for the echo    |
+| key                  | meaning                                                              |
+| -------------------- | -------------------------------------------------------------------- |
+| `ssrHits`            | ~77 job objects per page                                             |
+| `ssrTotalCount`      | total matches                                                        |
+| `ssrIsLastPage`      | pagination stop                                                      |
+| `initialSearchState` | JSON **string** — parse it before reading `searchQuery` for the echo |
 
 ## searchState
 
 ```json
-{ "searchQuery": "Senior Software Engineer",
-  "locations": [{ "formatted_address": "United States", "types": ["country"],
-    "geometry": { "location": { "lat": 37.0902, "lon": -95.7129 } },
-    "id": "user_country",
-    "address_components": [{ "long_name": "United States", "short_name": "US", "types": ["country"] }],
-    "options": { "flexible_regions": ["anywhere_in_continent", "anywhere_in_world"] } }],
+{
+  "searchQuery": "Senior Software Engineer",
+  "locations": [
+    {
+      "formatted_address": "United States",
+      "types": ["country"],
+      "geometry": { "location": { "lat": 37.0902, "lon": -95.7129 } },
+      "id": "user_country",
+      "address_components": [{ "long_name": "United States", "short_name": "US", "types": ["country"] }],
+      "options": { "flexible_regions": ["anywhere_in_continent", "anywhere_in_world"] }
+    }
+  ],
   "workplaceTypes": ["Remote"],
   "commitmentTypes": ["Full Time", "Contract"],
   "dateFetchedPastNDays": 7,
-  "defaultToUserLocation": false }
+  "defaultToUserLocation": false
+}
 ```
 
 `workplaceTypes` ∈ Remote | Hybrid | Onsite | Field.
@@ -50,7 +57,7 @@ within 7 days; the rest run months old. Re-filter
 location is `workplace_cities[0]`, else `formatted_workplace_location` split on
 `" or "` and first two comma parts, else `"remote"` when the location is
 blank/remote and `workplace_type` contains remote. Slug: NFKD, lowercase,
-`&` → ` and `, non-alphanumerics → `-`, trim; truncate at 70 chars on the last `-`.
+`&` → `and`, non-alphanumerics → `-`, trim; truncate at 70 chars on the last `-`.
 
 ## Extract
 

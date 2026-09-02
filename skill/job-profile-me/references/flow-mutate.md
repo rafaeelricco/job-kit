@@ -11,7 +11,7 @@ Load `./schema-profile-card.md` when the verb is `refresh-card` or when a
 ## Protocol
 
 1. Parse intent → target file + key paths + new values. Ambiguous key → ask. Never guess a key.
-2. Read the file. Parse fails → **STOP**; print the parser error and the path; write nothing.
+2. Read the file. Parse fails → STOP; print the parser error and the path; write nothing.
    A broken file is repaired by a human, never overwritten.
 3. Print the proposed change as a unified diff in a fenced `diff` block, anchored to
    `<file>:<line>`, showing only the lines that change.

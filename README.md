@@ -1,5 +1,3 @@
-# job-kit
-
 Twelve agent skills that run a job search end to end: find postings, rank them
 against your profile, tailor a one-page resume, fill and submit the application,
 and track replies in Gmail. The skills hold the procedure. Your facts (salary
