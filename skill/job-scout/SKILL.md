@@ -11,7 +11,7 @@ end-to-end (a root STOP = no profile → STOP here) and owns the read set and
 card derivation (`flow-show.md`, `schema-profile-card.md`). Never enter its
 mutation flow. Resolve `data/*` against Profile root.
 Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`, `./references/flow-match-gate.md`.
-Surface playbook, load when its pack is in the run set: `./references/surface-hiring-cafe.md`.
+Surface playbooks, load when that pack is in the run set: `./references/surface-hiring-cafe.md`, `./references/surface-getonbrd.md`.
 
 List only. Never apply, message, or connect.
 Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`.
