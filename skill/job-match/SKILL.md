@@ -15,7 +15,8 @@ Write-set: none. Chat report only.
 
 Main is the orchestrator. Nodes, edges, and state live in the flow.
 
-Skill-local files: `./references/*` only.
+Skill-local files: `./references/*` and `./scripts/score.py` only. Resolve both
+against the directory containing this loaded `SKILL.md`, never the caller's CWD.
 
 Read `./references/flow-match.md` now.
 Load each additional reference only when that flow names it.

@@ -32,6 +32,8 @@ Caller pastes CandidateProfile JSON + MatchingPolicy (`contract-match.md` body)
 }
 ```
 
-3. `match_score`, `decision`, `confidence` per contract. Unscored factor → JSON `null`.
+3. Fill `score_breakdown` per contract; unscored factor → JSON `null`. Leave
+   `match_score`, `decision`, and `confidence` at their zero values — the caller
+   computes them.
 4. Every `strengths` / `gaps` / `blockers` item quotes a token from the two JSON objects.
 5. Emit the JSON array, then stop.

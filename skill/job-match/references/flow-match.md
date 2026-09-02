@@ -8,9 +8,9 @@ Reader law: `job-list/references/flow-read.md`.
 Store source (below) and the store is absent or unreadable → name the path and end. `--posting` does not need the store.
 
 ```
-bind → profile → candidates → filter₁ → extract → filter₂ → match
-                                                      │
-                       rank ◄── validate{evidence, classify, arith}
+bind → profile → candidates → filter₁ → extract → filter₂ → match → score
+                                                              │
+                                 rank ◄── validate{evidence, classify} ◄──┘
 ```
 
 Fan-out only on extract, match, and each validate role. Same `state.candidate` + same policy on every worker. Batch ~10 when Runtime=workers; else inline sequential.
@@ -52,11 +52,25 @@ Main. Contract HF6 on JobProfile + `state.candidate`. Hit → move to `state.blo
 Load `./worker-match.md`. Input per worker: the same CandidateProfile JSON + the same contract body + its JobProfile batch + the MatchResult JSON block from that file. No dossier prose.
 Write `state.matches[]`. Malformed → `state.gaps`.
 
+## score
+
+Main. Resolve `./scripts/score.py` from the loaded job-match skill root. Resolve
+the first working Python 3 launcher: `python3`; on Windows, `py -3`; otherwise
+`python` only when its reported major version is 3. Missing launcher or unreadable
+scorer → name the dependency and end.
+
+Run the resolved launcher and absolute scorer path with `state.matches` on stdin.
+It returns the same array with `match_score`, `decision`, and `confidence` filled
+from each `score_breakdown`. A row carrying `score_error` → `state.gaps` and drop
+that row; continue with the remaining rows.
+
 ## validate
 
-Load `./worker-validate.md`. Rows with `match_score >= 75` or `confidence < 0.7` as match wrote them (the set does not shrink if a later role lowers the score).
-Roles run in order: evidence, then classify, then arith. Never mix roles in one worker. Parallelize dossiers inside a role.
-Each role pastes the MatchResult currently in `state.matches` (after the previous role applied). `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it. Arith that cannot hold the contract formula → `state.gaps` and drop the row.
+Load `./worker-validate.md`. Rows with `match_score >= 75` or `confidence < 0.7`
+after score are selected once; the set does not shrink if a later role lowers
+the score.
+Roles run in order: evidence, then classify. Never mix roles in one worker. Parallelize dossiers inside a role.
+Each role pastes the MatchResult currently in `state.matches` (after the previous role applied). `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it, and a replaced row goes back through **score** before rank.
 Malformed or failed validate output → `state.gaps` and drop the row.
 Non-reviewed rows stay as match wrote them.
 

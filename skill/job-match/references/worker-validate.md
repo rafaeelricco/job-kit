@@ -22,11 +22,6 @@ Else CORRECTION (drop or rewrite the bullet; adjust breakdown if a claimed hold 
 
 Input: CandidateProfile + JobProfile + MatchResult + MatchingPolicy.
 Must-have treated as preferred; seniority overstated; location / `work_model` misread;
-printed must-have missing from JobProfile. Else APPROVED.
-
-## arith
-
-Input: MatchResult + MatchingPolicy.
-Breakdown cells integers or `null`; `null` not `0`; `match_score` / `decision` /
-`confidence` equal the contract formulas. Mechanical fix → CORRECTION. Cannot
-hold → caller Gaps that url.
+printed must-have missing from JobProfile; a `0` cell where the evidence is
+absent (`null` is the unknown value). Else APPROVED. Leave `match_score`,
+`decision`, and `confidence` alone: the caller recomputes them.
