@@ -15,12 +15,13 @@ First match wins → blocked. Do not invent auth paths.
 
 ## Soft weights (sum = 100)
 
-Cells are integers, or `—` for a factor with no evidence. Do not invent a scale
-beyond this table. Workers fill the cells; `scripts/score.py` computes
-`match_score`, `decision`, and `confidence` from them (formula in the script:
-the weighted share of scored factors, renormalized over their weights). For
-Primary stack a worker may emit `{"held": k, "required": n}` instead of the
-integer; `k` and `n` must be integers with `n >= 1` and `0 <= k <= n`.
+Cells are integers, or `—` for a factor with no evidence, except Primary stack:
+a scored Primary stack cell must be `{"held": k, "required": n}` so
+`scripts/score.py` owns its point calculation and half-up rounding. The counts
+remain in `score_breakdown` through scoring and validation; a pre-rounded
+Primary stack integer is invalid. `k` and `n` must be integers with `n >= 1`
+and `0 <= k <= n`. Workers fill the cells; `scripts/score.py` computes
+`match_score`, `decision`, and `confidence` from them.
 Invalid cells receive a per-row `score_error`; they are never rounded or allowed
 to abort the remaining batch.
 

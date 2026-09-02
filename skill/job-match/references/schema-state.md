@@ -111,3 +111,7 @@ Matcher output.
   }
 }
 ```
+
+`score_breakdown.primary_stack` is `null` when unscored. When scored, it carries
+raw `{"held": <count>, "required": <count>}` counts through scoring and
+validation; never a pre-rounded integer.
