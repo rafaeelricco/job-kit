@@ -1,6 +1,6 @@
 ---
 name: job-pitch
-description: "Read this when you need to turn the story deck into outbound narrative for a hiring platform — a timed English-vetting video script, or S.T.A.R.T. work-experience bullets. Read-only; never writes. Never speak a process number, a never_say claim, or any number the deck does not print. Use when the user runs /job-pitch, asks for a vetting video script, a Strider work experience write-up, or how to tell a story in 90 seconds. Not for writing the deck itself (job-stories) or drafting an application (job-apply)."
+description: "Read this when you need to turn the story deck into outbound narrative for a hiring platform — a timed English-vetting video script, or S.T.A.R.T. work-experience bullets. Read-only. Use when the user runs /job-pitch, asks for a vetting video script, a Strider work experience write-up, or how to tell a story in 90 seconds. Not for writing the deck itself (job-stories) or drafting an application (job-apply)."
 ---
 
 # Job pitch
@@ -29,16 +29,16 @@ Read-only; never writes. No path under Profile root is writable in this skill.
    text. If the skill does not resolve, stop and name it. For `script`, recount
    `{n} words · ~{s}s` and cut to range. Then apply the `never_say` filter in
    `contract-say.md` and print.
-5. No verb intent → list the `ready` stories with what each covers, then **STOP**.
+5. No verb intent → list the `ready` stories with what each covers.
 
 ## Commands
 
-| Utterance                                                   | Do                           | Writes |
-| ----------------------------------------------------------- | ---------------------------- | ------ |
-| vetting video script / how do I tell this one in 90 seconds | `script`                     | —      |
-| write my work experience / S.T.A.R.T. bullets for Ambar     | `experience`                 | —      |
-| write a story / add this project to my deck                 | hand off `job-stories`, STOP | —      |
-| apply to this posting / get an application ready            | hand off `job-apply`, STOP   | —      |
+| Utterance                                                   | Do                                          | Writes |
+| ----------------------------------------------------------- | ------------------------------------------- | ------ |
+| vetting video script / how do I tell this one in 90 seconds | `script`                                    | —      |
+| write my work experience / S.T.A.R.T. bullets for Ambar     | `experience`                                | —      |
+| write a story / add this project to my deck                 | hand off `job-stories`, then end this skill | —      |
+| apply to this posting / get an application ready            | hand off `job-apply`, then end this skill   | —      |
 
 ## References
 

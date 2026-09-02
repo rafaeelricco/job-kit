@@ -140,6 +140,6 @@ plan in chat per `plan-format`. Plan what will be written, not what was asked:
 - Gaps the fill report will carry; CV source → destination; LaTeX base
   copy when adapt is yes
 
-**STOP** and wait for an explicit yes. Silence, a question, or edits are not a
+STOP and wait for an explicit yes. Silence, a question, or edits are not a
 yes. Edits reopen only the affected questionnaire fields, then re-present the
 plan. On yes → emit-tree, then fill. **No write before this yes.**

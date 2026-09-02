@@ -1,6 +1,6 @@
 ---
 name: job-stories
-description: "Read this when you need to write or check the interview story deck in a profile — one markdown file per story under data/stories/. Never invent a number, an outcome, a client name, or a claim the evidence does not print; never write without an explicit yes. Use when the user runs /job-stories, asks to write a story, add a story to the deck, turn a project into an interview answer, or asks which stories still need numbers. Not for drafting an application (job-apply), rendering a story as a vetting script or profile write-up (job-pitch), or editing search config (job-profile-me)."
+description: "Read this when you need to write or check the interview story deck in a profile — one markdown file per story under data/stories/, from evidence the operator names. Use when the user runs /job-stories, asks to write a story, add a story to the deck, turn a project into an interview answer, or asks which stories still need numbers. Not for drafting an application (job-apply), rendering a story as a vetting script or profile write-up (job-pitch), or editing search config (job-profile-me)."
 ---
 
 # Job stories
@@ -18,16 +18,16 @@ atomic rename. Every other path under Profile root is read-only in this skill.
 1. Read `./references/schema-story.md` now; field law for both verbs.
 2. `add`: obey `./references/flow-author.md` end-to-end.
 3. `audit`: obey `./references/flow-audit.md`. Read-only; never repairs.
-4. No verb intent → run `audit`, then STOP.
+4. No verb intent → run `audit`.
 
 ## Commands
 
-| Utterance                                                    | Do                                | Writes                   |
-| ------------------------------------------------------------ | --------------------------------- | ------------------------ |
-| write a story about X / turn Prevou into an interview answer | `add`                             | `data/stories/<slug>.md` |
-| which stories need numbers / check my deck                   | `audit`                           | —                        |
-| create a profile / set one up from my CV                     | hand off `job-profile-init`, STOP | —                        |
-| apply to this posting / get an application ready             | hand off `job-apply`, STOP        | —                        |
+| Utterance                                                    | Do                                               | Writes                   |
+| ------------------------------------------------------------ | ------------------------------------------------ | ------------------------ |
+| write a story about X / turn Prevou into an interview answer | `add`                                            | `data/stories/<slug>.md` |
+| which stories need numbers / check my deck                   | `audit`                                          | —                        |
+| create a profile / set one up from my CV                     | hand off `job-profile-init`, then end this skill | —                        |
+| apply to this posting / get an application ready             | hand off `job-apply`, then end this skill        | —                        |
 
 ## References
 

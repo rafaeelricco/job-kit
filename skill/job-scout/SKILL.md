@@ -1,6 +1,6 @@
 ---
 name: job-scout
-description: "Find and rank live job openings from operator-selected search packs or ad-hoc site URLs, report results, and persist scout dossiers. List-only: never applies or contacts. Not for dossier reading, applications, inbox triage, or profile configuration."
+description: "Find and rank live job openings from operator-selected search packs or ad-hoc site URLs, report results, and persist scout dossiers. List-only. Use when the user runs /job-scout or asks to find, search, or scout openings. Not for dossier reading (job-list), applications (job-apply), inbox triage (job-inbox), or profile configuration (job-profile-me)."
 argument-hint: "[all | <pack-id>…] [<url>…]"
 ---
 
@@ -14,7 +14,7 @@ Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`, 
 Surface playbook, load when its pack is in the run set: `./references/surface-hiring-cafe.md`.
 
 List only. Never apply, message, or connect.
-Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`. Never `scout/runs/`.
+Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`.
 
 ## 0 Preflight
 
@@ -114,5 +114,3 @@ Then `{n} dossiers → {abs Profile root}/scout/jobs/`
 ## 6 Persist
 
 Obey `schema-dossier.md` and `contract-persistence.md`. One dossier per persist-set row. No dossier for kit drop or uncertain. Existing dead dossier → closure log only.
-
-STOP.
