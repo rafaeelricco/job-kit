@@ -56,9 +56,9 @@ substitutions:
 - `--yolo` is absent and §5 is unreachable. Nothing that posts is ever clicked;
   "Save draft", "Continue" past the last read-only step, and account creation
   count as posting.
-- §3 rule 0 cannot fire (§1 above excluded every dossier with a matching plan).
-  Rule 1 chains `job-resume-refine` exactly as written; its PDF is this plan's
-  `cv`. Rule 2 or 3 → `cv` is that path.
+- §3 rule 0 is disabled for every prep run, including explicit `<file>` queues.
+  Start at rule 1, which chains `job-resume-refine` exactly as written; its PDF
+  is this plan's `cv`. Rule 2 or 3 → `cv` is that path.
 - §4 stages values but prints no package and stops for no yes. Record every
   field the form asks except the CV upload control: `selector`, `label`, `type`,
   `required`, `value`, `source`. `source` is the file
