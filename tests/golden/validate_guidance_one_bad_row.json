@@ -1,0 +1,129 @@
+{
+  "script": "skill/job-match/scripts/validate_guidance.py",
+  "argv": [],
+  "stdin": {
+    "candidate": {
+      "skills": [
+        "React"
+      ],
+      "experience": [
+        {
+          "company": "Acme",
+          "position": "Senior Frontend Engineer",
+          "date": "2020-2024"
+        }
+      ]
+    },
+    "jobs": [
+      {
+        "url": "https://example.com/jobs/1",
+        "title": "Senior Frontend Engineer",
+        "seniority": "senior",
+        "required_skills": [
+          "React"
+        ],
+        "preferred_skills": [
+          "GraphQL"
+        ]
+      },
+      {
+        "url": "https://example.com/jobs/2",
+        "title": "Backend Engineer",
+        "seniority": "intern",
+        "required_skills": [
+          "Go"
+        ],
+        "preferred_skills": []
+      }
+    ],
+    "guidance": [
+      {
+        "schema_version": 1,
+        "url": "https://example.com/jobs/1",
+        "requirements": [
+          {
+            "kind": "required",
+            "job_term": "React",
+            "status": "held",
+            "profile_term": "React"
+          },
+          {
+            "kind": "preferred",
+            "job_term": "GraphQL",
+            "status": "unknown",
+            "profile_term": null
+          }
+        ],
+        "priority_roles": [
+          {
+            "company": "Acme",
+            "position": "Senior Frontend Engineer",
+            "matched_on": [
+              "role_type",
+              "seniority"
+            ]
+          }
+        ],
+        "warnings": []
+      },
+      {
+        "schema_version": 2,
+        "url": "https://example.com/jobs/2",
+        "requirements": [
+          {
+            "kind": "required",
+            "job_term": "Go",
+            "status": "held",
+            "profile_term": "Golang"
+          }
+        ],
+        "priority_roles": [],
+        "warnings": []
+      }
+    ]
+  },
+  "exit": 0,
+  "stdout": {
+    "valid": [
+      {
+        "schema_version": 1,
+        "url": "https://example.com/jobs/1",
+        "requirements": [
+          {
+            "kind": "required",
+            "job_term": "React",
+            "status": "held",
+            "profile_term": "React"
+          },
+          {
+            "kind": "preferred",
+            "job_term": "GraphQL",
+            "status": "unknown",
+            "profile_term": null
+          }
+        ],
+        "priority_roles": [
+          {
+            "company": "Acme",
+            "position": "Senior Frontend Engineer",
+            "matched_on": [
+              "role_type",
+              "seniority"
+            ]
+          }
+        ],
+        "warnings": []
+      }
+    ],
+    "invalid": [
+      {
+        "url": "https://example.com/jobs/2",
+        "errors": [
+          "schema_version must be 1",
+          "requirements[0].profile_term is not an exact candidate skill",
+          "warnings must equal the codes the sources decide: no_relevant_role"
+        ]
+      }
+    ]
+  }
+}
