@@ -42,7 +42,7 @@ def check(text, expected):
         if not needle:
             return -1
         pattern = re.compile(
-            r"(?<![A-Za-z0-9])" + re.escape(needle) + r"(?![A-Za-z0-9])"
+            r"(?<![^\W_])" + re.escape(needle) + r"(?![^\W_])"
         )
         match = pattern.search(hay, start)
         return match.start() if match else -1

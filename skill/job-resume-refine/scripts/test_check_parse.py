@@ -95,6 +95,16 @@ class ParseCheckTests(unittest.TestCase):
         text = TEXT.replace("TypeScript, JavaScript", "C, Go, TypeScript, JavaScript")
         self.assertEqual(check(text, expected)["verdict"], "PASS")
 
+    def test_short_skill_does_not_match_inside_unicode_word(self):
+        for skill, text in (("R", "Résumé"), ("C", "César")):
+            with self.subTest(skill=skill, text=text):
+                expected = copy.deepcopy(self.expected)
+                expected["skills"] = [skill]
+                self.assertIn(
+                    {"kind": "skill", "token": skill},
+                    check(text, expected)["missing"],
+                )
+
     def test_punctuated_skills_still_match(self):
         expected = copy.deepcopy(self.expected)
         expected["skills"] = ["C++", "C#", ".NET", "Node.js"]
