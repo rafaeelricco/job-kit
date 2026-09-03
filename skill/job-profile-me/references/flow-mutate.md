@@ -22,9 +22,10 @@ Load `./schema-profile-card.md` when the verb is `refresh-card` or when a
 6. Render each file's edited content to a sibling `*.yaml.tmp` staging path.
    Edit surgically: never re-serialize the document, never drop comments or
    keys outside the diff. A live file is never edited in place.
-7. Re-parse **every** staged file. Any staging write or parse that fails →
-   delete the staged files and say nothing was written, naming the failing path
-   and its error.
+7. Re-parse **every** staged file. For `search_packs.yaml`, also apply the route
+   invariant below. Any staging write, parse, or route validation that fails →
+   delete the staged files and say nothing was written, naming the failing path,
+   pack id, and error.
 8. All staged files parse → rename each over its original. Rename is the only
    step that mutates a live file.
 9. A rename that fails after an earlier one succeeded → restore those originals
@@ -61,8 +62,9 @@ that is `refresh-card`.
 
 ## `search_packs.yaml` — writable
 
-- `list` — read-only. File order: `id · entry host · enabled|disabled · tokens`.
+- `list` — read-only. Use the `flow-show.md` Packs format and route statuses.
 - `enable` / `disable` — flip `enabled` on a named `id`. No id match → say so.
+  Enabling must satisfy the route invariant before the staged file is renamed.
 - `formulations` — replace the list on one pack with strings the user typed. Never
   compose a formulation, never widen one, never look a term up. Empty list → refuse.
   A typed line that contains `[industry]` → warn (scout drops an empty
@@ -70,7 +72,14 @@ that is `refresh-card`.
 - `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥1 formulation
   from the user. `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or
   another); scout opens `entry`, it does not load a playbook file. `entry` is one
-  `http(s)` URL. A board is a pack, never a row inside one.
+  `http(s)` URL. Accept optional `route_required` and `route` only when supplied
+  by the user. A board is a pack, never a row inside one.
+
+Route invariant: `route_required`, when present, is boolean. A present route is
+a mapping with `kind: json`, a `url` containing `{formulation}` and `{page}`, and
+non-empty `pages`, `items`, and `posting_url` strings. An enabled pack
+(`enabled` absent or true) with `route_required: true` must have that complete
+route. A disabled required pack may omit it. Never hardcode board ids.
 
 ## `cvs.yaml` — writable keys
 

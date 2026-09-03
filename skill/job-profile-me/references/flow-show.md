@@ -14,7 +14,7 @@ Packs **list** only (list my boards / packs): print `### Packs` and stop — no 
 | `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*`              |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                           |
 | `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                     |
-| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, tokens — one pack is one board                                                             |
+| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, route requirement, route, tokens — one pack is one board                                   |
 | `data/cvs.yaml`                                         | CV: `adapt_per_vacancy` (absent → true) and `base`                                                                             |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
@@ -31,8 +31,17 @@ owner; job-scout Phase 0 derives its card and constraints from it:
   work auth · employment_routes · relocation
 
 `### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
-enabled|disabled · tokens`. Absent → one line saying job-scout will STOP until
-this file exists (emit via `/job-profile-init` or add packs via `/job-profile-me`).
+enabled|disabled · route=json|DOM|missing|invalid|disabled · tokens`.
+A complete JSON route has `kind: json`, a `url` containing `{formulation}` and
+`{page}`, and non-empty `pages`, `items`, and `posting_url` dot paths.
+Use `route=missing` for an enabled `route_required: true` pack without a complete
+route, `route=invalid` for any present incomplete or unsupported route,
+`route=disabled` for a disabled required pack without a route, and `route=DOM`
+when no route is required. The same line must name the affected pack.
+Route status belongs in `### Packs`, not the Gaps allowlist.
+
+Absent → one line saying job-scout will STOP until this file exists (emit via
+`/job-profile-init` or add packs via `/job-profile-me`).
 
 `### CV` fourth when `data/cvs.yaml` is readable: `base`, plus `missing` when it
 does not resolve under `cv/`, and `no latex` when its `.tex` sibling is absent.
