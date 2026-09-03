@@ -29,6 +29,8 @@ source tokens; it is not a Fact source and contains no finished resume prose.
 - `kind` is `required` or `preferred`.
 - `status` is `held`, `not_evidenced`, or `unknown`.
 - `held` follows `contract-match.md` Skill hold and requires an exact candidate token.
+  A requirement that any candidate skill directly holds must be `held`; the
+  validator rejects a downgrade to `not_evidenced` or `unknown`.
 - `not_evidenced` means a discrete skill has no direct hold in CandidateProfile;
   it never means the candidate definitively lacks that experience.
 - Non-skill or incomparable requirements are `unknown`.
@@ -39,5 +41,7 @@ source tokens; it is not a Fact source and contains no finished resume prose.
   whole-position phrase within the JobProfile title. `seniority` uses the same
   or a one-step neighbor on its intern–junior–mid–senior–staff–principal ladder.
 - Warning codes are `candidate_skills_empty`, `no_required_skills`, or
-  `no_relevant_role`.
+  `no_relevant_role`, and the sources decide them: empty candidate skills, empty
+  required skills, and empty `priority_roles` respectively. The validator
+  rejects a missing or extra code.
 - No Summary, bullet, outcome, responsibility, score, or apply verdict is allowed.
