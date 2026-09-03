@@ -58,7 +58,8 @@ def check(text, expected):
         return cursor
 
     for token in expected["identity"]:
-        require("identity", token, 0)
+        if normalize(token):
+            require("identity", token, 0)
 
     cursor = 0
     for role in expected["roles"]:
