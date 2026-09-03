@@ -103,8 +103,11 @@ Exactly one CV per application, first match:
    proves they are still the ones on disk. A plan whose `url` does not match,
    or whose `cv` does not open, is ignored entirely — fall through to rule 1.
    A plan whose `cv` opens but no longer matches `cv_sha256` is stale: print
-   `Plan stale · {slug}` and fall through to rule 1 the same way. Only
-   `job-prep` writes `plan.json`; this skill never does.
+   `Plan stale · {slug}`. With `--yolo`, skip this posting and require a fresh
+   `/job-prep {filename}` plus `/job-prep --digest`, or rerun
+   `/job-apply {filename}` without `--yolo`; never fall through under advance
+   approval. Without `--yolo`, fall through to rule 1. Only `job-prep` writes
+   `plan.json`; this skill never does.
 
 1. `adapt_per_vacancy` is true and this dossier's frontmatter `status:` is `new`
    → print `Chained job-resume-refine · {filename}` and spawn one isolated child:
@@ -161,8 +164,8 @@ Edits → re-run the affected step and re-print.
 
 `--yolo` is the yes, given in advance: print each package and continue into §5
 without waiting, skipping §5's unpreviewed-fields gate too. It never overrides a
-skip, a stop, an `operator` row a form requires, a secret handoff, or a wall
-§5 hands back.
+stale prepared plan, a skip, a stop, an `operator` row a form requires, a secret
+handoff, or a wall §5 hands back.
 
 ## 5. Submit
 
