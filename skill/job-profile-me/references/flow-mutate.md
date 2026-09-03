@@ -3,7 +3,8 @@
 One mutation per confirm cycle. Several related edits in one user message are one
 batch — still one diff, one yes.
 
-Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/add/remove),
+Verbs: `set` (`job_search.yaml`), `packs`
+(list/enable/disable/formulations/add/remove/route/sync),
 `refresh-card` (`profile_card.yaml`), `cvs set` (`cvs.yaml`).
 Load `./schema-profile-card.md` when the verb is `refresh-card` or when a
 `positions` write clears `primary_role`.
@@ -74,9 +75,20 @@ that is `refresh-card`.
   another); scout opens `entry`, it does not load a playbook file. `entry` is one
   `http(s)` URL. Accept optional `route_required` and `route` only when supplied
   by the user. A board is a pack, never a row inside one.
+- `route` — set or clear the `route` block on a named `id`. No id match → say so.
+  Every field comes from the user: never compose a `url`, a dot path, or a
+  `kind`. Clearing a route on an enabled `route_required: true` pack → refuse
+  and offer `disable`.
+- `sync` — read `job-profile-init/templates/data/search_packs.yaml`, match by
+  pack id, and stage the `route` and `route_required` fields a shipped pack has
+  and the profile pack lacks. Kit-owned route fields only: never touch
+  `enabled`, `entry`, `surface`, or `formulations`, never add or drop a pack,
+  never write an id the profile does not already carry. Nothing to backfill, or
+  template unreadable → say so and write nothing.
 
-Route invariant: `route_required`, when present, is boolean. A present route is
-a mapping with `kind: json`, a `url` containing `{formulation}` and `{page}`, and
+Route invariant: `route_required`, when present, is boolean — a non-boolean
+value fails the invariant on any staged write. A present route is a mapping with
+`kind: json`, a `url` containing `{formulation}` and `{page}`, and
 non-empty `pages`, `items`, and `posting_url` strings. An enabled pack
 (`enabled` absent or true) with `route_required: true` must have that complete
 route. A disabled required pack may omit it. Never hardcode board ids.

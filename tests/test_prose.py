@@ -49,6 +49,7 @@ FENCE = re.compile(r"^\s*(?:```|~~~)")
 JSON_FENCE = re.compile(r"^\s*(?:```|~~~)json\s*$")
 PLACEHOLDER = re.compile(r"<[^<>\n]+>|\.\.\.|…")
 FRONTMATTER_KEY = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$")
+PACK_ID = re.compile(r"^  - id:\s*(\S+)")
 
 FILE_SUFFIXES: Tuple[str, ...] = (
     ".md",
@@ -110,6 +111,10 @@ SKILL_LOCAL: str = "skill-local"
 FILE_LOCAL: str = "file-relative"
 CROSS: str = "cross-skill"
 CHECKABLE_KINDS: Tuple[str, ...] = (SKILL_LOCAL, FILE_LOCAL, CROSS)
+
+DECK: Path = SKILL / "job-profile-init" / "templates" / "data" / "search_packs.yaml"
+ROUTE_FIELDS: Tuple[str, ...] = ("kind", "url", "pages", "items", "posting_url")
+ROUTE_TOKENS: Tuple[str, ...] = ("{formulation}", "{page}")
 
 
 @dataclass(frozen=True)
@@ -439,84 +444,246 @@ class FrontmatterTests(unittest.TestCase):
                 )
 
 
+@dataclass(frozen=True)
+class Pack:
+    """One pack in the shipped search deck, with where it was written."""
+
+    identifier: str
+    lineno: int
+    lines: Tuple[str, ...]
+
+    @property
+    def where(self) -> str:
+        return "{0}:{1}".format(DECK.relative_to(REPO).as_posix(), self.lineno)
+
+    def value(self, indent: int, key: str) -> Optional[str]:
+        """The value written for ``key`` at exactly ``indent`` spaces, else None."""
+        prefix = "{0}{1}:".format(" " * indent, key)
+        for line in self.lines:
+            if line.startswith(prefix):
+                return line[len(prefix) :].strip()
+        return None
+
+
+def search_packs() -> Tuple[Pack, ...]:
+    """Every pack in the shipped deck, in file order, with its own lines."""
+    packs = []
+    identifier = None
+    lineno = 0
+    body = []
+    for number, line in enumerate(read(DECK).splitlines(), start=1):
+        match = PACK_ID.match(line)
+        if match:
+            if identifier is not None:
+                packs.append(Pack(identifier, lineno, tuple(body)))
+            identifier, lineno, body = match.group(1).strip("\"'"), number, []
+        elif identifier is not None and line.strip() and not line.startswith("  "):
+            packs.append(Pack(identifier, lineno, tuple(body)))
+            identifier = None
+        elif identifier is not None:
+            body.append(line)
+    if identifier is not None:
+        packs.append(Pack(identifier, lineno, tuple(body)))
+    return tuple(packs)
+
+
+def route_defect(pack: Pack) -> Optional[str]:
+    """Why ``pack``'s route is not a complete json route, or None when it is."""
+    block = pack.value(4, "route")
+    if block is None:
+        return "carries no route block"
+    if block:
+        return "writes route inline as {0!r}, not a block mapping".format(block)
+    missing = [key for key in ROUTE_FIELDS if not pack.value(6, key)]
+    if missing:
+        return "omits route " + ", ".join(missing)
+    kind = pack.value(6, "kind")
+    if kind != "json":
+        return "declares route kind {0!r}, not json".format(kind)
+    url = pack.value(6, "url") or ""
+    absent = [token for token in ROUTE_TOKENS if token not in url]
+    if absent:
+        return "writes a route url without " + ", ".join(absent)
+    return None
+
+
 class SearchPackRouteTests(unittest.TestCase):
+    """The shipped deck's routes, and the skill prose that consumes them."""
+
     @classmethod
     def setUpClass(cls):
-        cls.deck = read(
-            SKILL / "job-profile-init" / "templates" / "data" / "search_packs.yaml"
+        cls.deck = read(DECK)
+        cls.packs = search_packs()
+
+    def pack(self, identifier: str) -> Pack:
+        for pack in self.packs:
+            if pack.identifier == identifier:
+                return pack
+        self.fail(
+            "no pack `{0}` in {1}".format(identifier, DECK.relative_to(REPO).as_posix())
         )
-        cls.packs = dict(
-            re.findall(
-                r"(?ms)^  - id: ([^\n]+)\n(.*?)(?=^  - id: |\Z)",
-                cls.deck,
+
+    def assertOrdered(self, text: str, first: str, second: str, source: str) -> None:
+        for phrase in (first, second):
+            self.assertIn(
+                phrase, text, "{0} no longer says {1!r}".format(source, phrase)
             )
+        self.assertLess(
+            text.index(first),
+            text.index(second),
+            "{0} places {1!r} after {2!r}".format(source, first, second),
+        )
+
+    def test_deck_parses(self):
+        declared = len(re.findall(r"(?m)^  - id:", self.deck))
+        identifiers = [pack.identifier for pack in self.packs]
+        routed = [p for p in self.packs if p.value(4, "route") is not None]
+        required = [p for p in self.packs if p.value(4, "route_required") == "true"]
+        report(
+            "\nsearch packs: {0} parsed, {1} routed, {2} route_required".format(
+                len(self.packs), len(routed), len(required)
+            )
+        )
+        self.assertEqual(
+            declared,
+            len(self.packs),
+            "{0} `- id:` lines but {1} packs parsed; the pack scanner has "
+            "regressed".format(declared, len(self.packs)),
+        )
+        self.assertGreaterEqual(
+            len(self.packs),
+            10,
+            "only {0} packs parsed; the pack scanner has regressed".format(
+                len(self.packs)
+            ),
+        )
+        self.assertEqual(
+            sorted(set(identifiers)),
+            sorted(identifiers),
+            "duplicate pack id: {0}".format(
+                sorted(i for i in set(identifiers) if identifiers.count(i) > 1)
+            ),
+        )
+        self.assertGreater(
+            len(required),
+            0,
+            "no pack declares `route_required: true`; the route tests pass vacuously",
         )
 
     def test_route_schema_is_documented(self):
-        header = self.deck.split("\npacks:\n", 1)[0]
-        for field in (
+        header, marker, _ = self.deck.partition("\npacks:\n")
+        self.assertTrue(marker, "no `packs:` key; the header split has regressed")
+        for phrase in (
             "route_required:",
             "route is optional",
             "kind: json",
-            "url",
-            "pages",
-            "items",
-            "posting_url",
+            "pages, items, and posting_url",
+            "{formulation}",
+            "{page}",
+            "keep gate",
+            "packs sync",
         ):
-            with self.subTest(field=field):
-                self.assertIn(field, header)
+            with self.subTest(phrase=phrase):
+                self.assertIn(
+                    phrase,
+                    header,
+                    "the deck header stops documenting {0!r}".format(phrase),
+                )
 
     def test_required_routes_are_complete_or_disabled(self):
-        fields = (
-            "    route:",
-            "      kind: json",
-            "      url:",
-            "      pages:",
-            "      items:",
-            "      posting_url:",
-        )
-        for pack_id, body in self.packs.items():
-            complete = all(field in body for field in fields)
-            complete = complete and "{formulation}" in body and "{page}" in body
-            disabled = re.search(r"(?m)^    enabled: false$", body) is not None
-            with self.subTest(pack=pack_id):
-                if "    route:\n" in body:
-                    self.assertTrue(complete, "present route is incomplete")
-                if "    route_required: true" in body:
-                    self.assertTrue(
-                        complete or disabled,
-                        "required route is missing from an enabled pack",
+        for pack in self.packs:
+            defect = route_defect(pack)
+            required = pack.value(4, "route_required")
+            with self.subTest(pack=pack.identifier, source=pack.where):
+                if pack.value(4, "route") is not None:
+                    self.assertIsNone(
+                        defect,
+                        "{0} at {1} {2}".format(pack.identifier, pack.where, defect),
+                    )
+                if required is not None:
+                    self.assertIn(
+                        required,
+                        ("true", "false"),
+                        "{0} at {1} writes a non-boolean `route_required: "
+                        "{2}`".format(pack.identifier, pack.where, required),
+                    )
+                if required == "true" and pack.value(4, "enabled") != "false":
+                    self.assertIsNone(
+                        defect,
+                        "enabled pack {0} at {1} {2}".format(
+                            pack.identifier, pack.where, defect
+                        ),
                     )
 
     def test_shipped_route_dependent_packs(self):
-        getonbrd = self.packs["getonbrd"]
-        self.assertIn("    route_required: true", getonbrd)
-        self.assertIn("      kind: json", getonbrd)
-        self.assertIn(
-            "https://www.getonbrd.com/api/v0/search/jobs?"
-            "query={formulation}&per_page=40&page={page}&remote=true",
-            getonbrd,
-        )
-        self.assertIn("      pages: meta.total_pages", getonbrd)
-        self.assertIn("      items: data", getonbrd)
-        self.assertIn("      posting_url: links.public_url", getonbrd)
+        getonbrd = self.pack("getonbrd")
+        for indent, key, want in (
+            (4, "route_required", "true"),
+            (6, "kind", "json"),
+            (
+                6,
+                "url",
+                "https://www.getonbrd.com/api/v0/search/jobs"
+                "?query={formulation}&per_page=40&page={page}",
+            ),
+            (6, "pages", "meta.total_pages"),
+            (6, "items", "data"),
+            (6, "posting_url", "links.public_url"),
+        ):
+            with self.subTest(pack="getonbrd", key=key, source=getonbrd.where):
+                self.assertEqual(
+                    getonbrd.value(indent, key),
+                    want,
+                    "getonbrd at {0} writes {1}: {2!r}".format(
+                        getonbrd.where, key, getonbrd.value(indent, key)
+                    ),
+                )
+        self.assertIsNone(route_defect(getonbrd))
 
-        hiring_cafe = self.packs["hiring-cafe"]
-        self.assertIn("    route_required: true", hiring_cafe)
-        self.assertIn("    enabled: false", hiring_cafe)
+        hiring_cafe = self.pack("hiring-cafe")
+        self.assertEqual(hiring_cafe.value(4, "route_required"), "true")
+        self.assertEqual(
+            hiring_cafe.value(4, "enabled"),
+            "false",
+            "hiring-cafe at {0} carries no route, so it must ship "
+            "disabled".format(hiring_cafe.where),
+        )
 
     def test_route_consumers_are_pinned(self):
         scout = read(SKILL / "job-scout" / "SKILL.md")
         show = read(SKILL / "job-profile-me" / "references" / "flow-show.md")
         mutate = read(SKILL / "job-profile-me" / "references" / "flow-mutate.md")
-
-        self.assertLess(
-            scout.index("When a pack has `route`"),
-            scout.index("Without `route`"),
+        pinned = (
+            (
+                "job-scout/SKILL.md",
+                scout,
+                (
+                    "`defect: route_failed`",
+                    "`defect: list_truncated`",
+                    "— no others",
+                    "never open the root",
+                ),
+            ),
+            (
+                "job-profile-me/references/flow-show.md",
+                show,
+                ("Route status, first match", "route=json", "packs sync"),
+            ),
+            (
+                "job-profile-me/references/flow-mutate.md",
+                mutate,
+                ("Route invariant", "- `route` —", "- `sync` —"),
+            ),
         )
-        self.assertIn("`defect: route_failed`", scout)
-        self.assertIn("route=missing", show)
-        self.assertIn("route invariant", mutate)
+        for source, text, phrases in pinned:
+            for phrase in phrases:
+                with self.subTest(source=source, phrase=phrase):
+                    self.assertIn(
+                        phrase, text, "{0} no longer says {1!r}".format(source, phrase)
+                    )
+        self.assertOrdered(
+            scout, "When a pack has `route`", "Without `route`", "job-scout/SKILL.md"
+        )
         self.assertNotRegex(scout, r"surface-[a-z0-9-]+\.md")
 
 
