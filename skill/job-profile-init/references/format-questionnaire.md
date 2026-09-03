@@ -11,7 +11,9 @@ language/skill/education row, and every `job_search.yaml` key:
 - positions, locations, `location_scope` (`worldwide` | `listed`),
   `direct_regions`, `market_currencies`, `exclude_locations`
 
-Ask each `search_packs.yaml` `packs[].enabled` flag.
+Ask each `search_packs.yaml` `packs[].enabled` flag. Never offer to enable a
+`route_required: true` pack that carries no `route` — name it as unavailable and
+leave it disabled.
 
 Ask CV policy after packs and before Stories:
 

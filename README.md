@@ -304,7 +304,9 @@ re-runs the installers. Local checkout: `git pull`, then re-run the installers
 you use. Channels are independent.
 
 Update never modifies profile checkouts, the default config dir contents, or
-`~/.config/profile-root`. Installs
+`~/.config/profile-root` — a deck field a later release adds reaches an existing
+profile only through `/job-profile-me packs sync`, which backfills kit-owned
+route fields onto packs you already have. Installs
 also clear kit-owned copies of legacy skill names (`job-discovery`, `job-application`,
 `profile-scaffold`, `application-stage`, `profile-init`) and leftover kit trees
 under Aside's `skills/user/`.
