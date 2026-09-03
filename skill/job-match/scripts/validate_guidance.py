@@ -41,6 +41,31 @@ def _seniority_rank(value: Optional[str]) -> Optional[int]:
     )
 
 
+def _role_match_reasons(job: "JobProfile", position: str) -> FrozenSet[str]:
+    """Return the source-supported reasons that make one candidate role relevant."""
+    reasons = set()
+    if role_type_points(job.title, (position,)) == 15:
+        reasons.add("role_type")
+
+    job_rank = _seniority_rank(job.seniority)
+    role_rank = _seniority_rank(position)
+    if (
+        job_rank is not None
+        and role_rank is not None
+        and abs(job_rank - role_rank) <= 1
+    ):
+        reasons.add("seniority")
+    return frozenset(reasons)
+
+
+def _has_relevant_role(job: "JobProfile", candidate: "CandidateProfile") -> bool:
+    """Return whether candidate experience contains a source-supported role."""
+    return any(
+        _role_match_reasons(job, role.position)
+        for role in candidate.experience
+    )
+
+
 @dataclass(frozen=True)
 class SourceIndex:
     candidate: CandidateProfile
@@ -248,13 +273,18 @@ def _requirement_errors(
 def _priority_role_errors(
     job: JobProfile,
     row: Mapping[str, object],
-    candidate_roles: FrozenSet[Tuple[str, str]],
+    candidate: CandidateProfile,
 ) -> Tuple[str, ...]:
     priority_roles = row.get("priority_roles")
     if not isinstance(priority_roles, list):
         return ("priority_roles must be an array",)
 
     errors: List[str] = []
+    candidate_roles = candidate.role_pairs
+    if not priority_roles and _has_relevant_role(job, candidate):
+        errors.append(
+            "priority_roles must include a source-matched candidate role"
+        )
     seen_roles = set()
     for index, role in enumerate(priority_roles):
         prefix = f"priority_roles[{index}]"
@@ -291,19 +321,11 @@ def _priority_role_errors(
                 f"{prefix}.matched_on must contain unique role_type/seniority values"
             )
         elif role_is_strings and role_pair in candidate_roles:
-            if (
-                "role_type" in matched_on
-                and role_type_points(job.title, (position,)) != 15
-            ):
+            supported = _role_match_reasons(job, position)
+            if "role_type" in matched_on and "role_type" not in supported:
                 errors.append(f"{prefix}.matched_on role_type is unsupported")
 
-            job_rank = _seniority_rank(job.seniority)
-            role_rank = _seniority_rank(position)
-            if "seniority" in matched_on and (
-                job_rank is None
-                or role_rank is None
-                or abs(job_rank - role_rank) > 1
-            ):
+            if "seniority" in matched_on and "seniority" not in supported:
                 errors.append(f"{prefix}.matched_on seniority is unsupported")
     return tuple(errors)
 
@@ -325,8 +347,7 @@ def _warning_errors(
         return ("warnings must contain unique allowed warning codes",)
 
     expected = set(source_warnings(candidate, job))
-    priority_roles = row.get("priority_roles")
-    if isinstance(priority_roles, list) and not priority_roles:
+    if not _has_relevant_role(job, candidate):
         expected.add("no_relevant_role")
     if set(warnings) != expected:
         return (
@@ -347,7 +368,7 @@ def _validate_row(
         *_schema_errors(row),
         *_url_errors(job, row),
         *_requirement_errors(job, row, frozenset(candidate.skills)),
-        *_priority_role_errors(job, row, candidate.role_pairs),
+        *_priority_role_errors(job, row, candidate),
         *_warning_errors(job, row, candidate),
     )
 
