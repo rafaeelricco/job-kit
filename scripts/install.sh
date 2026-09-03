@@ -167,6 +167,7 @@ expand_only() {
   # job-apply's CV step chains job-resume-refine for a status:new dossier; a subset
   # without resume cannot complete that path. job-apply Queue and Read both bind
   # job-list/references/flow-read.md, so a subset without job-list cannot queue.
+  # job-resume-refine Target loads job-match schemas, workers, and scripts.
   # job-scout Preflight loads job-profile-me/references/*; its persist loads
   # job-match/references/* (flow-match-gate.md). job-match Bind loads
   # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
@@ -192,6 +193,14 @@ expand_only() {
         case " ${ASIDE_ONLY} " in
           *" job-profile-me "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-me" ;;
+        esac
+        ;;
+    esac
+    case " ${ASIDE_ONLY} " in
+      *" job-resume-refine "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-match "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-match" ;;
         esac
         ;;
     esac
