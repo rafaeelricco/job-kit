@@ -46,7 +46,9 @@ by `job-prep --digest`.
   not `ats`.
 - `channel` is the dossier's frontmatter value.
 - `prepared_at` is UTC ISO-8601 with a `Z` suffix.
-- `cv` is an absolute PDF path under `scout/applications/{slug}/`.
+- `cv` is an absolute PDF path: under `scout/applications/{slug}/` when
+  `job-apply/references/flow-apply.md` §3 rule 1 or 2 picked it, under `cv/`
+  when rule 3 did.
 - `cv_sha256` is the lowercase hex SHA-256 of the file at `cv`, taken when the
   plan is written. `job-apply/references/flow-apply.md` §3 rule 0 refuses a plan
   whose `cv` bytes no longer match it, so a later refine cannot swap the
