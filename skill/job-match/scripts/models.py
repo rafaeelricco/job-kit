@@ -53,7 +53,7 @@ def evidence_tokens(value: object) -> FrozenSet[str]:
         elif isinstance(item, list):
             for child in item:
                 visit(child)
-        elif isinstance(item, str) and len(item.strip()) >= 2:
+        elif isinstance(item, str) and item.strip():
             found.add(item.strip().lower())
 
     visit(value)

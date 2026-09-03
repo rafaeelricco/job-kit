@@ -100,17 +100,21 @@ class KeepQuotedTests(unittest.TestCase):
             "strengths": [
                 "Experience with ongoing migrations",
                 "Shipped Go services to production",
+                "Built services in C",
             ],
             "gaps": ["Delivered results with a strong customer focus"],
             "blockers": [],
         }
         result = keep_quoted(
             MatchResult.from_json(source),
-            CandidateProfile.from_json({"skills": ["Go"]}),
+            CandidateProfile.from_json({"skills": ["C", "Go"]}),
             JobProfile.from_json({"url": "u", "required_skills": ["US"]}),
         ).to_json()
 
-        self.assertEqual(result["strengths"], ["Shipped Go services to production"])
+        self.assertEqual(
+            result["strengths"],
+            ["Shipped Go services to production", "Built services in C"],
+        )
         self.assertEqual(result["gaps"], [])
         self.assertEqual(
             result["evidence_dropped"],
