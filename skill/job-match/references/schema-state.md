@@ -8,34 +8,36 @@ Orchestrator holds this object in-session. Nodes write only their keys. Never a 
   "jobs": [],
   "blocked": [],
   "matches": [],
+  "guidance": [],
   "gaps": []
 }
 ```
 
 `blocked[]`: `{ "company", "title", "url", "reason" }`.
+`guidance[]`: valid ResumeGuidance rows from `./contract-resume-guidance.md`.
 `gaps[]`: `{ "url" | "path", "reason" }`.
 
 ## CandidateProfile
 
 `state.candidate`. Derive once from disk. Workers never re-read Profile root.
 
-| Field                             | Source                                                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `roles`                           | `job_search.yaml` `positions[]`                                                                        |
-| `skills`                          | `job-profile-me/references/schema-profile-card.md` `top_skills`                                        |
-| `domains`                         | same file, `industries`                                                                                |
-| `languages`                       | same file, `languages` as `{name: level}`                                                              |
-| `experience`                      | `experiences.yml` `date` · `position` · `company` per role; no `summary`                               |
-| `years_experience`                | floor(unique calendar months / 12) from `experience[].date` matching `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}`where`<sep>`is`--`, `-`, `–`, or `—`with optional spaces (full or 3-letter month, optional`.`, inclusive union, `Present`= current month); no parseable roles or`experience=[]`→`null` not 0 |
-| `preferences.remote`              | `candidate.yaml` `work_preferences_from_resume.remote_work`                                            |
-| `preferences.in_person`           | `in_person_work`                                                                                       |
-| `preferences.relocation`          | `open_to_relocation`                                                                                   |
-| `constraints.work_model`          | `job_search.yaml` `work_model`                                                                         |
-| `constraints.locations`           | `job_search.yaml` `locations`                                                                          |
-| `constraints.location_scope`      | `job_search.yaml` `location_scope`                                                                     |
-| `constraints.exclude_locations`   | `job_search.yaml` `exclude_locations`                                                                  |
-| `constraints.market_currencies`   | `job_search.yaml` `market_currencies`                                                                  |
-| `constraints.legal_authorization` | `candidate.yaml` `legal_authorization`                                                                 |
+| Field                             | Source                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `roles`                           | `job_search.yaml` `positions[]`                                                                                                                                                                                                                                                                                                                                                                                 |
+| `skills`                          | `job-profile-me/references/schema-profile-card.md` `top_skills`                                                                                                                                                                                                                                                                                                                                                 |
+| `domains`                         | same file, `industries`                                                                                                                                                                                                                                                                                                                                                                                         |
+| `languages`                       | same file, `languages` as `{name: level}`                                                                                                                                                                                                                                                                                                                                                                       |
+| `experience`                      | `experiences.yml` `date` · `position` · `company` per role; no `summary`                                                                                                                                                                                                                                                                                                                                        |
+| `years_experience`                | floor(unique calendar months / 12) over `experience[].date`. A date is `{Mon[.] YYYY} <sep> {Mon[.] YYYY \| Present}`; `<sep>` is `--`, `-`, `–`, or `—` with optional spaces; full or 3-letter month; inclusive; overlapping roles count each month once; `Present` = current month. No parseable role or `experience=[]` → `null`, not 0. This is the one years rule; job-pitch and job-resume-refine cite it |
+| `preferences.remote`              | `candidate.yaml` `work_preferences_from_resume.remote_work`                                                                                                                                                                                                                                                                                                                                                     |
+| `preferences.in_person`           | `in_person_work`                                                                                                                                                                                                                                                                                                                                                                                                |
+| `preferences.relocation`          | `open_to_relocation`                                                                                                                                                                                                                                                                                                                                                                                            |
+| `constraints.work_model`          | `job_search.yaml` `work_model`                                                                                                                                                                                                                                                                                                                                                                                  |
+| `constraints.locations`           | `job_search.yaml` `locations`                                                                                                                                                                                                                                                                                                                                                                                   |
+| `constraints.location_scope`      | `job_search.yaml` `location_scope`                                                                                                                                                                                                                                                                                                                                                                              |
+| `constraints.exclude_locations`   | `job_search.yaml` `exclude_locations`                                                                                                                                                                                                                                                                                                                                                                           |
+| `constraints.market_currencies`   | `job_search.yaml` `market_currencies`                                                                                                                                                                                                                                                                                                                                                                           |
+| `constraints.legal_authorization` | `candidate.yaml` `legal_authorization`                                                                                                                                                                                                                                                                                                                                                                          |
 
 ```json
 {
@@ -114,4 +116,6 @@ Matcher output.
 
 `score_breakdown.primary_stack` is `null` when unscored. When scored, it carries
 raw `{"held": <count>, "required": <count>}` counts through scoring and
-validation; never a pre-rounded integer.
+validation; never a pre-rounded integer. `experience` and `role_type` are
+derived by `scripts/score.py` from CandidateProfile and JobProfile; workers
+leave them `null`.
