@@ -2,7 +2,13 @@ import copy
 import unittest
 
 from models import CandidateProfile, JobProfile, MatchResult
-from score import experience_points, keep_quoted, role_type_points, score_all
+from score import (
+    _contains_token,
+    experience_points,
+    keep_quoted,
+    role_type_points,
+    score_all,
+)
 
 
 FACTORS = (
@@ -27,6 +33,7 @@ class ExperienceTests(unittest.TestCase):
     def test_points(self):
         cases = (
             (6, "6+ years", 20),
+            (6, "1099 contract, 5+ years", 20),
             (9, "8-10 years", 20),
             (5, "8-10 years", 10),
             (5, "senior", None),
@@ -141,6 +148,20 @@ class KeepQuotedTests(unittest.TestCase):
         self.assertNotIn("evidence_dropped", result)
 
 
+class ContainsTokenTests(unittest.TestCase):
+    def test_boundaries_ignore_punctuation_but_not_letters(self):
+        cases = (
+            ("reactñ stack", "react", False),
+            ("maintains c# services", "c#", True),
+            ("ships .net internals", ".net", True),
+            ("node.js services in production", "node.js", True),
+            ("built c++ tooling", "c++", True),
+        )
+        for text, token, expected in cases:
+            with self.subTest(text=text, token=token):
+                self.assertEqual(_contains_token(text, token), expected)
+
+
 class ScoreAllTests(unittest.TestCase):
     def test_object_payload_derives_then_scores(self):
         payload = {
@@ -207,21 +228,35 @@ class ScoreAllTests(unittest.TestCase):
         self.assertEqual(output[0]["match_score"], 100)
         self.assertEqual(output[0]["confidence"], 0.6)
 
-    def test_last_duplicate_job_url_wins(self):
+    def test_duplicate_job_url_is_a_row_error(self):
         payload = {
             "candidate": {"roles": ["Engineer"], "skills": []},
             "jobs": [
                 {"url": "u", "title": "Manager"},
                 {"url": "u", "title": "Engineer"},
+                {"url": "unique", "title": "Engineer"},
             ],
             "matches": [
-                {"url": "u", "score_breakdown": breakdown(seniority=15)}
+                {"url": "u", "score_breakdown": breakdown(seniority=15)},
+                {"url": "u", "score_breakdown": breakdown(seniority=8)},
+                {"url": "unique", "score_breakdown": breakdown(seniority=15)},
             ],
         }
 
         output = score_all(payload)
 
-        self.assertEqual(output[0]["score_breakdown"]["role_type"], 15)
+        cases = (
+            (0, "duplicate JobProfile url"),
+            (1, "duplicate JobProfile url"),
+        )
+        for index, expected in cases:
+            with self.subTest(index=index):
+                self.assertEqual(output[index]["score_error"], expected)
+                self.assertNotIn("match_score", output[index])
+
+        self.assertNotIn("score_error", output[2])
+        self.assertEqual(output[2]["score_breakdown"]["role_type"], 15)
+        self.assertEqual(output[2]["match_score"], 100)
 
     def test_score_all_does_not_mutate_payload(self):
         payload = [

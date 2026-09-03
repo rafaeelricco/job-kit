@@ -29,16 +29,16 @@ that quotes no token from the two profiles.
 Invalid cells receive a per-row `score_error`; they are never rounded or allowed
 to abort the remaining batch.
 
-| Criterion         | Weight | Points                                                                                                                                                                                               |
-| ----------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Primary stack     |     25 | `25 × \|∩\| / \|required_skills\|` (direct hold); either list empty → —                                                                                                                              |
-| Experience        |     20 | Code. Job token with no integer → —; else min N = first integer (`6+ years`→6, `8-10 years`→8, `12+`→12); candidate ≥ N → 20; short → 10; candidate `null` or job `null` → —                         |
-| Seniority         |     15 | Same printed token as JobProfile `seniority` in `experience[].position` → 15; one step on intern–junior–mid–senior–staff–principal → 8; posting token not on that ladder → —; else 0. Job `null` → — |
-| Role type         |     15 | Code. JobProfile `title` contains a `candidate.roles[]` string (case-insensitive, punctuation ignored) → 15; else 0. `roles` empty → —                                                               |
-| Location / remote |     10 | Shared `work_model` and (remote or named-location match) → 10; shared `work_model` only → 5; else 0. Both unknown → —                                                                                |
-| Domain            |      5 | Printed domain cue holds in `candidate.domains` → 5; cue present, no hold → 0; no cue → —                                                                                                            |
-| Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                                                                      |
-| Preferences       |      5 | `candidate.preferences` agree with JobProfile `work_model` / `location` → 5; conflict → 0; all blank → —                                                                                             |
+| Criterion         | Weight | Points                                                                                                                                                                                                     |
+| ----------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary stack     |     25 | `25 × \|∩\| / \|required_skills\|` (direct hold); either list empty → —                                                                                                                                    |
+| Experience        |     20 | Code. Job token with no one- or two-digit integer → —; else min N = the first one (`6+ years`→6, `8-10 years`→8, `12+`→12, `1099 contract, 5+ years`→5); candidate ≥ N → 20; short → 10; either `null` → — |
+| Seniority         |     15 | Same printed token as JobProfile `seniority` in `experience[].position` → 15; one step on intern–junior–mid–senior–staff–principal → 8; posting token not on that ladder → —; else 0. Job `null` → —       |
+| Role type         |     15 | Code. JobProfile `title` contains a `candidate.roles[]` string (case-insensitive, punctuation ignored) → 15; else 0. `roles` empty → —                                                                     |
+| Location / remote |     10 | Shared `work_model` and (remote or named-location match) → 10; shared `work_model` only → 5; else 0. Both unknown → —                                                                                      |
+| Domain            |      5 | Printed domain cue holds in `candidate.domains` → 5; cue present, no hold → 0; no cue → —                                                                                                                  |
+| Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                                                                            |
+| Preferences       |      5 | `candidate.preferences` agree with JobProfile `work_model` / `location` → 5; conflict → 0; all blank → —                                                                                                   |
 
 No evidence for a factor → that factor's cell is `—`. Never write `0` for unknown.
 
