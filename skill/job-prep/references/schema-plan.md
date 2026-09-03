@@ -56,6 +56,8 @@ by `job-prep --digest`.
 - `fields[].source` is a Fact-file path, a `contract-screening.md` row, or
   `operator`. `operator` rows carry `"value": null` and force a `needs_you`
   entry when `required` is true.
+- The CV upload control is excluded from `fields[]`; top-level `cv` and
+  `cv_sha256` identify the file represented in the package's `### CV` section.
 - `needs_you[]` entries are `{ "what": "...", "why": "...", "where": "..." }`,
   the three columns of the package's `### Needs you` table.
 - `walls[]` records a captcha or account wall seen on the apply path as a
