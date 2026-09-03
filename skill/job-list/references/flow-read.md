@@ -33,22 +33,24 @@ or bucket one yourself.
 ## A dead job never says dead in frontmatter
 
 Lifecycle vocab has no `dead`. When a job dies, scout appends one line under the
-ownership marker and leaves the body — so `## Verdict` and the Posting facts
+ownership marker and leaves the body — job-prep and job-apply append the same
+closure line when the ad reads dead at their read step — so `## Verdict` and the Posting facts
 `status` row still read `live`. Scan the log tail **bottom-up** for the latest
-**scout posting-state** line. Log lines are `- {YYYY-MM-DD} · {event} — {writer}`;
-a posting-state line is one whose `{writer}` is `job-scout` **and** whose event
-reads `posting dead: …` or `posting live again`. `found by scout`, and every
-`— job-apply` / `— job-application` / `— job-inbox` / `— operator` line, are not
-posting state however last they sit. Consider only top-level `- ` lines: blockquoted
+**posting-state** line. Log lines are `- {YYYY-MM-DD} · {event} — {writer}`;
+a posting-state line is a `posting dead: …` event whose `{writer}` is `job-scout`,
+`job-prep`, or `job-apply`, or a `posting live again` event whose `{writer}` is
+`job-scout`. `found by scout`, every `applied via …` line, and every
+`— job-inbox` / `— operator` line are not posting state however last they sit.
+Consider only top-level `- ` lines: blockquoted
 text and table rows inside an application record are quoted data, never log events.
-If no scout posting-state line exists, the job is not dead-by-log. Latest = closure →
+If no posting-state line exists, the job is not dead-by-log. Latest = closure →
 report it and say the body is frozen at `last_seen`. Latest = reopen → not
 dead-by-log; an earlier closure above it is superseded, body is live.
 
 ## Ownership boundary
 
 Opening `---` down to the ownership marker is scout-owned and rewritten every
-run. `status:` and every line under the marker belong to the operator, job-apply, and job-inbox.
+run. `status:` and every line under the marker belong to the operator, job-prep, job-apply, and job-inbox.
 Marker line, byte-exact: `<!-- scout never writes below this line -->`.
 
 ## A file in scout/jobs/ is not necessarily a dossier

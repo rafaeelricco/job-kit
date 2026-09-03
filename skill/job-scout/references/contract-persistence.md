@@ -1,6 +1,6 @@
 # Dossier persistence transaction
 
-Shared filesystem transaction for job-scout, job-apply, and job-inbox.
+Shared filesystem transaction for job-scout, job-prep, job-apply, and job-inbox.
 Dossier shape, ownership, and writer-specific mutations remain in
 `job-scout/references/schema-dossier.md`.
 
