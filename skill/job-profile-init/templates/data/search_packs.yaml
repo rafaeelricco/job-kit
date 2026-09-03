@@ -5,6 +5,12 @@
 # [role] = job_search.yaml positions.
 # [industry] = profile card.
 # enabled: false keeps a pack in the file but out of the run (absent = true).
+# route_required: true means DOM search is not viable; an enabled pack needs route.
+# route is optional; kind: json requires url, pages, items, and posting_url.
+# url substitutes percent-encoded {formulation} and 1-based {page}; response
+# fields are dot paths, with posting_url resolved inside each item.
+# A route url is fixed: it carries no constraint filters, so work_model,
+# date_posted, job_types, and location fall to scout's keep gate.
 
 packs:
   - id: linkedin-jobs
@@ -52,6 +58,9 @@ packs:
   - id: hiring-cafe
     surface: open-web
     entry: https://hiring.cafe
+    # Search is SSR-only, which the generic JSON route does not support.
+    route_required: true
+    enabled: false
     formulations:
       - "[role]"
 
@@ -107,5 +116,15 @@ packs:
   - id: getonbrd
     surface: open-web
     entry: https://getonbrd.com/jobs
+    route_required: true
+    route:
+      kind: json
+      url: https://www.getonbrd.com/api/v0/search/jobs?query={formulation}&per_page=40&page={page}
+      pages: meta.total_pages
+      items: data
+      posting_url: links.public_url
+    # Posting URLs may redirect to category paths; retain the opened canonical URL.
+    # `/api/v0/jobs/{id}` returns 401, so extract the JD from the posting page.
+    # No date filter on this API; `attributes.published_at` is unix seconds.
     formulations:
       - "[role]"

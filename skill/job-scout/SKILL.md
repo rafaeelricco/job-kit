@@ -42,17 +42,46 @@ Auth: existing session. Never create an account. Password/OTP/2FA are operator-o
 
 One pack at a time; never two on the same host.
 
-Open `entry`. ATS roots with no browsable index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`): never open the root — run `site:{entry host} {formulation}` on a search engine instead; an `entry` with a path is not a root, open it directly. Interpolate `[role]` from positions (file order), `[industry]` from the card. Drop an empty leftover token. Run every formulation × every position.
+Interpolate `[role]` from positions (file order), `[industry]` from the card.
+Drop an empty leftover token. Build every formulation × position before opening
+a surface.
 
 `worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
 
-Surface filter controls matching Constraints `date_posted`, `work_model`,
-`job_types`, and location — no others → set them before scanning, location per
-the scope rule above; the keep rules below still apply. Paginate every result
-list until no next page or a page adds no new result URL, cap 5 pages per
-formulation run. A zero-keep page is not a stop. Cap hit → `defect: list_truncated`.
+When a pack has `route`, consume it before any DOM search. Routed packs run once
+per expanded formulation; location remains a keep filter instead of repeating
+the same routed URL for every named location.
 
-Proof: surface echo is the submitted string, else `defect: query_not_submitted`.
+- Only `kind: json` is supported. Open `entry` to establish its browser origin,
+  substitute the percent-encoded formulation and 1-based page into `url`, then
+  GET that URL from page context.
+- Resolve `items` and `pages` as dot paths in each JSON response. Resolve
+  `posting_url` inside every item, normalize it, and retain the expanded
+  formulation as `matched_query`. Populate standard candidate fields exposed by
+  the item; absent fields remain `—` for posting-page extraction.
+- Start at page 1 and stop at the configured total, when a page adds no new
+  posting URL, or at the existing five-page and 40-candidate caps. Either cap as
+  the reason for stopping → `defect: list_truncated`, as on a DOM run.
+- A successful GET of the exact substituted URL is submission proof. An enabled
+  `route_required: true` pack without a complete supported route, or any present
+  incomplete route, records `defect: query_not_submitted` and scans nothing.
+  HTTP failure, non-JSON output, or a missing configured response path records
+  `defect: route_failed`. Never fall back to DOM after a configured or required
+  route fails.
+
+Without `route`, retain the DOM flow. Open `entry`. ATS roots with no browsable
+index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
+`jobs.ashbyhq.com`) use `site:{entry host} {formulation}` on a search engine
+instead; an `entry` with a path opens directly.
+
+Surface filter controls matching Constraints `date_posted`, `work_model`,
+`job_types`, and location — no others → set them before scanning. Paginate until
+no next page or a page adds no new result URL, capped at five pages per
+formulation run. A zero-keep page is not a stop. Cap hit →
+`defect: list_truncated`.
+
+For DOM runs, proof remains the surface echo matching the submitted string;
+otherwise record `defect: query_not_submitted`.
 
 Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack. Normalize URL per `schema-dossier.md`.
 
@@ -76,6 +105,11 @@ Batches of 5, one URL at a time, same host serialized. Listed URLs only. No page
 Open the full posting before copying: expand every collapsed or truncated
 block ("read more" / "show more" / accordions) and scroll to the end. A JD
 still truncated after expansion → `status=uncertain`, never partial facts.
+
+A posting that redirects → replace the row's URL with the landed canonical URL
+(`location.href`, else `link[rel=canonical]`), re-normalize per
+`schema-dossier.md`, and fold it into an existing row for that URL before
+persisting.
 
 `### Verified`: search columns plus schema Posting facts keys except `blocker`, and `status_reason`, `role_snapshot`, `role_do`, `role_must`.
 
