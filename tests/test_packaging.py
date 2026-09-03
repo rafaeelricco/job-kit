@@ -289,6 +289,12 @@ class RequiredFilesTests(unittest.TestCase):
                         % (installer.relative, entry),
                     )
 
+    def test_shell_installer_is_executable(self):
+        self.assertTrue(
+            REMOTE_SH.stat().st_mode & 0o111,
+            "scripts/remote.sh must remain directly executable",
+        )
+
     def test_installers_declare_the_same_sequence(self):
         shell, powershell = (self.declared[i.label] for i in INSTALLERS)
         difference = set(shell) ^ set(powershell)
