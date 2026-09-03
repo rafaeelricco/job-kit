@@ -2,8 +2,10 @@
 """Fill match scores from immutable profile and match values."""
 
 import json
+import math
 import re
 import sys
+from collections import Counter
 from copy import deepcopy
 from dataclasses import replace
 from typing import Callable, Dict, Mapping, Optional, Sequence, Tuple
@@ -41,7 +43,20 @@ QUOTED_LISTS = ("strengths", "gaps", "blockers")
 
 
 def half_up(value: float) -> int:
-    return int(value + 0.5) if value >= 0 else -int(-value + 0.5)
+    """Round half away from zero.
+
+    Adding 0.5 and truncating is exact only while ``value + 0.5`` is
+    representable. Between 2**52 and 2**53 the float spacing is 1.0, so the
+    addition lands on an exact tie and rounds to even, moving every odd value
+    one integer away from zero. Subtracting the floor instead is exact for
+    every finite float — above 2**52 the floor is the value itself and the
+    remainder is 0.0 — so the rule holds across the whole range.
+    """
+    floor = math.floor(value)
+    remainder = value - floor
+    if value >= 0:
+        return floor + 1 if remainder >= 0.5 else floor
+    return floor + 1 if remainder > 0.5 else floor
 
 
 def require_integer(name: str, value: object) -> int:
@@ -82,10 +97,10 @@ def cell_points(name: str, cell: object) -> Optional[int]:
 def experience_points(
     candidate_years: Optional[int], job_years: Optional[str]
 ) -> Optional[int]:
-    """Score the first integer in the job experience token as its floor."""
+    """Score the first one- or two-digit integer in the job experience token as its floor."""
     if candidate_years is None or job_years is None:
         return None
-    match = re.search(r"\d+", str(job_years))
+    match = re.search(r"\b\d{1,2}\b", str(job_years))
     if match is None:
         return None
     return (
@@ -103,7 +118,7 @@ def _contains_token(text: str, token: str) -> bool:
     """Return whether ``token`` appears in ``text`` unglued from other letters or digits."""
     if not token:
         return False
-    pattern = r"(?<![a-z0-9])" + re.escape(token) + r"(?![a-z0-9])"
+    pattern = r"(?<![^\W_])" + re.escape(token) + r"(?![^\W_])"
     return re.search(pattern, text) is not None
 
 
@@ -242,15 +257,19 @@ def score_all(payload: object) -> Sequence[Dict[str, object]]:
         )
 
     candidate = CandidateProfile.from_json(candidate_source)
-    by_url = {
-        job.url: job
+    parsed: Tuple[JobProfile, ...] = tuple(
+        JobProfile.from_json(item)
         for item in jobs_source
         if isinstance(item, dict)
-        for job in (JobProfile.from_json(item),)
-    }
+    )
+    counts = Counter(job.url for job in parsed)
+    by_url = {job.url: job for job in parsed if counts[job.url] == 1}
+    duplicates = frozenset(url for url, n in counts.items() if n > 1)
 
     def operation(source: object) -> MatchResult:
         url = source.get("url") if isinstance(source, dict) else None
+        if isinstance(url, str) and url in duplicates:
+            raise ValueError("duplicate JobProfile url")
         job = by_url.get(url) if isinstance(url, str) else None
         if job is None:
             raise ValueError("no JobProfile for this url")
