@@ -11,8 +11,6 @@
 # fields are dot paths, with posting_url resolved inside each item.
 # A route url is fixed: it carries no constraint filters, so work_model,
 # date_posted, job_types, and location fall to scout's keep gate.
-# A profile deck is emitted once and never re-synced; /job-profile-me packs sync
-# backfills kit-owned route fields a later release added.
 
 packs:
   - id: linkedin-jobs

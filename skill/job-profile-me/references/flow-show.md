@@ -34,17 +34,11 @@ owner; job-scout Phase 0 derives its card and constraints from it:
 enabled|disabled · route=json|DOM|missing|invalid|disabled · tokens`.
 A complete JSON route has `kind: json`, a `url` containing `{formulation}` and
 `{page}`, and non-empty `pages`, `items`, and `posting_url` dot paths.
-Route status, first match: `route_required` present and not boolean →
-`route=invalid`; complete route → `route=json`; any other present route →
-`route=invalid`; `route_required: true` and enabled → `route=missing`;
+Route status, first match: complete route → `route=json`; any other present
+route → `route=invalid`; `route_required: true` and enabled → `route=missing`;
 `route_required: true` and disabled → `route=disabled`; else `route=DOM`.
+The same line must name the affected pack.
 Route status belongs in `### Packs`, not the Gaps allowlist.
-
-Then read `job-profile-init/templates/data/search_packs.yaml` and compare by
-pack id. Any id whose shipped pack carries `route` or `route_required` that the
-profile pack lacks → one line under the rows: `N pack(s) behind the shipped
-deck: {ids} — /job-profile-me packs sync`. Unreadable template → no line, never
-a stop.
 
 Absent → one line saying job-scout will STOP until this file exists (emit via
 `/job-profile-init` or add packs via `/job-profile-me`).
