@@ -115,7 +115,10 @@ ascending. Print:
     Needs you: {count of plans with non-empty needs_you} ({distinct `what` values})
 
 `{salary field value}` is the staged `value` of the field whose `source` names
-the `contract-screening.md` salary row. The reply `send 1 2 4` is a chat turn
+the `contract-screening.md` salary row. The `Needs you` count applies the same
+dossier filters as the eligible list: a plan with a non-empty `needs_you` counts
+only while its `scout/jobs/{slug}.md` reads `status: new` with no dead-by-log
+posting-state line. The reply `send 1 2 4` is a chat turn
 that maps to `/job-apply --yolo` with those files; `job-apply` §3 rule 0 then
 attaches the approved PDF. Unanswered plans reprint tomorrow. Zero eligible →
 `Nothing prepared.` plus the `Needs you` line.
