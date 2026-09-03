@@ -66,6 +66,11 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+case "${ONLY}" in
+  "" | unit | invariants | golden | lint | fuzz | mutation) ;;
+  *) echo "test.sh: unknown stage '${ONLY}'" >&2; exit 2 ;;
+esac
+
 FAILED=""
 PASSED=""
 

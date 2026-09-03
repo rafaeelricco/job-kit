@@ -29,6 +29,7 @@ from harness import REPO, read, skill_dirs  # noqa: E402
 REMOTE_SH: Path = REPO / "scripts" / "remote.sh"
 REMOTE_PS1: Path = REPO / "scripts" / "remote.ps1"
 INSTALL_SH: Path = REPO / "scripts" / "install.sh"
+TEST_SH: Path = REPO / "scripts" / "test.sh"
 ASIDE_LIB: Path = REPO / "scripts" / "aside" / "lib.sh"
 
 SHELL_REQUIRED_VAR: str = "KIT_REQUIRED_FILES"
@@ -420,6 +421,20 @@ class SkillLayoutTests(unittest.TestCase):
             planned,
             "--only job-resume-refine did not pull in job-match:\n%s" % output,
         )
+
+
+class TestRunnerTests(unittest.TestCase):
+    def test_unknown_only_stage_is_rejected(self):
+        completed = subprocess.run(
+            ["sh", str(TEST_SH), "--only", "does-not-exist"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("unknown stage 'does-not-exist'", completed.stderr)
+        self.assertNotIn("all stages passed", completed.stdout)
 
 
 if __name__ == "__main__":
