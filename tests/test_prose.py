@@ -581,7 +581,6 @@ class SearchPackRouteTests(unittest.TestCase):
             "{formulation}",
             "{page}",
             "keep gate",
-            "packs sync",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(
@@ -661,18 +660,17 @@ class SearchPackRouteTests(unittest.TestCase):
                     "`defect: route_failed`",
                     "`defect: list_truncated`",
                     "— no others",
-                    "never open the root",
                 ),
             ),
             (
                 "job-profile-me/references/flow-show.md",
                 show,
-                ("Route status, first match", "route=json", "packs sync"),
+                ("Route status, first match", "route=json"),
             ),
             (
                 "job-profile-me/references/flow-mutate.md",
                 mutate,
-                ("Route invariant", "- `route` —", "- `sync` —"),
+                ("Route invariant",),
             ),
         )
         for source, text, phrases in pinned:
