@@ -2,6 +2,7 @@
   "name": "job-kit",
   "private": true,
   "scripts": {
+    "test": "bash scripts/test.sh",
     "format": "prettier --write ."
   },
   "devDependencies": {

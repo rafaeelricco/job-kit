@@ -1,0 +1,75 @@
+{
+  "script": "skill/job-match/scripts/scaffold_guidance.py",
+  "argv": [],
+  "stdin": {
+    "candidate": {
+      "roles": [
+        "Frontend Engineer"
+      ],
+      "skills": [
+        "React",
+        "react",
+        "TypeScript"
+      ],
+      "years_experience": 6,
+      "experience": [
+        {
+          "company": "Acme",
+          "position": "Senior Frontend Engineer",
+          "date": "2020-2024"
+        }
+      ]
+    },
+    "jobs": [
+      {
+        "url": "https://example.com/jobs/1",
+        "title": "Senior Frontend Engineer",
+        "seniority": "senior",
+        "years_experience": "5+ years",
+        "required_skills": [
+          "react",
+          "GraphQL"
+        ],
+        "preferred_skills": [
+          "React",
+          "typescript"
+        ]
+      }
+    ]
+  },
+  "exit": 0,
+  "stdout": [
+    {
+      "schema_version": 1,
+      "url": "https://example.com/jobs/1",
+      "requirements": [
+        {
+          "kind": "required",
+          "job_term": "react",
+          "status": "held",
+          "profile_term": "React"
+        },
+        {
+          "kind": "required",
+          "job_term": "GraphQL",
+          "status": "unknown",
+          "profile_term": null
+        },
+        {
+          "kind": "preferred",
+          "job_term": "React",
+          "status": "held",
+          "profile_term": "React"
+        },
+        {
+          "kind": "preferred",
+          "job_term": "typescript",
+          "status": "held",
+          "profile_term": "TypeScript"
+        }
+      ],
+      "priority_roles": [],
+      "warnings": []
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "script": "skill/job-resume-refine/scripts/check_parse.py",
+  "argv": [],
+  "stdin": {
+    "identity": "Rafael Ricco",
+    "roles": [
+      {
+        "company": "Acme",
+        "position": "Senior Frontend Engineer",
+        "date": "2020-2024"
+      }
+    ],
+    "skills": [
+      "React"
+    ]
+  },
+  "exit": 0,
+  "stdout": {
+    "verdict": "FAIL",
+    "missing": [],
+    "order": [],
+    "error": "identity must be an array of strings"
+  }
+}
