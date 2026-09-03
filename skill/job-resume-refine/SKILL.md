@@ -1,6 +1,6 @@
 ---
 name: job-resume-refine
-description: "Read this when you need a one-page resume tailored to one posting — a scout dossier, a job URL, or a pasted job description: pick and reword from Facts already in the profile, humanize the Summary, compile a PDF, and report what changed. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for preparing the whole application package (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
+description: "Read this when you need a one-page resume tailored to one posting — obtain fresh read-only job-match guidance, resolve it against full profile Facts, humanize allowed prose, compile a PDF, and report what changed. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for preparing the whole application package (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
 ---
 
 # Job resume refine
@@ -14,7 +14,8 @@ Resolve `data/`, `cv/`, and `scout/` against that root.
 
 Writes `scout/applications/{slug}/` only. `data/` and `cv/` stay read-only.
 
-Skill-local files: `./references/*` only.
+Skill-local files: `./references/*` and `./scripts/*.py` only. Resolve both
+against the directory containing this loaded `SKILL.md`, never the caller's CWD.
 
 Read `./references/flow-refine.md` now.
 Load each additional reference only when that flow names it.

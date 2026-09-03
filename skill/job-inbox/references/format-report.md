@@ -16,7 +16,10 @@ and what needs the operator today.
 `## Replies` — every `interview`, `offer`, `rejected` row, matched or not,
 newest first:
 
-    - {company} · {outcome} · {date} · account:{uid} · thread:{tid} · "{≤10-word clause}"
+    - {company} · {outcome} · {date} · account:{uid} · thread:{tid} · "{clause}"
+
+`{clause}` is the span Classify quoted — the words that fired the verdict,
+nothing around them.
 
 `## Acknowledged` — every row not already in `## Replies`, `ack` included, same
 line without the date.

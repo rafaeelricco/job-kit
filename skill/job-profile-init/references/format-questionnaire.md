@@ -23,9 +23,8 @@ Ask CV policy after packs and before Stories:
 Then, only when adapt is yes and `cv/` holds no `.tex`: ask for an existing
 `.tex` path to copy in as the base. Never generate LaTeX.
 
-Do not ask pack `entry` URLs, pack implementation metadata, derived
-profile URLs, or kit-owned `salary_expectations.tip`. Do not collect
-demographic/EEO data.
+Do not ask pack `entry` URLs, pack implementation metadata, or derived
+profile URLs. Do not collect demographic/EEO data.
 
 ## Rules
 

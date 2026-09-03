@@ -10,10 +10,10 @@ Store source (below) and the store is absent or unreadable → name the path and
 ```
 bind → profile → candidates → filter₁ → extract → filter₂ → match → score
                                                               │
-                                 rank ◄── validate{evidence, classify} ◄──┘
+report ◄─ advise ◄─ select ◄─ order ◄─ validate ◄──────────────┘
 ```
 
-Fan-out only on extract, match, and each validate role. Same `state.candidate` + same policy on every worker. Batch ~10 when Runtime=workers; else inline sequential.
+Fan-out only on extract, match, validate, and advise. Same `state.candidate` + same policy on every worker. Batch ~10 when Runtime=workers; else inline sequential.
 
 ## bind
 
@@ -25,12 +25,20 @@ Derive `state.candidate` per schema-state CandidateProfile. Unreadable required 
 
 ## candidates
 
-Parse tokens. At most one selector: `--new` | `--all` | `--posting`.
-`--exclude <status>[,<status>…]` is a modifier; it consumes the next token. Status vocabulary = `job-list/references/flow-read.md` frontmatter `status:`. Unknown status, `--exclude` with `--posting`, unknown `--` flag, leftover tokens, or two selectors → stop.
+Parse tokens. At most one selector: `--new` | `--all` | `--posting` | one
+`scout/jobs/` filename. `--exclude <status>[,<status>…]` is a modifier; it
+consumes the next token. `--top <n>` consumes one positive integer and is legal
+with every selector; absent means no cap. Status vocabulary =
+`job-list/references/flow-read.md` frontmatter `status:`. Missing, non-integer,
+non-positive, or repeated `--top` values → stop. Unknown status, `--exclude`
+with `--posting` or a dossier, an unmatched `.md` filename, unknown flags,
+leftover tokens, or two selectors → stop.
 
 1. `--posting`, or no selector and the message already holds a posting body (role text or structured facts — not a lone company/title token) → one candidate: that body. Never fetch. No body → stop.
-2. `--all`, or `--exclude` with no selector → store, every parseable dossier except `dropped` and dead-by-log, then drop `--exclude` statuses.
-3. Empty or `--new` → store, frontmatter `status:` = `new`, not dead-by-log, then drop `--exclude` statuses.
+2. A dossier filename → that exact readable, parseable file under `scout/jobs/`.
+   Use its stored snapshot, never fetch, and do not apply status or dead-log filters.
+3. `--all`, or `--exclude` with no selector → store, every parseable dossier except `dropped` and dead-by-log, then drop `--exclude` statuses.
+4. Empty or `--new` → store, frontmatter `status:` = `new`, not dead-by-log, then drop `--exclude` statuses.
 
 Zero → `No dossiers to match.` and end.
 `--posting`: extract next, then filter₁ on the JobProfile (no Posting facts table). Store sources keep the graph order below.
@@ -59,21 +67,47 @@ the first working Python 3 launcher: `python3`; on Windows, `py -3`; otherwise
 `python` only when its reported major version is 3. Missing launcher or unreadable
 scorer → name the dependency and end.
 
-Run the resolved launcher and absolute scorer path with `state.matches` on stdin.
-It returns the same array with `match_score`, `decision`, and `confidence` filled
-from each `score_breakdown`. A row carrying `score_error` → `state.gaps` and drop
-that row; continue with the remaining rows.
+Run the resolved launcher and absolute scorer path with one JSON object on
+stdin: `{"candidate": state.candidate, "jobs": state.jobs, "matches": state.matches}`.
+It returns the matches array with `experience` and `role_type` derived,
+`match_score`, `decision`, and `confidence` filled from each `score_breakdown`,
+and unquoted `strengths` / `gaps` / `blockers` items moved to `evidence_dropped`.
+A row carrying `score_error` → `state.gaps` and drop that row; a row carrying
+`evidence_dropped` → note those items in `state.gaps` and keep the row.
 
 ## validate
 
 Load `./worker-validate.md`. Rows with `match_score >= 75` or `confidence < 0.7`
-after score are selected once; the set does not shrink if a later role lowers
-the score.
-Roles run in order: evidence, then classify. Never mix roles in one worker. Parallelize dossiers inside a role.
-Each role pastes the MatchResult currently in `state.matches` (after the previous role applied). `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it, and a replaced row goes back through **score** before rank.
+after score are selected once. Parallelize dossiers.
+Each worker pastes the MatchResult currently in `state.matches`. `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it, and a replaced row goes back through **score** before order.
 Malformed or failed validate output → `state.gaps` and drop the row.
 Non-reviewed rows stay as match wrote them.
 
-## rank
+## order
 
-Final message only: the prompt’s scaffold if it gave one, else ranked `- **{title} at {company}**` / url / first strength. Worker JSON and state stay off that message. End.
+Order valid matches by final `match_score` descending. Preserve candidate order
+for equal scores.
+
+## select
+
+Apply `--top <n>` after validation and ordering. With no modifier, retain every
+valid match. Only retained rows proceed to advise.
+
+## advise
+
+Run `./scripts/scaffold_guidance.py` (same launcher as **score**) with
+`{"candidate": state.candidate, "jobs": <selected JobProfiles>}` on stdin; it
+emits one ResumeGuidance skeleton per job with every requirement in place and
+exact-token holds already `held`. Load `./contract-resume-guidance.md` and
+`./worker-resume-guidance.md`. Pass CandidateProfile, selected JobProfiles, the
+skeletons, and the Skill hold law—never dossier prose or MatchResult claims.
+Validate the batch with `./scripts/validate_guidance.py`. Add valid rows to
+`state.guidance`; add invalid rows to `state.gaps` without dropping their match.
+
+## report
+
+Use the prompt scaffold when supplied. Otherwise retain title, company, URL,
+and first strength, then add held requirements, requirements not evidenced by
+the thin match profile, unresolved requirements, and exact priority roles.
+Invalid guidance prints `Resume guidance unavailable`; raw worker/state JSON
+stays hidden. End.
