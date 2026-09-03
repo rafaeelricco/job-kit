@@ -72,6 +72,31 @@ class ParseCheckTests(unittest.TestCase):
             expected["roles"][1]["company"] = "Invented Inc"
             self.assertIn({"kind": "company", "token": "Invented Inc"}, check(TEXT, expected)["missing"])
 
+    def test_short_skill_matches_only_as_whole_token(self):
+        for skill in ("C", "Go", "R"):
+            with self.subTest(skill=skill):
+                expected = copy.deepcopy(self.expected)
+                expected["skills"] = [skill]
+                text = TEXT + "Coordinated Google rollouts across regions.\n"
+                self.assertIn(
+                    {"kind": "skill", "token": skill}, check(text, expected)["missing"]
+                )
+        expected = copy.deepcopy(self.expected)
+        expected["skills"] = ["C", "Go"]
+        text = TEXT.replace("TypeScript, JavaScript", "C, Go, TypeScript, JavaScript")
+        self.assertEqual(check(text, expected)["verdict"], "PASS")
+
+    def test_punctuated_skills_still_match(self):
+        expected = copy.deepcopy(self.expected)
+        expected["skills"] = ["C++", "C#", ".NET", "Node.js"]
+        text = TEXT.replace("Node.js", "Node.js, C++, C#, .NET")
+        self.assertEqual(check(text, expected), {"verdict": "PASS", "missing": [], "order": [], "error": None})
+        expected["skills"] = ["Node.js"]
+        self.assertIn(
+            {"kind": "skill", "token": "Node.js"},
+            check(TEXT.replace("Node.js", "NodeX.js"), expected)["missing"],
+        )
+
     def test_summary_fields_cannot_mask_reversed_roles(self):
         text = TEXT.replace(
             "Most recently I built Prevou at Ambar for UK estate agencies.",

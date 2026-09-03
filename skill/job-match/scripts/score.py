@@ -99,6 +99,14 @@ def _words(text: object) -> str:
     return re.sub(r"[^a-z0-9]+", " ", str(text).lower()).strip()
 
 
+def _contains_token(text: str, token: str) -> bool:
+    """Return whether ``token`` appears in ``text`` unglued from other letters or digits."""
+    if not token:
+        return False
+    pattern = r"(?<![a-z0-9])" + re.escape(token) + r"(?![a-z0-9])"
+    return re.search(pattern, text) is not None
+
+
 def role_type_points(title: str, roles: Sequence[str]) -> Optional[int]:
     """Match a candidate role as whole normalized words within the job title."""
     if not roles:
@@ -130,7 +138,7 @@ def keep_quoted(
     candidate: CandidateProfile,
     job: JobProfile,
 ) -> MatchResult:
-    """Return a copy without claims that quote no profile source token."""
+    """Return a copy without claims that quote no profile source token as a whole token."""
     tokens = candidate.evidence_tokens | job.evidence_tokens
     updates: Dict[str, object] = {}
     dropped = []
@@ -140,7 +148,8 @@ def keep_quoted(
             continue
         kept = []
         for item in items:
-            if any(token in str(item).lower() for token in tokens):
+            text = str(item).lower()
+            if any(_contains_token(text, token) for token in tokens):
                 kept.append(item)
             else:
                 dropped.append(EvidenceDrop(name, item))

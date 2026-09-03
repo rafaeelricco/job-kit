@@ -94,6 +94,49 @@ class KeepQuotedTests(unittest.TestCase):
         self.assertNotIn("evidence_dropped", result)
 
 
+    def test_short_tokens_ground_only_whole_words(self):
+        source = {
+            "score_breakdown": breakdown(),
+            "strengths": [
+                "Experience with ongoing migrations",
+                "Shipped Go services to production",
+            ],
+            "gaps": ["Delivered results with a strong customer focus"],
+            "blockers": [],
+        }
+        result = keep_quoted(
+            MatchResult.from_json(source),
+            CandidateProfile.from_json({"skills": ["Go"]}),
+            JobProfile.from_json({"url": "u", "required_skills": ["US"]}),
+        ).to_json()
+
+        self.assertEqual(result["strengths"], ["Shipped Go services to production"])
+        self.assertEqual(result["gaps"], [])
+        self.assertEqual(
+            result["evidence_dropped"],
+            [
+                {"list": "strengths", "item": "Experience with ongoing migrations"},
+                {"list": "gaps", "item": "Delivered results with a strong customer focus"},
+            ],
+        )
+
+    def test_punctuated_tokens_still_ground(self):
+        source = {
+            "score_breakdown": breakdown(),
+            "strengths": ["Maintains C++ and Node.js services"],
+            "gaps": [],
+            "blockers": [],
+        }
+        result = keep_quoted(
+            MatchResult.from_json(source),
+            CandidateProfile.from_json({"skills": ["C++", "Node.js"]}),
+            JobProfile.from_json({"url": "u"}),
+        ).to_json()
+
+        self.assertEqual(result["strengths"], ["Maintains C++ and Node.js services"])
+        self.assertNotIn("evidence_dropped", result)
+
+
 class ScoreAllTests(unittest.TestCase):
     def test_object_payload_derives_then_scores(self):
         payload = {
