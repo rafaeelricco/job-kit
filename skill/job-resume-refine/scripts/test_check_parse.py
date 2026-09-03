@@ -62,6 +62,15 @@ class ParseCheckTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "FAIL")
         self.assertEqual(result["missing"], [{"kind": "identity", "token": "+55 51 99670-2804"}])
 
+    def test_ignores_blank_optional_identity_tokens(self):
+        expected = copy.deepcopy(self.expected)
+        expected["identity"] = ["Rafael Ricco", "", "  "]
+
+        self.assertEqual(
+            check(TEXT, expected),
+            {"verdict": "PASS", "missing": [], "order": [], "error": None},
+        )
+
     def test_rejects_missing_skill_and_role_field(self):
         with self.subTest("skill"):
             expected = copy.deepcopy(self.expected)
