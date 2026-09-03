@@ -39,11 +39,11 @@ ASIDE_ONLY=""
 ASIDE_RESOLVERS="job-profile-root job-humanize"
 ASIDE_RESOLVER="job-profile-root"
 # Runtime dependency edges, one per line: "<dependent> <dep>…". Mirrors the
-# --only closure install.sh:173-209 applies, so a subset that installs together
+# --only closure install.sh:177-246 applies, so a subset that installs together
 # cannot be taken apart. job-profile-root / job-humanize are deliberately absent:
 # every Aside skill needs them, and ASIDE_RESOLVERS already guards that edge.
-ASIDE_RUNTIME_DEPS="job-prep job-apply job-resume-refine job-list
-job-apply job-resume-refine job-list
+ASIDE_RUNTIME_DEPS="job-prep job-apply job-resume-refine job-list job-scout
+job-apply job-resume-refine job-list job-scout
 job-scout job-match job-profile-me
 job-match job-list job-profile-me"
 # Row field separator. Not TAB: TAB is IFS-whitespace, so `read` collapses an
@@ -323,7 +323,7 @@ Options:
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
                 (job-prep needs job-apply; job-apply needs job-resume-refine /
-                job-list; job-scout needs
+                job-list / job-scout; job-scout needs
                 job-match / job-profile-me; job-match needs job-list /
                 job-profile-me — removing one while its dependent stays refuses;
                 job-profile-root / job-humanize refuse while other Aside skills remain)
