@@ -439,6 +439,87 @@ class FrontmatterTests(unittest.TestCase):
                 )
 
 
+class SearchPackRouteTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.deck = read(
+            SKILL / "job-profile-init" / "templates" / "data" / "search_packs.yaml"
+        )
+        cls.packs = dict(
+            re.findall(
+                r"(?ms)^  - id: ([^\n]+)\n(.*?)(?=^  - id: |\Z)",
+                cls.deck,
+            )
+        )
+
+    def test_route_schema_is_documented(self):
+        header = self.deck.split("\npacks:\n", 1)[0]
+        for field in (
+            "route_required:",
+            "route is optional",
+            "kind: json",
+            "url",
+            "pages",
+            "items",
+            "posting_url",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, header)
+
+    def test_required_routes_are_complete_or_disabled(self):
+        fields = (
+            "    route:",
+            "      kind: json",
+            "      url:",
+            "      pages:",
+            "      items:",
+            "      posting_url:",
+        )
+        for pack_id, body in self.packs.items():
+            complete = all(field in body for field in fields)
+            complete = complete and "{formulation}" in body and "{page}" in body
+            disabled = re.search(r"(?m)^    enabled: false$", body) is not None
+            with self.subTest(pack=pack_id):
+                if "    route:\n" in body:
+                    self.assertTrue(complete, "present route is incomplete")
+                if "    route_required: true" in body:
+                    self.assertTrue(
+                        complete or disabled,
+                        "required route is missing from an enabled pack",
+                    )
+
+    def test_shipped_route_dependent_packs(self):
+        getonbrd = self.packs["getonbrd"]
+        self.assertIn("    route_required: true", getonbrd)
+        self.assertIn("      kind: json", getonbrd)
+        self.assertIn(
+            "https://www.getonbrd.com/api/v0/search/jobs?"
+            "query={formulation}&per_page=40&page={page}&remote=true",
+            getonbrd,
+        )
+        self.assertIn("      pages: meta.total_pages", getonbrd)
+        self.assertIn("      items: data", getonbrd)
+        self.assertIn("      posting_url: links.public_url", getonbrd)
+
+        hiring_cafe = self.packs["hiring-cafe"]
+        self.assertIn("    route_required: true", hiring_cafe)
+        self.assertIn("    enabled: false", hiring_cafe)
+
+    def test_route_consumers_are_pinned(self):
+        scout = read(SKILL / "job-scout" / "SKILL.md")
+        show = read(SKILL / "job-profile-me" / "references" / "flow-show.md")
+        mutate = read(SKILL / "job-profile-me" / "references" / "flow-mutate.md")
+
+        self.assertLess(
+            scout.index("When a pack has `route`"),
+            scout.index("Without `route`"),
+        )
+        self.assertIn("`defect: route_failed`", scout)
+        self.assertIn("route=missing", show)
+        self.assertIn("route invariant", mutate)
+        self.assertNotRegex(scout, r"surface-[a-z0-9-]+\.md")
+
+
 class SchemaBlockTests(unittest.TestCase):
     def test_json_blocks_parse(self):
         checked = 0
