@@ -64,9 +64,10 @@ Print `{company} · {title} · {channel} · {url}` — frontmatter values, excep
 where the live page corrects one. `channel` is `ats`, `direct_email`,
 `dm_request`, or `founder`; no route printed is `—`.
 
-A page that prints 404, expired, filled, withdrawn, or that it is not accepting
-applications → quote that line and, unless the dossier's latest posting-state
-line already reads dead per `job-list/references/flow-read.md`, append under the
+A URL that redirects to the board's index, or a page that prints 404, expired,
+filled, withdrawn, or that it is not accepting applications → quote any printed
+line and, unless the dossier's latest posting-state line already reads dead per
+`job-list/references/flow-read.md`, append under the
 `job-scout/references/contract-persistence.md` lock exactly one line below the
 ownership marker:
 `- {YYYY-MM-DD} · posting dead: {reason} — job-apply`, where `{reason}` is the
