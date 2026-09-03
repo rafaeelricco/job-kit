@@ -144,7 +144,7 @@ class CliContractTests(unittest.TestCase):
                 }
             ],
             "priority_roles": [],
-            "warnings": [],
+            "warnings": ["no_relevant_role"],
         }
         result = run_script(
             "validate_guidance.py",

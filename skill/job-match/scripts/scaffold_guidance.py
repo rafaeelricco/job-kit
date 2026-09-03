@@ -41,6 +41,16 @@ def requirement(
     )
 
 
+def source_warnings(
+    candidate: CandidateProfile, job: JobProfile
+) -> Tuple[str, ...]:
+    """Return the warning codes that candidate and job emptiness alone decide."""
+    return (
+        (() if candidate.skills else ("candidate_skills_empty",))
+        + (() if job.required_skills else ("no_required_skills",))
+    )
+
+
 def scaffold(candidate: CandidateProfile, job: JobProfile) -> ResumeGuidance:
     requirements = tuple(
         requirement("required", term, candidate.skills)
@@ -49,11 +59,9 @@ def scaffold(candidate: CandidateProfile, job: JobProfile) -> ResumeGuidance:
         requirement("preferred", term, candidate.skills)
         for term in job.preferred_skills
     )
-    warnings = (
-        (() if candidate.skills else ("candidate_skills_empty",))
-        + (() if job.required_skills else ("no_required_skills",))
+    return ResumeGuidance(
+        job.url, requirements, warnings=source_warnings(candidate, job)
     )
-    return ResumeGuidance(job.url, requirements, warnings=warnings)
 
 
 def main() -> int:

@@ -110,6 +110,66 @@ class GuidanceValidationTests(unittest.TestCase):
                 )
             )
 
+    def test_rejects_downgraded_direct_hold(self):
+        for status in ("not_evidenced", "unknown"):
+            with self.subTest(status=status):
+                guidance = copy.deepcopy(self.guidance)
+                guidance["requirements"][0].update(
+                    status=status, profile_term=None
+                )
+                result = validate_payload(self.payload([guidance]))
+                self.assertEqual(result["valid"], [])
+                self.assertIn(
+                    "requirements[0].status must be held for a directly held skill",
+                    result["invalid"][0]["errors"],
+                )
+
+    def test_requires_warnings_the_sources_decide(self):
+        with self.subTest("missing emptiness codes"):
+            self.candidate["skills"] = []
+            self.job["required_skills"] = []
+            self.job["preferred_skills"] = []
+            guidance = copy.deepcopy(self.guidance)
+            guidance["requirements"] = []
+            result = validate_payload(self.payload([guidance]))
+            self.assertEqual(result["valid"], [])
+            self.assertIn(
+                "warnings must equal the codes the sources decide: "
+                "candidate_skills_empty, no_required_skills",
+                result["invalid"][0]["errors"],
+            )
+            guidance["warnings"] = ["candidate_skills_empty", "no_required_skills"]
+            self.assertEqual(validate_payload(self.payload([guidance]))["invalid"], [])
+
+        self.setUp()
+        with self.subTest("invented no_relevant_role beside a matched role"):
+            guidance = copy.deepcopy(self.guidance)
+            guidance["warnings"] = ["no_relevant_role"]
+            result = validate_payload(self.payload([guidance]))
+            self.assertEqual(result["valid"], [])
+            self.assertIn(
+                "warnings must equal the codes the sources decide: none",
+                result["invalid"][0]["errors"],
+            )
+
+        with self.subTest("dropped no_relevant_role with no priority role"):
+            guidance = copy.deepcopy(self.guidance)
+            guidance["priority_roles"] = []
+            result = validate_payload(self.payload([guidance]))
+            self.assertEqual(result["valid"], [])
+            self.assertIn(
+                "warnings must equal the codes the sources decide: no_relevant_role",
+                result["invalid"][0]["errors"],
+            )
+            guidance["warnings"] = ["no_relevant_role"]
+            self.assertEqual(validate_payload(self.payload([guidance]))["invalid"], [])
+
+        with self.subTest("spurious emptiness code"):
+            guidance = copy.deepcopy(self.guidance)
+            guidance["warnings"] = ["candidate_skills_empty"]
+            result = validate_payload(self.payload([guidance]))
+            self.assertEqual(result["valid"], [])
+
     def test_rejects_unrelated_held_skill(self):
         guidance = copy.deepcopy(self.guidance)
         guidance["requirements"][1].update(

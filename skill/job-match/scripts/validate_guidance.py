@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Dict, FrozenSet, List, Mapping, Optional, Sequence, Tuple
 
 from models import CandidateProfile, Experience, JobProfile, direct_skill_hold
+from scaffold_guidance import source_warnings
 from score import role_type_points
 
 
@@ -223,8 +224,15 @@ def _requirement_errors(
                 errors.append(
                     f"{prefix}.profile_term does not directly hold job_term"
                 )
-        elif profile_term is not None:
-            errors.append(f"{prefix}.profile_term must be null unless held")
+        else:
+            if profile_term is not None:
+                errors.append(f"{prefix}.profile_term must be null unless held")
+            if isinstance(job_term, str) and any(
+                direct_skill_hold(skill, job_term) for skill in candidate_skills
+            ):
+                errors.append(
+                    f"{prefix}.status must be held for a directly held skill"
+                )
 
     expected = [
         ("required", term) for term in job.required_skills
@@ -300,7 +308,10 @@ def _priority_role_errors(
     return tuple(errors)
 
 
-def _warning_errors(row: Mapping[str, object]) -> Tuple[str, ...]:
+def _warning_errors(
+    job: JobProfile, row: Mapping[str, object], candidate: CandidateProfile
+) -> Tuple[str, ...]:
+    """Require the warnings the sources decide, no more and no fewer."""
     warnings = row.get("warnings")
     if not isinstance(warnings, list):
         return ("warnings must be an array",)
@@ -309,12 +320,19 @@ def _warning_errors(row: Mapping[str, object]) -> Tuple[str, ...]:
             not isinstance(item, str) or item not in ALLOWED_WARNINGS
             for item in warnings
         )
-        or (
-            all(isinstance(item, str) for item in warnings)
-            and len(warnings) != len(set(warnings))
-        )
+        or len(warnings) != len(set(warnings))
     ):
         return ("warnings must contain unique allowed warning codes",)
+
+    expected = set(source_warnings(candidate, job))
+    priority_roles = row.get("priority_roles")
+    if isinstance(priority_roles, list) and not priority_roles:
+        expected.add("no_relevant_role")
+    if set(warnings) != expected:
+        return (
+            "warnings must equal the codes the sources decide: "
+            + (", ".join(sorted(expected)) or "none"),
+        )
     return ()
 
 
@@ -330,7 +348,7 @@ def _validate_row(
         *_url_errors(job, row),
         *_requirement_errors(job, row, frozenset(candidate.skills)),
         *_priority_role_errors(job, row, candidate.role_pairs),
-        *_warning_errors(row),
+        *_warning_errors(job, row, candidate),
     )
 
 
