@@ -7,8 +7,9 @@ stdout: {"verdict": "PASS" | "FAIL", "missing": [{"kind", "token"}],
          "order": [str], "error": str | null}
 
 Contract: references/contract-refine.md Check 10. This file owns text
-normalization and the substring and order tests; the prose owns which strings
-are expected.
+normalization and the whole-token and order tests; the prose owns which strings
+are expected. A token matches only where it is not glued to another letter or
+digit, so a one-letter skill such as `C` never matches inside another word.
 """
 import json
 import re
@@ -36,7 +37,15 @@ def check(text, expected):
     order = []
 
     def find(token, start=0):
-        return hay.find(normalize(token), start)
+        """Return where the token appears as a whole word, or -1."""
+        needle = normalize(token)
+        if not needle:
+            return -1
+        pattern = re.compile(
+            r"(?<![A-Za-z0-9])" + re.escape(needle) + r"(?![A-Za-z0-9])"
+        )
+        match = pattern.search(hay, start)
+        return match.start() if match else -1
 
     def require(kind, token, cursor):
         anchor = find(token, cursor)
