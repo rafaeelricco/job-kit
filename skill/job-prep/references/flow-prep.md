@@ -60,9 +60,12 @@ substitutions:
   Rule 1 chains `job-resume-refine` exactly as written; its PDF is this plan's
   `cv`. Rule 2 or 3 → `cv` is that path.
 - §4 stages values but prints no package and stops for no yes. Record every
-  field the form asks: `selector`, `label`, `type`, `required`, `value`,
-  `source`. `source` is the file `job-apply/references/contract-screening.md`
-  names, or `operator`; `operator` rows carry `"value": null`. A required
+  field the form asks except the CV upload control: `selector`, `label`, `type`,
+  `required`, `value`, `source`. `source` is the file
+  `job-apply/references/contract-screening.md` names, or `operator`; `operator`
+  rows carry `"value": null`. The CV upload control is never a `fields[]` row:
+  top-level `cv` and `cv_sha256` plus the package's `### CV` section represent it
+  for §5 step 2. A required
   `operator` row, a required composed-prose field, or a wall on the apply path
   (captcha, bot check, account demanded) is a `needs_you` entry.
 - `channel: ats`: load the field map for the URL host as the starting guess —

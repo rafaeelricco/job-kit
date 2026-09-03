@@ -35,9 +35,11 @@ verbatim.
 | --------- | --------- | ---------- |
 | `{field}` | `{value}` | `{source}` |
 
-One row per field the form asks. `source` is the file that printed the value, or
-`operator` for demographic and EEO rows. A field no file answers has no value to
-print here — it is a `### Needs you` row instead. Never print `—` as an answer.
+One row per field the form asks except the CV upload control, which is already
+represented under `### CV` and uploaded in `flow-apply.md` §5. `source` is the
+file that printed the value, or `operator` for demographic and EEO rows. A field
+no file answers has no value to print here — it is a `### Needs you` row instead.
+Never print `—` as an answer.
 
 ### Needs you
 
