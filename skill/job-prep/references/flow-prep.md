@@ -76,9 +76,11 @@ substitutions:
 
 ## 6. Plan
 
-Write `scout/applications/{slug}/plan.json` per `./references/schema-plan.md`
-(write `plan.json.tmp`, then `mv` over the target so a reader never sees a
-half-written plan), then `scout/applications/{slug}/package.md`: the package
+Compute `cv_sha256` from the resolved `cv` file immediately before the write,
+then write `scout/applications/{slug}/plan.json` per
+`./references/schema-plan.md` (write `plan.json.tmp`, then `mv` over the
+target so a reader never sees a half-written plan), then
+`scout/applications/{slug}/package.md`: the package
 `job-apply/references/format-package.md` defines — `### Ad`, `### CV`,
 `### Form`, `### Needs you` — written to file instead of printed. `### Skipped`
 is run-level and never goes in the file.
@@ -96,7 +98,8 @@ After the last posting print, in order, omitting empty sections:
 
 `--digest` opens no browser and writes nothing. Glob
 `scout/applications/*/plan.json`; keep each whose `schema_version` is `1`,
-`needs_you` is `[]`, `cv` opens as a PDF, and whose `scout/jobs/{slug}.md`
+`needs_you` is `[]`, `cv` opens as a PDF whose SHA-256 equals `cv_sha256`, and
+whose `scout/jobs/{slug}.md`
 reads with frontmatter `status: new` and no dead-by-log posting-state line per
 `job-list/references/flow-read.md`. A plan whose dossier went dead since prep
 is neither listed nor deleted; it simply never reprints. Sort by `prepared_at`
