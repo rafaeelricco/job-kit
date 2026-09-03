@@ -26,8 +26,10 @@ is not `unverified`.
 - No eligible entry → say the story carries no shippable number and render without
   one. Never substitute a process number, never estimate, never turn a date range
   into an achievement.
-- Years of experience is computed from `data/experiences.yml` date fields, floored to
-  whole years, never rounded up. It is the only number this skill derives.
+- Years of experience is the only number this skill derives: unique calendar
+  months across every role in `data/experiences.yml`, floored to whole years
+  — the `years_experience` rule in `job-match/references/schema-state.md`.
+  Overlapping roles count once; never round up.
 
 ## The credit rule
 

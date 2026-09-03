@@ -2,7 +2,8 @@ availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
-  tip: "Answer from the job's printed USD numbers whenever it prints any; our band decides only when it prints none. Ours empty or job pay non-USD → surface, never convert. Job printed both ends: job min >= our max → midpoint of the JOB band; else job max. Job printed min only: job min >= our max → job min; else our max. Job printed max only → job max. Job printed neither → our max. A midpoint of our band is never the answer. Range → high is that figure; low is the job min when printed and ≤ high, else high; job printed nothing → our range."
+  # How job-apply answers a salary question from this band and the posting's
+  # printed figures: job-apply/references/contract-screening.md, Salary expectation.
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are

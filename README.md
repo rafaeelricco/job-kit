@@ -24,11 +24,15 @@ flowchart LR
     apply["job-apply<br/>package, your yes, submit"] -->|"status: applied"| inbox
     inbox["job-inbox<br/>read Gmail replies"] -->|"Next: /job-scout"| scout
     apply -.->|"CV step"| refine["job-resume-refine<br/>one-page PDF"]
+    match["job-match<br/>fit + resume guidance"]
+    scout -.->|"fit gate"| match
+    refine -.->|"guidance contract"| match
     refine -.-> humanize["job-humanize"]
 ```
 
 Around the loop: `job-list` reads the dossiers as stored, `job-match` re-ranks
-them without writing, `job-profile-me` edits what scout searches for, and
+them or analyzes one named dossier and adds read-only resume guidance,
+`job-profile-me` edits what scout searches for, and
 `job-stories` feeds `job-pitch`, which also ends in `job-humanize`.
 
 Scout never applies, messages, or connects. It may use a session you are
@@ -38,20 +42,20 @@ wall, and a captcha at submit hands the filled form back to you.
 
 ## Skills
 
-| Skill               | What it does                                                                      | Writes                                                                       | Runs in                                   |
-| ------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------- |
-| `job-scout`         | Runs the search packs you pick, or a site URL, and ranks the postings it finds    | `scout/jobs/*.md` dossiers                                                   | Aside, or a coding agent with browser-use |
-| `job-apply`         | Reads the dossier and the live ad, fills the form from your facts, submits on yes | Dossier `status:` and Application log                                        | Aside, or a coding agent with browser-use |
-| `job-resume-refine` | Tailors one resume page to one posting from facts already in the profile          | `scout/applications/{slug}/` PDF and match report                            | Aside, coding agents                      |
-| `job-inbox`         | Searches Gmail for replies to open applications and records the outcome           | Dossier `status:` when evidence is strong                                    | Aside, coding agents                      |
-| `job-list`          | Prints the dossiers on disk with their score and status                           | Nothing                                                                      | Aside, coding agents                      |
-| `job-match`         | Re-ranks stored dossiers, or one pasted posting, against your matching policy     | Nothing                                                                      | Aside, coding agents                      |
-| `job-profile-init`  | Creates a new profile, or registers an existing one                               | The profile tree, plus pointer files on Activate                             | Coding agents                             |
-| `job-profile-me`    | Shows the profile and edits positions, locations, boards, and CV settings         | `data/job_search.yaml`, `search_packs.yaml`, `profile_card.yaml`, `cvs.yaml` | Aside, coding agents                      |
-| `job-profile-root`  | Resolves the absolute profile path for every other skill                          | Nothing                                                                      | Aside, coding agents                      |
-| `job-stories`       | Writes and audits the interview story deck                                        | `data/stories/*.md`                                                          | Coding agents                             |
-| `job-pitch`         | Turns the story deck into a vetting video script or work-experience bullets       | Nothing                                                                      | Aside, coding agents                      |
-| `job-humanize`      | Rewrites drafted resume or pitch prose so it reads like you, keeping every claim  | Nothing                                                                      | Aside, coding agents                      |
+| Skill               | What it does                                                                                 | Writes                                                                       | Runs in                                   |
+| ------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------- |
+| `job-scout`         | Runs the search packs you pick, or a site URL, and ranks the postings it finds               | `scout/jobs/*.md` dossiers                                                   | Aside, or a coding agent with browser-use |
+| `job-apply`         | Reads the dossier and the live ad, fills the form from your facts, submits on yes            | Dossier `status:` and Application log                                        | Aside, or a coding agent with browser-use |
+| `job-resume-refine` | Tailors one resume page to one posting from facts already in the profile                     | `scout/applications/{slug}/` PDF and match report                            | Aside, coding agents                      |
+| `job-inbox`         | Searches Gmail for replies to open applications and records the outcome                      | Dossier `status:` when evidence is strong                                    | Aside, coding agents                      |
+| `job-list`          | Prints the dossiers on disk with their score and status                                      | Nothing                                                                      | Aside, coding agents                      |
+| `job-match`         | Re-ranks stored dossiers, one named dossier, or a pasted posting and reports resume evidence | Nothing                                                                      | Aside, coding agents                      |
+| `job-profile-init`  | Creates a new profile, or registers an existing one                                          | The profile tree, plus pointer files on Activate                             | Coding agents                             |
+| `job-profile-me`    | Shows the profile and edits positions, locations, boards, and CV settings                    | `data/job_search.yaml`, `search_packs.yaml`, `profile_card.yaml`, `cvs.yaml` | Aside, coding agents                      |
+| `job-profile-root`  | Resolves the absolute profile path for every other skill                                     | Nothing                                                                      | Aside, coding agents                      |
+| `job-stories`       | Writes and audits the interview story deck                                                   | `data/stories/*.md`                                                          | Coding agents                             |
+| `job-pitch`         | Turns the story deck into a vetting video script or work-experience bullets                  | Nothing                                                                      | Aside, coding agents                      |
+| `job-humanize`      | Rewrites drafted resume or pitch prose so it reads like you, keeping every claim             | Nothing                                                                      | Aside, coding agents                      |
 
 Every skill writes only after it prints a diff or a package and you say yes.
 Coding-agent skills land at `<agent home>/skills/<skill>`; Aside copies land in
@@ -409,7 +413,7 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-profile-me/`    | Show + edit search intent and boards                             |
 | `skill/job-profile-root/`  | Resolve Profile root; never writes                               |
 | `skill/job-list/`          | Read the profile's scout store; never writes                     |
-| `skill/job-match/`         | Deep-rank scout dossiers; chat report only                       |
+| `skill/job-match/`         | Deep-rank dossiers; read-only fit and resume-guidance contracts  |
 | `skill/job-inbox/`         | Gmail replies to lifecycle status on strong evidence             |
 | `skill/job-stories/`       | Write and check the interview story deck                         |
 | `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck         |

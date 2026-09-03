@@ -19,7 +19,8 @@ Fan-out batch ~10. Per row, paste that row's Verified extract as the posting bod
 
 extract → JobProfile. Malformed → Gaps, drop.
 HF6 (`contract-match.md` hard filter 6, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–5.
-match → MatchResult, then invoke the resolved scorer with the MatchResult array
+match → MatchResult, then invoke the resolved scorer with
+`{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
 on stdin. A row carrying `score_error` → Gaps; continue with the remaining rows.
 `decision` below `possible_match` (`weak_match` or `skip`) → Gaps
 `match below bar`, drop.

@@ -33,9 +33,7 @@ Keep two bands separate:
 - `ours` = `salary_expectations.salary_range_usd` (`ours.min`, `ours.max`), the accepted band, not the answer.
 - `job` = USD figures printed by the posting (`job.min`, `job.max`); either may be absent.
 
-Apply `salary_expectations.tip` when present; never paste the tip into a form. The tip and
-the table below state one rule. If they disagree, surface the conflict instead of choosing
-between them. If `ours` is empty or the posting uses another currency, surface the value
+If `ours` is empty or the posting uses another currency, surface the value
 instead of converting or comparing currencies.
 
 Otherwise use the first matching row:
