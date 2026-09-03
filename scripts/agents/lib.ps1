@@ -13,7 +13,7 @@ $script:SkillNames = @(
   'job-profile-root',
   'job-resume-refine'
 )
-$script:BrowserSkillNames = @('job-scout', 'job-apply')
+$script:BrowserSkillNames = @('job-scout', 'job-apply', 'job-prep')
 $script:BrowserSharedDeps = @(
   'job-match',
   'job-list',

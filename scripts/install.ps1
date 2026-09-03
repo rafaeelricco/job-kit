@@ -44,7 +44,7 @@ Targets:
   agents       Coding-agent skills (job-profile-init, job-profile-me, job-list,
                job-match, job-stories, job-pitch, job-inbox, job-humanize,
                job-profile-root, job-resume-refine)
-  browser-use  Browser skills (job-scout, job-apply) plus the browser-use
+  browser-use  Browser skills (job-scout, job-apply, job-prep) plus the browser-use
                driver skill into coding-agent homes; driven by the local
                browser-use CLI
   all          agents + browser-use
@@ -685,7 +685,7 @@ function Invoke-RunPlan {
 
 function Invoke-InteractiveMenu {
   Write-Host '1. Coding-agent skills'
-  Write-Host '2. browser-use skills (job-scout + job-apply in coding agents)'
+  Write-Host '2. browser-use skills (job-scout + job-apply + job-prep in coding agents)'
   Write-Host '3. All of the above'
   Write-Host '4. Quit'
   Write-Host -NoNewline 'Select component to install (number): '
