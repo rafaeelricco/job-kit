@@ -1,0 +1,92 @@
+{
+  "script": "skill/job-match/scripts/score.py",
+  "argv": [],
+  "stdin": {
+    "candidate": {
+      "roles": [
+        "Frontend Engineer"
+      ],
+      "skills": [
+        "React",
+        "TypeScript"
+      ],
+      "years_experience": 6,
+      "experience": [
+        {
+          "company": "Acme",
+          "position": "Senior Frontend Engineer",
+          "date": "2020-2024"
+        }
+      ]
+    },
+    "jobs": [
+      {
+        "url": "https://example.com/jobs/1",
+        "title": "Senior Frontend Engineer",
+        "seniority": "senior",
+        "years_experience": "5+ years",
+        "required_skills": [
+          "React",
+          "TypeScript"
+        ],
+        "preferred_skills": [
+          "GraphQL"
+        ]
+      }
+    ],
+    "matches": [
+      {
+        "url": "https://example.com/jobs/1",
+        "score_breakdown": {
+          "primary_stack": {
+            "held": 2,
+            "required": 2
+          },
+          "experience": 0,
+          "seniority": 15,
+          "role_type": 0,
+          "location": 10,
+          "domain": 5,
+          "language": 5,
+          "preferences": 5
+        },
+        "strengths": [
+          "React and TypeScript shipped in production"
+        ],
+        "gaps": [
+          "GraphQL is not evidenced"
+        ],
+        "blockers": []
+      }
+    ]
+  },
+  "exit": 0,
+  "stdout": [
+    {
+      "url": "https://example.com/jobs/1",
+      "score_breakdown": {
+        "primary_stack": {
+          "held": 2,
+          "required": 2
+        },
+        "experience": 20,
+        "seniority": 15,
+        "role_type": 15,
+        "location": 10,
+        "domain": 5,
+        "language": 5,
+        "preferences": 5
+      },
+      "strengths": [
+        "React and TypeScript shipped in production"
+      ],
+      "gaps": [
+        "GraphQL is not evidenced"
+      ],
+      "blockers": [],
+      "match_score": 100,
+      "confidence": 1.0,
+      "decision": "excellent_match"
+    }
+  ]
+}

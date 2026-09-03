@@ -1,0 +1,44 @@
+name: test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The skills claim any Python 3 works and run under whatever `python3`
+        # an operator happens to have. The matrix is what makes that claim true.
+        python-version: ["3.9", "3.11", "3.13"]
+    name: python ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show interpreter
+        run: python3 -VV
+
+      - name: Run the pipeline
+        run: bash scripts/test.sh
+
+  shell:
+    runs-on: ubuntu-latest
+    name: shell syntax
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse every shell script
+        run: |
+          status=0
+          for script in scripts/*.sh scripts/aside/*.sh scripts/agents/*.sh; do
+            [ -e "$script" ] || continue
+            bash -n "$script" || status=1
+          done
+          exit $status

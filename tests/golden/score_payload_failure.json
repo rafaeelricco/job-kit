@@ -1,0 +1,9 @@
+{
+  "script": "skill/job-match/scripts/score.py",
+  "argv": [],
+  "stdin": "not a payload",
+  "exit": 1,
+  "stdout": {
+    "score_error": "stdin must be a MatchResult array or a candidate/jobs/matches object"
+  }
+}

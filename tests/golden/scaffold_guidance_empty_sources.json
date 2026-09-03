@@ -1,0 +1,52 @@
+{
+  "script": "skill/job-match/scripts/scaffold_guidance.py",
+  "argv": [],
+  "stdin": {
+    "candidate": {
+      "roles": [
+        "Frontend Engineer"
+      ],
+      "skills": [],
+      "years_experience": 6,
+      "experience": [
+        {
+          "company": "Acme",
+          "position": "Senior Frontend Engineer",
+          "date": "2020-2024"
+        }
+      ]
+    },
+    "jobs": [
+      {
+        "url": "https://example.com/jobs/empty",
+        "title": "Senior Frontend Engineer",
+        "seniority": "senior",
+        "years_experience": "5+ years",
+        "required_skills": [],
+        "preferred_skills": [
+          "GraphQL"
+        ]
+      }
+    ]
+  },
+  "exit": 0,
+  "stdout": [
+    {
+      "schema_version": 1,
+      "url": "https://example.com/jobs/empty",
+      "requirements": [
+        {
+          "kind": "preferred",
+          "job_term": "GraphQL",
+          "status": "unknown",
+          "profile_term": null
+        }
+      ],
+      "priority_roles": [],
+      "warnings": [
+        "candidate_skills_empty",
+        "no_required_skills"
+      ]
+    }
+  ]
+}
