@@ -95,11 +95,15 @@ Exactly one CV per application, first match:
 
 0. `scout/applications/{slug}/plan.json` exists, its `schema_version` is `1`, its
    `url` normalizes equal to this dossier's `url` per
-   `job-scout/references/schema-dossier.md` "URL normalize", and its `cv` path
-   opens as a PDF → print `Prepared plan · {slug} · {prepared_at}` and take that
-   PDF. Never re-refine: the approved package named these bytes. A plan whose
-   `url` does not match, or whose `cv` does not open, is ignored entirely — fall
-   through to rule 1. Only `job-prep` writes `plan.json`; this skill never does.
+   `job-scout/references/schema-dossier.md` "URL normalize", its `cv` path
+   opens as a PDF, and that file's SHA-256 equals the plan's `cv_sha256` →
+   print `Prepared plan · {slug} · {prepared_at}` and take that PDF. Never
+   re-refine: the approved package named these bytes, and the digest is what
+   proves they are still the ones on disk. A plan whose `url` does not match,
+   or whose `cv` does not open, is ignored entirely — fall through to rule 1.
+   A plan whose `cv` opens but no longer matches `cv_sha256` is stale: print
+   `Plan stale · {slug}` and fall through to rule 1 the same way. Only
+   `job-prep` writes `plan.json`; this skill never does.
 
 1. `adapt_per_vacancy` is true and this dossier's frontmatter `status:` is `new`
    → print `Chained job-resume-refine · {filename}` and spawn one isolated child:
