@@ -61,7 +61,7 @@ Options:
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
                 (job-prep also installs job-apply; job-apply also installs
-                job-resume-refine and job-list; job-scout
+                job-resume-refine, job-list, and job-scout; job-scout
                 also installs job-match and job-profile-me; job-match installs
                 job-list and job-profile-me — each loads the others' refs; every
                 Aside skill also installs job-profile-root and job-humanize)
@@ -172,6 +172,8 @@ expand_only() {
   # job-scout Preflight loads job-profile-me/references/*; its persist loads
   # job-match/references/* (flow-match-gate.md). job-match Bind loads
   # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
+  # job-apply Read, CV, and Record, and job-prep Liveness and its plan schema, load
+  # job-scout/references/{schema-dossier,contract-persistence}.md.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-prep "*)
@@ -190,6 +192,10 @@ expand_only() {
         case " ${ASIDE_ONLY} " in
           *" job-list "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-list" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
+          *" job-scout "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
         esac
         ;;
     esac
