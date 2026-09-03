@@ -2,12 +2,12 @@
 # Run the job-kit test pipeline.
 #
 # Stages, in cost order:
-#   unit        the suites that ship beside each skill's scripts
-#   invariants  cross-script contract agreement
-#   golden      CLI fixtures, run from an unrelated working directory
-#   lint        packaging declarations and prose contracts
-#   fuzz        seeded property tests
-#   mutation    do the tests pin the contract, or merely execute it
+#   unit        shipped script unit tests
+#   invariants  cross-component contract consistency
+#   golden      recorded CLI contracts
+#   lint        distribution and skill-document integrity
+#   fuzz        deterministic hostile-input properties
+#   mutation    mutation score thresholds
 #
 # Usage:
 #   scripts/test.sh                 every stage
@@ -106,7 +106,7 @@ discover() {
 
 # --- unit ------------------------------------------------------------------
 if wanted unit; then
-  banner "unit — the suites that ship with each skill"
+  banner "unit — shipped script unit tests"
   status=0
   for suite in skill/job-match/scripts skill/job-resume-refine/scripts; do
     echo "--- ${suite}"
@@ -118,21 +118,21 @@ fi
 
 # --- invariants ------------------------------------------------------------
 if wanted invariants; then
-  banner "invariants — cross-script contract agreement"
+  banner "invariants — cross-component contract consistency"
   discover 'test_invariants.py'
   record invariants $?
 fi
 
 # --- golden ----------------------------------------------------------------
 if wanted golden; then
-  banner "golden — CLI fixtures from an unrelated working directory"
+  banner "golden — recorded CLI contracts"
   discover 'test_golden.py'
   record golden $?
 fi
 
 # --- lint ------------------------------------------------------------------
 if wanted lint; then
-  banner "lint — packaging declarations and prose contracts"
+  banner "lint — distribution and skill-document integrity"
   status=0
   discover 'test_packaging.py' || status=1
   discover 'test_prose.py' || status=1
@@ -141,7 +141,7 @@ fi
 
 # --- fuzz ------------------------------------------------------------------
 if wanted fuzz; then
-  banner "fuzz — seeded property tests"
+  banner "fuzz — deterministic hostile-input properties"
   if [ "${STRESS}" -eq 1 ]; then
     # shellcheck disable=SC2086
     $PY tests/fuzz.py --runs 5000
@@ -157,7 +157,7 @@ if wanted mutation; then
     echo
     echo "mutation: skipped (--fast)"
   else
-    banner "mutation — do the tests pin the contract, or merely execute it"
+    banner "mutation — mutation score thresholds"
     # shellcheck disable=SC2086
     $PY tests/mutate.py
     record mutation $?
