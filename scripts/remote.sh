@@ -120,6 +120,7 @@ skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md
 skill/job-match/SKILL.md
 skill/job-match/scripts/score.py
+skill/job-resume-refine/scripts/check_parse.py
 skill/job-stories/SKILL.md
 skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md
