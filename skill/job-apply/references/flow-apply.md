@@ -144,10 +144,12 @@ blank. A field no file answers is not staged: it is a `### Needs you` row.
 Composed prose is the operator's — a cover-letter, message, or essay field is
 never authored; required → a `### Needs you` row, optional → left empty.
 
-When rule 0 took a prepared plan, stage `plan.json` `fields[].value` for every
-field whose `selector` still exists on the live form, and derive from
-`contract-screening.md` only fields the live form added. A plan field whose
-selector is gone is dropped, not guessed. A plan with a non-empty `needs_you`
+When rule 0 took a prepared plan, stage `plan.json` `fields[].value` only for a
+field whose `selector`, `label`, and `type` all still match the live form, and
+derive from `contract-screening.md` only fields the live form added. A plan
+field whose selector is gone, or whose live `label` or `type` differs from the
+plan's, is dropped, not guessed; the live control it pointed at counts as a
+field the live form added. A plan with a non-empty `needs_you`
 never reaches here — `job-prep` withheld it from the digest — but if one is
 named explicitly, its `needs_you` rows print as `### Needs you` and the run
 stops for the operator as usual.
