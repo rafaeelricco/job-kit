@@ -82,6 +82,7 @@ $script:KitOwnershipFiles = @(
 
 $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'skill\job-apply\SKILL.md',
+  'skill\job-prep\SKILL.md',
   'skill\job-resume-refine\SKILL.md',
   'skill\job-profile-me\SKILL.md',
   'skill\job-list\SKILL.md',
@@ -115,7 +116,7 @@ Usage: remote.ps1 [channel] [options...]
 Install channels:
   all          Coding agents + browser-use, skipping absent (default)
   agents       Coding agents only (fails when no agent home exists)
-  browser-use  job-scout + job-apply plus the browser-use driver
+  browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home)
   fetch        Refresh the cached checkout, install nothing
 
@@ -123,7 +124,7 @@ Uninstall:
   uninstall              Agent + browser-use skills (default: all)
   uninstall all          Same
   uninstall agents       Coding agents only
-  uninstall browser-use  job-scout + job-apply links, the
+  uninstall browser-use  job-scout + job-apply + job-prep links, the
                          browser-use driver skill, the CLI, and its state
                          (never your browser)
 
