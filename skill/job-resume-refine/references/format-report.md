@@ -8,10 +8,12 @@ Write `{dir}/match-report.md` and print it. job-apply reads `verdict:` and the
     verdict: **PASS**
 
     source: {dossier filename} | live URL, no dossier | pasted ad text
+    guidance: job-match/v1 · consumed | fallback · {reason}
     bullets: {kept} of {pool} · roles: {kept}/{base} ({dropped} dropped)
     summary: recomposed | base block kept | base has none
     skills: {count}/{ceiling} tokens ({in} in, {out} out) · ad tokens: {hit}/{total}
     page: 1 · {pct}% trailing · base: {n}p · {.tex}{, pdf stale}
+    parse: {found}/{expected} strings round-trip | FAIL · {kind} {token}
     miss: {ad token, …} | _(none)_
 
     ## Changes

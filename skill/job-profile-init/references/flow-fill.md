@@ -28,7 +28,6 @@ Hard refuses: `../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent
 | Class                                                                               | SoT present                                                                                                                                                                              | SoT silent                                                                                 |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Salary, notice, work auth, visa, sponsorship, EOR                                   | Propose only verbatim / clear synonym, then require questionnaire confirmation                                                                                                           | Ask explicitly; skip leaves empty and may produce a Gap                                    |
-| Kit-owned `salary_expectations.tip`                                                 | Keep the emitted template string; never propose from SoT                                                                                                                                 | Keep the emitted string; never ask; never empty                                            |
 | Routes (non-EOR), relocation, remote / in-person prefs (`in_person_work*`)          | Propose only when SoT prints a clear answer, then require confirmation                                                                                                                   | Ask explicitly; skip leaves empty; **do not** list under Gaps                              |
 | Positions, locations                                                                | Propose from SoT only; questionnaire confirmation is required                                                                                                                            | Ask explicitly; skip → `[]`; Gaps per the allowlist below                                  |
 | `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`        | Propose only from SoT; confirm                                                                                                                                                           | Ask; skip → `""` / `[]`; Gap if `location_scope` empty                                     |
@@ -57,7 +56,6 @@ explicit skips, and confirmed pack enablement choices.
   else `""` for a confirmed project; every other field empty, no prose — and write
   the final observations response to `data/observations.yaml`.
 - Do not rewrite identity tokens unless the operator corrects approved values.
-- Do not rewrite `salary_expectations.tip`. Keep the emitted template string. It is not a fact, not skippable, not a Gap.
 
 ## Questionnaire-derived suggestions and packs
 
@@ -119,7 +117,7 @@ Partial fill is OK. **Gaps allowlist only** — omit a line when that key is fil
   and the list is empty
 
 **Never Gaps:** remote / in-person prefs (`in_person_work*`),
-`direct_contractor`, `local_employment`, `salary_expectations.tip`, empty
+`direct_contractor`, `local_employment`, empty
 `projects.yml` / `languages.yaml` / `education.yaml` / experience `url.*`, `data/stories/`,
 `job_search.locations` (Never Gaps when `worldwide` or when `listed` and
 nonempty; Gap when `listed` and empty), or CV (use **### CV**).

@@ -21,17 +21,18 @@ Stack names belong in Skills, not in this block. Recruiter altitude is in
 
 ## The block, rendered
 
+The LaTeX shape the base already carries; the three slots are the table
+above, not sample prose — the wording comes from this profile's Facts.
+
 ```latex
 \vspace{-6pt}
 \section{Summary}
 \begin{itemize}[leftmargin=0.15in, label={}]
   \small\item{
-    I'm an expert in AI workflows and agent-based systems, with +5 years of
-    full-stack experience, most of it on distributed, event-driven systems.
-    I originally came from design, so I naturally think about the whole product
-    (the user experience, frontend, backend, and how everything fits together).
-    Most recently at Ambar, I built a white-label AI sales assistant with
-    real-time voice, RAG chat and self-serve onboarding for UK estate agencies.
+    <sentence 1: the discipline the ad leads with, and how long>
+    <sentence 2: the base's standing angle, verbatim>
+    <sentence 3: one recent proof the ad would care about, naming the work
+    and its company, or what was built and for whom>
   }
 \end{itemize}
 ```
