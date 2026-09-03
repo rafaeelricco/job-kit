@@ -1,9 +1,8 @@
 # worker-match
 
-Caller pastes CandidateProfile JSON + MatchingPolicy (`contract-match.md` body)
-
-- one or more JobProfile JSON objects. Never open Profile root. Never fetch a
-  URL. Never change the policy. No dossier prose.
+Caller pastes CandidateProfile JSON, MatchingPolicy (`contract-match.md` body),
+and one or more JobProfile JSON objects. Never open Profile root. Never fetch a
+URL. Never change the policy. No dossier prose.
 
 ## Deltas
 
@@ -34,7 +33,8 @@ Caller pastes CandidateProfile JSON + MatchingPolicy (`contract-match.md` body)
 
 3. Fill `score_breakdown` per contract; unscored factor → JSON `null`. A scored
    `primary_stack` is raw `{"held": <count>, "required": <count>}` counts; never
-   pre-round it to an integer. Leave `match_score`, `decision`, and `confidence`
-   at their zero values — the caller computes them.
+   pre-round it to an integer. Leave `experience` and `role_type` `null`, and
+   `match_score`, `decision`, and `confidence` at their zero values — the caller
+   computes them.
 4. Every `strengths` / `gaps` / `blockers` item quotes a token from the two JSON objects.
 5. Emit the JSON array, then stop.

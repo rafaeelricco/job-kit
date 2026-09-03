@@ -20,17 +20,21 @@ a scored Primary stack cell must be `{"held": k, "required": n}` so
 `scripts/score.py` owns its point calculation and half-up rounding. The counts
 remain in `score_breakdown` through scoring and validation; a pre-rounded
 Primary stack integer is invalid. `k` and `n` must be integers with `n >= 1`
-and `0 <= k <= n`. Workers fill the cells; `scripts/score.py` computes
-`match_score`, `decision`, and `confidence` from them.
+and `0 <= k <= n`. Experience and Role type are defined by comparison alone,
+so `scripts/score.py` derives them from the CandidateProfile and JobProfile
+it receives; workers leave those two cells `null`. Workers fill the remaining
+cells; `scripts/score.py` computes `match_score`, `decision`, and
+`confidence` from them, and drops any `strengths` / `gaps` / `blockers` item
+that quotes no token from the two profiles.
 Invalid cells receive a per-row `score_error`; they are never rounded or allowed
 to abort the remaining batch.
 
 | Criterion         | Weight | Points                                                                                                                                                                                               |
 | ----------------- | -----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Primary stack     |     25 | `25 × \|∩\| / \|required_skills\|` (direct hold); either list empty → —                                                                                                                              |
-| Experience        |     20 | Job token with no integer → —; else min N = first integer (`6+ years`→6, `8-10 years`→8, `12+`→12); candidate ≥ N → 20; short → 10; candidate `null` or job `null` → —                               |
+| Experience        |     20 | Code. Job token with no integer → —; else min N = first integer (`6+ years`→6, `8-10 years`→8, `12+`→12); candidate ≥ N → 20; short → 10; candidate `null` or job `null` → —                         |
 | Seniority         |     15 | Same printed token as JobProfile `seniority` in `experience[].position` → 15; one step on intern–junior–mid–senior–staff–principal → 8; posting token not on that ladder → —; else 0. Job `null` → — |
-| Role type         |     15 | JobProfile `title` contains a `candidate.roles[]` string (case-insensitive, punctuation ignored) → 15; else 0. `roles` empty → —                                                                     |
+| Role type         |     15 | Code. JobProfile `title` contains a `candidate.roles[]` string (case-insensitive, punctuation ignored) → 15; else 0. `roles` empty → —                                                               |
 | Location / remote |     10 | Shared `work_model` and (remote or named-location match) → 10; shared `work_model` only → 5; else 0. Both unknown → —                                                                                |
 | Domain            |      5 | Printed domain cue holds in `candidate.domains` → 5; cue present, no hold → 0; no cue → —                                                                                                            |
 | Language          |      5 | Soft extra (not HF6) met → 5; printed extra unmet → 0; none → —                                                                                                                                      |
