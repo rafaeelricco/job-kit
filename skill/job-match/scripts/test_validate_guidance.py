@@ -152,17 +152,37 @@ class GuidanceValidationTests(unittest.TestCase):
                 result["invalid"][0]["errors"],
             )
 
-        with self.subTest("dropped no_relevant_role with no priority role"):
+        with self.subTest("matched source role cannot be omitted"):
             guidance = copy.deepcopy(self.guidance)
             guidance["priority_roles"] = []
+            guidance["warnings"] = ["no_relevant_role"]
             result = validate_payload(self.payload([guidance]))
             self.assertEqual(result["valid"], [])
             self.assertIn(
-                "warnings must equal the codes the sources decide: no_relevant_role",
+                "priority_roles must include a source-matched candidate role",
                 result["invalid"][0]["errors"],
             )
+            self.assertIn(
+                "warnings must equal the codes the sources decide: none",
+                result["invalid"][0]["errors"],
+            )
+
+        with self.subTest("no source role matches"):
+            candidate = copy.deepcopy(self.candidate)
+            candidate["experience"][0]["position"] = "Account Executive"
+            guidance = copy.deepcopy(self.guidance)
+            guidance["priority_roles"] = []
             guidance["warnings"] = ["no_relevant_role"]
-            self.assertEqual(validate_payload(self.payload([guidance]))["invalid"], [])
+            self.assertEqual(
+                validate_payload(
+                    {
+                        "candidate": candidate,
+                        "jobs": [self.job],
+                        "guidance": [guidance],
+                    }
+                )["invalid"],
+                [],
+            )
 
         with self.subTest("spurious emptiness code"):
             guidance = copy.deepcopy(self.guidance)

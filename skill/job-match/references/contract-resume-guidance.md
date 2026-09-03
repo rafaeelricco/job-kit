@@ -40,8 +40,9 @@ source tokens; it is not a Fact source and contains no finished resume prose.
   on `role_type` or `seniority`. `role_type` uses contract-match's normalized
   whole-position phrase within the JobProfile title. `seniority` uses the same
   or a one-step neighbor on its intern–junior–mid–senior–staff–principal ladder.
+  An empty `priority_roles` list is valid only when no candidate role matches.
 - Warning codes are `candidate_skills_empty`, `no_required_skills`, or
   `no_relevant_role`, and the sources decide them: empty candidate skills, empty
-  required skills, and empty `priority_roles` respectively. The validator
-  rejects a missing or extra code.
+  required skills, and no source-matched candidate role respectively. The
+  validator rejects a missing or extra code.
 - No Summary, bullet, outcome, responsibility, score, or apply verdict is allowed.
