@@ -61,6 +61,8 @@ explicit skips, and confirmed pack enablement choices.
 
 - Write only confirmed `enabled:` values on named packs. Never edit
   formulations, add a pack, or write a search term the operator did not type.
+- Never write `enabled: true` on a `route_required: true` pack with no `route`;
+  keep it disabled and say why.
 
 ## CV
 
