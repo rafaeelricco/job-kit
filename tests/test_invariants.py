@@ -677,6 +677,13 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("verify the cv attachment separately", apply)
         self.assertIn("if step 7 replaced or reset the page", apply)
 
+    def test_verification_mail_requires_request_binding(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("capture the request start before triggering mail", apply)
+        self.assertIn("a verified sender identity", apply)
+        self.assertIn("including redirects", apply)
+        self.assertIn("never learn the allowed destination from the mail", apply)
+
 
 if __name__ == "__main__":
     unittest.main()
