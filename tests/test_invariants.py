@@ -443,13 +443,14 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             digest,
         )
         self.assertIn(
-            "bind each displayed `s` id at print time to that plan's `cv_sha256`",
+            "bind each displayed `s` id at print time to that "
+            "plan's `cv_sha256` and `prepared_at`",
             digest,
         )
         self.assertRegex(
             digest,
-            r"if the live plan's `cv_sha256` no longer equals the bound value, "
-            r"or the plan is gone, stop before browser",
+            r"if the live plan's `cv_sha256` or `prepared_at` no longer equals "
+            r"the bound value, or the plan is gone, stop before browser",
         )
         self.assertIn(
             "map displayed `a`/`b` ids after `review` to normal "
