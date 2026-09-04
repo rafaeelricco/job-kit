@@ -339,13 +339,12 @@ function Ensure-SkillsDir {
   New-Item -ItemType Directory -Path $DestRoot | Out-Null
 }
 
-# Link-Skill SOURCE DEST FORCE
-# Idempotent directory junction. Exact → no-op. Any other existing path → fail unless FORCE.
+# Link-Skill SOURCE DEST
+# Idempotent directory junction. Exact → no-op. Any other existing path → fail.
 function Link-Skill {
   param(
     [Parameter(Mandatory = $true)][string]$Source,
-    [Parameter(Mandatory = $true)][string]$Dest,
-    [int]$Force = 0
+    [Parameter(Mandatory = $true)][string]$Dest
   )
   Require-SkillSource $Source
   $parent = Split-Path $Dest -Parent
@@ -363,12 +362,7 @@ function Link-Skill {
   }
 
   if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
-    if ($Force -eq 1) {
-      Remove-KitLinkOrItem $Dest
-      Write-Host "forced remove: $Dest"
-    } else {
-      throw "foreign path blocks install: $Dest`n  use --force to replace, or remove it manually"
-    }
+    throw "foreign path blocks install: $Dest`n  remove it manually, then re-run"
   }
 
   try {
@@ -425,12 +419,11 @@ function Unlink-LegacySkills {
   }
 }
 
-# Install-SkillsInto DEST_ROOT REPO FORCE [NAMES]
+# Install-SkillsInto DEST_ROOT REPO [NAMES]
 function Install-SkillsInto {
   param(
     [Parameter(Mandatory = $true)][string]$DestRoot,
     [Parameter(Mandatory = $true)][string]$Repo,
-    [int]$Force = 0,
     [string[]]$Names = $null
   )
   if ($null -eq $Names) { $Names = $script:SkillNames }
@@ -438,7 +431,7 @@ function Install-SkillsInto {
   foreach ($name in $Names) {
     $source = Get-SkillSource $Repo $name
     $dest = Get-SkillDest $DestRoot $name
-    Link-Skill $source $dest $Force
+    Link-Skill $source $dest
   }
   Unlink-LegacySkills $DestRoot $Repo
 }

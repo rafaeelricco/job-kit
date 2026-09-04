@@ -5,16 +5,11 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 . (Join-Path $PSScriptRoot 'agents\lib.ps1')
+. (Join-Path $PSScriptRoot 'common.ps1')
 
 $script:RepoRoot = Get-FullPathNormalized (Join-Path $PSScriptRoot '..')
 $script:JobKitHome = Get-JobKitHomePath
-$script:Yes = 0
-$script:SkipClaude = 0
-$script:SkipCodex = 0
-$script:SkipGrok = 0
-$script:SkipHermes = 0
 $script:DryRun = 0
-$script:OnlyTargets = @()
 $script:UninstallTargets = @()
 
 $script:KitOwnershipFiles = @(
@@ -25,21 +20,6 @@ $script:KitOwnershipFiles = @(
   'skill\job-profile-init\SKILL.md',
   'skill\job-scout\SKILL.md'
 )
-
-function Write-KitDie {
-  param([Parameter(ValueFromRemainingArguments = $true)][object[]]$Message)
-  $text = ($Message | ForEach-Object { "$_" }) -join ' '
-  [Console]::Error.WriteLine("error: $text")
-  exit 1
-}
-
-function Test-IsConsoleInput {
-  try {
-    return -not [Console]::IsInputRedirected
-  } catch {
-    return $true
-  }
-}
 
 function Show-UninstallUsage {
   @'
@@ -62,18 +42,12 @@ Targets:
   all          agents + browser-use + profile + cache
 
 Options:
-  -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
-  --only LIST   Comma-separated subset, instead of positional targets:
-                agents | browser-use | claude | codex | grok | hermes
-                profile | cache
-                (claude|codex|grok|hermes narrow a channel named alongside them;
-                alone they mean the agents channel)
-  --skip-claude|--skip-codex|--skip-grok|--skip-hermes
-                Applied only when agents or browser-use runs
+  -h, --help    Show this help
 
 Every run prints a plan first. A plan holding profile or cache data requires
-typing yes; anything re-installable takes [Y/n]. --yes skips both.
+typing yes; anything re-installable takes [Y/n]. On redirected stdin,
+re-installable targets apply after the plan and profile/cache refuse.
 
 Profile path: $XDG_CONFIG_HOME\job-kit when set, otherwise %USERPROFILE%\.config\job-kit.
 
@@ -81,49 +55,6 @@ Environment:
   JOB_KIT_HOME   Kit cache (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
   CLAUDE_SKILLS  Same override as the installer
 '@ | Write-Host
-}
-
-function Get-PathDisplay {
-  param([Parameter(Mandatory = $true)][string]$Path)
-  $userHome = $script:KitHome
-  if (Test-PathsEqual $Path $userHome) { return '~' }
-  $prefix = (Get-FullPathNormalized $userHome) + '\'
-  $full = $Path
-  try { $full = Get-FullPathNormalized $Path } catch { $full = $Path }
-  if ($full.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
-    return '~/' + (($full.Substring($prefix.Length)) -replace '\\', '/')
-  }
-  return $Path
-}
-
-function Get-SkillLeaf {
-  param([string]$Root, [string]$Path)
-  if (-not $Root -or -not $Path) { return '' }
-  $rootN = $Root
-  $pathN = $Path
-  try { $rootN = Get-FullPathNormalized $Root } catch { }
-  try { $pathN = Get-FullPathNormalized $Path } catch { }
-  $prefix = $rootN.TrimEnd('\') + '\'
-  if (-not $pathN.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { return '' }
-  $rest = $pathN.Substring($prefix.Length)
-  if (-not $rest -or $rest.Contains('\') -or $rest.Contains('/')) { return '' }
-  return $rest
-}
-
-function New-PlanRow {
-  param([string]$Kind, [string]$Label, [string]$Path)
-  return [pscustomobject]@{ Kind = $Kind; Label = $Label; Path = $Path }
-}
-
-function Test-AgentSkipped {
-  param([string]$Target)
-  switch ($Target) {
-    'claude' { return ($script:SkipClaude -eq 1) }
-    'codex'  { return ($script:SkipCodex -eq 1) }
-    'grok'   { return ($script:SkipGrok -eq 1) }
-    'hermes' { return ($script:SkipHermes -eq 1) }
-    default { return $false }
-  }
 }
 
 function Get-JobKitConfig {
@@ -246,17 +177,6 @@ function Get-ProfileProbeMissing {
   return ''
 }
 
-function Confirm-TypedYes {
-  param([string]$Prompt)
-  if ($script:Yes -eq 1) { return $true }
-  Write-Host -NoNewline $Prompt
-  $answer = [Console]::In.ReadLine()
-  if ($null -eq $answer) { $answer = '' }
-  if ($answer.Trim() -eq 'yes') { return $true }
-  [Console]::Error.WriteLine('aborted (type yes to confirm).')
-  return $false
-}
-
 function Get-OwnedByRoot {
   param([string]$Path, [string]$Name, [string[]]$Roots)
   $current = $null
@@ -307,10 +227,6 @@ function Get-PlanRowsAgents {
   foreach ($target in $script:AgentTargets) {
     $root = Get-AgentSkillsRoot $target
     $label = Get-AgentLabel $target
-    if (Test-AgentSkipped $target) {
-      $rows.Add((New-PlanRow 'N' "skipped (--skip-$target)" $root)) | Out-Null
-      continue
-    }
     $parent = Get-AgentParentDir $target
     if (-not (Test-Path -LiteralPath $parent -PathType Container) -and -not (Test-Path -LiteralPath $root -PathType Container)) {
       $rows.Add((New-PlanRow 'N' 'nothing to uninstall' $root)) | Out-Null
@@ -377,10 +293,6 @@ function Get-PlanRowsBrowserUse {
     foreach ($target in $script:AgentTargets) {
       $root = Get-AgentSkillsRoot $target
       $label = Get-AgentLabel $target
-      if (Test-AgentSkipped $target) {
-        $rows.Add((New-PlanRow 'N' "skipped (--skip-$target)" $root)) | Out-Null
-        continue
-      }
       $parent = Get-AgentParentDir $target
       if (-not (Test-Path -LiteralPath $parent -PathType Container) -and -not (Test-Path -LiteralPath $root -PathType Container)) {
         $rows.Add((New-PlanRow 'N' 'nothing to uninstall' $root)) | Out-Null
@@ -410,15 +322,10 @@ function Get-PlanRowsBrowserUse {
     $root = Get-AgentSkillsRoot $target
     $dest = Join-Path $root 'browser-use'
     if ($override -and (Test-PathsEqual $dest (Join-Path $override 'browser-use'))) { continue }
-    $skipped = $false
-    if (Test-AgentSkipped $target) { $skipped = $true }
     if (-not (Test-Path -LiteralPath $dest) -and -not (Test-ReparsePoint $dest)) {
       continue
-    } elseif ($skipped) {
-      $rows.Add((New-PlanRow 'N' "driver skipped (--skip-$target)" $dest)) | Out-Null
-    } else {
-      $rows.Add((New-PlanRow 'I' 'remove driver' $dest)) | Out-Null
     }
+    $rows.Add((New-PlanRow 'I' 'remove driver' $dest)) | Out-Null
   }
   if (Test-HasCommand 'browser-use') {
     $bin = (Get-Command 'browser-use').Source
@@ -497,86 +404,8 @@ function Get-BuildPlan {
   return $rows
 }
 
-function Get-PlanCount {
-  param([object[]]$Rows, [string[]]$Kinds)
-  $n = 0
-  foreach ($row in $Rows) {
-    if ($Kinds -contains $row.Kind) { $n++ }
-  }
-  return $n
-}
-
-function Write-UninstallPlan {
-  param([object[]]$Rows)
-  $sectionRoot = ''
-  $sectionStarted = $false
-  $script:pendLabel = ''
-  $script:pendNames = ''
-
-  Write-Host 'job-kit uninstall - plan'
-  Write-Host ''
-  foreach ($row in $Rows) {
-    if (-not $row.Kind) { continue }
-    if ($row.Kind -eq 'H') {
-      if ($script:pendLabel) {
-        Write-Host ("  {0,-16} {1}" -f $script:pendLabel, $script:pendNames)
-        $script:pendLabel = ''
-        $script:pendNames = ''
-      }
-      if ($sectionStarted) { Write-Host '' }
-      $sectionStarted = $true
-      $sectionRoot = $row.Path
-      Write-Host ("{0}  -  {1}" -f $row.Label, (Get-PathDisplay $row.Path))
-      continue
-    }
-
-    $leaf = ''
-    if ($sectionRoot) { $leaf = Get-SkillLeaf $sectionRoot $row.Path }
-
-    if ($row.Kind -eq 'N' -and $leaf) {
-      if ($script:pendLabel -eq $row.Label) {
-        $script:pendNames = $script:pendNames + ', ' + $leaf
-        continue
-      }
-      if ($script:pendLabel) {
-        Write-Host ("  {0,-16} {1}" -f $script:pendLabel, $script:pendNames)
-      }
-      $script:pendLabel = $row.Label
-      $script:pendNames = $leaf
-      continue
-    }
-
-    if ($script:pendLabel) {
-      Write-Host ("  {0,-16} {1}" -f $script:pendLabel, $script:pendNames)
-      $script:pendLabel = ''
-      $script:pendNames = ''
-    }
-
-    if ($row.Kind -eq 'I' -and $leaf -and $row.Label -like 'remove link (*') {
-      $rest = $row.Label.Substring('remove '.Length)
-      $action = 'remove ' + ($rest -replace ' \(.*$', '')
-      $tag = ([regex]::Match($row.Label, '\(([^)]+)\)$')).Groups[1].Value
-      Write-Host ("  {0,-16} {1} ({2})" -f $action, $leaf, $tag)
-      continue
-    }
-
-    if ($row.Kind -eq 'X') {
-      Write-Host ("  {0,-16} {1}  - irreversible" -f $row.Label, (Get-PathDisplay $row.Path))
-    } else {
-      Write-Host ("  {0,-16} {1}" -f $row.Label, (Get-PathDisplay $row.Path))
-    }
-  }
-  if ($script:pendLabel) {
-    Write-Host ("  {0,-16} {1}" -f $script:pendLabel, $script:pendNames)
-    $script:pendLabel = ''
-    $script:pendNames = ''
-  }
-  Write-Host '--------------------------------------------------------------'
-}
-
 function Confirm-UninstallPlan {
   param([int]$Removals, [int]$Irreversible)
-  if ($script:Yes -eq 1) { return $true }
   if ($Irreversible -gt 0) {
     return (Confirm-TypedYes 'Proceed? Profile/cache data cannot be recovered. Type yes: ')
   }
@@ -610,10 +439,6 @@ function Uninstall-Agents {
     return
   }
   foreach ($target in $script:AgentTargets) {
-    if (Test-AgentSkipped $target) {
-      Write-Host ("{0}: skipped (--skip-{1})." -f (Get-AgentLabel $target), $target)
-      continue
-    }
     $parent = Get-AgentParentDir $target
     $destRoot = Get-AgentSkillsRoot $target
     $label = Get-AgentLabel $target
@@ -684,10 +509,6 @@ function Uninstall-BrowserUse {
     Write-Host "Uninstall completed for $override"
   } else {
     foreach ($target in $script:AgentTargets) {
-      if (Test-AgentSkipped $target) {
-        Write-Host ("{0}: skipped (--skip-{1})." -f (Get-AgentLabel $target), $target)
-        continue
-      }
       $parent = Get-AgentParentDir $target
       $destRoot = Get-AgentSkillsRoot $target
       $label = Get-AgentLabel $target
@@ -709,10 +530,6 @@ function Uninstall-BrowserUse {
     Remove-DriverDest (Join-Path $override 'browser-use')
   }
   foreach ($target in $script:AgentTargets) {
-    if (Test-AgentSkipped $target) {
-      Write-Host ("{0}: driver skipped (--skip-{1})." -f (Get-AgentLabel $target), $target)
-      continue
-    }
     $dest = Join-Path (Get-AgentSkillsRoot $target) 'browser-use'
     if ($override -and (Test-PathsEqual $dest (Join-Path $override 'browser-use'))) { continue }
     Remove-DriverDest $dest
@@ -844,7 +661,8 @@ function Remove-Profile {
   } else {
     Write-Host 'profile paths to delete:'
     foreach ($path in $existing) { Write-Host "  $path" }
-    if (-not (Confirm-TypedYes 'Permanently delete profile data (type yes): ')) { return }
+    # No prompt here: Confirm-UninstallPlan already took the typed yes for the
+    # whole plan, and it is the only gate.
     foreach ($path in $existing) {
       try {
         if (Test-ReparsePoint $path) {
@@ -912,7 +730,7 @@ function Get-LinksOwnedBy {
   foreach ($target in $script:AgentTargets) {
     $root = Get-AgentSkillsRoot $target
     $skipScan = $false
-    if ($Scope -eq 'survivors' -and -not $override -and -not (Test-AgentSkipped $target)) {
+    if ($Scope -eq 'survivors' -and -not $override) {
       $skipScan = $true
     }
     if (-not $skipScan) { script:Add-ScanRoot $root }
@@ -967,7 +785,8 @@ function Remove-Cache {
     $list = $outstanding -join "`n"
     Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first (`uninstall.ps1 agents browser-use`, or `all`)"
   }
-  if (-not (Confirm-TypedYes "Remove kit cache at $dest (type yes): ")) { return }
+  # No prompt here: Confirm-UninstallPlan already took the typed yes for the
+  # whole plan, and it is the only gate.
   try {
     if (Test-ReparsePoint $dest) {
       Remove-KitLinkOrItem $dest
@@ -1043,7 +862,7 @@ function Invoke-RunPlan {
 
   Invoke-PlanPreflight $ordered
   $rows = @(Get-BuildPlan $ordered)
-  Write-UninstallPlan $rows
+  Write-Plan $rows -Irreversible
   $removals = Get-PlanCount $rows @('I', 'X')
   $irreversible = Get-PlanCount $rows @('X')
   Write-Host "$removals removals - $irreversible irreversible"
@@ -1065,7 +884,6 @@ function Invoke-RunPlan {
     return
   }
   if (-not (Confirm-UninstallPlan $removals $irreversible)) { exit 1 }
-  $script:Yes = 1
   Write-Host ''
   Write-Host 'applying'
   foreach ($t in $ordered) {
@@ -1073,49 +891,6 @@ function Invoke-RunPlan {
   }
   Write-Host ''
   Write-Host "done - $removals removals - 0 failed"
-}
-
-function Expand-Only {
-  param([Parameter(Mandatory = $true)][string]$List)
-  $wantAgents = $false
-  $wantBrowser = $false
-  $wantProfile = $false
-  $wantCache = $false
-  $wantClaude = $false
-  $wantCodex = $false
-  $wantGrok = $false
-  $wantHermes = $false
-  $namedAgent = $false
-  $channelNamed = $false
-  foreach ($tok in ($List -split ',')) {
-    $tok = $tok.Trim()
-    if (-not $tok) { continue }
-    switch ($tok) {
-      'agents' { $wantAgents = $true; $channelNamed = $true; $wantClaude = $true; $wantCodex = $true; $wantGrok = $true; $wantHermes = $true }
-      'browser-use' { $wantBrowser = $true; $channelNamed = $true }
-      'claude' { $namedAgent = $true; $wantClaude = $true }
-      'codex'  { $namedAgent = $true; $wantCodex = $true }
-      'grok'   { $namedAgent = $true; $wantGrok = $true }
-      'hermes' { $namedAgent = $true; $wantHermes = $true }
-      'profile' { $wantProfile = $true }
-      'cache' { $wantCache = $true }
-      default { Write-KitDie "unknown --only item: $tok (agents|browser-use|claude|codex|grok|hermes|profile|cache)" }
-    }
-  }
-  if ($namedAgent -and -not $channelNamed) { $wantAgents = $true }
-  if ($namedAgent) {
-    if (-not $wantClaude) { $script:SkipClaude = 1 }
-    if (-not $wantCodex) { $script:SkipCodex = 1 }
-    if (-not $wantGrok) { $script:SkipGrok = 1 }
-    if (-not $wantHermes) { $script:SkipHermes = 1 }
-  }
-  $out = New-Object System.Collections.Generic.List[string]
-  if ($wantAgents) { $out.Add('agents') | Out-Null }
-  if ($wantBrowser) { $out.Add('browser-use') | Out-Null }
-  if ($wantProfile) { $out.Add('profile') | Out-Null }
-  if ($wantCache) { $out.Add('cache') | Out-Null }
-  if ($out.Count -eq 0) { Write-KitDie '--only selected nothing' }
-  $script:OnlyTargets = $out.ToArray()
 }
 
 function Invoke-InteractiveMenu {
@@ -1155,18 +930,7 @@ function Invoke-UninstallMain {
     $a = $Argv[$i]
     switch -Regex ($a) {
       '^-h$|^--help$' { Show-UninstallUsage; exit 0 }
-      '^-y$|^--yes$' { $script:Yes = 1 }
       '^--dry-run$' { $script:DryRun = 1 }
-      '^--only$' {
-        $i++
-        if ($i -ge $Argv.Count) { Write-KitDie '--only needs a comma-separated list (see --help)' }
-        Expand-Only $Argv[$i]
-      }
-      '^--only=' { Expand-Only ($a.Substring(7)) }
-      '^--skip-claude$' { $script:SkipClaude = 1 }
-      '^--skip-codex$' { $script:SkipCodex = 1 }
-      '^--skip-grok$' { $script:SkipGrok = 1 }
-      '^--skip-hermes$' { $script:SkipHermes = 1 }
       '^agents$|^browser-use$|^profile$|^cache$|^all$' { $targets.Add($a) | Out-Null }
       default { Write-KitDie "unknown option or target: $a (see --help)" }
     }
@@ -1174,18 +938,11 @@ function Invoke-UninstallMain {
   }
 
   if ($targets.Count -eq 0) {
-    if ($script:OnlyTargets.Count -gt 0) {
-      Invoke-RunPlan @($script:OnlyTargets)
-      return
-    }
     if (Test-IsConsoleInput) {
       Invoke-InteractiveMenu
       return
     }
     Write-KitDie 'need a target (agents|browser-use|profile|cache|all) when stdin is not a console'
-  }
-  if ($script:OnlyTargets.Count -gt 0) {
-    Write-KitDie '--only cannot be combined with positional targets (see --help)'
   }
 
   $hasAll = $false

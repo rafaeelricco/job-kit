@@ -56,15 +56,13 @@ Uninstall:
 
   -h, --help  Show this help
 
-Install options after the channel are forwarded to the installer, e.g.
-`remote.sh agents --skip-codex`. Channel `all` forwards only --force.
+Install options after the channel are forwarded to the installer. The only
+one is --dry-run.
 
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused on a partial target such as `uninstall aside`,
                       and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
-  --skip-claude|codex|grok|hermes  Forwarded only with `uninstall agents` or
-                      `uninstall browser-use`
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME/job-kit)
@@ -114,6 +112,8 @@ skill/job-scout/SKILL.md"
 # without SKILL.md, and by then the cache has already been replaced — so the
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
+scripts/common.sh
+scripts/browser-use/install.sh
 skill/job-apply/SKILL.md
 skill/job-prep/SKILL.md
 skill/job-resume-refine/SKILL.md
@@ -433,35 +433,11 @@ scripts/uninstall.sh"
   fi
 }
 
-# aside_ready
-# Exit 0 when Aside's skills parent exists, or ASIDE_SKILLS is set.
-# Side effects: none.
-aside_ready() {
-  if [ -n "${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-}}" ]; then
-    return 0
-  fi
-  [ -d "${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills" ]
-}
-
-# agents_ready
-# Exit 0 when at least one coding-agent home exists, or CLAUDE_SKILLS is set.
-# Side effects: none.
-agents_ready() {
-  if [ -n "${CLAUDE_SKILLS:-}" ]; then
-    return 0
-  fi
-  [ -d "${HOME}/.claude" ] || [ -d "${HOME}/.agents" ] || [ -d "${HOME}/.grok" ] \
-    || [ -d "${HOME}/.hermes" ]
-}
-
 # main
 # Parses install channel or `uninstall [target]`, ensures cache, delegates.
 # Side effects: may write/remove cache; runs install or uninstall scripts.
 main() {
-  local channel="all" mode="install" target="all" ran=0 arg purge=0
-  # Bash 3.2: plain indexed array for agent uninstall flags (no --purge).
-  local -a agent_flags
-  agent_flags=()
+  local channel="all" mode="install" target="all" arg purge=0
 
   if [ "$#" -gt 0 ]; then
     case "$1" in
@@ -479,41 +455,13 @@ main() {
 
   if [ "${mode}" = "uninstall" ]; then
     purge=0
-    agent_flags=()
+    # Every target accepts the same two options; --purge is validated below.
     for arg in "$@"; do
       case "${arg}" in
         --purge) purge=1; continue ;;
         -h|--help) usage; exit 0 ;;
       esac
-      case "${target}" in
-        all)
-          die "uninstall all accepts only --purge (got: ${arg}); use 'uninstall agents' for --skip-*"
-          ;;
-        aside)
-          die "uninstall aside accepts only --purge (got: ${arg})"
-          ;;
-        agents)
-          case "${arg}" in
-            --skip-claude|--skip-codex|--skip-grok|--skip-hermes)
-              agent_flags[${#agent_flags[@]}]="${arg}"
-              ;;
-            *)
-              die "unknown uninstall agents option: ${arg} (expected --skip-* or --purge)"
-              ;;
-          esac
-          ;;
-        browser-use)
-          # Same agent homes as `agents`, so the same skip flags apply.
-          case "${arg}" in
-            --skip-claude|--skip-codex|--skip-grok|--skip-hermes)
-              agent_flags[${#agent_flags[@]}]="${arg}"
-              ;;
-            *)
-              die "unknown uninstall browser-use option: ${arg} (expected --skip-* or --purge)"
-              ;;
-          esac
-          ;;
-      esac
+      die "uninstall ${target} accepts only --purge (got: ${arg})"
     done
 
     # Validate the purge before anything is uninstalled: a refused option
@@ -531,8 +479,6 @@ main() {
         || die "refusing --purge while CLAUDE_SKILLS narrows the agents uninstall to ${CLAUDE_SKILLS} (unset it, or omit --purge)"
       [ -z "${ASIDE_SKILLS:-}" ] \
         || die "refusing --purge while ASIDE_SKILLS narrows the Aside uninstall to ${ASIDE_SKILLS} (unset it, or omit --purge)"
-      [ -z "${ASIDE_SKILLS_USER:-}" ] \
-        || die "refusing --purge while ASIDE_SKILLS_USER narrows the Aside uninstall to ${ASIDE_SKILLS_USER} (unset it, or omit --purge)"
     fi
 
     # Ownership only — uninstall scripts live in the ownership set; do not
@@ -541,21 +487,13 @@ main() {
 
     case "${target}" in
       aside)
-        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" aside
         ;;
       agents)
-        if [ "${#agent_flags[@]}" -eq 0 ]; then
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents
-        else
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes agents "${agent_flags[@]}"
-        fi
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" agents
         ;;
       browser-use)
-        if [ "${#agent_flags[@]}" -eq 0 ]; then
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes browser-use
-        else
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes browser-use "${agent_flags[@]}"
-        fi
+        bash "${JOB_KIT_HOME}/scripts/uninstall.sh" browser-use
         ;;
       all)
         # Skills only over curl — never deletes profile data (~/.config/job-kit).
@@ -563,9 +501,9 @@ main() {
         # preflight runs before anything is unlinked: a survivor found after the
         # unlink pass would otherwise leave a failed, half-finished uninstall.
         if [ "${purge}" -eq 1 ]; then
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents browser-use cache
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" aside agents browser-use cache
         else
-          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" --yes aside agents browser-use
+          bash "${JOB_KIT_HOME}/scripts/uninstall.sh" aside agents browser-use
         fi
         ;;
     esac
@@ -590,42 +528,17 @@ main() {
     fetch) ;;
     aside)
       bash "${JOB_KIT_HOME}/scripts/aside/install.sh" "$@"
-      ran=1
       ;;
     agents)
       bash "${JOB_KIT_HOME}/scripts/agents/install.sh" "$@"
-      ran=1
       ;;
     browser-use)
-      # No scripts/browser-use/ wrapper: the channel is a target of the single
-      # installer, reusing the agents lib and its symlink mechanics.
-      bash "${JOB_KIT_HOME}/scripts/install.sh" browser-use "$@"
-      ran=1
+      bash "${JOB_KIT_HOME}/scripts/browser-use/install.sh" "$@"
       ;;
     all)
-      for arg in "$@"; do
-        [ "${arg}" = "--force" ] || die \
-          "channel 'all' forwards only --force (got: ${arg}); use 'aside', 'agents', or 'browser-use' for target flags"
-      done
-      if aside_ready; then
-        bash "${JOB_KIT_HOME}/scripts/aside/install.sh" "$@"
-        ran=1
-      else
-        echo "Aside: not set up (${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills missing); skipping."
-      fi
-      if agents_ready; then
-        bash "${JOB_KIT_HOME}/scripts/agents/install.sh" "$@"
-        ran=1
-      else
-        echo "Coding agents: no agent home (~/.claude, ~/.agents, ~/.grok, ~/.hermes); skipping."
-      fi
-      # Browser channel lands in the same agent homes, so it rides the same
-      # gate. A missing browser-use CLI or browser is an offer, not a failure.
-      if agents_ready; then
-        bash "${JOB_KIT_HOME}/scripts/install.sh" browser-use "$@"
-        ran=1
-      fi
-      [ "${ran}" -eq 1 ] || die "nothing installed: no Aside profile and no coding-agent home"
+      # install.sh owns what `all` means: the readiness gates that skip an
+      # absent channel, and the `nothing installed` failure when none is there.
+      bash "${JOB_KIT_HOME}/scripts/install.sh" all "$@"
       ;;
   esac
 
