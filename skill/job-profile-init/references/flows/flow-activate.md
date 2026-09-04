@@ -94,7 +94,7 @@
      `/job-profile-init`, choose register-existing on `<target>`, answer Yes
      (mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
-     Never print bare `bash scripts/install.sh` (or channel wrappers) without
+     Never print bare `bash scripts/install.sh` (or a channel installer) without
      an absolute kit root or the README Install recipe. Operator is often only
      in a profile directory.
    - `{{CV_LINE}}` — if `"$REPO/cv/en-us-resume.pdf"` exists and is a non-empty
