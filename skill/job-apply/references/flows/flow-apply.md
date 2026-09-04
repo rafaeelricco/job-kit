@@ -167,6 +167,11 @@ the returned text after checking it against every `never_say` entry. If
 authored when a `ready` or `needs-numbers` story `covers` the ad, else left
 empty; a required one is always authored.
 
+In job-apply only, no form and channel `direct_email`, `dm_request`, or
+`founder` requires an outbound message. Load `contract-prose.md` and follow
+the same draft, `job-humanize`, and `never_say` checks before printing the
+package. This message is what §5 step 1 stages.
+
 When rule 0 took a prepared plan, re-resolve authored and null-valued rows
 by the resolution order; stage remaining `plan.json` `fields[].value` only for a
 field whose `selector`, `label`, and `type` all still match the live form, and

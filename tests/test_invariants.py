@@ -656,6 +656,14 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         apply = instruction_text(FLOW_APPLY)
         self.assertIn("re-resolve authored and null-valued rows", apply)
 
+    def test_no_form_message_is_authored_only_in_apply(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertRegex(
+            apply,
+            r"in job-apply only, no form and channel .*"
+            r"requires an outbound message",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

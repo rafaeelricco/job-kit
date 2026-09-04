@@ -45,7 +45,8 @@ posting. Never print `—` as an answer.
 ### Authored
 
 One block per composed-prose field, in form order: the field label as a bold
-line, then the staged text verbatim. Empty → omit the section.
+line, then the staged text verbatim. For a no-form channel, include the
+staged letter under **Outbound message**. Empty → omit the section.
 
 ### Cleared
 
