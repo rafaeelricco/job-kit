@@ -409,6 +409,14 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"(?:fall through to default selection|fall back|fallback)",
         )
 
+    def test_valid_current_plan_requires_cv_hash(self):
+        select = instruction_section(FLOW_PREP, "## 1. Select", "## 2. Liveness")
+
+        self.assertIn(
+            "opens as a pdf, and that file's bytes still hash to `cv_sha256`",
+            select,
+        )
+
     def test_digest_visibility_and_send_eligibility_are_separate(self):
         digest = instruction_text(FLOW_PREP)
 

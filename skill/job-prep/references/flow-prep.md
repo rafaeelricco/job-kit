@@ -18,7 +18,8 @@ cap.
 
 A dossier has a valid current plan only when its readable
 `scout/applications/{slug}/plan.json` has `schema_version: 1`, its normalized
-`url` matches the dossier's normalized `url`, and its `cv` opens as a PDF.
+`url` matches the dossier's normalized `url`, its `cv` opens as a PDF, and that
+file's bytes still hash to `cv_sha256`.
 
 Explicit `<file>` tokens are the queue, in the order given. With
 `--from-match`, consume only the injected latest completed Job match output.
