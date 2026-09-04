@@ -45,8 +45,8 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root) — full copy
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-resume-refine)
+  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root, job-store) — full copy
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) plus the browser-use
                driver skill into coding-agent homes; driven by the local browser-use CLI
   all       aside + agents + browser-use
@@ -56,7 +56,7 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root
+                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root | job-store
                 agents | browser-use | claude | codex | grok | hermes
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
@@ -64,7 +64,7 @@ Options:
                 job-resume-refine, job-list, and job-scout; job-scout
                 also installs job-match and job-profile-me; job-match installs
                 job-list and job-profile-me — each loads the others' refs; every
-                Aside skill also installs job-profile-root and job-humanize)
+                Aside skill also installs job-profile-root, job-store, and job-humanize)
   --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents runs
   -h, --help    Show this help
@@ -140,7 +140,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root)
+      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -150,7 +150,7 @@ expand_only() {
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
       hermes) named_agent=1; want_hermes=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|agents|browser-use|claude|codex|grok|hermes)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store|agents|browser-use|claude|codex|grok|hermes)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -167,13 +167,12 @@ expand_only() {
   [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
   # job-apply's CV step chains job-resume-refine for a status:new dossier; a subset
   # without resume cannot complete that path. job-apply Queue and Read both bind
-  # job-list/references/flow-read.md, so a subset without job-list cannot queue.
-  # job-resume-refine Target loads job-match schemas, workers, and scripts.
-  # job-scout Preflight loads job-profile-me/references/*; its persist loads
-  # job-match/references/* (flow-match-gate.md). job-match Bind loads
-  # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
-  # job-apply Read, CV, and Record, and job-prep Liveness and its plan schema, load
-  # job-scout/references/{schema-dossier,contract-persistence}.md.
+  # job-store reader law (and list for queue views), so a subset without job-list
+  # cannot queue. job-resume-refine Target loads job-match schemas, workers, and
+  # scripts. job-scout Preflight loads job-profile-me; its persist loads
+  # job-match (flow-match-gate.md). job-match Bind loads job-store reader law and
+  # job-profile-me schema-profile-card. job-apply Read/CV/Record and job-prep
+  # Liveness/plan schema load job-store dossier schema + persistence.
   if [ -n "${ASIDE_ONLY}" ]; then
     case " ${ASIDE_ONLY} " in
       *" job-prep "*)
@@ -232,14 +231,32 @@ expand_only() {
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-prep "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*)
+      *" job-scout "*|*" job-apply "*|*" job-prep "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*|*" job-store "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
         esac
         case " ${ASIDE_ONLY} " in
+          *" job-store "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-store" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
           *" job-humanize "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-humanize" ;;
+        esac
+        ;;
+    esac
+    # root↔store couple: selecting one always pulls the other. After the
+    # runtime block so root-alone does not also pull job-humanize.
+    case " ${ASIDE_ONLY} " in
+      *" job-profile-root "*|*" job-store "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-profile-root "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
+          *" job-store "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-store" ;;
         esac
         ;;
     esac

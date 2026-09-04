@@ -129,7 +129,8 @@ skill/job-stories/SKILL.md
 skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md
 skill/job-humanize/SKILL.md
-skill/job-profile-root/SKILL.md"
+skill/job-profile-root/SKILL.md
+skill/job-store/SKILL.md"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a

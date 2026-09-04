@@ -3,13 +3,14 @@
 # Compatible with macOS Bash 3.2. Source only — do not execute.
 
 # Skill folder names under skill/ for coding agents.
-SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-pitch job-inbox job-humanize job-profile-root job-resume-refine"
+CORE_SKILL_NAMES="job-profile-root job-store"
+SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-pitch job-inbox job-humanize job-resume-refine ${CORE_SKILL_NAMES}"
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply job-prep"
 # Extra names `install browser-use` links beside BROWSER_SKILL_NAMES.
 # Uninstall removes them only when the home has no agents-only kit link.
-BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-profile-root job-resume-refine job-humanize"
+BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-resume-refine job-humanize ${CORE_SKILL_NAMES}"
 
 # agents_names_for_root ROOT REPO
 # Prints SKILL_NAMES, omitting BROWSER_SHARED_DEPS when ROOT still has a

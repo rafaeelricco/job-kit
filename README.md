@@ -54,6 +54,7 @@ wall, and a captcha at submit hands the filled form back to you.
 | `job-profile-init`  | Creates a new profile, or registers an existing one                                          | The profile tree, plus pointer files on Activate                                  | Coding agents                             |
 | `job-profile-me`    | Shows the profile and edits positions, locations, boards, and CV settings                    | `data/job_search.yaml`, `search_packs.yaml`, `profile_card.yaml`, `cvs.yaml`      | Aside, coding agents                      |
 | `job-profile-root`  | Resolves the absolute profile path for every other skill                                     | Nothing                                                                           | Aside, coding agents                      |
+| `job-store`         | Resolves dossier schema, persistence lock, and untrusted-read law                            | Nothing                                                                           | Aside, coding agents                      |
 | `job-stories`       | Writes and audits the interview story deck                                                   | `data/stories/*.md`                                                               | Coding agents                             |
 | `job-pitch`         | Turns the story deck into a vetting video script or work-experience bullets                  | Nothing                                                                           | Aside, coding agents                      |
 | `job-humanize`      | Rewrites drafted resume or pitch prose so it reads like you, keeping every claim             | Nothing                                                                           | Aside, coding agents                      |
@@ -78,15 +79,15 @@ curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/r
 bash remote.sh all
 ```
 
-| Argument       | Installs                                                                                                                                                                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `all`          | All three channels; an absent target is skipped, not an error. Fails only if all are absent (default)                                                                                                                                       |
-| `aside`        | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` (fails if no Aside)                                            |
-| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-resume-refine` (fails if no agent home)                                           |
-| `browser-use`  | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` + `job-humanize` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
-| `fetch`        | Nothing. Refreshes the cached checkout only                                                                                                                                                                                                 |
-| `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                                                                                                 |
-| `-h`, `--help` | Nothing. Prints usage                                                                                                                                                                                                                       |
+| Argument       | Installs                                                                                                                                                                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `all`          | All three channels; an absent target is skipped, not an error. Fails only if all are absent (default)                                                                                                                                                     |
+| `aside`        | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-store` (fails if no Aside)                                            |
+| `agents`       | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-store` + `job-resume-refine` (fails if no agent home)                                           |
+| `browser-use`  | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-match` + `job-list` + `job-profile-me` + `job-profile-root` + `job-store` + `job-humanize` plus the browser-use driver skill into agent homes; missing CLI or browser prints an offer |
+| `fetch`        | Nothing. Refreshes the cached checkout only                                                                                                                                                                                                               |
+| `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                                                                                                               |
+| `-h`, `--help` | Nothing. Prints usage                                                                                                                                                                                                                                     |
 
 Options after the argument are forwarded to the installer. `all` forwards only
 `--force`; use an explicit channel for the skip flags:
@@ -321,14 +322,14 @@ bash scripts/uninstall.sh
 bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/uninstall.sh"
 ```
 
-| Choice / target | Removes                                                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Aside           | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` kit copies                      |
-| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-resume-refine` kit links (+ legacy `profile-init`) |
-| browser-use     | `job-scout` + `job-apply` + `job-prep` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser                                           |
-| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                                                                             |
-| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                                                                            |
-| **All**         | Aside + agents + browser-use + **profile** + cache                                                                                                                                                           |
+| Choice / target | Removes                                                                                                                                                                                                                    |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aside           | `job-scout` + `job-apply` + `job-prep` + `job-resume-refine` + `job-profile-me` + `job-list` + `job-match` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-store` kit copies                      |
+| Agents          | `job-profile-init` + `job-profile-me` + `job-list` + `job-match` + `job-stories` + `job-pitch` + `job-inbox` + `job-humanize` + `job-profile-root` + `job-store` + `job-resume-refine` kit links (+ legacy `profile-init`) |
+| browser-use     | `job-scout` + `job-apply` + `job-prep` kit links, the browser-use driver skill, the CLI (`uv tool uninstall`), and `~/.config/browser-harness`. Never your browser                                                         |
+| Profile         | `${XDG_CONFIG_HOME:-~/.config}/job-kit` (+ host-default if different) and matching pointer files                                                                                                                           |
+| Cache           | Cached checkout at `JOB_KIT_HOME`                                                                                                                                                                                          |
+| **All**         | Aside + agents + browser-use + **profile** + cache                                                                                                                                                                         |
 
 Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
 profile or cache data requires typing `yes`; a plan of re-installable links takes
@@ -337,7 +338,7 @@ profile or cache data requires typing `yes`; a plan of re-installable links take
 `--only` selects a subset instead of positional targets: by channel (`aside`,
 `agents`, `browser-use`), by Aside skill (`job-scout`, `job-apply`, `job-prep`,
 `job-resume-refine`, `job-profile-me`, `job-list`, `job-match`, `job-pitch`,
-`job-inbox`, `job-humanize`, `job-profile-root`), or by agent home
+`job-inbox`, `job-humanize`, `job-profile-root`, `job-store`), or by agent home
 (`claude`, `codex`, `grok`, `hermes`), plus `profile` and `cache`. An Aside skill subset
 cannot be combined with `cache`: the unselected skill would still point at it.
 
@@ -407,6 +408,7 @@ multi-target install also removes legacy kit links there, which the
 
 | Path                       | Role                                                             |
 | -------------------------- | ---------------------------------------------------------------- |
+| `skill/job-store/`         | Dossier schema, persistence lock, untrusted-read law             |
 | `skill/job-scout/`         | Scout law, contracts, surfaces                                   |
 | `skill/job-apply/`         | Apply law: queue, package, review, submit, record                |
 | `skill/job-prep/`          | Prep law: select, liveness, read, CV, fields, plan; digest       |
@@ -434,10 +436,8 @@ Search packs live in your profile at `data/search_packs.yaml`, emitted by
 `/job-profile-init` and edited by `/job-profile-me packs`. One pack = one site;
 `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or another), and
 scout opens that pack's `entry`. `job-scout` requires the profile deck; there
-is no skill-local fallback. `skill/job-inbox` cites
-`job-scout/references/contract-persistence.md` for the dossier write
-transaction (Aside co-installs scout; the agents-channel local copy remains a
-known gap).
+is no skill-local fallback. `skill/job-inbox` cites `job-store` for the
+dossier write transaction. Every install pack co-installs `job-store`.
 
 ## License
 
