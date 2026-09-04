@@ -41,8 +41,9 @@ Load each additional reference only when that flow names it.
 
 ## Hard refuses
 
-- Author a cover letter, essay, or any composed free-text answer — staged values
-  are file-printed, per `contract-screening.md`
+- Draft or rewrite a cover letter, essay, or any composed free-text answer.
+  Exact operator-authored text may only be copied through the reviewed,
+  same-session reply gate in `flow-apply.md`
 - Click a control that posts before the package review's yes (`--yolo` is that
   yes, given in advance)
 - Write `data/`, `cv/`, or — before a confirmed submission — `scout/jobs/`,

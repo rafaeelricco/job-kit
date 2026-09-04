@@ -45,8 +45,10 @@ The application heading is:
 
 `#### Application {YYYY-MM-DD} · {channel}`
 
-Append the ad line and the package sections exactly as they printed — a section
-the package omitted is omitted here too — plus any second-approved fields. Do not
+Append the ad line and only the final fully reprinted package snapshot covered
+by the last standalone `yes`, or by a still-valid `--yolo` when no later reprint
+consumed it. A section that snapshot omitted is omitted here too. Never append
+an earlier preview, combine deltas, or tack on later-approved fields. Do not
 re-derive, summarize, or invent content. Keep operator-only rows as `operator`.
 
 The log line is:
