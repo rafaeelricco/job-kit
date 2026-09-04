@@ -39,6 +39,9 @@ FLOW_APPLY: Path = harness.SKILL / "job-apply" / "references" / "flow-apply.md"
 CONTRACT_SCREENING: Path = (
     harness.SKILL / "job-apply" / "references" / "contract-screening.md"
 )
+SCHEMA_DOSSIER: Path = (
+    harness.SKILL / "job-scout" / "references" / "schema-dossier.md"
+)
 
 
 @dataclass(frozen=True)
@@ -415,6 +418,20 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn(
             "opens as a pdf, and that file's bytes still hash to `cv_sha256`",
             select,
+        )
+
+    def test_scout_reopen_keys_off_any_permitted_closure_writer(self):
+        dossier = instruction_text(SCHEMA_DOSSIER)
+
+        self.assertRegex(
+            dossier,
+            r"append reopen whenever a url whose latest posting-state line "
+            r"from any permitted writer \(`job-scout` \| `job-prep` \| "
+            r"`job-apply`\) was a closure is extracted live again",
+        )
+        self.assertNotRegex(
+            dossier,
+            r"whose last scout posting-state line was a closure",
         )
 
     def test_digest_visibility_and_send_eligibility_are_separate(self):
