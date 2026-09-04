@@ -1,7 +1,7 @@
 ---
 name: job-apply
 description: "Apply to postings from the scout store: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, hand back a package for approval, then submit and record after the operator's yes. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
-argument-hint: "[<file> | <url> | --new | --yolo | <auto-detect>]"
+argument-hint: "[<file> | <url> | --new | --yolo | --cv-sha256 <hex> | --prepared-at <iso-Z> | <auto-detect>]"
 ---
 
 # Job application
