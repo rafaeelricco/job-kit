@@ -430,12 +430,11 @@ class SkillLayoutTests(unittest.TestCase):
         )
 
     def test_job_prep_implies_job_scout(self):
-        """Selecting job-prep must also plan job-apply and job-scout.
+        """Selecting job-prep must also plan job-apply, job-scout, and job-store.
 
-        flow-prep.md loads job-scout/references/contract-persistence.md at its
-        liveness step and schema-plan.md binds job-scout's URL normalize, so a
-        subset without job-scout cannot run. Driven the same way as the
-        job-resume-refine rule above.
+        flow-prep.md loads job-store persistence, so a subset without job-store
+        cannot run. The closure still pulls job-apply and job-scout. Driven the
+        same way as the job-resume-refine rule above.
         """
         bash = shutil.which("bash")
         self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
@@ -475,6 +474,11 @@ class SkillLayoutTests(unittest.TestCase):
                     planned,
                     "--only job-prep did not pull in %s:\n%s" % (name, output),
                 )
+        self.assertIn(
+            "job-store",
+            planned,
+            "--only job-prep did not pull in job-store:\n%s" % output,
+        )
 
     def test_uninstall_runtime_deps_mirror_install_closure(self):
         """uninstall.sh's guard table must carry the job-scout edge install.sh adds."""
