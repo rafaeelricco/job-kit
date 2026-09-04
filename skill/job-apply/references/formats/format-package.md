@@ -37,32 +37,21 @@ verbatim.
 
 One row per field the form asks except the CV upload control, which is already
 represented under `### CV` and uploaded in `flow-apply.md` §5. `source` is the
-Fact file that printed the value, `operator reply` for a value supplied through
-the same-session reply gate, or `operator` for demographic and EEO rows. A field
-neither a Fact file nor that gate answers has no value to print here — it is a
-`### Needs you` row instead. Never print `—` as an answer.
+Fact file that printed the value, or the resolution-order name from
+`contract-screening.md`: `derived`, `authored`, `default`, `declined`. An
+optional field with no value prints an empty cell; a required one skipped the
+posting. Never print `—` as an answer.
 
-### Needs you
+### Authored
 
-One row per blocker: something that stops this application going out. Only these
-qualify:
+One block per composed-prose field, in form order: the field label as a bold
+line, then the staged text verbatim. Empty → omit the section.
 
-- a required field no Fact file answers, composed prose included
-- a wall at submit — a captcha, a bot check, an account the form demands
-- an upload the form refused
+### Cleared
 
-An observation that does not block sending is not a row. A requirement the CV
-does not answer is an `### Ad` bullet. A fact about who receives the application
-is the `### Ad` intermediary line. A read-blocker is never a row: `flow-apply.md`
-§2 already skipped that posting.
-
-Each row has a stable ID: `N1`, `N2`, and so on, assigned by the live-form
-reconciliation in `flow-apply.md`.
-
-| id     | what     | why it is unresolved | where you would fix it |
-| ------ | -------- | -------------------- | ---------------------- |
-| `{id}` | `{what}` | `{why}`              | `{path or form}`       |
-
+One line per wall or refusal this run cleared on its own:
+`{what} — {how}` (`reCAPTCHA — captcha-solver, 2 rounds`,
+`email code — Gmail, {address}`, `upload refused — re-attached, attempt 2`).
 Empty → omit the section.
 
 ### Skipped

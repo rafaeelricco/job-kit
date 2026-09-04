@@ -45,11 +45,10 @@ The application heading is:
 
 `#### Application {YYYY-MM-DD} · {channel}`
 
-Append the ad line and only the final fully reprinted package snapshot covered
-by the last standalone `yes`, or by a still-valid `--yolo` when no later reprint
-consumed it. A section that snapshot omitted is omitted here too. Never append
-an earlier preview, combine deltas, or tack on later-approved fields. Do not
-re-derive, summarize, or invent content. Keep operator-only rows as `operator`.
+Append the ad line and only the final fully reprinted package, the one live at
+the Submit click. A section that snapshot omitted is omitted here too. Never
+append an earlier preview or combine deltas. Do not re-derive, summarize, or
+invent content. Keep `declined` rows as `declined`.
 
 The log line is:
 
@@ -96,8 +95,7 @@ No section headings. Existing status follows the lifecycle table.
 Obey the append law in `job-store/references/schemas/schema-dossier.md`. Demote each `###`
 heading to `#####` under the `####` application heading and blockquote every
 non-heading line, table rows included. Never record passwords, credentials, one-time
-codes, demographic/EEO answers held only by the operator, or any value the run did not
-print and the operator did not approve.
+codes, demographic/EEO answers, or any value the run did not print.
 
 ## Close
 

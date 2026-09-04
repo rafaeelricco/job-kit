@@ -1,15 +1,16 @@
 ---
 name: job-apply
-description: "Apply to postings from the scout store: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, hand back a package for approval, then submit and record after the operator's yes. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
+description: "Apply to postings from the scout store with no operator in the loop: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, derived and default answers, author any prose field, clear captchas, sign-ins, and mail codes, then submit and record. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
 argument-hint: "[<file> | <url> | --new | --yolo | --cv-sha256 <hex> | --prepared-at <iso-Z> | <auto-detect>]"
 ---
 
 # Job application
 
 Queues postings from `job-list` and takes them one at a time: reads the ad,
-resolves the CV, fills the form from profile Facts, and hands back a package for
-approval. A posting whose ad is behind a login or account wall is skipped, not
-cleared. It never authors prose: a cover-letter or essay field is the operator's.
+resolves the CV, fills the form by the resolution order in
+`contract-screening.md`, authors prose fields under `contract-prose.md`,
+clears walls, submits, and records. It never waits for the operator: a
+blocker no rule clears skips that posting.
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
@@ -38,20 +39,21 @@ Load each additional reference only when that flow names it.
 
 - `./references/flows/flow-apply.md`
 - `./references/contracts/contract-screening.md`
+- `./references/contracts/contract-prose.md`
 - `./references/formats/format-package.md`
 - `./references/flows/flow-record.md`
 
 ## Hard refuses
 
-- Draft or rewrite a cover letter, essay, or any composed free-text answer.
-  Exact operator-authored text may only be copied through the reviewed,
-  same-session reply gate in `flow-apply.md`
-- Click a control that posts before the package review's yes (`--yolo` is that
-  yes, given in advance)
+- State a fact no Fact file or the live ad prints, in a form value, a letter,
+  or an answer; a missing part is named as not on record, never estimated
+- Read a story body, or ship a `never_say` claim or a process number
 - Write `data/`, `cv/`, or — before a confirmed submission — `scout/jobs/`,
   except the one `posting dead` log line `flow-apply.md` §2 appends
-- Invent, persist, or reuse a secret; passwords, OTP, magic links, and 2FA stop
-  once for operator handoff
-- Sign in, create an account, or solve a captcha or bot check; a wall in front of
-  the ad skips that posting, a wall at submit hands the form back
+- Type, invent, persist, or reuse a password; create a password account; sign
+  in as any identity but `data/basics.yaml` `email`
+- Stage protected-class data: demographic and EEO questions are declined,
+  never answered from a file or memory
+- Wait for the operator: a wall, refusal, or empty required field
+  `flow-apply.md` cannot clear skips the posting under `### Skipped`
 - Score the posting, rank the fit, or re-judge the decision to apply

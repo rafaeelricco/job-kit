@@ -560,13 +560,14 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"or whose `cv_sha256`/`prepared_at` miss a digest bind, is stale",
         )
 
-    def test_operator_reply_is_transient_same_session_context_not_approval(self):
+    def test_screening_resolves_without_an_operator_reply_gate(self):
         screening = instruction_text(CONTRACT_SCREENING)
 
-        self.assertIn("operator reply", screening)
-        self.assertIn("transient", screening)
-        self.assertRegex(screening, r"same[- ]session")
-        self.assertRegex(screening, r"(?:not|never)[^.]{0,160}\bapproval\b")
+        self.assertNotIn("operator reply", screening)
+        self.assertNotIn("needs you", screening)
+        self.assertIn("## resolution order", screening)
+        self.assertRegex(screening, r"nothing waits for the operator")
+        self.assertRegex(screening, r"required → skip the posting")
 
     def test_unreadable_prepared_cv_is_stale_not_ignored(self):
         apply = instruction_text(FLOW_APPLY)
@@ -624,28 +625,22 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         )
         self.assertRegex(
             submit,
-            r"never fall through to refine after approval",
+            r"never fall through to refine under a digest bind",
         )
 
-    def test_yolo_is_consumed_before_unpreviewed_or_new_fields(self):
+    def test_new_fields_are_staged_never_gated(self):
         apply = instruction_text(FLOW_APPLY)
 
-        self.assertNotIn("skipping §5's unpreviewed-fields gate too", apply)
-        self.assertRegex(
-            apply,
-            r"(?:--yolo[^.]{0,160}consum|consum[^.]{0,160}--yolo)",
-        )
+        self.assertNotRegex(apply, r"standalone \*?\*?yes")
+        self.assertNotIn("needs you", apply)
+        self.assertNotIn("hand back", apply)
         self.assertRegex(apply, r"\bunpreviewed[- ]fields?\b")
-        self.assertRegex(apply, r"\b(?:new fields?|fields? the live form added)\b")
         self.assertRegex(
             apply,
-            r"new field[^.]{0,100}consum[^.]{0,200}standalone[^.]{0,80}\byes\b",
+            r"field the printed package did not carry[^.]{0,120}resolution order",
         )
-        self.assertRegex(
-            apply,
-            r"field the approved package did not carry.{0,320}"
-            r"consume `--yolo`.{0,200}standalone `yes`",
-        )
+        self.assertRegex(apply, r"load the `captcha-solver` skill")
+        self.assertRegex(apply, r"gmail capability")
 
 
 if __name__ == "__main__":

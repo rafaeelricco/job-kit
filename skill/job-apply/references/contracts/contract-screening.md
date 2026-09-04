@@ -17,23 +17,56 @@ memory. Never read story bodies.
 | story claims and verified outcomes                                         | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
 | which CV to attach                                                         | `data/cvs.yaml` `adapt_per_vacancy` (absent → true) and `base` (filename under `cv/`)                                                                             |
 
-After job-apply prints a numbered `### Needs you` row, an exact,
-non-sensitive same-session reply may supply that row. Stage the supplied value
-verbatim with source `operator reply`; never draft or rewrite operator prose.
-The reply is transient: never write it to a Fact file or `plan.json`, infer it,
-reuse it for another application, or treat it as approval. Before staging prose,
-enforce every `never_say` ban below. A textual value cannot satisfy an
-`operator` row or an external handoff: demographic or EEO answers, secrets,
-captchas, bot checks, sign-in or account access, passwords, OTP, magic links,
-and 2FA remain with the operator.
+## Resolution order
+
+Every field takes the first rule that yields a value; the package prints the
+rule as `source`. Nothing waits for the operator.
+
+1. A Fact file above prints it → that file.
+2. "Derived answers" below computes it → `derived`.
+3. `data/candidate.yaml` `screening_defaults` prints it (`on_call`,
+   `hours_overlap`, `timezone`, `referral_source`, `consent_to_data_processing`,
+   `qa[]` as `question` / `answer` pairs matched on the label) → `data/candidate.yaml`.
+4. The field wants composed prose → author it under `./contract-prose.md` → `authored`.
+5. A required yes/no availability question — on-call, hours overlap, background
+   check, assessment, start on notice — with nothing above → `Yes` → `default`.
+6. Demographic or EEO → the option that declines to answer → `declined`;
+   required with no such option → skip the posting.
+7. Still nothing: optional → blank; required → skip the posting, reason
+   `no answer for {label}`.
+
+A dropdown or radio takes the option whose label matches the value; no match →
+the option meaning other, not listed, or prefer not to say; none → rule 7.
+Before staging any prose, enforce every `never_say` ban below.
+
+## Derived answers
+
+- Years of experience: floor(unique calendar months / 12) over every role's
+  `date` in `data/experiences.yml`, the formula
+  `job-pitch/references/contracts/contract-say.md` "The number firewall"
+  prints. `N+ years?` is `Yes` iff the derived count ≥ N.
+- First / last name: `basics.yaml` `name` split at the first space.
+- City / state / country: `basics.yaml` `location` split on commas, last part
+  the country; country of residence is that country.
+- Earliest start date: today plus `availability.notice_period`; `Immediately`
+  when the notice is zero.
+- Referral source: the dossier's Provenance `source` mapped to the option that
+  names that board (`linkedin-jobs` → LinkedIn, `work-at-a-startup` → Y
+  Combinator, `weworkremotely` → We Work Remotely, `hiringcafe` → Hiring
+  Cafe); no such option → `Job board` or `Other`; a free-text ask gets the
+  board name. Never a person.
+- Weekly hours: the posting's stated hours; full-time with none printed → 40.
+- Seniority self-label: the current role's `position` in `data/experiences.yml`.
+- Salary period: `salary_range_usd` is yearly. A monthly ask divides the
+  figure by 12, rounded to 100; an hourly ask divides by 2080, rounded to 5.
 
 - Language level is the printed self-assessment, paired with the language name. Never assert a certification, test score, or bare letter grade.
 - Never name an employer's client. Use only a domain phrase already present in a Fact file.
 - Remote, in-person, and relocation use `work_preferences_from_resume` verbatim. An empty key is no answer.
-- Demographic and EEO questions are `operator`; never invent or recall them.
+- Demographic and EEO questions are answered only by declining; never invent, recall, or read them from a file.
 - Disqualifying questions get the truthful answer, even when it disqualifies.
 - Every `never_say` entry is a run-global ban on outbound free-text, exact or semantically equivalent.
-- Surface every value the files do not print, including years of experience, weekly hours, or a seniority self-label, rather than deciding alone.
+- A value no file prints and no rule derives follows the resolution order; never estimate one.
 - Say a current-role gap out loud: `<skill> is real but predates my current role, treat it as secondary.`
 
 ## Salary expectation
@@ -43,8 +76,9 @@ Keep two bands separate:
 - `ours` = `salary_expectations.salary_range_usd` (`ours.min`, `ours.max`), the accepted band, not the answer.
 - `job` = USD figures printed by the posting (`job.min`, `job.max`); either may be absent.
 
-If `ours` is empty or the posting uses another currency, surface the value
-instead of converting or comparing currencies.
+If the posting prints figures in another currency, answer `job.max` in that
+currency (`job.min` when only it is printed) — never convert. If `ours` is
+empty and the posting prints none, the field follows resolution rule 7.
 
 Otherwise use the first matching row:
 
@@ -63,8 +97,8 @@ as low when printed and no higher than high, otherwise high. No posted number us
 stored range.
 
 Before staging, check the result is `>= job.min` and `<= job.max` wherever those bounds
-exist. A failure means the wrong operand was read: stop, name the row and broken bound,
-and stage nothing.
+exist. A failure means the wrong operand was read: name the row and broken bound, and
+the field follows resolution rule 7.
 
 A midpoint of `ours` answers no row.
 
@@ -88,8 +122,8 @@ If no jurisdictions list exists, read only the legacy keys for the asked jurisdi
 | Canada       | `canada_work_authorization`, `legally_allowed_to_work_in_canada`, `requires_canada_visa`, `requires_canada_sponsorship` |
 | UK           | `uk_work_authorization`, `legally_allowed_to_work_in_uk`, `requires_uk_visa`, `requires_uk_sponsorship`                 |
 
-Missing or empty keys mean no answer. Never answer one jurisdiction from another. A
+Missing or empty keys mean no answer (resolution rule 7). Never answer one jurisdiction from another. A
 binary question gets the literal truthful value. Never answer `No` to sponsorship just
 because EOR exists. Put nuance in a free-text notes field once. Do not volunteer
 sponsorship need to an engagement-only question. If possession versus need is ambiguous,
-use the more specific field and surface the ambiguity; never blend them into a hedge.
+use the more specific field; never blend them into a hedge.
