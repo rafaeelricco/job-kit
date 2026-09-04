@@ -179,9 +179,10 @@ After the sections, print command footers only for categories with displayed
 IDs: `Send: send S1 S2`, `Review answers: review A1`, and
 `Review blockers: review B1`. Only displayed `S` IDs after `send` map to
 `/job-apply --yolo {slug}.md`. Bind each displayed `S` ID at print time to that
-plan's `cv_sha256`. At `send`, if the live plan's `cv_sha256` no longer equals
-the bound value, or the plan is gone, stop before Browser and require
-`/job-prep --digest`, or `/job-apply {slug}.md` without `--yolo`. Map displayed
+plan's `cv_sha256` and `prepared_at`. At `send`, if the live plan's `cv_sha256`
+or `prepared_at` no longer equals the bound value, or the plan is gone, stop
+before Browser and require `/job-prep --digest`, or `/job-apply {slug}.md`
+without `--yolo`. Map displayed
 `A`/`B` IDs after `review` to normal `/job-apply {slug}.md`. An `A` or `B` ID
 in `send`, a mixed ID category, or an unknown ID stops before Browser. When
 `{shown} < {total}`, finish with `More prepared: {total - shown}`. Unanswered
