@@ -6,8 +6,12 @@ Agent skills to find jobs, rank them against your profile, tailor your resume,
 submit applications, and track replies in Gmail. Runs in Claude Code, Codex,
 Grok, Hermes Agent, and [Aside Browser](https://aside.com).
 
-[Install](#install) · [Getting started](#getting-started) ·
-[Documentation](#documentation) · [Development](#development)
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="#development">Development</a>
+</p>
 
 Your profile and application records live in a directory you control, separate
 from this repository. The [dashboard](https://r1cco.com/jobs/) opens the same
