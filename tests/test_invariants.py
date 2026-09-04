@@ -443,6 +443,15 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             digest,
         )
         self.assertIn(
+            "bind each displayed `s` id at print time to that plan's `cv_sha256`",
+            digest,
+        )
+        self.assertRegex(
+            digest,
+            r"if the live plan's `cv_sha256` no longer equals the bound value, "
+            r"or the plan is gone, stop before browser",
+        )
+        self.assertIn(
             "map displayed `a`/`b` ids after `review` to normal "
             "`/job-apply {slug}.md`",
             digest,
