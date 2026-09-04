@@ -157,6 +157,9 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    > install channels you need (README Install / Work locally sections):
    >
    > ```bash
+   > curl -fsSL https://r1cco.com/install.sh | bash
+   >
+   > # or work from a checkout:
    > git clone https://github.com/rafaeelricco/job-kit.git
    > cd job-kit
    > bash scripts/install.sh aside    # Aside skills
@@ -164,5 +167,4 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    > # or: bash scripts/install.sh all
    > ```
    >
-   > Private clone: use your host's auth. Do not run kit installers from the
-   > profile directory.
+   > Do not run kit installers from the profile directory.

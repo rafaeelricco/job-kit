@@ -34,7 +34,7 @@ Posting-controlled body fields (`company` / `title` in the H1, posting-facts val
 
 ```markdown
 ---
-company: "Ambar"
+company: "Acme Corp"
 title: "Senior Software Engineer"
 url: "https://example.com/jobs/123" # normalized, per "URL normalize" above
 status: new # new | applied | rejected | interview | offer | dropped
@@ -45,7 +45,7 @@ bucket: direct # direct | EOR | restricted-geo | unbucketed
 channel: ats
 ---
 
-# Ambar — Senior Software Engineer
+# Acme Corp — Senior Software Engineer
 
 ## Verdict
 

@@ -6,26 +6,26 @@ from check_parse import check, extract
 
 # Shaped like pdftotext default-mode output of the real base: a table row
 # splits into blocks, bullets wrap, "--" renders as an en dash.
-TEXT = """Rafael Ricco
-+1 555 010 0000 | jane.doe@example.com | github.com/rafaeelricco
+TEXT = """Jane Doe
++1 555 010 0000 | jane.doe@example.com | github.com/janedoe
 
 SUMMARY
-Most recently I built Prevou at Ambar for UK estate agencies.
+Most recently I built Widget at Acme Corp for regional retailers.
 
 EXPERIENCE
 Senior Software Engineer
 
 Sep. 2025 – Present
 
-Ambar
+Acme Corp
 London, United Kingdom | Remote
-• Shipped Prevou, a white-label AI sales assistant, from day two to production. It crawls the
-agency site and answers visitors by text or voice.
+• Shipped Widget, a white-label AI sales assistant, from day two to production. It crawls the
+client site and answers visitors by text or voice.
 Software Engineer
 
 Jun. 2025 – Sep. 2025
 
-Unvoid
+Globex
 London, United Kingdom | Remote
 
 TECHNICAL SKILLS
@@ -37,10 +37,10 @@ Backend & Architecture: Event Sourcing, CQRS, OAuth2/OpenID Connect
 class ParseCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {
-            "identity": ["Rafael Ricco", "jane.doe@example.com", "+1 555 010 0000"],
+            "identity": ["Jane Doe", "jane.doe@example.com", "+1 555 010 0000"],
             "roles": [
-                {"company": "Ambar", "position": "Senior Software Engineer", "date": "Sep. 2025 -- Present"},
-                {"company": "Unvoid", "position": "Software Engineer", "date": "Jun. 2025 -- Sep. 2025"},
+                {"company": "Acme Corp", "position": "Senior Software Engineer", "date": "Sep. 2025 -- Present"},
+                {"company": "Globex", "position": "Software Engineer", "date": "Jun. 2025 -- Sep. 2025"},
             ],
             "skills": ["TypeScript", "Next.js", "Event Sourcing", "OAuth2/OpenID Connect"],
         }
@@ -51,7 +51,7 @@ class ParseCheckTests(unittest.TestCase):
 
     def test_accepts_wrapped_line_and_dash_variants(self):
         expected = copy.deepcopy(self.expected)
-        expected["skills"].append("from day two to production. It crawls the agency site")
+        expected["skills"].append("from day two to production. It crawls the client site")
         expected["roles"][0]["date"] = "Sep. 2025 — Present"
         self.assertEqual(check(TEXT, expected)["verdict"], "PASS")
 
@@ -64,7 +64,7 @@ class ParseCheckTests(unittest.TestCase):
 
     def test_ignores_blank_optional_identity_tokens(self):
         expected = copy.deepcopy(self.expected)
-        expected["identity"] = ["Rafael Ricco", "", "  "]
+        expected["identity"] = ["Jane Doe", "", "  "]
 
         self.assertEqual(
             check(TEXT, expected),
@@ -118,11 +118,11 @@ class ParseCheckTests(unittest.TestCase):
 
     def test_summary_fields_cannot_mask_reversed_roles(self):
         text = TEXT.replace(
-            "Most recently I built Prevou at Ambar for UK estate agencies.",
-            "Software Engineer at Ambar. Most recently I built Prevou for UK estate agencies.",
-        ).replace("\nUnvoid\n", "\nAmbar\n")
+            "Most recently I built Widget at Acme Corp for regional retailers.",
+            "Software Engineer at Acme Corp. Most recently I built Widget for regional retailers.",
+        ).replace("\nGlobex\n", "\nAcme Corp\n")
         expected = copy.deepcopy(self.expected)
-        expected["roles"][1]["company"] = "Ambar"
+        expected["roles"][1]["company"] = "Acme Corp"
         expected["roles"].reverse()
 
         result = check(text, expected)

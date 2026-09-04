@@ -7,12 +7,12 @@ by `job-prep --digest`.
 ```json
 {
   "schema_version": 1,
-  "slug": "2026-09-03-tribuesk--full-stack-engineer",
-  "url": "https://boards.greenhouse.io/tribuesk/jobs/4012",
+  "slug": "2026-09-03-acme--full-stack-engineer",
+  "url": "https://boards.greenhouse.io/acme/jobs/4012",
   "ats": "greenhouse",
   "channel": "ats",
   "prepared_at": "2026-09-03T02:14:00Z",
-  "cv": "/root/personal/job-kit-profile/scout/applications/2026-09-03-tribuesk--full-stack-engineer/Rafael_Ricco_Full_Stack_Engineer_Resume.pdf",
+  "cv": "~/job-kit-profile/scout/applications/2026-09-03-acme--full-stack-engineer/Resume_Full_Stack_Engineer.pdf",
   "cv_sha256": "4c1f0b9a7d2e6c8f3a5b1d0e9f7c6b4a2d8e1f0c3b5a7d9e6f2c4b8a1d3e5f70",
   "fields": [
     {
@@ -20,7 +20,7 @@ by `job-prep --digest`.
       "label": "First name",
       "type": "text",
       "required": true,
-      "value": "Rafael",
+      "value": "Jane",
       "source": "data/basics.yaml"
     },
     {

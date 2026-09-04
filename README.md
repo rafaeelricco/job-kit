@@ -69,14 +69,14 @@ One command, no clone. It caches the kit at `~/.local/share/job-kit` and runs
 the channel installers from there:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- all
+curl -fsSL https://r1cco.com/install.sh | bash
 ```
 
 Read it first if you prefer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh -o remote.sh
-bash remote.sh all
+curl -fsSL https://r1cco.com/install.sh -o install.sh
+bash install.sh
 ```
 
 | Argument       | Installs                                                                                                                                                                                                                                                  |
@@ -114,8 +114,8 @@ and browser-use channels only (`all` means those two).
 
 ```powershell
 # download then run (ExecutionPolicy Bypass is required on a default Win11 box)
-Invoke-RestMethod https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.ps1 -OutFile remote.ps1
-powershell -ExecutionPolicy Bypass -File remote.ps1 all
+Invoke-RestMethod https://r1cco.com/install.ps1 -OutFile install.ps1
+powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
 | Argument      | Installs                                                                                              |
@@ -334,7 +334,7 @@ apply after the plan and profile/cache refuse.
 Curl / non-interactive skills-only (does not delete profile data):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
+curl -fsSL https://r1cco.com/install.sh | bash -s -- uninstall
 ```
 
 Dropping the cache too needs a typed `yes`, which a pipe cannot answer, so
@@ -377,8 +377,7 @@ home, the `browser-use` CLI, a Chromium-family browser you are signed into,
 and the driver skill the installer places when the CLI is present. All of it
 is local, with no Browser Use account, no cloud browser, and no API key. The
 installer flags a missing CLI or browser and offers the command that fixes it.
-Private clone: use whatever auth your host requires
-(`gh repo clone rafaeelricco/job-kit`, HTTPS token, or SSH remote).
+Clone over HTTPS or SSH, whichever your host prefers.
 
 Run the installer from this checkout, or pass an absolute path to it. It
 never clones for you and never runs from a profile directory. `install.sh` only

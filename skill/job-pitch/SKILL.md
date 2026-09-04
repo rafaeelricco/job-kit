@@ -36,7 +36,7 @@ Read-only; never writes. No path under Profile root is writable in this skill.
 | Utterance                                                   | Do                                          | Writes |
 | ----------------------------------------------------------- | ------------------------------------------- | ------ |
 | vetting video script / how do I tell this one in 90 seconds | `script`                                    | —      |
-| write my work experience / S.T.A.R.T. bullets for Ambar     | `experience`                                | —      |
+| write my work experience / S.T.A.R.T. bullets for Acme Corp | `experience`                                | —      |
 | write a story / add this project to my deck                 | hand off `job-stories`, then end this skill | —      |
 | apply to this posting / get an application ready            | hand off `job-apply`, then end this skill   | —      |
 

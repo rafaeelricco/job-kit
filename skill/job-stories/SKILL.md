@@ -24,7 +24,7 @@ atomic rename. Every other path under Profile root is read-only in this skill.
 
 | Utterance                                                    | Do                                               | Writes                   |
 | ------------------------------------------------------------ | ------------------------------------------------ | ------------------------ |
-| write a story about X / turn Prevou into an interview answer | `add`                                            | `data/stories/<slug>.md` |
+| write a story about X / turn Widget into an interview answer | `add`                                            | `data/stories/<slug>.md` |
 | which stories need numbers / check my deck                   | `audit`                                          | —                        |
 | create a profile / set one up from my CV                     | hand off `job-profile-init`, then end this skill | —                        |
 | apply to this posting / get an application ready             | hand off `job-apply`, then end this skill        | —                        |

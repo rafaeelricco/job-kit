@@ -2,7 +2,7 @@
   "script": "skill/job-resume-refine/scripts/check_parse.py",
   "argv": [],
   "stdin": {
-    "identity": "Rafael Ricco",
+    "identity": "Jane Doe",
     "roles": [
       {
         "company": "Acme",
