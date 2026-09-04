@@ -231,7 +231,7 @@ expand_only() {
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-prep "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*|*" job-store "*)
+      *" job-scout "*|*" job-apply "*|*" job-prep "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;
