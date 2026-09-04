@@ -642,6 +642,16 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertRegex(apply, r"load the `captcha-solver` skill")
         self.assertRegex(apply, r"gmail capability")
 
+    def test_ambiguous_submit_is_logged_not_requeued(self):
+        apply = instruction_text(FLOW_APPLY)
+
+        self.assertNotIn("record nothing", apply)
+        self.assertRegex(apply, r"submit unconfirmed: ambiguous result — job-apply")
+        self.assertRegex(
+            apply,
+            r"drop any whose log carries a top-level `submit unconfirmed` line",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

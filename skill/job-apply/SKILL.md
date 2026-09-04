@@ -22,8 +22,9 @@ say so; an absent `data/cvs.yaml` falls back per `flow-apply.md` §3. A dossier
 that will not read or parse is one posting's failure, not the run's —
 `flow-apply.md` §2.
 
-Write-set: `scout/jobs/` only — a confirmed submission (`flow-record.md`), or
-one `posting dead` log line when the ad reads dead (`flow-apply.md` §2). A
+Write-set: `scout/jobs/` only — a confirmed submission (`flow-record.md`), one
+`posting dead` log line when the ad reads dead (`flow-apply.md` §2), or one
+`submit unconfirmed` log line after an ambiguous submit (`flow-apply.md` §5). A
 chained `job-resume-refine` writes `scout/applications/{slug}/` under its own
 law. `scout/applications/{slug}/plan.json` is read-only input here
 (`flow-apply.md` §3 rule 0); only `job-prep` writes it.
@@ -49,7 +50,8 @@ Load each additional reference only when that flow names it.
   or an answer; a missing part is named as not on record, never estimated
 - Read a story body, or ship a `never_say` claim or a process number
 - Write `data/`, `cv/`, or — before a confirmed submission — `scout/jobs/`,
-  except the one `posting dead` log line `flow-apply.md` §2 appends
+  except the one `posting dead` or `submit unconfirmed` log line
+  `flow-apply.md` appends
 - Type, invent, persist, or reuse a password; create a password account; sign
   in as any identity but `data/basics.yaml` `email`
 - Stage protected-class data: demographic and EEO questions are declined,
