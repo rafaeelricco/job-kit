@@ -177,14 +177,12 @@ the same draft, `job-humanize`, and `never_say` checks before printing the
 package. This message is what §5 step 1 stages.
 
 When rule 0 took a prepared plan, re-resolve authored and null-valued rows
-by the resolution order; stage remaining `plan.json` `fields[].value` only for a
-field whose `selector`, `label`, and `type` all still match the live form, and
-resolve every other live field — each `needs_you` entry and each `operator`
-row included — by the resolution order. A plan
-field whose selector is gone, or whose live `label` or `type` differs from the
-plan's, is dropped, not guessed; the live control it pointed at counts as a
-field the live form added. Recheck any reused salary value under
-`contract-screening.md` "Salary expectation" before staging.
+and every other live field from current Fact files through the resolution
+order. Recompute each value and its source; never fall back to stored
+`fields[].value` when a current answer is unavailable. Prepared `selector`,
+`label`, and `type` are binding hints only and must all still match the live
+form. Drop vanished or changed bindings; resolve their live replacements as
+new fields.
 
 A required field the resolution order cannot fill skips the posting: name the
 label under `### Skipped`, write nothing. Otherwise load
