@@ -1,7 +1,7 @@
 ---
 name: job-prep
-description: "Prepare application packages offline for hot dossiers: revalidate the live ad, read the form's fields, resolve each against profile Facts, chain job-resume-refine, and write plan.json plus package.md for later approval; --digest lists plans ready to send. Use when the user runs /job-prep, a nightly prep cron fires, or a morning digest cron asks what is prepared. Not for submitting (job-apply), scoring (job-match), searching (job-scout), or listing dossiers (job-list)."
-argument-hint: "[--top N | --channel ats|dm_request|direct_email | --digest | <file>...]"
+description: "Prepare application packages offline for hot dossiers: revalidate the live ad, read the form's fields, resolve each against profile Facts, chain job-resume-refine, and write plan.json plus package.md for later approval; --digest presents ready, answerable, and externally blocked plans. Use when the user runs /job-prep, a nightly prep cron fires, or a morning digest cron asks what is prepared. Not for submitting (job-apply), scoring (job-match), searching (job-scout), or listing dossiers (job-list)."
+argument-hint: "[--from-match] [--top N] [--channel ats|dm_request|direct_email] [--digest] [<file>...]"
 ---
 
 # Job prep
@@ -39,5 +39,5 @@ Read `./references/flow-prep.md` now.
   line §2 appends — never `status:`, never the body
 - Author a cover letter, message, essay, or composed free-text answer
 - Emit a plan for a posting whose ad did not read this run
-- Sign in, create an account, or solve a captcha or bot check; a wall on the
-  apply path is a `needs_you` row, never cleared
+- Sign in, create an account, or solve a captcha or bot check; record an
+  apply-path wall per `flow-prep.md`, never clear it
