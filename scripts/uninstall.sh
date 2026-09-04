@@ -36,12 +36,13 @@ ASIDE_ONLY=""
 # plan_preflight refuses.
 # Required siblings. Removing one while another Aside skill stays leaves that
 # skill unable to load it.
-ASIDE_RESOLVERS="job-profile-root job-humanize"
+ASIDE_RESOLVERS="job-profile-root job-store job-humanize"
 ASIDE_RESOLVER="job-profile-root"
 # Runtime dependency edges, one per line: "<dependent> <dep>…". Mirrors the
 # --only closure install.sh:177-246 applies, so a subset that installs together
-# cannot be taken apart. job-profile-root / job-humanize are deliberately absent:
-# every Aside skill needs them, and ASIDE_RESOLVERS already guards that edge.
+# cannot be taken apart. job-profile-root / job-store / job-humanize are
+# deliberately absent: every Aside skill needs them, and ASIDE_RESOLVERS
+# already guards that edge.
 ASIDE_RUNTIME_DEPS="job-prep job-apply job-resume-refine job-list job-scout
 job-apply job-resume-refine job-list job-scout
 job-scout job-match job-profile-me
@@ -304,8 +305,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root)
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-resume-refine)
+  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root, job-store)
+  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
@@ -317,7 +318,7 @@ Options:
   -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root
+                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root | job-store
                 agents | browser-use | claude | codex | grok | hermes
                 profile | cache
                 (claude|codex|grok|hermes narrow a channel named alongside them;
@@ -326,7 +327,7 @@ Options:
                 job-list / job-scout; job-scout needs
                 job-match / job-profile-me; job-match needs job-list /
                 job-profile-me — removing one while its dependent stays refuses;
-                job-profile-root / job-humanize refuse while other Aside skills remain)
+                job-profile-root / job-store / job-humanize refuse while other Aside skills remain)
   --skip-claude|--skip-codex|--skip-grok|--skip-hermes
                 Applied only when agents or browser-use runs
 
@@ -1387,7 +1388,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root)
+      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -1399,7 +1400,7 @@ expand_only() {
       hermes) named_agent=1; want_hermes=1 ;;
       profile) want_profile=1 ;;
       cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
     esac
   done
   # Matches the installer: a bare agent-home token still means the agents

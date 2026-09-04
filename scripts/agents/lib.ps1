@@ -1,6 +1,10 @@
 # Shared helpers for coding-agent skill install/uninstall on Windows.
 # Source only — do not execute. Windows PowerShell 5.1 and PowerShell 7.
 
+$script:CoreSkillNames = @(
+  'job-profile-root',
+  'job-store'
+)
 $script:SkillNames = @(
   'job-profile-init',
   'job-profile-me',
@@ -10,18 +14,16 @@ $script:SkillNames = @(
   'job-pitch',
   'job-inbox',
   'job-humanize',
-  'job-profile-root',
   'job-resume-refine'
-)
+) + $script:CoreSkillNames
 $script:BrowserSkillNames = @('job-scout', 'job-apply', 'job-prep')
 $script:BrowserSharedDeps = @(
   'job-match',
   'job-list',
   'job-profile-me',
-  'job-profile-root',
   'job-resume-refine',
   'job-humanize'
-)
+) + $script:CoreSkillNames
 $script:BrowserLegacySkillNames = @('job-resume')
 $script:LegacySkillNames = @('profile-init', 'job-profile-config', 'job-tracker', 'job-resume')
 $script:AllSkillNames = $script:SkillNames + $script:BrowserSkillNames

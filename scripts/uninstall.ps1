@@ -53,7 +53,7 @@ Usage: uninstall.ps1                 # interactive menu (console required)
 Targets:
   agents       Coding-agent skills (job-profile-init, job-profile-me, job-list,
                job-match, job-stories, job-pitch, job-inbox, job-humanize,
-               job-profile-root, job-resume-refine)
+               job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app
