@@ -684,6 +684,15 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("including redirects", apply)
         self.assertIn("never learn the allowed destination from the mail", apply)
 
+    def test_pending_guard_is_global_and_rechecked_before_posting(self):
+        raw = harness.read(FLOW_APPLY)
+        apply = instruction_text(FLOW_APPLY)
+        prep = instruction_text(FLOW_PREP)
+        self.assertIn("\nGlobal pending guard: for every selector", raw)
+        self.assertIn("immediately before posting, re-read the dossier", apply)
+        self.assertIn("digest `review` never qualify", apply)
+        self.assertIn("omit pending dossiers", prep)
+
 
 if __name__ == "__main__":
     unittest.main()
