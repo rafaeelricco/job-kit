@@ -16,6 +16,7 @@ Three anchored forms are checkable:
 * skill-local — ``./references/x.md``, ``./scripts/x.py``, ``./templates/`` resolve
   under the *containing skill* directory, because a reference file that says
   ``./references/contract-x.md`` still means the skill's own references directory.
+  Nested ``./references/flows/x.md`` resolves the same way, under the skill root.
 * file-relative — ``./worker-validate.md`` and ``../SKILL.md`` resolve against the
   *containing file's* directory. Dropping this form makes the four job-match
   ``worker-*.md`` files look like orphans when the flow loads them by bare name.
@@ -227,8 +228,8 @@ def shipped_scripts() -> FrozenSet[str]:
 
 
 def reference_files() -> Tuple[Path, ...]:
-    """Every ``skill/<name>/references/*.md``, in sorted order."""
-    return tuple(sorted(SKILL.glob("*/references/*.md")))
+    """Every ``skill/<name>/references/**/*.md``, in sorted order."""
+    return tuple(sorted(SKILL.glob("*/references/**/*.md")))
 
 
 def loaded_reference_files() -> FrozenSet[Path]:
@@ -306,8 +307,8 @@ def contract_files() -> Tuple[Path, ...]:
     """Every schema or contract reference file, in sorted order."""
     return tuple(
         sorted(
-            set(SKILL.glob("*/references/schema-*.md"))
-            | set(SKILL.glob("*/references/contract-*.md"))
+            set(SKILL.glob("*/references/schemas/schema-*.md"))
+            | set(SKILL.glob("*/references/contracts/contract-*.md"))
         )
     )
 
@@ -649,13 +650,19 @@ class SearchPackRouteTests(unittest.TestCase):
         )
 
     def test_route_consumers_are_pinned(self):
-        scout = read(SKILL / "job-scout" / "SKILL.md")
-        show = read(SKILL / "job-profile-me" / "references" / "flow-show.md")
-        mutate = read(SKILL / "job-profile-me" / "references" / "flow-mutate.md")
+        scout_search = read(
+            SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
+        )
+        show = read(
+            SKILL / "job-profile-me" / "references" / "flows" / "flow-show.md"
+        )
+        mutate = read(
+            SKILL / "job-profile-me" / "references" / "flows" / "flow-mutate.md"
+        )
         pinned = (
             (
-                "job-scout/SKILL.md",
-                scout,
+                "job-scout/references/flows/flow-search.md",
+                scout_search,
                 (
                     "`defect: route_failed`",
                     "`defect: list_truncated`",
@@ -663,12 +670,12 @@ class SearchPackRouteTests(unittest.TestCase):
                 ),
             ),
             (
-                "job-profile-me/references/flow-show.md",
+                "job-profile-me/references/flows/flow-show.md",
                 show,
                 ("Route status, first match", "route=json"),
             ),
             (
-                "job-profile-me/references/flow-mutate.md",
+                "job-profile-me/references/flows/flow-mutate.md",
                 mutate,
                 ("Route invariant",),
             ),
@@ -680,9 +687,12 @@ class SearchPackRouteTests(unittest.TestCase):
                         phrase, text, "{0} no longer says {1!r}".format(source, phrase)
                     )
         self.assertOrdered(
-            scout, "When a pack has `route`", "Without `route`", "job-scout/SKILL.md"
+            scout_search,
+            "When a pack has `route`",
+            "Without `route`",
+            "job-scout/references/flows/flow-search.md",
         )
-        self.assertNotRegex(scout, r"surface-[a-z0-9-]+\.md")
+        self.assertNotRegex(scout_search, r"surface-[a-z0-9-]+\.md")
 
 
 class SchemaBlockTests(unittest.TestCase):
