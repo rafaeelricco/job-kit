@@ -26,9 +26,12 @@ qualifies, stop and name what is missing.
 
 Parse tokens. Selectors are `<file>` | `<url>` | `--new`; `--new` never combines
 with the others. `--yolo` is a modifier; it consumes no token and is legal with
-any selector. Prose around the selectors is context, not a token: read it for
-the postings it names, ignore the rest. An unknown `--` flag, or `--new` beside
-a `<file>` or `<url>` → stop.
+any selector. `--cv-sha256 <hex>` and `--prepared-at <iso-Z>` are modifiers that
+each consume one value token; both must appear together, and only with `--yolo`
+(digest `send` carries them). A lone one of the pair, either without `--yolo`,
+an unknown `--` flag, or `--new` beside a `<file>` or `<url>` → stop. Prose
+around the selectors is context, not a token: read it for the postings it names,
+ignore the rest.
 
 1. `<file>` or `<url>`, or no selector and the message names dossiers or posting
    URLs → those postings, in the order the message prints them. A line under a
@@ -100,14 +103,18 @@ Exactly one CV per application, first match:
    opens as a PDF, and that file's SHA-256 equals the plan's `cv_sha256` →
    print `Prepared plan · {slug} · {prepared_at}` and take that PDF. Never
    re-refine: the approved package named these bytes, and the digest is what
-   proves they are still the ones on disk. A plan whose `url` does not match is
-   ignored entirely — fall through to rule 1. A plan whose `cv` does not open,
-   or opens but no longer matches `cv_sha256`, is stale: print
-   `Plan stale · {slug}`. With `--yolo`, skip this posting and require a fresh
-   `/job-prep {filename}` plus `/job-prep --digest`, or rerun
-   `/job-apply {filename}` without `--yolo`; never fall through under advance
-   approval. Without `--yolo`, fall through to rule 1. Only `job-prep` writes
-   `plan.json`; this skill never does.
+   proves they are still the ones on disk. When `--cv-sha256` and
+   `--prepared-at` were parsed (digest bind), the live plan's `cv_sha256` and
+   `prepared_at` must also equal those bound values; a newer self-consistent
+   plan that differs is stale under the same rule below — never the package
+   that `send` approved. A plan whose `url` does not match is ignored entirely
+   — fall through to rule 1. A plan whose `cv` does not open, or opens but no
+   longer matches `cv_sha256`, or whose `cv_sha256`/`prepared_at` miss a
+   digest bind, is stale: print `Plan stale · {slug}`. With `--yolo`, skip this
+   posting and require a fresh `/job-prep {filename}` plus `/job-prep --digest`,
+   or rerun `/job-apply {filename}` without `--yolo`; never fall through under
+   advance approval. Without `--yolo`, fall through to rule 1. Only `job-prep`
+   writes `plan.json`; this skill never does.
 
 1. `adapt_per_vacancy` is true and this dossier's frontmatter `status:` is `new`
    → print `Chained job-resume-refine · {filename}` and spawn one isolated child:

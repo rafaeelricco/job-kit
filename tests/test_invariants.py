@@ -439,7 +439,8 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
 
         self.assertIn(
             "only displayed `s` ids after `send` map to "
-            "`/job-apply --yolo {slug}.md`",
+            "`/job-apply --yolo --cv-sha256 {bound} --prepared-at {bound} "
+            "{slug}.md`",
             digest,
         )
         self.assertIn(
@@ -453,11 +454,44 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"the bound value, or the plan is gone, stop before browser",
         )
         self.assertIn(
+            "never map `send` to `--yolo` without both bound values",
+            digest,
+        )
+        self.assertIn(
             "map displayed `a`/`b` ids after `review` to normal "
             "`/job-apply {slug}.md`",
             digest,
         )
         self.assertRegex(digest, r"an `a` or `b` id in `send`[^.]*stops before browser")
+
+    def test_digest_bind_revalidated_under_yolo_rule_0(self):
+        apply = instruction_text(FLOW_APPLY)
+        queue = instruction_section(FLOW_APPLY, "## 1. Queue", "## 2.")
+
+        self.assertIn("`--cv-sha256 <hex>`", queue)
+        self.assertIn("`--prepared-at <iso-z>`", queue)
+        self.assertRegex(
+            queue,
+            r"both must appear together, and only with `--yolo`",
+        )
+        self.assertRegex(
+            apply,
+            r"when `--cv-sha256` and `--prepared-at` were parsed "
+            r"\(digest bind\)",
+        )
+        self.assertRegex(
+            apply,
+            r"live plan's `cv_sha256` and `prepared_at` must also equal "
+            r"those bound values",
+        )
+        self.assertRegex(
+            apply,
+            r"a newer self-consistent plan that differs is stale",
+        )
+        self.assertRegex(
+            apply,
+            r"or whose `cv_sha256`/`prepared_at` miss a digest bind, is stale",
+        )
 
     def test_operator_reply_is_transient_same_session_context_not_approval(self):
         screening = instruction_text(CONTRACT_SCREENING)
@@ -481,7 +515,8 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertRegex(
             apply,
             r"a plan whose `cv` does not open,\s*"
-            r"or opens but no longer matches `cv_sha256`, is stale",
+            r"or opens but no longer matches `cv_sha256`,\s*"
+            r"or whose `cv_sha256`/`prepared_at` miss a digest bind, is stale",
         )
         self.assertNotRegex(
             apply,
