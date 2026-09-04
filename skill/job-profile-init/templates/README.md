@@ -1,7 +1,7 @@
 # Profile
 
 Canonical facts for **job-scout** (list-only scout; passes login gates to list)
-and **job-apply** (queue → package → your yes → submit → record),
+and **job-apply** (queue → package → clear walls → submit → record),
 read back by **job-list** (read-only). Later lifecycle status from mail is **job-inbox**.
 Skills live in **job-kit**, not in this tree.
 
@@ -63,10 +63,12 @@ roots stay active until the tree is deleted.
 - Facts are read from files, never recalled from chat memory.
 - job-scout is list-only (never apply/message/connect). It may use an existing
   session; account creation, signup terms, passwords, and verification remain
-  operator actions. job-apply queues postings, fills the form from Facts, and
-  hands you a package; after your yes it clears what the form puts in the path —
-  terms, upload, Submit — and records to `scout/jobs/` on submit success (or
-  when you confirm you submitted outside it). A posting whose ad is behind a
-  login is skipped; a captcha at submit hands the filled form back to you.
+  operator actions. job-apply queues postings, fills the form from Facts, prints
+  the package it will record, then clears what the form puts in the path —
+  terms, upload, a sign-in with an existing session or `Continue with Google`
+  as your profile email, a code from Gmail, a captcha via `captcha-solver`,
+  Submit — and records to `scout/jobs/` on submit success (or when you confirm
+  you submitted outside it). A blocker no rule clears skips the posting; it
+  never waits for you.
   job-inbox reads Gmail for replies and writes
   `interview` / `offer` / `rejected` when evidence is strong.

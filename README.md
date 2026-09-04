@@ -14,14 +14,14 @@ The other skills run in those coding agents, and most of them in Aside too.
 ## The loop
 
 Scout writes one dossier per posting that passes its gates. Apply works through
-the `status: new` dossiers one at a time and submits only after your yes. Inbox
-reads Gmail, updates each dossier's status, and points you back to scout.
+the `status: new` dossiers one at a time and submits without waiting for you.
+Inbox reads Gmail, updates each dossier's status, and points you back to scout.
 
 ```mermaid
 flowchart LR
     init["job-profile-init<br/>create the profile"] --> scout
     scout["job-scout<br/>find and rank postings"] -->|"writes scout/jobs/*.md"| apply
-    apply["job-apply<br/>package, your yes, submit"] -->|"status: applied"| inbox
+    apply["job-apply<br/>package, clear walls, submit"] -->|"status: applied"| inbox
     inbox["job-inbox<br/>read Gmail replies"] -->|"Next: /job-scout"| scout
     apply -.->|"CV step"| refine["job-resume-refine<br/>one-page PDF"]
     match["job-match<br/>fit + resume guidance"]
@@ -37,15 +37,17 @@ them or analyzes one named dossier and adds read-only resume guidance,
 
 Scout never applies, messages, or connects. It may use a session you are
 already signed into; account creation, signup terms, passwords, and
-verification stay with you. Apply skips a posting whose ad sits behind a login
-wall, and a captcha at submit hands the filled form back to you.
+verification stay with you. Apply clears a login wall or captcha with a session
+you already hold, `Continue with Google` as your profile email, a code fetched
+from Gmail, or `captcha-solver`, and skips the posting when none of those
+clears it.
 
 ## Skills
 
 | Skill               | What it does                                                                                 | Writes                                                                            | Runs in                                   |
 | ------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------- |
 | `job-scout`         | Runs the search packs you pick, or a site URL, and ranks the postings it finds               | `scout/jobs/*.md` dossiers                                                        | Aside, or a coding agent with browser-use |
-| `job-apply`         | Reads the dossier and the live ad, fills the form from your facts, submits on yes            | Dossier `status:` and Application log                                             | Aside, or a coding agent with browser-use |
+| `job-apply`         | Reads the dossier and the live ad, fills the form from your facts, clears walls, submits     | Dossier `status:` and Application log                                             | Aside, or a coding agent with browser-use |
 | `job-prep`          | Prepares packages offline: revalidates the ad, reads the form, tailors the CV, never submits | `scout/applications/{slug}/plan.json` and `package.md`; a `posting dead` log line | Aside, or a coding agent with browser-use |
 | `job-resume-refine` | Tailors one resume page to one posting from facts already in the profile                     | `scout/applications/{slug}/` PDF and match report                                 | Aside, coding agents                      |
 | `job-inbox`         | Searches Gmail for replies to open applications and records the outcome                      | Dossier `status:` when evidence is strong                                         | Aside, coding agents                      |
@@ -59,7 +61,8 @@ wall, and a captcha at submit hands the filled form back to you.
 | `job-pitch`         | Turns the story deck into a vetting video script or work-experience bullets                  | Nothing                                                                           | Aside, coding agents                      |
 | `job-humanize`      | Rewrites drafted resume or pitch prose so it reads like you, keeping every claim             | Nothing                                                                           | Aside, coding agents                      |
 
-Every skill writes only after it prints a diff or a package and you say yes.
+Every skill prints a diff or a package before it writes. All but job-apply then
+wait for your yes; job-apply submits and records on its own.
 Coding-agent skills land at `<agent home>/skills/<skill>`; Aside copies land in
 `~/.aside/u/0/skills/builtin/`.
 
@@ -152,7 +155,8 @@ explicit confirmation, edits, or skips. Facts are never invented; final extra
 observations land in `data/observations.yaml`.
 
 No demographic or EEO self-identification is stored. Those questions are
-voluntary and per-employer, so you answer them in the ATS form.
+voluntary and per-employer, so job-apply picks the option that declines to
+answer and skips a posting that requires one without it.
 
 **2. Scout and apply.** Pick a runtime for the two browser skills: install the
 Aside channel and run them in Aside Browser, or install the `browser-use`
@@ -178,8 +182,9 @@ to the sites you scout.
 Scout runs the packs you pick from your profile's `data/search_packs.yaml`, or
 an ad-hoc site URL you pass, and ranks the job rows it extracts. Apply queues
 postings through job-list and takes them one at a time: it reads the dossier
-and the live ad, resolves the CV, fills the form from profile Facts, and prints
-a package for you to review; on your yes it submits and records.
+and the live ad, resolves the CV, fills the form from profile Facts, prints the
+package it will record, clears sign-ins, mail codes, and captchas, submits, and
+records; a blocker no rule clears skips that posting.
 
 Scout writes one dossier per persist-set row (live, gate, `score` > 7, match ≥70) to
 `scout/jobs/{first_seen}-{company}--{title}.md`. That is the only path scout
@@ -397,7 +402,7 @@ multi-target install also removes legacy kit links there, which the
 | -------------------------- | ---------------------------------------------------------------- |
 | `skill/job-store/`         | Dossier schema, persistence lock, untrusted-read law             |
 | `skill/job-scout/`         | Scout law, contracts, surfaces                                   |
-| `skill/job-apply/`         | Apply law: queue, package, review, submit, record                |
+| `skill/job-apply/`         | Apply law: queue, package, clear walls, submit, record           |
 | `skill/job-prep/`          | Prep law: select, liveness, read, CV, fields, plan; digest       |
 | `skill/job-resume-refine/` | Tailor one page from profile Facts; one page + match-report      |
 | `skill/job-profile-init/`  | Intake + templates for empty profiles                            |
