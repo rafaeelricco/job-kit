@@ -80,10 +80,12 @@ quoted page line collapsed to one line and cut at 80 characters, or `http 404`
 
 A **read-blocker** is anything that stops this run reading the ad itself: a
 sign-in on the posting page, an account wall in front of it, an SSO handoff.
-Clear it only with a session the browser already holds or a `Continue with
-Google` control signed in as `data/basics.yaml` `email`; never type a
-password, never create an account. Still blocked → skip the posting, name
-why, list it under `### Skipped`.
+Clear it only with a session the browser already holds that the page shows
+signed in as `data/basics.yaml` `email` or `name`, or a `Continue with
+Google` control signed in as that `email`; a held session showing another
+identity, or none the page prints, is never used. Never type a password,
+never create an account. Still blocked → skip the posting, name why, list it
+under `### Skipped`.
 
 A check on the **apply path only** — a captcha, a bot check, an account the form
 demands at submit — is not a read-blocker. The ad reads, so the package is built;
@@ -207,13 +209,15 @@ search, whole-message fetch — on the account whose address is
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
-4. At an account wall, sign in with a session the browser already holds or a
-   `Continue with Google` control as `data/basics.yaml` `email`; never type,
+4. At an account wall, sign in with a session the browser already holds that
+   the page shows signed in as `data/basics.yaml` `email` or `name`, or a
+   `Continue with Google` control as that `email`; a held session showing
+   another identity, or none the page prints, is never used. Never type,
    invent, or persist a password, never create a password account. A one-time
    code or magic link sent to that address is fetched through the Gmail
    capability with `to:{email} newer_than:1h`, newest first; type the code or
-   open the link in the same tab. No session, no Google control, or no mail
-   within two minutes → skip the posting.
+   open the link in the same tab. No session as that identity, no Google
+   control, or no mail within two minutes → skip the posting.
 5. Accept required application terms and privacy checkboxes.
 6. Re-scan the live form. Stage any field the printed package did not carry
    by §4's resolution order and reprint the full package. Repeat until no
