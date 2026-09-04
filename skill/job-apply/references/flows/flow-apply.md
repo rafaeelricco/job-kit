@@ -183,7 +183,8 @@ resolve every other live field — each `needs_you` entry and each `operator`
 row included — by the resolution order. A plan
 field whose selector is gone, or whose live `label` or `type` differs from the
 plan's, is dropped, not guessed; the live control it pointed at counts as a
-field the live form added.
+field the live form added. Recheck any reused salary value under
+`contract-screening.md` "Salary expectation" before staging.
 
 A required field the resolution order cannot fill skips the posting: name the
 label under `### Skipped`, write nothing. Otherwise load

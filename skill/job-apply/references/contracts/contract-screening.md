@@ -113,9 +113,12 @@ operand. One-figure asks use the figure. Range asks use that figure as high and 
 as low when printed and no higher than high, otherwise high. No posted number uses the
 stored range.
 
-Before staging, check the result is `>= job.min` and `<= job.max` wherever those bounds
-exist. A failure means the wrong operand was read: name the row and broken bound, and
-the field follows resolution rule 7.
+Before staging any salary answer, including a prepared value, check the result
+is `>= job.min` and `<= job.max` wherever those bounds exist, comparing figures
+in the same currency and period. For USD, its annual equivalent must also be
+`>= ours.min` when that floor is present. Check both endpoints of a range.
+Name any broken bound and follow resolution rule 7 directly; never fall through
+to another answer source.
 
 A midpoint of `ours` answers no row.
 
