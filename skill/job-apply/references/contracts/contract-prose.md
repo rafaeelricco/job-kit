@@ -21,8 +21,8 @@ Fixed order. Unfired slots are absent, not empty.
 | ----------- | ----------- | ----------------------------------------------------------------------------------------------- |
 | 1 Authority | always      | The system built that the ad describes; never a title or years                                  |
 | 2 Piercing  | always      | The problem behind a direct requirement, sharpened only from the ad                             |
-| 3 Method    | always      | The decision inside the carrying story and what it replaced                                     |
-| 4 Proof     | always      | The resulting outcome, not an activity                                                          |
+| 3 Method    | conditional | The decision inside the carrying story and what it replaced                                     |
+| 4 Proof     | conditional | The resulting outcome, not an activity                                                          |
 | 5 Bridge    | conditional | One supporting fact, at most two sentences, answering a requirement the carrying story does not |
 | 6 Terms     | conditional | Geo, authorization, or engagement position, with the decision handed back                       |
 | 7 Ask       | always      | One sentence proposing the conversation                                                         |
@@ -30,6 +30,10 @@ Fixed order. Unfired slots are absent, not empty.
 The carrying story is the `ready` or `needs-numbers` story whose `covers`
 overlaps the ad most; at most two supporting facts. Slot 6 fires only when geo,
 authorization, or engagement is unmet. A skill gap belongs in slot 2 or 3.
+No such story → slots 3 and 4 do not fire; slots 1, 2, 5, and 7 draw on
+`data/experiences.yml`, `data/skills.yaml`, and the ad, and slot 5 may carry
+the role that overlaps the ad most. A letter never states a method or an
+outcome the deck does not hold.
 
 ## Short answers
 
