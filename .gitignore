@@ -2,3 +2,6 @@
 *.backup-*
 .job-kit-lifecycle-state
 node_modules
+__pycache__/
+*.py[cod]
+plans/

@@ -1,7 +1,7 @@
 ---
 name: job-apply
 description: "Apply to postings from the scout store: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, hand back a package for approval, then submit and record after the operator's yes. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
-argument-hint: "[<file> | <url> | --new | --yolo | <auto-detect>]"
+argument-hint: "[<file> | <url> | --new | --yolo | --cv-sha256 <hex> | --prepared-at <iso-Z> | <auto-detect>]"
 ---
 
 # Job application
@@ -19,9 +19,11 @@ say so; an absent `data/cvs.yaml` falls back per `flow-apply.md` §3. A dossier
 that will not read or parse is one posting's failure, not the run's —
 `flow-apply.md` §2.
 
-Write-set: `scout/jobs/` only, and only after a confirmed submission
-(`flow-record.md`). A chained `job-resume-refine` writes
-`scout/applications/{slug}/` under its own law.
+Write-set: `scout/jobs/` only — a confirmed submission (`flow-record.md`), or
+one `posting dead` log line when the ad reads dead (`flow-apply.md` §2). A
+chained `job-resume-refine` writes `scout/applications/{slug}/` under its own
+law. `scout/applications/{slug}/plan.json` is read-only input here
+(`flow-apply.md` §3 rule 0); only `job-prep` writes it.
 
 Skill-local files: `./references/*` only.
 
@@ -39,11 +41,13 @@ Load each additional reference only when that flow names it.
 
 ## Hard refuses
 
-- Author a cover letter, essay, or any composed free-text answer — staged values
-  are file-printed, per `contract-screening.md`
+- Draft or rewrite a cover letter, essay, or any composed free-text answer.
+  Exact operator-authored text may only be copied through the reviewed,
+  same-session reply gate in `flow-apply.md`
 - Click a control that posts before the package review's yes (`--yolo` is that
   yes, given in advance)
-- Write `data/`, `cv/`, or — before a confirmed submission — `scout/jobs/`
+- Write `data/`, `cv/`, or — before a confirmed submission — `scout/jobs/`,
+  except the one `posting dead` log line `flow-apply.md` §2 appends
 - Invent, persist, or reuse a secret; passwords, OTP, magic links, and 2FA stop
   once for operator handoff
 - Sign in, create an account, or solve a captcha or bot check; a wall in front of

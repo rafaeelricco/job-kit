@@ -7,7 +7,7 @@ from check_parse import check, extract
 # Shaped like pdftotext default-mode output of the real base: a table row
 # splits into blocks, bullets wrap, "--" renders as an en dash.
 TEXT = """Rafael Ricco
-+55 51 996702804 | rafaelricco10@gmail.com | github.com/rafaeelricco
++55 51 996702804 | rafael.ricco.jobs@gmail.com | github.com/rafaeelricco
 
 SUMMARY
 Most recently I built Prevou at Ambar for UK estate agencies.
@@ -37,7 +37,7 @@ Backend & Architecture: Event Sourcing, CQRS, OAuth2/OpenID Connect
 class ParseCheckTests(unittest.TestCase):
     def setUp(self):
         self.expected = {
-            "identity": ["Rafael Ricco", "rafaelricco10@gmail.com", "+55 51 996702804"],
+            "identity": ["Rafael Ricco", "rafael.ricco.jobs@gmail.com", "+55 51 996702804"],
             "roles": [
                 {"company": "Ambar", "position": "Senior Software Engineer", "date": "Sep. 2025 -- Present"},
                 {"company": "Unvoid", "position": "Software Engineer", "date": "Jun. 2025 -- Sep. 2025"},

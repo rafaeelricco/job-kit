@@ -35,9 +35,12 @@ verbatim.
 | --------- | --------- | ---------- |
 | `{field}` | `{value}` | `{source}` |
 
-One row per field the form asks. `source` is the file that printed the value, or
-`operator` for demographic and EEO rows. A field no file answers has no value to
-print here — it is a `### Needs you` row instead. Never print `—` as an answer.
+One row per field the form asks except the CV upload control, which is already
+represented under `### CV` and uploaded in `flow-apply.md` §5. `source` is the
+Fact file that printed the value, `operator reply` for a value supplied through
+the same-session reply gate, or `operator` for demographic and EEO rows. A field
+neither a Fact file nor that gate answers has no value to print here — it is a
+`### Needs you` row instead. Never print `—` as an answer.
 
 ### Needs you
 
@@ -53,9 +56,12 @@ does not answer is an `### Ad` bullet. A fact about who receives the application
 is the `### Ad` intermediary line. A read-blocker is never a row: `flow-apply.md`
 §2 already skipped that posting.
 
-| what     | why it is unresolved | where you would fix it |
-| -------- | -------------------- | ---------------------- |
-| `{what}` | `{why}`              | `{path or form}`       |
+Each row has a stable ID: `N1`, `N2`, and so on, assigned by the live-form
+reconciliation in `flow-apply.md`.
+
+| id     | what     | why it is unresolved | where you would fix it |
+| ------ | -------- | -------------------- | ---------------------- |
+| `{id}` | `{what}` | `{why}`              | `{path or form}`       |
 
 Empty → omit the section.
 

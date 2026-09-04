@@ -29,6 +29,7 @@ from harness import REPO, read, skill_dirs  # noqa: E402
 REMOTE_SH: Path = REPO / "scripts" / "remote.sh"
 REMOTE_PS1: Path = REPO / "scripts" / "remote.ps1"
 INSTALL_SH: Path = REPO / "scripts" / "install.sh"
+UNINSTALL_SH: Path = REPO / "scripts" / "uninstall.sh"
 TEST_SH: Path = REPO / "scripts" / "test.sh"
 ASIDE_LIB: Path = REPO / "scripts" / "aside" / "lib.sh"
 
@@ -427,6 +428,67 @@ class SkillLayoutTests(unittest.TestCase):
             planned,
             "--only job-resume-refine did not pull in job-match:\n%s" % output,
         )
+
+    def test_job_prep_implies_job_scout(self):
+        """Selecting job-prep must also plan job-apply and job-scout.
+
+        flow-prep.md loads job-scout/references/contract-persistence.md at its
+        liveness step and schema-plan.md binds job-scout's URL normalize, so a
+        subset without job-scout cannot run. Driven the same way as the
+        job-resume-refine rule above.
+        """
+        bash = shutil.which("bash")
+        self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
+        command = [
+            bash,
+            str(INSTALL_SH),
+            "--only",
+            "job-prep",
+            "--dry-run",
+            "--yes",
+        ]
+        with tempfile.TemporaryDirectory() as home:
+            env = dict(os.environ)
+            for name in OVERRIDE_ENV_NAMES:
+                env.pop(name, None)
+            env["HOME"] = home
+            first = subprocess.run(
+                command, cwd=home, env=env, capture_output=True, text=True, timeout=120
+            )
+            self.assertEqual(first.returncode, 0, first.stderr)
+            output = first.stdout
+            parents = plan_missing_parents(output)
+            if parents:
+                for parent in parents:
+                    (Path(home) / parent).mkdir(parents=True, exist_ok=True)
+                second = subprocess.run(
+                    command, cwd=home, env=env, capture_output=True, text=True, timeout=120
+                )
+                self.assertEqual(second.returncode, 0, second.stderr)
+                output = second.stdout
+
+        planned = plan_installs(output)
+        for name in ("job-prep", "job-apply", "job-scout"):
+            with self.subTest(planned=name):
+                self.assertIn(
+                    name,
+                    planned,
+                    "--only job-prep did not pull in %s:\n%s" % (name, output),
+                )
+
+    def test_uninstall_runtime_deps_mirror_install_closure(self):
+        """uninstall.sh's guard table must carry the job-scout edge install.sh adds."""
+        table = read(UNINSTALL_SH)
+        start = table.index('ASIDE_RUNTIME_DEPS="') + len('ASIDE_RUNTIME_DEPS="')
+        rows = table[start : table.index('"', start)].splitlines()
+        deps = {row.split()[0]: set(row.split()[1:]) for row in rows if row.strip()}
+        for dependent in ("job-prep", "job-apply"):
+            with self.subTest(dependent=dependent):
+                self.assertIn(
+                    "job-scout",
+                    deps.get(dependent, set()),
+                    "scripts/uninstall.sh ASIDE_RUNTIME_DEPS row for %s lacks job-scout" % dependent,
+                )
 
 
 class TestRunnerTests(unittest.TestCase):
