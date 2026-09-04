@@ -1,7 +1,7 @@
 ---
 name: job-prep
 description: "Prepare application packages offline for hot dossiers: revalidate the live ad, read the form's fields, resolve each against profile Facts, chain job-resume-refine, and write plan.json plus package.md for later approval; --digest presents ready, answerable, and externally blocked plans. Use when the user runs /job-prep, a nightly prep cron fires, or a morning digest cron asks what is prepared. Not for submitting (job-apply), scoring (job-match), searching (job-scout), or listing dossiers (job-list)."
-argument-hint: "[--from-match] [--top N] [--channel ats|dm_request|direct_email] [--digest] [<file>...]"
+argument-hint: "[--from-match] [--top N] [--channel ats|dm_request|direct_email|founder] [--digest] [<file>...]"
 ---
 
 # Job prep
