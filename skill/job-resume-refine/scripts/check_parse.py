@@ -6,7 +6,7 @@ stdin: {"identity": [str], "roles": [{"company", "position", "date"}], "skills":
 stdout: {"verdict": "PASS" | "FAIL", "missing": [{"kind", "token"}],
          "order": [str], "error": str | null}
 
-Contract: references/contract-refine.md Check 10. This file owns text
+Contract: references/contracts/contract-refine.md Check 10. This file owns text
 normalization and the whole-token and order tests; the prose owns which strings
 are expected. A token matches only where it is not glued to another letter or
 digit, so a one-letter skill such as `C` never matches inside another word.

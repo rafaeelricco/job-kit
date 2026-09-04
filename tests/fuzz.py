@@ -765,7 +765,7 @@ def _worker_completion(
     """Apply the two fills ``scaffold`` documents as the worker's, and no others.
 
     ``scaffold_guidance`` ships a skeleton on purpose: its docstring and
-    ``references/worker-resume-guidance.md`` hand ``priority_roles`` and the
+    ``references/workers/worker-resume-guidance.md`` hand ``priority_roles`` and the
     ``no_relevant_role`` warning to the classification worker. Everything else in
     the row — key set, schema version, url, and every requirement's kind, order,
     status and profile_term — is the scaffold's own, and is what the property
