@@ -46,10 +46,10 @@ ignore the rest.
    `job-store/references/flows/flow-read.md`. Keep `status` `new`, drop any whose latest
    posting-state log line reads dead per that file, and drop any whose log
    carries a top-level `submit unconfirmed` line from `job-apply` with no
-   later `applied via` line — print `Unconfirmed submit per
-   scout/jobs/{filename}`; only an explicit `<file>` or `<url>` selector
-   re-queues it. The filename each kept dossier carries is what later steps
-   pass on.
+   later `applied via` line — print
+   `Unconfirmed submit per scout/jobs/{filename}`; only an explicit `<file>`
+   or `<url>` selector re-queues it. The filename each kept dossier carries is
+   what later steps pass on.
 
 A selected dossier whose `status:` is not `new` → print
 `Already {status} per scout/jobs/{filename}` and continue; it never blocks.
@@ -216,8 +216,9 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    rule-0 plan → skip the posting, reason `upload refused`; the approved bytes
    did not go. Otherwise resolve `base` by §3 rule 3 — it must open as a PDF,
    else skip — attach it once, and reprint the full package with `### CV` as
-   `base`, `why` `upload refused, rule 3`, and a `### Cleared` line `upload
-   refused — base attached, attempt 4`; still refused → skip the posting.
+   `base`, `why` `upload refused, rule 3`, and a `### Cleared` line
+   `upload refused — base attached, attempt 4`; still refused → skip the
+   posting.
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
@@ -236,9 +237,9 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    unpreviewed field remains.
 7. A captcha or bot check → load the `captcha-solver` skill and obey it
    end-to-end on the live tab, then verify the widget reports solved. If
-   `captcha-solver` does not resolve, skip the posting, reason `no captcha
-   solver`; never solve one by hand. Up to three rounds; still present → skip
-   the posting.
+   `captcha-solver` does not resolve, skip the posting, reason
+   `no captcha solver`; never solve one by hand. Up to three rounds; still
+   present → skip the posting.
 8. Reprint the full package so `### Cleared` carries every wall or refusal
    the steps above cleared; that print is the one `flow-record.md`
    snapshots. Then click Submit, Send, or the final Confirm that posts; a
@@ -250,9 +251,10 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    confirmation mail to `data/basics.yaml` `email` from the company or its
    ATS; found → success; none → append under the
    `job-store/references/contracts/contract-persistence.md` lock exactly one
-   line below the ownership marker, `- {YYYY-MM-DD} · submit unconfirmed:
-   ambiguous result — job-apply`, touching nothing else — not `status:`, not
-   the body — then skip with reason `ambiguous result`.
+   line below the ownership marker,
+   `- {YYYY-MM-DD} · submit unconfirmed: ambiguous result — job-apply`,
+   touching nothing else — not `status:`, not the body — then skip with reason
+   `ambiguous result`.
 
 A skipped posting never blocks the queue: everything filled stays in the tab,
 the reason goes under `### Skipped`, and the next posting starts.

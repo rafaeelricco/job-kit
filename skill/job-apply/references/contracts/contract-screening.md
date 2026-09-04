@@ -44,15 +44,16 @@ Before staging any prose, enforce every `never_say` ban below.
 
 - Years of experience, only for an ask with no skill or domain qualifier:
   floor(unique calendar months / 12) over every role's `date` in
-  `data/experiences.yml`. A date is `{Mon[.] YYYY} <sep> {Mon[.] YYYY |
-  Present}`; `<sep>` is `--`, `-`, `–`, or `—` with optional spaces; full or
-  3-letter month; inclusive; overlapping roles count each month once;
-  `Present` = current month; never round up. No parseable role → the count is
-  unavailable, never 0, and the field follows rule 7. An ask qualified by a
-  role title (`as a software engineer`) counts only roles whose `position`
-  names that title. An ask qualified by a skill or domain (`of Python`,
-  `leading teams`) is not derived — no Fact file prints per-skill dates — and
-  follows rule 7. `N+ years?` is `Yes` iff the derived count ≥ N.
+  `data/experiences.yml`. A date is
+  `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}`; `<sep>` is `--`, `-`, `–`,
+  or `—` with optional spaces; full or 3-letter month; inclusive; overlapping
+  roles count each month once; `Present` = current month; never round up. No
+  parseable role → the count is unavailable, never 0, and the field follows
+  rule 7. An ask qualified by a role title (`as a software engineer`) counts
+  only roles whose `position` names that title. An ask qualified by a skill or
+  domain (`of Python`, `leading teams`) is not derived — no Fact file prints
+  per-skill dates — and follows rule 7. `N+ years?` is `Yes` iff the derived
+  count ≥ N.
 - First / last name: `basics.yaml` `name` split at the first space.
 - City / state / country: `basics.yaml` `country` when present; else
   `location` split on commas, the last part taken as the country only when it
