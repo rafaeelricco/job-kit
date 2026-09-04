@@ -573,6 +573,34 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"never fall through under advance approval",
         )
 
+    def test_submit_rehashes_rule_0_cv_before_upload(self):
+        apply = instruction_text(FLOW_APPLY)
+        _before, marker, submit = apply.partition("## 5. submit")
+        self.assertTrue(marker, "missing ## 5. Submit in flow-apply.md")
+
+        self.assertRegex(
+            submit,
+            r"immediately before upload, recompute the sha-256 of the "
+            r"chosen `cv` path",
+        )
+        self.assertRegex(
+            submit,
+            r"when rule 0 accepted this cv, that digest must still equal "
+            r"the plan's `cv_sha256`",
+        )
+        self.assertRegex(
+            submit,
+            r"when `--cv-sha256` was parsed — the digest bind too",
+        )
+        self.assertRegex(
+            submit,
+            r"with `--yolo`, skip this posting[^.]*never upload",
+        )
+        self.assertRegex(
+            submit,
+            r"never fall through to refine after approval",
+        )
+
     def test_yolo_is_consumed_before_unpreviewed_or_new_fields(self):
         apply = instruction_text(FLOW_APPLY)
 
