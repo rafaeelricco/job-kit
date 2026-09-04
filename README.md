@@ -335,14 +335,20 @@ Curl / non-interactive skills-only (does not delete profile data):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
-# skills + kit cache:
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
+```
+
+Dropping the cache too needs a typed `yes`, which a pipe cannot answer, so
+`--purge` is refused over one. Run it from a terminal against the cached
+checkout instead:
+
+```bash
+bash "${XDG_DATA_HOME:-$HOME/.local/share}/job-kit/scripts/remote.sh" uninstall --purge
 ```
 
 `--purge` is full-skills uninstall only (refused on partial targets or while
 `CLAUDE_SKILLS` / `ASIDE_SKILLS` narrow a channel).
 
-Windows 11 (no Aside): `powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1` (menu, or `agents` / `browser-use` / `profile` / `cache` / `all`). Remote skills-only: `powershell -ExecutionPolicy Bypass -File remote.ps1 uninstall`. `--purge` drops the cache too.
+Windows 11 (no Aside): `powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1` (menu, or `agents` / `browser-use` / `profile` / `cache` / `all`). Remote skills-only: `powershell -ExecutionPolicy Bypass -File remote.ps1 uninstall`. `--purge` drops the cache too, and like the shell path is refused when stdin is redirected — run it from a console against the cached `remote.ps1`.
 
 ## Work locally
 
