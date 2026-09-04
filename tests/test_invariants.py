@@ -664,6 +664,13 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"requires an outbound message",
         )
 
+    def test_consent_default_preserves_explicit_refusal(self):
+        screening = instruction_text(CONTRACT_SCREENING)
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("with no answer above, also takes `yes`", screening)
+        self.assertIn("never in prep", screening)
+        self.assertIn("never override an explicit refusal", apply)
+
 
 if __name__ == "__main__":
     unittest.main()

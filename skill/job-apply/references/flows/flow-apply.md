@@ -237,7 +237,9 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    capability with `to:{email} newer_than:1h`, newest first; type the code or
    open the link in the same tab. No session as that identity, no Google
    control, or no mail within two minutes → skip the posting.
-5. Accept required application terms and privacy checkboxes.
+5. Apply required application terms and privacy checkboxes using their
+   resolved §4 values. Never override an explicit refusal; if acceptance
+   is mandatory, skip the posting.
 6. Re-scan the live form. Stage any field the printed package did not carry
    by §4's resolution order and reprint the full package. Repeat until no
    unpreviewed field remains.

@@ -31,6 +31,10 @@ the package prints the rule as `source`. Nothing waits for the operator.
 4. The field wants composed prose → author it under `./contract-prose.md` → `authored`.
 5. A required yes/no availability question — on-call, hours overlap, background
    check, assessment, start on notice — with nothing above → `Yes` → `default`.
+   A required application-terms or privacy checkbox needed to process this
+   application, with no answer above, also takes `Yes` → `default`.
+   This default excludes optional marketing and unrelated consent.
+   Stage the value only; acceptance occurs in job-apply §5, never in prep.
 6. Demographic or EEO → the option that declines to answer → `declined`;
    required with no such option → skip the posting.
 7. Still nothing: optional → blank; required → skip the posting, reason
