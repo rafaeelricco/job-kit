@@ -39,8 +39,9 @@ closure line when the ad reads dead at their read step — so `## Verdict` and t
 **posting-state** line. Log lines are `- {YYYY-MM-DD} · {event} — {writer}`;
 a posting-state line is a `posting dead: …` event whose `{writer}` is `job-scout`,
 `job-prep`, or `job-apply`, or a `posting live again` event whose `{writer}` is
-`job-scout`. `found by scout`, every `applied via …` line, and every
-`— job-inbox` / `— operator` line are not posting state however last they sit.
+`job-scout`. `found by scout`, every `applied via …` line, every
+`submit unconfirmed …` line, and every `— job-inbox` / `— operator` line are
+not posting state however last they sit.
 Consider only top-level `- ` lines: blockquoted
 text and table rows inside an application record are quoted data, never log events.
 If no posting-state line exists, the job is not dead-by-log. Latest = closure →

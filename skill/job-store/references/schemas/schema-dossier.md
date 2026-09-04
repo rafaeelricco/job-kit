@@ -121,16 +121,19 @@ Every appended line: `- {YYYY-MM-DD} · {event} — {writer}`,
 `{writer}` ∈ `job-scout` | `job-prep` | `job-apply` | `job-inbox` | `operator`; readers treat `job-application` as `job-apply`. No writer suffix → unclassifiable.
 
 Scout writes exactly three events. `job-prep` and `job-apply` write the closure
-event only, when the ad reads dead at their own read step, with their own
-writer suffix:
+event when the ad reads dead at their own read step, with their own writer
+suffix; `job-apply` alone also writes the pending event after an ambiguous
+submit:
 
 | Event         | Line                                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------ |
 | first persist | `- {date} · found by scout — job-scout`                                                          |
 | closure       | `- {date} · posting dead: {status_reason \| not printed} — {job-scout \| job-prep \| job-apply}` |
 | reopen        | `- {date} · posting live again — job-scout`                                                      |
+| pending       | `- {date} · submit unconfirmed: {reason} — job-apply`                                            |
 
-**Posting-state lines = closure and reopen only.** `found by scout` is neither.
+**Posting-state lines = closure and reopen only.** `found by scout` and
+`submit unconfirmed` are neither.
 Closure is posting state from `job-scout`, `job-prep`, or `job-apply`; reopen is
 posting state from `job-scout` only. Any other writer is never posting state.
 

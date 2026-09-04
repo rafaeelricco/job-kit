@@ -2,6 +2,7 @@ name: "{{display_name}}"
 email: "{{email}}"
 phone: ""
 location: ""
+country: "" # country of residence as a form lists it, e.g. "Brazil"
 url:
   label: "Website"
   href: ""

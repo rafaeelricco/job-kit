@@ -463,7 +463,7 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"`channel: dm_request`, `direct_email`, or `founder`: no form",
         )
         self.assertIn(
-            "outbound message · operator · composed prose is never authored",
+            "job-apply §4 authors the outbound message at send time",
             fields,
         )
 
@@ -560,13 +560,14 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"or whose `cv_sha256`/`prepared_at` miss a digest bind, is stale",
         )
 
-    def test_operator_reply_is_transient_same_session_context_not_approval(self):
+    def test_screening_resolves_without_an_operator_reply_gate(self):
         screening = instruction_text(CONTRACT_SCREENING)
 
-        self.assertIn("operator reply", screening)
-        self.assertIn("transient", screening)
-        self.assertRegex(screening, r"same[- ]session")
-        self.assertRegex(screening, r"(?:not|never)[^.]{0,160}\bapproval\b")
+        self.assertNotIn("operator reply", screening)
+        self.assertNotIn("needs you", screening)
+        self.assertIn("## resolution order", screening)
+        self.assertRegex(screening, r"nothing waits for the operator")
+        self.assertRegex(screening, r"required → skip the posting")
 
     def test_unreadable_prepared_cv_is_stale_not_ignored(self):
         apply = instruction_text(FLOW_APPLY)
@@ -624,28 +625,73 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         )
         self.assertRegex(
             submit,
-            r"never fall through to refine after approval",
+            r"never fall through to refine under a digest bind",
         )
 
-    def test_yolo_is_consumed_before_unpreviewed_or_new_fields(self):
+    def test_new_fields_are_staged_never_gated(self):
         apply = instruction_text(FLOW_APPLY)
 
-        self.assertNotIn("skipping §5's unpreviewed-fields gate too", apply)
-        self.assertRegex(
-            apply,
-            r"(?:--yolo[^.]{0,160}consum|consum[^.]{0,160}--yolo)",
-        )
+        self.assertNotRegex(apply, r"standalone \*?\*?yes")
+        self.assertNotIn("needs you", apply)
+        self.assertNotIn("hand back", apply)
         self.assertRegex(apply, r"\bunpreviewed[- ]fields?\b")
-        self.assertRegex(apply, r"\b(?:new fields?|fields? the live form added)\b")
         self.assertRegex(
             apply,
-            r"new field[^.]{0,100}consum[^.]{0,200}standalone[^.]{0,80}\byes\b",
+            r"field the printed package did not carry[^.]{0,120}resolution order",
         )
+        self.assertRegex(apply, r"load the `captcha-solver` skill")
+        self.assertRegex(apply, r"gmail capability")
+
+    def test_ambiguous_submit_is_logged_not_requeued(self):
+        apply = instruction_text(FLOW_APPLY)
+
+        self.assertNotIn("record nothing", apply)
+        self.assertRegex(apply, r"submit unconfirmed: ambiguous result — job-apply")
         self.assertRegex(
             apply,
-            r"field the approved package did not carry.{0,320}"
-            r"consume `--yolo`.{0,200}standalone `yes`",
+            r"drop any whose log carries a top-level `submit unconfirmed` line",
         )
+
+    def test_prepared_authored_rows_are_resolved_again(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("re-resolve authored and null-valued rows", apply)
+
+    def test_no_form_message_is_authored_only_in_apply(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertRegex(
+            apply,
+            r"in job-apply only, no form and channel .*"
+            r"requires an outbound message",
+        )
+
+    def test_consent_default_preserves_explicit_refusal(self):
+        screening = instruction_text(CONTRACT_SCREENING)
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("with no answer above, also takes `yes`", screening)
+        self.assertIn("never in prep", screening)
+        self.assertIn("never override an explicit refusal", apply)
+
+    def test_reconciliation_restores_values_and_attachment(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("reconcile every packaged value", apply)
+        self.assertIn("verify the cv attachment separately", apply)
+        self.assertIn("if step 7 replaced or reset the page", apply)
+
+    def test_verification_mail_requires_request_binding(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("capture the request start before triggering mail", apply)
+        self.assertIn("a verified sender identity", apply)
+        self.assertIn("including redirects", apply)
+        self.assertIn("never learn the allowed destination from the mail", apply)
+
+    def test_pending_guard_is_global_and_rechecked_before_posting(self):
+        raw = harness.read(FLOW_APPLY)
+        apply = instruction_text(FLOW_APPLY)
+        prep = instruction_text(FLOW_PREP)
+        self.assertIn("\nGlobal pending guard: for every selector", raw)
+        self.assertIn("immediately before posting, re-read the dossier", apply)
+        self.assertIn("digest `review` never qualify", apply)
+        self.assertIn("omit pending dossiers", prep)
 
 
 if __name__ == "__main__":

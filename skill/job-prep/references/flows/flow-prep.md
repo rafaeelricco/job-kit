@@ -88,27 +88,30 @@ substitutions:
 - `--yolo` is absent and §5 is unreachable. Nothing that posts is ever clicked;
   "Save draft", "Continue" past the last read-only step, and account creation
   count as posting.
+- §2 read-blocker clearing is disabled: a read-blocker skips the posting;
+  job-prep never signs in.
 - §3 rule 0 is disabled for every prep run, including explicit `<file>` queues.
   Start at rule 1, which chains `job-resume-refine` exactly as written; its PDF
   is this plan's `cv`. Rule 2 or 3 → `cv` is that path.
-- §4 stages values but prints no package and stops for no yes. Record every
+- §4 stages values but prints no package. Record every
   field the form asks except the CV upload control: `selector`, `label`, `type`,
-  `required`, `value`, `source`. `source` is the file
-  `job-apply/references/contracts/contract-screening.md` names, or `operator`; `operator`
-  rows carry `"value": null`. The CV upload control is never a `fields[]` row:
+  `required`, `value`, `source`. `source` is the Fact file or resolution-order
+  name `job-apply/references/contracts/contract-screening.md` prints (`derived`,
+  `authored`, `default`, `declined`). A composed-prose field is not authored
+  here: record it with `"value": null` and `"source": "authored"`; job-apply §4
+  authors it at apply time. The CV upload control is never a `fields[]` row:
   top-level `cv` and `cv_sha256` plus the package's `### CV` section represent it
-  for §5 step 2. A required `operator` row or required composed-prose field is a
-  `needs_you` entry. A wall on the apply path (captcha, bot check, account
-  demanded) is both its own exact string in `walls` and a corresponding
-  `needs_you` entry; never join distinct wall values.
+  for §5 step 2. A required field the resolution order cannot fill (rule 7) is
+  a `needs_you` entry. A wall on the apply path (captcha, bot check, account
+  demanded) is its own exact string in `walls`, never cleared here — job-apply
+  §5 clears it at apply time; never join distinct wall values.
 - `channel: ats`: load the field map for the URL host as the starting guess —
   `./references/ats/ats-greenhouse.md`, `./references/ats/ats-lever.md`, or
   `./references/ats/ats-ashby.md`; any other host has none. The live form wins; a
   mapped selector absent this run is dropped from the plan.
 - `channel: dm_request`, `direct_email`, or `founder`: no form. `ats` is
-  `null`, `fields` is `[]`, and `needs_you` carries
-  `outbound message · operator · composed prose is never authored`. The CV
-  still resolves per §3.
+  `null`, `fields` is `[]`, and `needs_you` is `[]`; job-apply §4 authors the
+  outbound message at send time. The CV still resolves per §3.
 
 ## 6. Plan
 
@@ -118,7 +121,8 @@ then write `scout/applications/{slug}/plan.json` per
 target so a reader never sees a half-written plan), then
 `scout/applications/{slug}/package.md`: the package
 `job-apply/references/formats/format-package.md` defines — `### Ad`, `### CV`,
-`### Form`, `### Needs you` — written to file instead of printed. `### Skipped`
+`### Form` — written to file instead of printed; `### Authored` and
+`### Cleared` are apply-time sections and never appear here. `### Skipped`
 is run-level and never goes in the file.
 
 A posting with `needs_you` or `walls` still gets both files. Classify plans once
@@ -140,15 +144,18 @@ and for dead/skipped the recorded reason. Never join blocker values.
 
 Put an explicit `next:` action on every row. Prepared → normal
 `/job-apply {slug}.md`; Needs answers → print the package path and use normal
-`/job-apply {slug}.md` for the same-session answer gate; External blockers →
-print the package path and use normal `/job-apply {slug}.md` for operator
-handoff; Dead → `none`; Skipped → fix the named reason and rerun
+`/job-apply {slug}.md` after fixing the named source — apply resolves or
+skips; External blockers → print the package path and use normal
+`/job-apply {slug}.md`, which clears the wall in §5 or skips; Dead → `none`;
+Skipped → fix the named reason and rerun
 `/job-prep {slug}.md`. A selection skip with no dossier instead says to fix the
 URL-to-dossier mapping and rerun `--from-match`.
 
 ## Digest
 
-`--digest` opens no browser and writes nothing. Glob
+`--digest` opens no browser and writes nothing. Omit pending dossiers per
+`job-apply/references/flows/flow-apply.md` §1's global pending guard;
+never modify or delete their plans. Glob
 `scout/applications/*/plan.json`; keep every valid current plan whose `cv` bytes
 still hash to `cv_sha256` and whose `scout/jobs/{slug}.md` reads with frontmatter
 `status: new` and no dead-by-log posting-state line per
