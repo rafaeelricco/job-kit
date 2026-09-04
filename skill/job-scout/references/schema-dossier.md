@@ -118,17 +118,21 @@ source ambar · channel ats · author — · query "Senior Software Engineer" ·
 ## Log grammar
 
 Every appended line: `- {YYYY-MM-DD} · {event} — {writer}`,
-`{writer}` ∈ `job-scout` | `job-apply` | `job-inbox` | `operator`; readers treat `job-application` as `job-apply`. No writer suffix → unclassifiable.
+`{writer}` ∈ `job-scout` | `job-prep` | `job-apply` | `job-inbox` | `operator`; readers treat `job-application` as `job-apply`. No writer suffix → unclassifiable.
 
-Scout writes exactly three events:
+Scout writes exactly three events. `job-prep` and `job-apply` write the closure
+event only, when the ad reads dead at their own read step, with their own
+writer suffix:
 
-| Event         | Line                                                                  |
-| ------------- | --------------------------------------------------------------------- |
-| first persist | `- {date} · found by scout — job-scout`                               |
-| closure       | `- {date} · posting dead: {status_reason \| not printed} — job-scout` |
-| reopen        | `- {date} · posting live again — job-scout`                           |
+| Event         | Line                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| first persist | `- {date} · found by scout — job-scout`                                                          |
+| closure       | `- {date} · posting dead: {status_reason \| not printed} — {job-scout \| job-prep \| job-apply}` |
+| reopen        | `- {date} · posting live again — job-scout`                                                      |
 
-**Posting-state lines = closure and reopen only.** `found by scout` is neither. Non-`job-scout` writer is never posting state.
+**Posting-state lines = closure and reopen only.** `found by scout` is neither.
+Closure is posting state from `job-scout`, `job-prep`, or `job-apply`; reopen is
+posting state from `job-scout` only. Any other writer is never posting state.
 
 Blocks below the log from `job-apply` / `job-inbox` may carry posting-derived text — blockquoted or table cells, never a bare top-level `- ` line. Same injection law as the body: never emit the marker from a posting-derived value. Collapse every appended value to one line. A `>` prefix guards only its own line. Table-cell values escape `|` as `\|`.
 
@@ -147,6 +151,8 @@ Opening `---` through the ownership marker = scout-owned, rewritten each run. Be
 | No file yet                                           | Create with `status: new`                                                                            |
 | File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log |
 
-Closure is a log event, not a field. Append reopen whenever a URL whose last scout posting-state line was a closure is extracted live again.
+Closure is a log event, not a field. Append reopen whenever a URL whose latest
+posting-state line from any permitted writer (`job-scout` | `job-prep` |
+`job-apply`) was a closure is extracted live again.
 
 For every create or update, obey `./contract-persistence.md`.

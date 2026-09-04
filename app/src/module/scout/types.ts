@@ -46,7 +46,7 @@ const BUCKETS = ["direct", "EOR", "restricted-geo", "unbucketed"] as const
 const CHANNELS = ["direct_email", "dm_request", "founder", "ats"] as const
 // `job-application` is the pre-rename spelling of `job-apply`; dossiers written
 // before the rename still carry it, so readers keep accepting it.
-const WRITERS = ["job-scout", "job-apply", "job-inbox", "job-application", "operator"] as const
+const WRITERS = ["job-scout", "job-prep", "job-apply", "job-inbox", "job-application", "operator"] as const
 const FACT_KEYS = [
   "status",
   "seniority",

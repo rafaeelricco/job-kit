@@ -45,9 +45,9 @@ Usage: install.sh                 # interactive menu (TTY required)
        install.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root) — full copy
+  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root) — full copy
   agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-resume-refine)
-  browser-use  Browser skills (job-scout, job-apply) plus the browser-use
+  browser-use  Browser skills (job-scout, job-apply, job-prep) plus the browser-use
                driver skill into coding-agent homes; driven by the local browser-use CLI
   all       aside + agents + browser-use
 
@@ -56,11 +56,12 @@ Options:
   --dry-run     Print the plan, remove nothing
   --force       Replace foreign files/dirs/links at the destination
   --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root
+                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root
                 agents | browser-use | claude | codex | grok | hermes
                 (claude|codex|grok|hermes narrow a channel named alongside them;
                 alone they mean the agents channel)
-                (job-apply also installs job-resume-refine and job-list; job-scout
+                (job-prep also installs job-apply; job-apply also installs
+                job-resume-refine, job-list, and job-scout; job-scout
                 also installs job-match and job-profile-me; job-match installs
                 job-list and job-profile-me — each loads the others' refs; every
                 Aside skill also installs job-profile-root and job-humanize)
@@ -139,7 +140,7 @@ expand_only() {
   for tok in $(printf '%s' "${list}" | tr ',' ' '); do
     case "${tok}" in
       aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root)
+      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root)
         want_aside=1
         channel_named=1
         [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
@@ -149,7 +150,7 @@ expand_only() {
       codex)  named_agent=1; want_codex=1 ;;
       grok)   named_agent=1; want_grok=1 ;;
       hermes) named_agent=1; want_hermes=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|agents|browser-use|claude|codex|grok|hermes)" ;;
+      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|agents|browser-use|claude|codex|grok|hermes)" ;;
     esac
   done
   # A bare agent-home token still means the agents channel, as it always has —
@@ -171,7 +172,17 @@ expand_only() {
   # job-scout Preflight loads job-profile-me/references/*; its persist loads
   # job-match/references/* (flow-match-gate.md). job-match Bind loads
   # job-list/references/flow-read.md and job-profile-me/references/schema-profile-card.md.
+  # job-apply Read, CV, and Record, and job-prep Liveness and its plan schema, load
+  # job-scout/references/{schema-dossier,contract-persistence}.md.
   if [ -n "${ASIDE_ONLY}" ]; then
+    case " ${ASIDE_ONLY} " in
+      *" job-prep "*)
+        case " ${ASIDE_ONLY} " in
+          *" job-apply "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-apply" ;;
+        esac
+        ;;
+    esac
     case " ${ASIDE_ONLY} " in
       *" job-apply "*)
         case " ${ASIDE_ONLY} " in
@@ -181,6 +192,10 @@ expand_only() {
         case " ${ASIDE_ONLY} " in
           *" job-list "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-list" ;;
+        esac
+        case " ${ASIDE_ONLY} " in
+          *" job-scout "*) ;;
+          *) ASIDE_ONLY="${ASIDE_ONLY} job-scout" ;;
         esac
         ;;
     esac
@@ -217,7 +232,7 @@ expand_only() {
         ;;
     esac
     case " ${ASIDE_ONLY} " in
-      *" job-scout "*|*" job-apply "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*)
+      *" job-scout "*|*" job-apply "*|*" job-prep "*|*" job-resume-refine "*|*" job-profile-me "*|*" job-list "*|*" job-match "*|*" job-pitch "*|*" job-inbox "*)
         case " ${ASIDE_ONLY} " in
           *" job-profile-root "*) ;;
           *) ASIDE_ONLY="${ASIDE_ONLY} job-profile-root" ;;

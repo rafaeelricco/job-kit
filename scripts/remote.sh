@@ -36,7 +36,7 @@ Install channels:
   all          Aside + coding agents + browser-use, skipping absent (default)
   aside        Aside only (fails when Aside is not set up)
   agents       Coding agents only (fails when no agent home exists)
-  browser-use  job-scout + job-apply plus the browser-use driver
+  browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home), driven by
                the local browser-use CLI over your own browser
   fetch        Refresh the cached checkout, install nothing
@@ -46,7 +46,7 @@ Uninstall:
   uninstall all          Same
   uninstall aside        Aside only
   uninstall agents       Coding agents only
-  uninstall browser-use  job-scout + job-apply links, the
+  uninstall browser-use  job-scout + job-apply + job-prep links, the
                          browser-use driver skill, the CLI, and its state
                          (never your browser)
 
@@ -115,6 +115,7 @@ skill/job-scout/SKILL.md"
 # payload is checked here, not only the installer scripts.
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
 skill/job-apply/SKILL.md
+skill/job-prep/SKILL.md
 skill/job-resume-refine/SKILL.md
 skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md

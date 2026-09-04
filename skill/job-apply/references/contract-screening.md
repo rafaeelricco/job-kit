@@ -1,8 +1,8 @@
 # Answer law
 
-Every staged value comes from the file named here. Read it; stop if unreadable.
-Absent is absent — never infer, never answer from a prior draft or memory. Never
-read story bodies.
+Every prefilled value comes from the Fact file named here. Read it; stop if
+unreadable. Absent is absent — never infer, never answer from a prior draft or
+memory. Never read story bodies.
 
 | Value                                                                      | Read from                                                                                                                                                         |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -16,6 +16,16 @@ read story bodies.
 | skills / stack inventory                                                   | `data/skills.yaml`, then `data/skills-by-company.yml` when present                                                                                                |
 | story claims and verified outcomes                                         | `data/stories/*.md` frontmatter only: `claim`, `evidence.*`, `impact_numbers` whose `verified` is not `unverified` and whose `kind` is `outcome`, and `never_say` |
 | which CV to attach                                                         | `data/cvs.yaml` `adapt_per_vacancy` (absent → true) and `base` (filename under `cv/`)                                                                             |
+
+After job-apply prints a numbered `### Needs you` row, an exact,
+non-sensitive same-session reply may supply that row. Stage the supplied value
+verbatim with source `operator reply`; never draft or rewrite operator prose.
+The reply is transient: never write it to a Fact file or `plan.json`, infer it,
+reuse it for another application, or treat it as approval. Before staging prose,
+enforce every `never_say` ban below. A textual value cannot satisfy an
+`operator` row or an external handoff: demographic or EEO answers, secrets,
+captchas, bot checks, sign-in or account access, passwords, OTP, magic links,
+and 2FA remain with the operator.
 
 - Language level is the printed self-assessment, paired with the language name. Never assert a certification, test score, or bare letter grade.
 - Never name an employer's client. Use only a domain phrase already present in a Fact file.
