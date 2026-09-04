@@ -1,7 +1,7 @@
 # Job apply — package shape
 
-One package per posting, printed at the review gate, sections in this order.
-Unknown = `—`, never invented.
+One package per posting, printed in `flow-apply.md` §4 and reprinted before
+Submit, sections in this order. Unknown = `—`, never invented.
 
 `## Package · {company} · {title} · {YYYY-MM-DD}`
 

@@ -231,7 +231,9 @@ search, whole-message fetch — on the account whose address is
    `captcha-solver` does not resolve, skip the posting, reason `no captcha
    solver`; never solve one by hand. Up to three rounds; still present → skip
    the posting.
-8. Click Submit, Send, or the final Confirm that posts.
+8. Reprint the full package so `### Cleared` carries every wall or refusal
+   the steps above cleared; that print is the one `flow-record.md`
+   snapshots. Then click Submit, Send, or the final Confirm that posts.
 9. Read success evidence tied to this posting. Clear success opens
    `flow-record.md`; clear failure re-runs steps 1–8 once, then skips. An
    ambiguous result waits two minutes and searches the Gmail capability for a
