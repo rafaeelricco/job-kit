@@ -15,9 +15,9 @@ Unreadable required file under a resolved root → stop and say so.
 Writable here: `data/stories/*.md` and their `*.md.tmp` staging siblings during
 atomic rename. Every other path under Profile root is read-only in this skill.
 
-1. Read `./references/schema-story.md` now; field law for both verbs.
-2. `add`: obey `./references/flow-author.md` end-to-end.
-3. `audit`: obey `./references/flow-audit.md`. Read-only; never repairs.
+1. Read `./references/schemas/schema-story.md` now; field law for both verbs.
+2. `add`: obey `./references/flows/flow-author.md` end-to-end.
+3. `audit`: obey `./references/flows/flow-audit.md`. Read-only; never repairs.
 4. No verb intent → run `audit`.
 
 ## Commands
@@ -31,9 +31,9 @@ atomic rename. Every other path under Profile root is read-only in this skill.
 
 ## References
 
-- Story shape: `./references/schema-story.md`
-- Authoring: `./references/flow-author.md`
-- Audit: `./references/flow-audit.md`
+- Story shape: `./references/schemas/schema-story.md`
+- Authoring: `./references/flows/flow-author.md`
+- Audit: `./references/flows/flow-audit.md`
 
 ## Hard refuses
 

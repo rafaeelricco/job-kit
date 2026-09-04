@@ -8,142 +8,22 @@ argument-hint: "[all | <pack-id>…] [<url>…]"
 
 Profile: load `job-profile-me`'s read path — it obeys `job-profile-root`
 end-to-end (a root STOP = no profile → STOP here) and owns the read set and
-card derivation (`flow-show.md`, `schema-profile-card.md`). Never enter its
+card derivation (`job-profile-me/references/flows/flow-show.md`,
+`job-profile-me/references/schemas/schema-profile-card.md`). Never enter its
 mutation flow. Resolve `data/*` against Profile root.
-Refs: `./references/schema-dossier.md`, `./references/contract-persistence.md`, `./references/flow-match-gate.md`.
+Store law: load the `job-store` skill now; obey it end-to-end.
+Refs: `./references/flows/flow-preflight.md`, `./references/flows/flow-search.md`,
+`./references/flows/flow-extract.md`, `./references/flows/flow-gate.md`,
+`./references/flows/flow-rank.md`, `./references/flows/flow-match-gate.md`.
 
 List only. Never apply, message, or connect.
-Write-set: `scout/jobs/*.md` + lock furniture per `contract-persistence.md`.
+Write-set: `scout/jobs/*.md` + lock furniture per job-store `contract-persistence.md`.
 
-## 0 Preflight
-
-Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Runtime: workers` if spawn works, else `inline`.
-
-`job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`. Any other valued key → stop; migrate via `/job-profile-me`.
-`location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
-
-Enabled packs empty and no URL token → STOP; enable via `/job-profile-me`. `enabled: false` is unlisted.
-Tokens after `/job-scout` bind the run set (enabled deck `id:`). A token that
-is an http(s) URL or bare domain binds an ad-hoc pack instead: `source` = its
-host, `id` = its host (`-2`, `-3` on collision), `entry` = the URL (`https://`
-assumed when bare), formulations = `[role]` — under every deck law (ATS-root,
-filters, caps, defect log).
-Empty → list as `N. {id}`; last line `{N+1}. Search in all`. Wait.
-Any token → no wait. Run set: `all` → every enabled pack, else the named ids
-(file order, unique), then each ad-hoc pack in token order; unique by `entry`.
-Unknown `--` flag, leftover non-URL token, `all` plus a non-URL token, unknown id, or named disabled id → stop.
-Skip-wait → print `Packs: {id}, …` in run order.
-
-Print `### Profile card` (role · skills · industries · languages) and `### Constraints` (those keys plus salary_range_usd, work auth, employment_routes, relocation) — values per `job-profile-me` flow-show Blocks; scout adds no fields and prints no Packs/CV blocks. Pass both into every search.
-
-Auth: existing session. Never create an account. Password/OTP/2FA are operator-only. Signed-out limited page → ask once only if the redirect stays on the target registrable domain or a known IdP (Google, Microsoft, Apple, LinkedIn, GitHub, Okta); any other host → STOP before asking. Still blocked → `auth_gate` (search) or `status=uncertain` (extract).
-
-## 1 Search
-
-One pack at a time; never two on the same host.
-
-Interpolate `[role]` from positions (file order), `[industry]` from the card.
-Drop an empty leftover token. Build every formulation × position before opening
-a surface.
-
-`worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
-
-When a pack has `route`, consume it before any DOM search. Routed packs run once
-per expanded formulation; location remains a keep filter instead of repeating
-the same routed URL for every named location.
-
-- Only `kind: json` is supported. Open `entry` to establish its browser origin,
-  substitute the percent-encoded formulation and 1-based page into `url`, then
-  GET that URL from page context.
-- Resolve `items` and `pages` as dot paths in each JSON response. Resolve
-  `posting_url` inside every item, normalize it, and retain the expanded
-  formulation as `matched_query`. Populate standard candidate fields exposed by
-  the item; absent fields remain `—` for posting-page extraction.
-- Start at page 1 and stop at the configured total, when a page adds no new
-  posting URL, or at the existing five-page and 40-candidate caps. Either cap as
-  the reason for stopping → `defect: list_truncated`, as on a DOM run.
-- A successful GET of the exact substituted URL is submission proof. An enabled
-  `route_required: true` pack without a complete supported route, or any present
-  incomplete route, records `defect: query_not_submitted` and scans nothing.
-  HTTP failure, non-JSON output, or a missing configured response path records
-  `defect: route_failed`. Never fall back to DOM after a configured or required
-  route fails.
-
-Without `route`, retain the DOM flow. Open `entry`. ATS roots with no browsable
-index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
-`jobs.ashbyhq.com`) use `site:{entry host} {formulation}` on a search engine
-instead; an `entry` with a path opens directly.
-
-Surface filter controls matching Constraints `date_posted`, `work_model`,
-`job_types`, and location — no others → set them before scanning. Paginate until
-no next page or a page adds no new result URL, capped at five pages per
-formulation run. A zero-keep page is not a stop. Cap hit →
-`defect: list_truncated`.
-
-For DOM runs, proof remains the surface echo matching the submitted string;
-otherwise record `defect: query_not_submitted`.
-
-Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack. Normalize URL per `schema-dossier.md`.
-
-`channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`. Unknown = `—`.
-
-Every pack prints `### Candidates` then `### Defect log`:
-
-`company | title | url | source | channel | author | contact | date | matched_query`
-
-`pack | formulations_run | zero_result_runs | verdict`
-`verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. Empty and clean is `pass`.
-
-## 2 Merge
-
-One row per normalized URL. Prefer a named author. Channel sort: `direct_email` → `dm_request` → `founder` → `ats`.
-
-## 3 Extract
-
-Batches of 5, one URL at a time, same host serialized. Listed URLs only. No page → no field.
-
-Open the full posting before copying: expand every collapsed or truncated
-block ("read more" / "show more" / accordions) and scroll to the end. A JD
-still truncated after expansion → `status=uncertain`, never partial facts.
-
-A posting that redirects → replace the row's URL with the landed canonical URL
-(`location.href`, else `link[rel=canonical]`), re-normalize per
-`schema-dossier.md`, and fold it into an existing row for that URL before
-persisting.
-
-`### Verified`: search columns plus schema Posting facts keys except `blocker`, and `status_reason`, `role_snapshot`, `role_do`, `role_must`.
-
-`status` ∈ `live` | `dead` | `uncertain`. Copy printed names. `required_skills` from the requirements section; never a closed bag; never intersect the profile. Role cells per `schema-dossier.md`.
-
-## 4 Gate
-
-Every search and extract key present. Missing → Gaps, halt.
-
-Drop when the posting cannot hire this seeker (first match): `listed` onsite or location-restricted place that matches no named `locations` (and `Anywhere` not listed); named onsite place with no shared work_model flag; remote bound to a country the kit has no authorization for; hire-from only in `exclude_locations`; salary currencies none of which are in `market_currencies`. Blank is not a drop. Never infer authorization or currency from a company or country name. Hire-from is printed location, `work_auth`, `hiring_route`, or a title country tag — never the company's country.
-
-## 5 Rank + report
-
-`score` 0–10 = the share of `required_skills` covered by `data/skills.yaml` `skills[].items`, 10 being all. Covered is direct, not adjacent — `React.js` covers `React`, Vue does not. Either list empty → unscored (`—`).
-
-Bucket, first match — dossier frontmatter only, never chat: printed EOR route and kit EOR Yes → `EOR`; printed contractor/B2B and kit contractor Yes, or location matches `direct_regions` → `direct`; printed hire-from restriction → `restricted-geo`; else `unbucketed`.
-
-Persist set = `./references/flow-match-gate.md`. Chat lists that set, score desc. No other sort.
-
-`# Job Scout · {YYYY-MM-DD} · {n} live · {n} contacts · {n} defects`
-
-- `live` = persist-set size
-- `contacts` = public email or @handle on those rows
-- `defects` = pack verdicts `defect: {name}` and `auth_gate`
-
-Then each persist-set row:
-
-`{score}  {company} — {title}`
-`   {url}`
-
-Then `{n} dossiers → {abs Profile root}/scout/jobs/`
-
-`### Gaps` — skipped, tool defects, uncertain, kit drop, score≤7, match below bar, match blocked. Omit if empty.
-
-## 6 Persist
-
-Obey `schema-dossier.md` and `contract-persistence.md`. One dossier per persist-set row. No dossier for kit drop or uncertain. Existing dead dossier → closure log only.
+1. Read `./references/flows/flow-preflight.md`; obey end-to-end.
+2. Read `./references/flows/flow-search.md`; obey end-to-end (includes merge).
+3. Read `./references/flows/flow-extract.md`; obey end-to-end.
+4. Read `./references/flows/flow-gate.md`; obey end-to-end.
+5. Read `./references/flows/flow-rank.md`; obey end-to-end.
+6. Persist set from `./references/flows/flow-match-gate.md`. Obey job-store
+   schema + persistence. One dossier per persist-set row. No dossier for kit
+   drop or uncertain. Existing dead dossier → closure log only.

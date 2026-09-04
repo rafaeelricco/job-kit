@@ -8,7 +8,7 @@ Place the compiled resume PDF here for applications:
   `en-us-resume.pdf` (must open as PDF).
 
 Which CV a given application carries is job-apply's ladder, not this file's:
-`job-apply/references/flow-apply.md` §3.
+`job-apply/references/flows/flow-apply.md` §3.
 
 Never attach a `.tex` source. job-apply does not typeset. A tailored PDF comes
 from `job-resume-refine` (chained in job-apply's CV step, or a prior standalone

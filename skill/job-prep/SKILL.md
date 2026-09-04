@@ -6,10 +6,12 @@ argument-hint: "[--from-match] [--top N] [--channel ats|dm_request|direct_email|
 
 # Job prep
 
-Prepares, never posts. `job-apply/references/flow-apply.md` §§2–4 run here;
+Prepares, never posts. `job-apply/references/flows/flow-apply.md` §§2–4 run here;
 §5 does not exist in this skill. `--digest` is read-only and opens no browser.
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
+
+Store law: load the `job-store` skill now; obey it end-to-end.
 
 Resolve every profile path against Profile root (not CWD, not skill dir).
 
@@ -17,19 +19,19 @@ Write-set: `scout/applications/{slug}/` — `plan.json`, `package.md`, and the
 chained `job-resume-refine`'s own outputs — plus one `posting dead` log line on
 a `scout/jobs/` dossier whose ad reads dead (`flow-prep.md` §2). Never
 `status:`, never the scout-owned body. `data/` and `cv/` are read-only; the
-dossier stays `status: new` until `job-apply/references/flow-record.md` runs.
+dossier stays `status: new` until `job-apply/references/flows/flow-record.md` runs.
 
-Skill-local files: `./references/*` only.
+Skill-local files: `./references/**` only.
 
-Read `./references/flow-prep.md` now.
+Read `./references/flows/flow-prep.md` now.
 
 ## References
 
-- `./references/flow-prep.md`
-- `./references/schema-plan.md`
-- `./references/ats-greenhouse.md`
-- `./references/ats-lever.md`
-- `./references/ats-ashby.md`
+- `./references/flows/flow-prep.md`
+- `./references/schemas/schema-plan.md`
+- `./references/ats/ats-greenhouse.md`
+- `./references/ats/ats-lever.md`
+- `./references/ats/ats-ashby.md`
 
 ## Hard refuses
 

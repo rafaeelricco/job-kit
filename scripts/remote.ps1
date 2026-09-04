@@ -96,7 +96,8 @@ $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'skill\job-pitch\SKILL.md',
   'skill\job-inbox\SKILL.md',
   'skill\job-humanize\SKILL.md',
-  'skill\job-profile-root\SKILL.md'
+  'skill\job-profile-root\SKILL.md',
+  'skill\job-store\SKILL.md'
 )
 
 $script:WindowsRequiredFiles = @(

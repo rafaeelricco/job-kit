@@ -29,18 +29,27 @@ scaffold_guidance = harness.load(harness.MATCH / "scaffold_guidance.py")
 validate_guidance = harness.load(harness.MATCH / "validate_guidance.py")
 check_parse = harness.load(harness.REFINE / "check_parse.py")
 
-CONTRACT_MATCH: Path = harness.MATCH.parent / "references" / "contract-match.md"
+CONTRACT_MATCH: Path = (
+    harness.MATCH.parent / "references" / "contracts" / "contract-match.md"
+)
 CONTRACT_GUIDANCE: Path = (
-    harness.MATCH.parent / "references" / "contract-resume-guidance.md"
+    harness.MATCH.parent
+    / "references"
+    / "contracts"
+    / "contract-resume-guidance.md"
 )
 JOB_PREP: Path = harness.SKILL / "job-prep" / "SKILL.md"
-FLOW_PREP: Path = harness.SKILL / "job-prep" / "references" / "flow-prep.md"
-FLOW_APPLY: Path = harness.SKILL / "job-apply" / "references" / "flow-apply.md"
+FLOW_PREP: Path = (
+    harness.SKILL / "job-prep" / "references" / "flows" / "flow-prep.md"
+)
+FLOW_APPLY: Path = (
+    harness.SKILL / "job-apply" / "references" / "flows" / "flow-apply.md"
+)
 CONTRACT_SCREENING: Path = (
-    harness.SKILL / "job-apply" / "references" / "contract-screening.md"
+    harness.SKILL / "job-apply" / "references" / "contracts" / "contract-screening.md"
 )
 SCHEMA_DOSSIER: Path = (
-    harness.SKILL / "job-scout" / "references" / "schema-dossier.md"
+    harness.SKILL / "job-store" / "references" / "schemas" / "schema-dossier.md"
 )
 
 
