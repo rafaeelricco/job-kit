@@ -100,9 +100,9 @@ Exactly one CV per application, first match:
    opens as a PDF, and that file's SHA-256 equals the plan's `cv_sha256` →
    print `Prepared plan · {slug} · {prepared_at}` and take that PDF. Never
    re-refine: the approved package named these bytes, and the digest is what
-   proves they are still the ones on disk. A plan whose `url` does not match,
-   or whose `cv` does not open, is ignored entirely — fall through to rule 1.
-   A plan whose `cv` opens but no longer matches `cv_sha256` is stale: print
+   proves they are still the ones on disk. A plan whose `url` does not match is
+   ignored entirely — fall through to rule 1. A plan whose `cv` does not open,
+   or opens but no longer matches `cv_sha256`, is stale: print
    `Plan stale · {slug}`. With `--yolo`, skip this posting and require a fresh
    `/job-prep {filename}` plus `/job-prep --digest`, or rerun
    `/job-apply {filename}` without `--yolo`; never fall through under advance

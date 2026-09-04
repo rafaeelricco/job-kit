@@ -449,6 +449,36 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertRegex(screening, r"same[- ]session")
         self.assertRegex(screening, r"(?:not|never)[^.]{0,160}\bapproval\b")
 
+    def test_unreadable_prepared_cv_is_stale_not_ignored(self):
+        apply = instruction_text(FLOW_APPLY)
+
+        # Only a url mismatch may be ignored entirely: a plan for a different
+        # posting is not a stale plan for this one.
+        self.assertRegex(
+            apply,
+            r"a plan whose `url` does not match is ignored entirely",
+        )
+        # An unreadable `cv` is stale, so rule 0's `--yolo` clause covers it
+        # instead of falling through to rule 1 and re-refining a fresh PDF.
+        self.assertRegex(
+            apply,
+            r"a plan whose `cv` does not open,\s*"
+            r"or opens but no longer matches `cv_sha256`, is stale",
+        )
+        self.assertNotRegex(
+            apply,
+            r"`cv` does not open, is ignored entirely",
+        )
+        self.assertRegex(
+            apply,
+            r"is stale: print `plan stale · \{slug\}`\. with `--yolo`, "
+            r"skip this posting",
+        )
+        self.assertRegex(
+            apply,
+            r"never fall through under advance approval",
+        )
+
     def test_yolo_is_consumed_before_unpreviewed_or_new_fields(self):
         apply = instruction_text(FLOW_APPLY)
 
