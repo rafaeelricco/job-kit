@@ -204,8 +204,12 @@ search, whole-message fetch — on the account whose address is
    bytes. If no replacement control exists and the named file is present,
    continue. Wait until the control reports the file attached and no upload
    is in flight before anything else is clicked. An upload the form refuses
-   is retried: re-attach up to three times, then attach `data/cvs.yaml`
-   `base` once; still refused → skip the posting.
+   is retried: re-attach up to three times. Still refused under `--yolo` or a
+   rule-0 plan → skip the posting, reason `upload refused`; the approved bytes
+   did not go. Otherwise resolve `base` by §3 rule 3 — it must open as a PDF,
+   else skip — attach it once, and reprint the full package with `### CV` as
+   `base`, `why` `upload refused, rule 3`, and a `### Cleared` line `upload
+   refused — base attached, attempt 4`; still refused → skip the posting.
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
