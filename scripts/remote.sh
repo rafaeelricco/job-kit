@@ -62,7 +62,9 @@ one is --dry-run.
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused on a partial target such as `uninstall aside`,
-                      and while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel)
+                      while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel, and
+                      over a pipe, which cannot type the required `yes` —
+                      run it from a terminal against the cached checkout)
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME/job-kit)
@@ -467,6 +469,13 @@ main() {
     # Validate the purge before anything is uninstalled: a refused option
     # combination must leave the machine untouched, not half torn down.
     if [ "${purge}" -eq 1 ]; then
+      # The cache is an irreversible row, so uninstall.sh gates it behind a
+      # typed "yes" read from stdin. Piped in (curl … | bash), stdin is the
+      # script itself and that read hits EOF, aborting the whole run after the
+      # plan is printed — nothing removed, no hint shown. Refuse up front and
+      # name the local command, which prompts on a terminal.
+      [ -t 0 ] \
+        || die "refusing --purge over a pipe (removing the cache needs a typed 'yes'; run: bash ${JOB_KIT_HOME}/scripts/remote.sh uninstall --purge)"
       # Agent skills symlink into JOB_KIT_HOME. Partial uninstall leaves some
       # of those links (or the whole agents channel) still pointing at the
       # cache — refuse to delete it until both channels are torn down.

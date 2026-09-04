@@ -146,7 +146,9 @@ one is --dry-run.
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused on a partial target such as `uninstall agents`,
-                      and while CLAUDE_SKILLS narrows a channel)
+                      while CLAUDE_SKILLS narrows a channel, and with stdin
+                      redirected, which cannot type the required `yes` —
+                      run it from a console against the cached checkout)
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
@@ -413,6 +415,16 @@ function Invoke-RemoteMain {
     }
 
     if ($purge) {
+      # The cache is an irreversible row, so uninstall.ps1 gates it behind a
+      # typed "yes" read from stdin. With stdin redirected, that read returns
+      # $null and the whole run aborts after the plan is printed — nothing
+      # removed, no hint shown. Refuse up front and name the local command,
+      # which prompts on a console.
+      $isConsole = $true
+      try { $isConsole = -not [Console]::IsInputRedirected } catch { $isConsole = $true }
+      if (-not $isConsole) {
+        Write-KitDie "refusing --purge with redirected input (removing the cache needs a typed 'yes'; run: powershell -ExecutionPolicy Bypass -File `"$($script:JobKitHome)\scripts\remote.ps1`" uninstall --purge)"
+      }
       if ($target -ne 'all') {
         Write-KitDie "refusing --purge with partial uninstall (use 'uninstall all --purge' or omit --purge)"
       }
