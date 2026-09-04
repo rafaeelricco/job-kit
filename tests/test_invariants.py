@@ -463,7 +463,7 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"`channel: dm_request`, `direct_email`, or `founder`: no form",
         )
         self.assertIn(
-            "outbound message · operator · composed prose is never authored",
+            "job-apply §4 authors the outbound message at send time",
             fields,
         )
 

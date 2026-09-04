@@ -53,14 +53,15 @@ by `job-prep --digest`.
   plan is written. `job-apply/references/flows/flow-apply.md` §3 rule 0 refuses a plan
   whose `cv` bytes no longer match it, so a later refine cannot swap the
   approved PDF unnoticed.
-- `fields[].source` is a Fact-file path, a `contract-screening.md` row, or
-  `operator`. `operator` rows carry `"value": null` and force a `needs_you`
-  entry when `required` is true.
+- `fields[].source` is a Fact-file path, a `contract-screening.md` row, or a
+  resolution-order name (`derived`, `authored`, `default`, `declined`).
+  `authored` rows carry `"value": null`; job-apply fills them at apply time.
 - The CV upload control is excluded from `fields[]`; top-level `cv` and
   `cv_sha256` identify the file represented in the package's `### CV` section.
 - `needs_you[]` entries are `{ "what": "...", "why": "...", "where": "..." }`,
-  the three columns of the package's `### Needs you` table.
+  what the resolution order could not fill; they print under `### Needs
+  answers` in the prep report and digest.
 - `walls[]` records a captcha or account wall seen on the apply path as a
-  string; non-empty `walls` implies a `needs_you` entry.
+  string; job-apply §5 clears it at apply time.
 - `submit_selector` is recorded, never clicked, and `null` when not found.
 - No prose, no cover letter, no score, no verdict.
