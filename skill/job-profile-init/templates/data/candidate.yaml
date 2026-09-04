@@ -29,3 +29,13 @@ work_preferences_from_resume:
   in_person_work: ""
   in_person_work_note: ""
   open_to_relocation: ""
+
+# Read by job-apply resolution rule 3. Absent key → later rules apply.
+# qa: label-matched pairs, e.g. {question: "Why us?", answer: "..."}.
+screening_defaults:
+  on_call: ""
+  hours_overlap: ""
+  timezone: ""
+  referral_source: ""
+  consent_to_data_processing: ""
+  qa: []
