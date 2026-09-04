@@ -19,8 +19,9 @@ memory. Never read story bodies.
 
 ## Resolution order
 
-Every field takes the first rule that yields a value; the package prints the
-rule as `source`. Nothing waits for the operator.
+Classify the field first: a demographic or EEO question takes rule 6 only,
+never rules 1–5. Every other field takes the first rule that yields a value;
+the package prints the rule as `source`. Nothing waits for the operator.
 
 1. A Fact file above prints it → that file.
 2. "Derived answers" below computes it → `derived`.
