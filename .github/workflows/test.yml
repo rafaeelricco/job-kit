@@ -37,7 +37,7 @@ jobs:
       - name: Validate shell script syntax
         run: |
           status=0
-          for script in scripts/*.sh scripts/aside/*.sh scripts/agents/*.sh; do
+          for script in scripts/*.sh scripts/aside/*.sh scripts/agents/*.sh scripts/browser-use/*.sh; do
             [ -e "$script" ] || continue
             bash -n "$script" || status=1
           done
