@@ -10,22 +10,24 @@ a role, a number, or a skill the profile does not have.
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
+Store law: load the `job-store` skill now; obey it end-to-end.
+
 Resolve `data/`, `cv/`, and `scout/` against that root.
 
 Writes `scout/applications/{slug}/` only. `data/` and `cv/` stay read-only.
 
-Skill-local files: `./references/*` and `./scripts/*.py` only. Resolve both
+Skill-local files: `./references/**` and `./scripts/*.py` only. Resolve both
 against the directory containing this loaded `SKILL.md`, never the caller's CWD.
 
-Read `./references/flow-refine.md` now.
+Read `./references/flows/flow-refine.md` now.
 Load each additional reference only when that flow names it.
 
 ## References
 
-- `./references/flow-refine.md`
-- `./references/contract-refine.md`
-- `./references/format-summary.md`
-- `./references/format-report.md`
+- `./references/flows/flow-refine.md`
+- `./references/contracts/contract-refine.md`
+- `./references/formats/format-summary.md`
+- `./references/formats/format-report.md`
 
 ## Hard refuses
 

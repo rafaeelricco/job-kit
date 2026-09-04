@@ -8,7 +8,7 @@ candidate skill hold is already `held`; every other requirement is `unknown`
 for the worker to classify. `priority_roles` is empty and `warnings` carries
 the two codes that emptiness alone decides.
 
-Contract: references/contract-resume-guidance.md. The worker changes only
+Contract: references/contracts/contract-resume-guidance.md. The worker changes only
 `status`, `profile_term`, `priority_roles`, and may add `no_relevant_role`;
 it never adds, drops, or reorders requirements.
 """

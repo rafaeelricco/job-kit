@@ -15,11 +15,11 @@ Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Unreadable required file under a resolved root → stop and say so.
 Read-only; never writes. No path under Profile root is writable in this skill.
 
-1. Read `./references/contract-say.md` now; it is the read set and the say law for
+1. Read `./references/contracts/contract-say.md` now; it is the read set and the say law for
    both verbs.
-2. `script`: render per `./references/format-script.md` (five beats, one story,
+2. `script`: render per `./references/formats/format-script.md` (five beats, one story,
    timed to the word budget).
-3. `experience`: render per `./references/format-experience.md` (S.T.A.R.T.
+3. `experience`: render per `./references/formats/format-experience.md` (S.T.A.R.T.
    bullets per company, stacks kept out of the prose).
 4. After a render, load the `job-humanize` skill and obey it end-to-end on the
    composed blocks (`script`: Opener and timed speech; `experience`: S.T.A.R.T.
@@ -42,9 +42,9 @@ Read-only; never writes. No path under Profile root is writable in this skill.
 
 ## References
 
-- Say law: `./references/contract-say.md` (read set, number firewall, credit rule, status gate)
-- Video script: `./references/format-script.md` (five beats, word budget, delivery notes)
-- Work experience: `./references/format-experience.md` (S.T.A.R.T. bullets, tech tags, title law)
+- Say law: `./references/contracts/contract-say.md` (read set, number firewall, credit rule, status gate)
+- Video script: `./references/formats/format-script.md` (five beats, word budget, delivery notes)
+- Work experience: `./references/formats/format-experience.md` (S.T.A.R.T. bullets, tech tags, title law)
 
 ## Hard refuses
 

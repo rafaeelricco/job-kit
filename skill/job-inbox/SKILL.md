@@ -9,7 +9,9 @@ argument-hint: "[company | title | <file>… | all]"
 Load `job-profile-root`. Resolve `scout/` and `data/*` against Profile root
 (not CWD, not skill dir). Unreadable required file → stop and say so.
 
-Skill-local: `./references/*` only.
+Store law: load the `job-store` skill now; obey it end-to-end.
 
-Read `./references/flow-inbox.md` now.
+Skill-local: `./references/**` only.
+
+Read `./references/flows/flow-inbox.md` now.
 Load each additional reference only when that flow names it.

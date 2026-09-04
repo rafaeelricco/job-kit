@@ -9,7 +9,7 @@ function toFixPrompt(gaps: readonly ParseError[]): string {
   return [
     "/job-profile-root, then repair these files under scout/jobs/ so they parse.",
     "STOP if a listed file is missing there. Invent no facts.",
-    "Shape: job-scout references/schema-dossier.md — do not run /job-scout.",
+    "Shape: job-store references/schemas/schema-dossier.md — do not run /job-scout.",
     "",
     `${gaps.length} ${noun} failed:`,
     ...gaps.map((gap) => `- ${gap.file} — at ${gap.at} — ${describe(gap.cause)}`),

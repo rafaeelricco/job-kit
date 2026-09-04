@@ -11,6 +11,6 @@ invent facts. Not a letter, resume, or script writer.
 Open nothing: no file, no URL, no Profile root. The brief is the whole
 evidence set.
 
-Skill-local: `./references/*` only.
+Skill-local: `./references/**` only.
 
-Read `./references/flow-humanize.md` now.
+Read `./references/flows/flow-humanize.md` now.
