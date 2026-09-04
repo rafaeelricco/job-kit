@@ -218,8 +218,10 @@ search, whole-message fetch — on the account whose address is
    by §4's resolution order and reprint the full package. Repeat until no
    unpreviewed field remains.
 7. A captcha or bot check → load the `captcha-solver` skill and obey it
-   end-to-end on the live tab, then verify the widget reports solved. Up to
-   three rounds; still present → skip the posting.
+   end-to-end on the live tab, then verify the widget reports solved. If
+   `captcha-solver` does not resolve, skip the posting, reason `no captcha
+   solver`; never solve one by hand. Up to three rounds; still present → skip
+   the posting.
 8. Click Submit, Send, or the final Confirm that posts.
 9. Read success evidence tied to this posting. Clear success opens
    `flow-record.md`; clear failure re-runs steps 1–8 once, then skips. An
