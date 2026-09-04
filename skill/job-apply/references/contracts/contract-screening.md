@@ -9,7 +9,7 @@ memory. Never read story bodies.
 | language level                                                             | `data/languages.yaml` `languages[].level` with `name`                                                                                                             |
 | salary, notice, authorization, employment routes, relocation               | `data/candidate.yaml`                                                                                                                                             |
 | remote / in-person, relocation, assessments, drug tests, background checks | `data/candidate.yaml` `work_preferences_from_resume`, then readable legacy keys                                                                                   |
-| name, email, phone, site                                                   | `data/basics.yaml`                                                                                                                                                |
+| name, email, phone, site, country                                          | `data/basics.yaml`                                                                                                                                                |
 | LinkedIn, GitHub                                                           | `data/profiles.yaml`                                                                                                                                              |
 | roles, employers, dates, work bullets, project depth                       | `data/experiences.yml`                                                                                                                                            |
 | public portfolio projects                                                  | `data/projects.yml`                                                                                                                                               |
@@ -42,13 +42,24 @@ Before staging any prose, enforce every `never_say` ban below.
 
 ## Derived answers
 
-- Years of experience: floor(unique calendar months / 12) over every role's
-  `date` in `data/experiences.yml`, the formula
-  `job-pitch/references/contracts/contract-say.md` "The number firewall"
-  prints. `N+ years?` is `Yes` iff the derived count ≥ N.
+- Years of experience, only for an ask with no skill or domain qualifier:
+  floor(unique calendar months / 12) over every role's `date` in
+  `data/experiences.yml`. A date is `{Mon[.] YYYY} <sep> {Mon[.] YYYY |
+  Present}`; `<sep>` is `--`, `-`, `–`, or `—` with optional spaces; full or
+  3-letter month; inclusive; overlapping roles count each month once;
+  `Present` = current month; never round up. No parseable role → the count is
+  unavailable, never 0, and the field follows rule 7. An ask qualified by a
+  role title (`as a software engineer`) counts only roles whose `position`
+  names that title. An ask qualified by a skill or domain (`of Python`,
+  `leading teams`) is not derived — no Fact file prints per-skill dates — and
+  follows rule 7. `N+ years?` is `Yes` iff the derived count ≥ N.
 - First / last name: `basics.yaml` `name` split at the first space.
-- City / state / country: `basics.yaml` `location` split on commas, last part
-  the country; country of residence is that country.
+- City / state / country: `basics.yaml` `country` when present; else
+  `location` split on commas, the last part taken as the country only when it
+  names one (a form option or a `legal_authorization.jurisdictions[].country`
+  value) and the first part as the city. A `location` with one part or a
+  non-country last part (`London`, `Austin, TX`) yields no country → rule 7.
+  Country of residence is that country.
 - Earliest start date: today plus `availability.notice_period`; `Immediately`
   when the notice is zero.
 - Referral source: the dossier's Provenance `source` mapped to the option that
