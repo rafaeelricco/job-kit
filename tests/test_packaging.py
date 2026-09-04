@@ -480,6 +480,77 @@ class SkillLayoutTests(unittest.TestCase):
             "--only job-prep did not pull in job-store:\n%s" % output,
         )
 
+    def test_core_pair_halves_plan_the_same_set(self):
+        """`--only job-store` and `--only job-profile-root` must plan one set.
+
+        The two are a core pair: selecting either pulls the other and nothing
+        else. Neither is a runtime skill, so neither drags in job-humanize the
+        way job-scout or job-apply does.
+        """
+        bash = shutil.which("bash")
+        self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
+
+        def plan_for(token):
+            command = [
+                bash,
+                str(INSTALL_SH),
+                "--only",
+                token,
+                "--dry-run",
+                "--yes",
+            ]
+            with tempfile.TemporaryDirectory() as home:
+                env = dict(os.environ)
+                for name in OVERRIDE_ENV_NAMES:
+                    env.pop(name, None)
+                env["HOME"] = home
+                first = subprocess.run(
+                    command,
+                    cwd=home,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                )
+                self.assertEqual(first.returncode, 0, first.stderr)
+                output = first.stdout
+                parents = plan_missing_parents(output)
+                if parents:
+                    for parent in parents:
+                        (Path(home) / parent).mkdir(parents=True, exist_ok=True)
+                    second = subprocess.run(
+                        command,
+                        cwd=home,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=120,
+                    )
+                    self.assertEqual(second.returncode, 0, second.stderr)
+                    output = second.stdout
+            return plan_installs(output), output
+
+        store, store_output = plan_for("job-store")
+        root, root_output = plan_for("job-profile-root")
+        self.assertEqual(
+            set(store),
+            set(root),
+            "--only job-store and --only job-profile-root plan different sets:\n"
+            "job-store:\n%s\njob-profile-root:\n%s" % (store_output, root_output),
+        )
+        for name in ("job-store", "job-profile-root"):
+            with self.subTest(planned=name):
+                self.assertIn(
+                    name,
+                    store,
+                    "--only job-store did not plan %s:\n%s" % (name, store_output),
+                )
+        self.assertNotIn(
+            "job-humanize",
+            store,
+            "--only job-store pulled in the unrelated job-humanize:\n%s" % store_output,
+        )
+
     def test_uninstall_runtime_deps_mirror_install_closure(self):
         """uninstall.sh's guard table must carry the job-scout edge install.sh adds."""
         table = read(UNINSTALL_SH)
