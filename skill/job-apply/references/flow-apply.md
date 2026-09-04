@@ -195,10 +195,17 @@ approval. An unresolved required field, `operator` row, or wall forbids submit.
 
 1. Re-open the apply path when the form is not live. A `url` of `—` asks
    `Apply URL? I have no address to submit to.`
-2. Upload the CV, replacing a same-named file: a visible filename does not
-   prove the reviewed bytes. If no replacement control exists and the named
-   file is present, continue. An upload the form refuses is an external blocker;
-   hand it back under step 7.
+2. Immediately before upload, recompute the SHA-256 of the chosen `cv` path.
+   When rule 0 accepted this CV, that digest must still equal the plan's
+   `cv_sha256`, and — when `--cv-sha256` was parsed — the digest bind too. A
+   mismatch is stale: print `Plan stale · {slug}`. With `--yolo`, skip this
+   posting under the same rule-0 stale clause and never upload; without
+   `--yolo`, do not upload, reprint the package, and require a later standalone
+   `yes`. Never fall through to refine after approval. Then upload the CV,
+   replacing a same-named file: a visible filename does not prove the reviewed
+   bytes. If no replacement control exists and the named file is present,
+   continue. An upload the form refuses is an external blocker; hand it back
+   under step 7.
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
