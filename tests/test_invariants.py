@@ -467,6 +467,23 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             fields,
         )
 
+    def test_ats_only_filters_default_selection_by_host_family(self):
+        skill = instruction_text(JOB_PREP)
+        select = instruction_section(FLOW_PREP, "## 1. Select", "## 2. Liveness")
+
+        self.assertIn("--ats-only", skill)
+        self.assertIn("--ats-only", select)
+        # applies to default selection only
+        self.assertRegex(
+            select,
+            r"`--ats-only` applies to default selection only",
+        )
+        # drops, never a Skipped row — the queue invariant stays intact
+        self.assertRegex(
+            select,
+            r"not a `skipped` outcome",
+        )
+
     def test_digest_visibility_and_send_eligibility_are_separate(self):
         digest = instruction_text(FLOW_PREP)
 
