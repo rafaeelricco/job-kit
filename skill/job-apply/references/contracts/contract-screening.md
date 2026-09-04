@@ -20,7 +20,9 @@ memory. Never read story bodies.
 ## Resolution order
 
 Classify the field first: a demographic or EEO question takes rule 6 only,
-never rules 1–5. Every other field takes the first rule that yields a value;
+never rules 1–5. Availability commitments — on-call, hours overlap, background
+check, assessment, start on notice — take rules 1–3, then rule 7.
+Every other field takes the first rule that yields a value;
 the package prints the rule as `source`. Nothing waits for the operator.
 
 1. A Fact file above prints it → that file.
@@ -29,9 +31,7 @@ the package prints the rule as `source`. Nothing waits for the operator.
    `hours_overlap`, `timezone`, `referral_source`, `consent_to_data_processing`,
    `qa[]` as `question` / `answer` pairs matched on the label) → `data/candidate.yaml`.
 4. The field wants composed prose → author it under `./contract-prose.md` → `authored`.
-5. A required yes/no availability question — on-call, hours overlap, background
-   check, assessment, start on notice — with nothing above → `Yes` → `default`.
-   A required application-terms or privacy checkbox needed to process this
+5. A required application-terms or privacy checkbox needed to process this
    application, with no answer above, also takes `Yes` → `default`.
    This default excludes optional marketing and unrelated consent.
    Stage the value only; acceptance occurs in job-apply §5, never in prep.
