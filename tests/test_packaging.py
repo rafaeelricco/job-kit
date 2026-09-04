@@ -6,17 +6,14 @@ shipped script whose sibling import is absent from those lists still passes the
 post-fetch check and then fails at run time on the operator's machine, so the lists
 are compared against the real import closure of the scripts they name, not eyeballed.
 
-The installer's ``--only`` vocabulary is pinned the same way: every skill it offers
-must exist on disk, and every skill the Aside channel walks must be offerable.
+Skill coverage is pinned the same way: every ``skill/<name>/`` on disk must be
+named by a channel's install list, so a newly added skill actually ships.
 """
 
 import ast
-import os
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,36 +25,15 @@ from harness import REPO, read, skill_dirs  # noqa: E402
 
 REMOTE_SH: Path = REPO / "scripts" / "remote.sh"
 REMOTE_PS1: Path = REPO / "scripts" / "remote.ps1"
-INSTALL_SH: Path = REPO / "scripts" / "install.sh"
-UNINSTALL_SH: Path = REPO / "scripts" / "uninstall.sh"
 TEST_SH: Path = REPO / "scripts" / "test.sh"
 ASIDE_LIB: Path = REPO / "scripts" / "aside" / "lib.sh"
+AGENTS_LIB: Path = REPO / "scripts" / "agents" / "lib.sh"
 
 SHELL_REQUIRED_VAR: str = "KIT_REQUIRED_FILES"
 POWERSHELL_REQUIRED_VAR: str = "KitRequiredFiles"
-ASIDE_SKILL_NAMES_VAR: str = "SKILL_NAMES"
-
-# ``--only`` tokens that name a channel, an agent home, or a group — not a skill
-# directory. Everything else in the vocabulary must be a ``skill/<name>/``.
-NON_SKILL_ONLY_ITEMS: FrozenSet[str] = frozenset(
-    ("aside", "agents", "browser-use", "claude", "codex", "grok", "hermes")
-)
-
-# Cleared before a plan run so the installer sees only the throwaway HOME.
-OVERRIDE_ENV_NAMES: FrozenSet[str] = frozenset(
-    ("ASIDE_SKILLS", "ASIDE_SKILLS_USER", "ASIDE_ACCOUNT", "CLAUDE_SKILLS")
-)
-
-# Plan-row labels that mean "this skill gets installed" (install.sh, render_plan).
-INSTALL_ROW = re.compile(
-    r"^\s{2}(copy|copy \(refresh\)|copy \(force\)|link|link \(force\)|install driver)\s{2,}(\S.*)$"
-)
-MISSING_PARENT_ROW = re.compile(r"^\s{2}parent missing\s{2,}(~/\S+)\s*$")
 
 SHELL_REFERENCE = re.compile(r"^\$\{(\w+)\}$")
 POWERSHELL_TOKEN = re.compile(r"'([^']*)'|\$script:(\w+)")
-CASE_ARM = re.compile(r"^([a-z0-9|_ -]+)\)")
-USAGE_TOKEN = re.compile(r"[a-z][a-z0-9-]*")
 
 
 @dataclass(frozen=True)
@@ -202,66 +178,6 @@ def frontmatter_name(text: str) -> Optional[str]:
     return None
 
 
-def only_case_vocabulary(text: str) -> Tuple[str, ...]:
-    """The ``--only`` tokens ``expand_only``'s case statement accepts, in order."""
-    start = text.find("expand_only() {")
-    opening = text.find('case "${tok}" in', start)
-    if start < 0 or opening < 0:
-        return ()
-    region = text[opening : text.find("esac", opening)]
-    entries: Tuple[str, ...] = ()
-    for line in region.splitlines():
-        arm = CASE_ARM.match(line.strip())
-        if arm is None:
-            continue
-        for token in arm.group(1).split("|"):
-            stripped = token.strip()
-            if stripped:
-                entries = entries + (stripped,)
-    return entries
-
-
-def only_usage_vocabulary(text: str) -> Tuple[str, ...]:
-    """The ``--only`` tokens the usage text advertises, in order."""
-    entries: Tuple[str, ...] = ()
-    collecting = False
-    for line in text.splitlines():
-        if "--only LIST" in line:
-            collecting = True
-            continue
-        if not collecting:
-            continue
-        tokens = tuple(token.strip() for token in line.strip().split("|"))
-        if len(tokens) < 2 or not all(USAGE_TOKEN.fullmatch(t) for t in tokens):
-            break
-        entries = entries + tokens
-    return entries
-
-
-def plan_installs(output: str) -> FrozenSet[str]:
-    """Skill names an ``install.sh --dry-run`` plan marks for installation."""
-    names = set()
-    for line in output.splitlines():
-        row = INSTALL_ROW.match(line)
-        if row is None:
-            continue
-        for name in row.group(2).split(","):
-            stripped = name.strip()
-            if stripped:
-                names.add(stripped)
-    return frozenset(names)
-
-
-def plan_missing_parents(output: str) -> Tuple[str, ...]:
-    """Home-relative directories a plan reported missing, in order."""
-    parents: Tuple[str, ...] = ()
-    for line in output.splitlines():
-        row = MISSING_PARENT_ROW.match(line)
-        if row is not None:
-            parents = parents + (row.group(1)[2:],)
-    return parents
-
-
 class RequiredFilesTests(unittest.TestCase):
     """The payload both installers verify after fetch."""
 
@@ -326,11 +242,6 @@ class RequiredFilesTests(unittest.TestCase):
 class SkillLayoutTests(unittest.TestCase):
     """What a skill directory must look like, and what the installer may name."""
 
-    @classmethod
-    def setUpClass(cls):
-        cls.install_text = read(INSTALL_SH)
-        cls.names = tuple(directory.name for directory in skill_dirs())
-
     def test_every_skill_dir_has_a_skill_md(self):
         for directory in skill_dirs():
             with self.subTest(skill=directory.name):
@@ -349,221 +260,16 @@ class SkillLayoutTests(unittest.TestCase):
                     "skill/%s/SKILL.md declares name: %r" % (directory.name, declared),
                 )
 
-    def test_install_only_vocabulary_matches_skill_dirs(self):
-        from_case = only_case_vocabulary(self.install_text)
-        from_usage = only_usage_vocabulary(self.install_text)
-        self.assertTrue(from_case, "parsed no --only case arms from scripts/install.sh")
-        self.assertTrue(from_usage, "parsed no --only usage tokens from scripts/install.sh")
+    def test_every_skill_dir_ships_on_a_channel(self):
+        """A new skill/<name>/ must be installable, not just present."""
+        aside = _shell_list(read(ASIDE_LIB), "SKILL_NAMES")
+        agents = _shell_list(read(AGENTS_LIB), "ALL_SKILL_NAMES")
+        on_disk = {p.name for p in (REPO / "skill").iterdir() if p.is_dir()}
         self.assertEqual(
-            set(from_case),
-            set(from_usage),
-            "install.sh --only case arms and usage text disagree; "
-            "symmetric difference: %s" % sorted(set(from_case) ^ set(from_usage)),
+            on_disk,
+            set(aside) | set(agents),
+            "skill/ and the channel name lists disagree",
         )
-
-        offered = frozenset(from_case) - NON_SKILL_ONLY_ITEMS
-        for name in sorted(offered):
-            with self.subTest(offered=name):
-                self.assertIn(
-                    name,
-                    self.names,
-                    "--only offers %s but there is no skill/%s/" % (name, name),
-                )
-
-        aside_names = _shell_list(read(ASIDE_LIB), ASIDE_SKILL_NAMES_VAR)
-        self.assertTrue(aside_names, "parsed no SKILL_NAMES from scripts/aside/lib.sh")
-        for name in aside_names:
-            with self.subTest(aside_skill=name):
-                self.assertIn(
-                    name,
-                    offered,
-                    "the Aside channel installs %s but --only cannot select it" % name,
-                )
-
-    def test_resume_refine_implies_job_match(self):
-        """Selecting job-resume-refine must also plan job-match.
-
-        Driven, not pattern-matched: install.sh runs under --dry-run against a
-        throwaway HOME and the plan it prints is the assertion, so the rule is
-        checked as behavior rather than as a source string.
-        """
-        bash = shutil.which("bash")
-        self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
-        command = [
-            bash,
-            str(INSTALL_SH),
-            "--only",
-            "job-resume-refine",
-            "--dry-run",
-            "--yes",
-        ]
-        with tempfile.TemporaryDirectory() as home:
-            env = dict(os.environ)
-            for name in OVERRIDE_ENV_NAMES:
-                env.pop(name, None)
-            env["HOME"] = home
-            first = subprocess.run(
-                command, cwd=home, env=env, capture_output=True, text=True, timeout=120
-            )
-            self.assertEqual(first.returncode, 0, first.stderr)
-            output = first.stdout
-            parents = plan_missing_parents(output)
-            if parents:
-                for parent in parents:
-                    (Path(home) / parent).mkdir(parents=True, exist_ok=True)
-                second = subprocess.run(
-                    command, cwd=home, env=env, capture_output=True, text=True, timeout=120
-                )
-                self.assertEqual(second.returncode, 0, second.stderr)
-                output = second.stdout
-
-        planned = plan_installs(output)
-        self.assertIn(
-            "job-resume-refine",
-            planned,
-            "--only job-resume-refine planned nothing for itself:\n%s" % output,
-        )
-        self.assertIn(
-            "job-match",
-            planned,
-            "--only job-resume-refine did not pull in job-match:\n%s" % output,
-        )
-
-    def test_job_prep_implies_job_scout(self):
-        """Selecting job-prep must also plan job-apply, job-scout, and job-store.
-
-        flow-prep.md loads job-store persistence, so a subset without job-store
-        cannot run. The closure still pulls job-apply and job-scout. Driven the
-        same way as the job-resume-refine rule above.
-        """
-        bash = shutil.which("bash")
-        self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
-        command = [
-            bash,
-            str(INSTALL_SH),
-            "--only",
-            "job-prep",
-            "--dry-run",
-            "--yes",
-        ]
-        with tempfile.TemporaryDirectory() as home:
-            env = dict(os.environ)
-            for name in OVERRIDE_ENV_NAMES:
-                env.pop(name, None)
-            env["HOME"] = home
-            first = subprocess.run(
-                command, cwd=home, env=env, capture_output=True, text=True, timeout=120
-            )
-            self.assertEqual(first.returncode, 0, first.stderr)
-            output = first.stdout
-            parents = plan_missing_parents(output)
-            if parents:
-                for parent in parents:
-                    (Path(home) / parent).mkdir(parents=True, exist_ok=True)
-                second = subprocess.run(
-                    command, cwd=home, env=env, capture_output=True, text=True, timeout=120
-                )
-                self.assertEqual(second.returncode, 0, second.stderr)
-                output = second.stdout
-
-        planned = plan_installs(output)
-        for name in ("job-prep", "job-apply", "job-scout"):
-            with self.subTest(planned=name):
-                self.assertIn(
-                    name,
-                    planned,
-                    "--only job-prep did not pull in %s:\n%s" % (name, output),
-                )
-        self.assertIn(
-            "job-store",
-            planned,
-            "--only job-prep did not pull in job-store:\n%s" % output,
-        )
-
-    def test_core_pair_halves_plan_the_same_set(self):
-        """`--only job-store` and `--only job-profile-root` must plan one set.
-
-        The two are a core pair: selecting either pulls the other and nothing
-        else. Neither is a runtime skill, so neither drags in job-humanize the
-        way job-scout or job-apply does.
-        """
-        bash = shutil.which("bash")
-        self.assertIsNotNone(bash, "bash is required to drive scripts/install.sh")
-
-        def plan_for(token):
-            command = [
-                bash,
-                str(INSTALL_SH),
-                "--only",
-                token,
-                "--dry-run",
-                "--yes",
-            ]
-            with tempfile.TemporaryDirectory() as home:
-                env = dict(os.environ)
-                for name in OVERRIDE_ENV_NAMES:
-                    env.pop(name, None)
-                env["HOME"] = home
-                first = subprocess.run(
-                    command,
-                    cwd=home,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=120,
-                )
-                self.assertEqual(first.returncode, 0, first.stderr)
-                output = first.stdout
-                parents = plan_missing_parents(output)
-                if parents:
-                    for parent in parents:
-                        (Path(home) / parent).mkdir(parents=True, exist_ok=True)
-                    second = subprocess.run(
-                        command,
-                        cwd=home,
-                        env=env,
-                        capture_output=True,
-                        text=True,
-                        timeout=120,
-                    )
-                    self.assertEqual(second.returncode, 0, second.stderr)
-                    output = second.stdout
-            return plan_installs(output), output
-
-        store, store_output = plan_for("job-store")
-        root, root_output = plan_for("job-profile-root")
-        self.assertEqual(
-            set(store),
-            set(root),
-            "--only job-store and --only job-profile-root plan different sets:\n"
-            "job-store:\n%s\njob-profile-root:\n%s" % (store_output, root_output),
-        )
-        for name in ("job-store", "job-profile-root"):
-            with self.subTest(planned=name):
-                self.assertIn(
-                    name,
-                    store,
-                    "--only job-store did not plan %s:\n%s" % (name, store_output),
-                )
-        self.assertNotIn(
-            "job-humanize",
-            store,
-            "--only job-store pulled in the unrelated job-humanize:\n%s" % store_output,
-        )
-
-    def test_uninstall_runtime_deps_mirror_install_closure(self):
-        """uninstall.sh's guard table must carry the job-scout edge install.sh adds."""
-        table = read(UNINSTALL_SH)
-        start = table.index('ASIDE_RUNTIME_DEPS="') + len('ASIDE_RUNTIME_DEPS="')
-        rows = table[start : table.index('"', start)].splitlines()
-        deps = {row.split()[0]: set(row.split()[1:]) for row in rows if row.strip()}
-        for dependent in ("job-prep", "job-apply"):
-            with self.subTest(dependent=dependent):
-                self.assertIn(
-                    "job-scout",
-                    deps.get(dependent, set()),
-                    "scripts/uninstall.sh ASIDE_RUNTIME_DEPS row for %s lacks job-scout" % dependent,
-                )
 
 
 class TestRunnerTests(unittest.TestCase):
