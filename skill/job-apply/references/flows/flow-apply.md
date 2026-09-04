@@ -273,14 +273,19 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    pending event exists.
    Reprint the full package so `### Cleared` carries every wall or refusal
    the steps above cleared; that print is the one `flow-record.md`
-   snapshots. Then click Submit, Send, or the final Confirm that posts; a
+   snapshots. Capture this attempt's start time immediately before clicking
+   Submit, Send, or the final Confirm that posts; a
    staged mail is sent now, once, and the transport's sent acknowledgement is
    its clear success.
 9. Read success evidence tied to this posting. Clear success opens
    `flow-record.md`; clear failure re-runs steps 1–8 once, then skips. An
    ambiguous result waits two minutes and searches the Gmail capability for a
    confirmation mail to `data/basics.yaml` `email` from the company or its
-   ATS; found → success; none → append under the
+   ATS. Fetch the whole message and require mailbox receipt after this
+   attempt's start, plus context that uniquely identifies the current posting
+   and application attempt. An older confirmation or a generic company/ATS
+   acknowledgement is insufficient. Only a uniquely bound confirmation is
+   success; none or uncertain → append under the
    `job-store/references/contracts/contract-persistence.md` lock exactly one
    line below the ownership marker,
    `- {YYYY-MM-DD} · submit unconfirmed: ambiguous result — job-apply`,
