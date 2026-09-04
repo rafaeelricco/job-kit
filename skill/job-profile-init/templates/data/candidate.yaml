@@ -3,7 +3,7 @@ availability:
 
 salary_expectations:
   # How job-apply answers a salary question from this band and the posting's
-  # printed figures: job-apply/references/contract-screening.md, Salary expectation.
+  # printed figures: job-apply/references/contracts/contract-screening.md, Salary expectation.
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are
@@ -12,7 +12,7 @@ salary_expectations:
 
 legal_authorization:
   # One row per country. job-apply reads the row whose `country` matches the
-  # question (`job-apply/references/contract-screening.md`); job-match reads the
+  # question (`job-apply/references/contracts/contract-screening.md`); job-match reads the
   # row matching the posting; job-profile-me shows and edits them. A country
   # with no row has no stored answer — never copy another row onto it. Profiles
   # that still carry the old us_*/eu_*/canada_*/uk_* scalars and no

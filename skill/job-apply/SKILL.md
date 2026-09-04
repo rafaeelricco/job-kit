@@ -13,6 +13,8 @@ cleared. It never authors prose: a cover-letter or essay field is the operator's
 
 Profile root: load the `job-profile-root` skill now; obey it end-to-end.
 
+Store law: load the `job-store` skill now; obey it end-to-end.
+
 Resolve every profile path against Profile root (not CWD, not skill dir).
 Unreadable Profile root, or a present but unreadable `data/cvs.yaml` → stop and
 say so; an absent `data/cvs.yaml` falls back per `flow-apply.md` §3. A dossier
@@ -25,19 +27,19 @@ chained `job-resume-refine` writes `scout/applications/{slug}/` under its own
 law. `scout/applications/{slug}/plan.json` is read-only input here
 (`flow-apply.md` §3 rule 0); only `job-prep` writes it.
 
-Skill-local files: `./references/*` only.
+Skill-local files: `./references/**` only.
 
 When the operator message is explicit `sent`, `submitted`, or `applied`
-confirmation, read `./references/flow-record.md` now.
-Otherwise read `./references/flow-apply.md` now.
+confirmation, read `./references/flows/flow-record.md` now.
+Otherwise read `./references/flows/flow-apply.md` now.
 Load each additional reference only when that flow names it.
 
 ## References
 
-- `./references/flow-apply.md`
-- `./references/contract-screening.md`
-- `./references/format-package.md`
-- `./references/flow-record.md`
+- `./references/flows/flow-apply.md`
+- `./references/contracts/contract-screening.md`
+- `./references/formats/format-package.md`
+- `./references/flows/flow-record.md`
 
 ## Hard refuses
 
