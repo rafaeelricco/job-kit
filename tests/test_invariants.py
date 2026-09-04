@@ -434,6 +434,30 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"whose last scout posting-state line was a closure",
         )
 
+    def test_founder_is_outbound_no_form_in_prep(self):
+        skill = instruction_text(JOB_PREP)
+        select = instruction_section(FLOW_PREP, "## 1. Select", "## 2. Liveness")
+        fields = instruction_section(
+            FLOW_PREP, "## 3. Read · 4. CV · 5. Fields", "## 6. Plan"
+        )
+
+        self.assertIn(
+            "--channel ats|dm_request|direct_email|founder",
+            skill,
+        )
+        self.assertIn(
+            "--channel ats|dm_request|direct_email|founder",
+            select,
+        )
+        self.assertRegex(
+            fields,
+            r"`channel: dm_request`, `direct_email`, or `founder`: no form",
+        )
+        self.assertIn(
+            "outbound message · operator · composed prose is never authored",
+            fields,
+        )
+
     def test_digest_visibility_and_send_eligibility_are_separate(self):
         digest = instruction_text(FLOW_PREP)
 
