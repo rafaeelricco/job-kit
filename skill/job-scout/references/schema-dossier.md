@@ -151,6 +151,8 @@ Opening `---` through the ownership marker = scout-owned, rewritten each run. Be
 | No file yet                                           | Create with `status: new`                                                                            |
 | File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log |
 
-Closure is a log event, not a field. Append reopen whenever a URL whose last scout posting-state line was a closure is extracted live again.
+Closure is a log event, not a field. Append reopen whenever a URL whose latest
+posting-state line from any permitted writer (`job-scout` | `job-prep` |
+`job-apply`) was a closure is extracted live again.
 
 For every create or update, obey `./contract-persistence.md`.
