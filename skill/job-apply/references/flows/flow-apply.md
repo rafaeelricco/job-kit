@@ -167,7 +167,8 @@ the returned text after checking it against every `never_say` entry. If
 authored when a `ready` or `needs-numbers` story `covers` the ad, else left
 empty; a required one is always authored.
 
-When rule 0 took a prepared plan, stage `plan.json` `fields[].value` only for a
+When rule 0 took a prepared plan, re-resolve authored and null-valued rows
+by the resolution order; stage remaining `plan.json` `fields[].value` only for a
 field whose `selector`, `label`, and `type` all still match the live form, and
 resolve every other live field — each `needs_you` entry and each `operator`
 row included — by the resolution order. A plan

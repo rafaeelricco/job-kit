@@ -652,6 +652,10 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             r"drop any whose log carries a top-level `submit unconfirmed` line",
         )
 
+    def test_prepared_authored_rows_are_resolved_again(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("re-resolve authored and null-valued rows", apply)
+
 
 if __name__ == "__main__":
     unittest.main()
