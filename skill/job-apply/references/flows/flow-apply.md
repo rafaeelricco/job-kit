@@ -240,15 +240,22 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
 5. Apply required application terms and privacy checkboxes using their
    resolved §4 values. Never override an explicit refusal; if acceptance
    is mandatory, skip the posting.
-6. Re-scan the live form. Stage any field the printed package did not carry
-   by §4's resolution order and reprint the full package. Repeat until no
-   unpreviewed field remains.
+6. Re-scan the live form and reconcile every packaged value. Reuse a value
+   only when its selector, label, and type still match; restore values the
+   page dropped. Drop vanished bindings from the package and resolve changed
+   controls through §4. Stage any field the printed package did not carry
+   by §4's resolution order.
+   Verify the CV attachment separately; if it was lost, repeat steps 2–3,
+   including the digest check and upload-settle wait. Reprint the package
+   only after the live values and attachment match it. If reconciliation
+   fails, skip the posting; otherwise continue when no unpreviewed field remains.
 7. A captcha or bot check → load the `captcha-solver` skill and obey it
    end-to-end on the live tab, then verify the widget reports solved. If
    `captcha-solver` does not resolve, skip the posting, reason
    `no captcha solver`; never solve one by hand. Up to three rounds; still
    present → skip the posting.
-8. Reprint the full package so `### Cleared` carries every wall or refusal
+8. If step 7 replaced or reset the page, repeat step 6 before proceeding.
+   Reprint the full package so `### Cleared` carries every wall or refusal
    the steps above cleared; that print is the one `flow-record.md`
    snapshots. Then click Submit, Send, or the final Confirm that posts; a
    staged mail is sent now, once, and the transport's sent acknowledgement is

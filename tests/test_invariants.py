@@ -671,6 +671,12 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("never in prep", screening)
         self.assertIn("never override an explicit refusal", apply)
 
+    def test_reconciliation_restores_values_and_attachment(self):
+        apply = instruction_text(FLOW_APPLY)
+        self.assertIn("reconcile every packaged value", apply)
+        self.assertIn("verify the cv attachment separately", apply)
+        self.assertIn("if step 7 replaced or reset the page", apply)
+
 
 if __name__ == "__main__":
     unittest.main()
