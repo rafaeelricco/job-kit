@@ -5,6 +5,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
+# shellcheck source=common.sh
+. "${REPO_ROOT}/scripts/common.sh"
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/job-kit}"
 ASIDE_ACCOUNT_ID="${ASIDE_ACCOUNT:-0}"
 
@@ -19,56 +21,10 @@ scripts/aside/install.sh scripts/aside/lib.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md"
 
-YES=0
-SKIP_CLAUDE=0
-SKIP_CODEX=0
-SKIP_GROK=0
-SKIP_HERMES=0
 DRY_RUN=0
-ONLY_TARGETS=""
 # Space-separated target list for the current run_plan; used by browser-use plan
 # and preflight to account for combined agents+browser-use apply order.
 UNINSTALL_TARGETS=""
-# Aside skill subset from --only; empty means every SKILL_NAMES entry.
-ASIDE_ONLY=""
-# The shared resolver every other Aside skill loads on its first step. Removing
-# it under a subset while a dependent stays installed is what the guard in
-# plan_preflight refuses.
-# Required siblings. Removing one while another Aside skill stays leaves that
-# skill unable to load it.
-ASIDE_RESOLVERS="job-profile-root job-store job-humanize"
-ASIDE_RESOLVER="job-profile-root"
-# Runtime dependency edges, one per line: "<dependent> <dep>…". Mirrors the
-# --only closure install.sh:177-246 applies, so a subset that installs together
-# cannot be taken apart. job-profile-root / job-store / job-humanize are
-# deliberately absent: every Aside skill needs them, and ASIDE_RESOLVERS
-# already guards that edge.
-ASIDE_RUNTIME_DEPS="job-prep job-apply job-resume-refine job-list job-scout
-job-apply job-resume-refine job-list job-scout
-job-scout job-match job-profile-me
-job-match job-list job-profile-me"
-# Row field separator. Not TAB: TAB is IFS-whitespace, so `read` collapses an
-# empty field and shifts the path left into the label.
-ROW_FS="$(printf '\037')"
-
-# die MSG…
-# Prints an error to stderr and exits 1.
-die() { echo "error: $*" >&2; exit 1; }
-
-# refuse_newline NAME VALUE — die when VALUE carries a line break.
-# Every path list here is newline-delimited (`profile_delete_candidates`,
-# `profile_pointer_files`, `home_bases`, the roots passed to `unwritable_roots`)
-# and every consumer reads it one line at a time. A break inside one value
-# therefore splits into extra roots: `XDG_CONFIG_HOME=$'/victim\n/other'` makes
-# the text before the break its own deletion root, without the `/job-kit`
-# suffix, and `remove_profile` hands it to `rm -rf`.
-refuse_newline() {
-  local name="$1" value="$2"
-  case "${value}" in
-    *"
-"*) die "${name} must not contain a line break" ;;
-  esac
-}
 
 # strip_trailing_slashes PATH
 # Prints PATH with trailing slashes removed (a lone "/" is kept).
@@ -279,23 +235,6 @@ paths_overlap() {
   return 1
 }
 
-# confirm_yes PROMPT — require typed "yes" unless YES=1.
-confirm_yes() {
-  local prompt="$1" answer
-  if [ "${YES}" -eq 1 ]; then
-    return 0
-  fi
-  printf '%s' "${prompt}" >&2
-  read -r answer || true
-  case "${answer}" in
-    yes) return 0 ;;
-    *)
-      echo "aborted (type yes to confirm)." >&2
-      return 1
-      ;;
-  esac
-}
-
 usage() {
   cat <<'EOF'
 Uninstall job-kit (one script for all components).
@@ -315,59 +254,38 @@ Targets:
   all       aside + agents + browser-use + profile + cache
 
 Options:
-  -y, --yes     Skip confirmations (profile / all / cache)
   --dry-run     Print the plan, run every guard, remove nothing
-  --only LIST   Comma-separated subset, instead of positional targets:
-                aside | job-scout | job-apply | job-prep | job-resume-refine | job-profile-me | job-list | job-match | job-pitch | job-inbox | job-humanize | job-profile-root | job-store
-                agents | browser-use | claude | codex | grok | hermes
-                profile | cache
-                (claude|codex|grok|hermes narrow a channel named alongside them;
-                alone they mean the agents channel)
-                (job-prep needs job-apply; job-apply needs job-resume-refine /
-                job-list / job-scout; job-scout needs
-                job-match / job-profile-me; job-match needs job-list /
-                job-profile-me — removing one while its dependent stays refuses;
-                job-profile-root / job-store / job-humanize refuse while other Aside skills remain)
-  --skip-claude|--skip-codex|--skip-grok|--skip-hermes
-                Applied only when agents or browser-use runs
+  -h, --help    Show this help
 
 Every run prints a plan first. A plan holding profile or cache data requires
-typing yes; anything re-installable takes [Y/n]. --yes skips both.
+typing yes; anything re-installable takes [Y/n]. On a pipe, re-installable
+targets apply after the plan and profile/cache refuse.
 
 Profile path: $XDG_CONFIG_HOME/job-kit when set, otherwise $HOME/.config/job-kit,
 and both when they differ.
 
 Environment:
   JOB_KIT_HOME   Kit cache (default $XDG_DATA_HOME/job-kit or ~/.local/share/job-kit)
-  ASIDE_SKILLS / ASIDE_SKILLS_USER / ASIDE_ACCOUNT / CLAUDE_SKILLS
+  ASIDE_SKILLS / ASIDE_ACCOUNT / CLAUDE_SKILLS
                  Same overrides as the channel installers
 EOF
 }
 
 # uninstall_aside — remove kit-owned Aside skills via aside/lib.sh (subshell).
 uninstall_aside() {
-  local repo="${REPO_ROOT}" aside_only="${ASIDE_ONLY}"
+  local repo="${REPO_ROOT}"
   (
     # shellcheck source=aside/lib.sh
     . "${repo}/scripts/aside/lib.sh"
     local dest_root name dest
     dest_root="$(resolve_aside_skills_root)" || exit 1
     echo "== job-kit Aside uninstall for ${dest_root} =="
-    if [ -n "${aside_only}" ]; then
-      unlink_legacy_skills "${dest_root}" "${repo}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
-    else
-      unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
-    fi
+    unlink_legacy_skills "${dest_root}" "${repo}" || exit 1
     for name in ${SKILL_NAMES}; do
-      aside_selected "${name}" || { echo "${name}: not selected (--only)."; continue; }
       dest="$(skill_dest "${dest_root}" "${name}")"
       unlink_skill "${dest}" "${repo}" "${name}"
     done
-    if [ -n "${aside_only}" ]; then
-      remove_legacy_user_skills "${repo}" "${dest_root}" "${aside_only}" "$(legacy_names_for_selected "${aside_only}")" || exit 1
-    else
-      remove_legacy_user_skills "${repo}" "${dest_root}" "${SKILL_NAMES}" || exit 1
-    fi
+    remove_legacy_user_skills "${repo}" "${dest_root}" "${SKILL_NAMES}" || exit 1
     echo "Uninstall completed for ${dest_root}"
   )
 }
@@ -375,8 +293,6 @@ uninstall_aside() {
 # uninstall_agents — remove kit-owned agent skill links via agents/lib.sh (subshell).
 uninstall_agents() {
   local repo="${REPO_ROOT}"
-  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
-  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -393,12 +309,6 @@ uninstall_agents() {
     fi
 
     for target in ${AGENT_TARGETS}; do
-      case "${target}" in
-        claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
-        codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
-        grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
-        hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: skipped (--skip-hermes)."; continue; } ;;
-      esac
       parent="$(agent_parent_dir "${target}")"
       dest_root="$(agent_skills_root "${target}")"
       label="$(agent_label "${target}")"
@@ -423,8 +333,6 @@ uninstall_agents() {
 # three artifacts the plan named are touched — never a browser app bundle.
 uninstall_browser_use() {
   local repo="${REPO_ROOT}" state
-  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
-  local skip_hermes="${SKIP_HERMES}"
   state="$(browser_harness_state)"
   (
     # shellcheck source=agents/lib.sh
@@ -468,12 +376,6 @@ uninstall_browser_use() {
       echo "Uninstall completed for ${override}"
     else
       for target in ${AGENT_TARGETS}; do
-        case "${target}" in
-          claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: skipped (--skip-claude)."; continue; } ;;
-          codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: skipped (--skip-codex)."; continue; } ;;
-          grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: skipped (--skip-grok)."; continue; } ;;
-          hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: skipped (--skip-hermes)."; continue; } ;;
-        esac
         parent="$(agent_parent_dir "${target}")"
         dest_root="$(agent_skills_root "${target}")"
         label="$(agent_label "${target}")"
@@ -502,14 +404,6 @@ uninstall_browser_use() {
       fi
     fi
     for target in ${AGENT_TARGETS}; do
-      # A skipped home is excluded whole: the driver there is not even kit-owned,
-      # so removing it would take files from the one target the user named.
-      case "${target}" in
-        claude) [ "${skip_claude}" -eq 1 ] && { echo "Claude Code: driver skipped (--skip-claude)."; continue; } ;;
-        codex)  [ "${skip_codex}" -eq 1 ] && { echo "Codex: driver skipped (--skip-codex)."; continue; } ;;
-        grok)   [ "${skip_grok}" -eq 1 ] && { echo "Grok: driver skipped (--skip-grok)."; continue; } ;;
-        hermes) [ "${skip_hermes}" -eq 1 ] && { echo "Hermes Agent: driver skipped (--skip-hermes)."; continue; } ;;
-      esac
       dest="$(agent_skills_root "${target}")/browser-use"
       if [ -n "${override}" ] && [ "${dest}" = "${override}/browser-use" ]; then
         continue
@@ -693,7 +587,7 @@ EOF
     for path in "${existing[@]}"; do
       echo "  ${path}"
     done
-    confirm_yes "Permanently delete profile data (type yes): " || return 1
+    # run_plan already took the typed yes at the plan gate; this tree is in it.
     for path in "${existing[@]}"; do
       rm -rf "${path}" || die "failed to remove profile: ${path}"
       echo "removed profile: ${path}"
@@ -820,69 +714,6 @@ plan_row() {
   fi
 }
 
-# aside_selected NAME — 0 when --only keeps NAME in the aside walk.
-aside_selected() {
-  [ -n "${ASIDE_ONLY}" ] || return 0
-  case " ${ASIDE_ONLY} " in
-    *" $1 "*) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-# resolver_dependents_left NAME — Aside skills that need NAME, are still
-# kit-installed, and this --only run leaves behind. Prints the names, space
-# separated; empty when none. Ownership uses is_kit_owned, the same predicate
-# the mutators read, so a foreign directory at the path is not counted.
-# Side effects: none.
-resolver_dependents_left() {
-  local skip="${1:?}"
-  local repo="${REPO_ROOT}"
-  (
-    # shellcheck source=aside/lib.sh
-    . "${repo}/scripts/aside/lib.sh"
-    local dest_root name left=""
-    dest_root="$(resolve_aside_skills_root)" || exit 1
-    for name in ${SKILL_NAMES}; do
-      [ "${name}" = "${skip}" ] && continue
-      aside_selected "${name}" && continue
-      is_kit_owned "$(skill_dest "${dest_root}" "${name}")" "${repo}" "${name}" || continue
-      left="${left} ${name}"
-    done
-    printf '%s\n' "${left# }"
-  )
-}
-
-# runtime_deps_blocked — for every ASIDE_RUNTIME_DEPS edge, the deps this --only
-# run would remove while the kit-owned skill that loads them stays installed.
-# Prints one "  <dependent> still needs: <dep>…" line per broken edge; empty when
-# none. Same ownership predicate as resolver_dependents_left.
-# Side effects: none.
-runtime_deps_blocked() {
-  local repo="${REPO_ROOT}" table="${ASIDE_RUNTIME_DEPS}"
-  (
-    # shellcheck source=aside/lib.sh
-    . "${repo}/scripts/aside/lib.sh"
-    local dest_root row dependent deps name left
-    dest_root="$(resolve_aside_skills_root)" || exit 1
-    while IFS= read -r row; do
-      [ -n "${row}" ] || continue
-      dependent="${row%% *}"
-      deps="${row#* }"
-      aside_selected "${dependent}" && continue
-      is_kit_owned "$(skill_dest "${dest_root}" "${dependent}")" "${repo}" "${dependent}" || continue
-      left=""
-      for name in ${deps}; do
-        aside_selected "${name}" || continue
-        is_kit_owned "$(skill_dest "${dest_root}" "${name}")" "${repo}" "${name}" || continue
-        left="${left} ${name}"
-      done
-      [ -z "${left}" ] || printf '  %s still needs: %s\n' "${dependent}" "${left# }"
-    done <<EOF
-${table}
-EOF
-  )
-}
-
 # plan_rows_aside — rows for the aside target. No mutation.
 # Mirrors uninstall_aside (below): LEGACY_SKILL_NAMES then SKILL_NAMES at the
 # resolved root, then the legacy user root. That second root is re-derived here
@@ -898,18 +729,11 @@ plan_rows_aside() {
     dest_root="$(resolve_aside_skills_root)" || exit 1
     printf 'H%saside%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest_root}"
     legacy_walk="${LEGACY_SKILL_NAMES}"
-    if [ -n "${ASIDE_ONLY}" ]; then
-      legacy_walk="$(legacy_names_for_selected "${ASIDE_ONLY}")"
-    fi
     for name in ${legacy_walk}; do
       plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" legacy
     done
     for name in ${SKILL_NAMES}; do
-      if aside_selected "${name}"; then
-        plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" current
-      else
-        printf 'N%snot selected%s%s\n' "${ROW_FS}" "${ROW_FS}" "$(skill_dest "${dest_root}" "${name}")"
-      fi
+      plan_row "$(skill_dest "${dest_root}" "${name}")" "${name}" current
     done
     user_root="${HOME}/.aside/u/${ASIDE_ACCOUNT_ID}/skills/user"
     [ -d "${user_root}" ] || exit 0
@@ -920,7 +744,6 @@ plan_rows_aside() {
     # aside/lib.sh:295 stops after legacy names when the two roots are one tree.
     paths_equal "${user_root}" "${dest_root}" && exit 0
     for name in ${SKILL_NAMES}; do
-      aside_selected "${name}" || continue
       plan_row "$(skill_dest "${user_root}" "${name}")" "${name}" current
     done
   )
@@ -928,13 +751,11 @@ plan_rows_aside() {
 
 # plan_rows_agents — rows for the agents target. No mutation.
 # Mirrors uninstall_agents (below), including the override early exit (which also
-# makes the SKIP_* flags and the legacy Codex sweep unreachable) and the
+# makes the legacy Codex sweep unreachable) and the
 # parent-or-root eligibility test. link_only=1 throughout: agents/lib.sh:300
 # requires a symlink, never a marked copy.
 plan_rows_agents() {
   local repo="${REPO_ROOT}"
-  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
-  local skip_hermes="${SKIP_HERMES}"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
@@ -950,15 +771,6 @@ plan_rows_agents() {
     for target in ${AGENT_TARGETS}; do
       root="$(agent_skills_root "${target}")"
       label="$(agent_label "${target}")"
-      if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
-        printf 'N%sskipped (--skip-claude)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-      elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
-        printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-      elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
-        printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-      elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
-        printf 'N%sskipped (--skip-hermes)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-      fi
       parent="$(agent_parent_dir "${target}")"
       if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
         printf 'N%snothing to uninstall%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
@@ -992,13 +804,11 @@ plan_rows_agents() {
 # link_only=1 throughout: this channel only ever symlinks (agents/lib.sh:300).
 plan_rows_browser_use() {
   local repo="${REPO_ROOT}" state
-  local skip_claude="${SKIP_CLAUDE}" skip_codex="${SKIP_CODEX}" skip_grok="${SKIP_GROK}"
-  local skip_hermes="${SKIP_HERMES}"
   state="$(browser_harness_state)"
   (
     # shellcheck source=agents/lib.sh
     . "${repo}/scripts/agents/lib.sh"
-    local override target root parent label name dest bin skipped agents_owned n
+    local override target root parent label name dest bin agents_owned n
     override="$(resolve_override_skills)" || exit 1
     plan_browser_shared_deps() {
       local plan_root="$1" agents_owned=0 pn pname
@@ -1036,15 +846,6 @@ plan_rows_browser_use() {
       for target in ${AGENT_TARGETS}; do
         root="$(agent_skills_root "${target}")"
         label="$(agent_label "${target}")"
-        if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
-          printf 'N%sskipped (--skip-claude)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-        elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
-          printf 'N%sskipped (--skip-codex)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-        elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
-          printf 'N%sskipped (--skip-grok)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-        elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
-          printf 'N%sskipped (--skip-hermes)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
-        fi
         parent="$(agent_parent_dir "${target}")"
         if [ ! -d "${parent}" ] && [ ! -d "${root}" ]; then
           printf 'N%snothing to uninstall%s%s\n' "${ROW_FS}" "${ROW_FS}" "${root}"; continue
@@ -1075,26 +876,10 @@ plan_rows_browser_use() {
       if [ -n "${override}" ] && [ "${dest}" = "${override}/browser-use" ]; then
         continue
       fi
-      # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm case
-      # inside command substitutions. Mirrors the skip guard in
-      # uninstall_browser_use so the plan names exactly what will be removed.
-      skipped=""
-      if [ "${target}" = claude ] && [ "${skip_claude}" -eq 1 ]; then
-        skipped="--skip-claude"
-      elif [ "${target}" = codex ] && [ "${skip_codex}" -eq 1 ]; then
-        skipped="--skip-codex"
-      elif [ "${target}" = grok ] && [ "${skip_grok}" -eq 1 ]; then
-        skipped="--skip-grok"
-      elif [ "${target}" = hermes ] && [ "${skip_hermes}" -eq 1 ]; then
-        skipped="--skip-hermes"
-      fi
       if [ ! -e "${dest}" ] && [ ! -L "${dest}" ]; then
         continue
-      elif [ -n "${skipped}" ]; then
-        printf 'N%sdriver skipped (%s)%s%s\n' "${ROW_FS}" "${skipped}" "${ROW_FS}" "${dest}"
-      else
-        printf 'I%sremove driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
       fi
+      printf 'I%sremove driver%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     done
     bin="$(command -v browser-use 2>/dev/null || true)"
     if [ -n "${bin}" ]; then
@@ -1185,48 +970,6 @@ build_plan() {
   done
 }
 
-# plan_count ROWS KIND… — how many rows carry any of KIND.
-plan_count() {
-  local rows="$1" kind label path want n=0
-  shift
-  while IFS="${ROW_FS}" read -r kind label path; do
-    [ -n "${kind}" ] || continue
-    for want in "$@"; do
-      [ "${kind}" = "${want}" ] || continue
-      n=$((n + 1))
-      break
-    done
-  done <<EOF
-${rows}
-EOF
-  printf '%s\n' "${n}"
-}
-
-# path_display PATH — print PATH with $HOME replaced by ~ (display only).
-path_display() {
-  local p="$1"
-  case "${p}" in
-    "${HOME}") printf '~\n' ;;
-    "${HOME}"/*) printf '~%s\n' "${p#"${HOME}"}" ;;
-    *) printf '%s\n' "${p}" ;;
-  esac
-}
-
-# skill_leaf ROOT PATH — print PATH's single child name when PATH is ROOT/name;
-# otherwise print nothing (non-skill / nested / unrelated).
-skill_leaf() {
-  local root="$1" path="$2" rest
-  case "${path}" in
-    "${root}"/*)
-      rest="${path#"${root}"/}"
-      case "${rest}" in
-        ""|*/*) return 0 ;;
-        *) printf '%s\n' "${rest}" ;;
-      esac
-      ;;
-  esac
-}
-
 # render_plan ROWS — print the manifest to stdout.
 # Grouped sections, tilde paths, skill basenames; collapse consecutive same-status
 # skill N-rows into one comma list. Producers still emit absolute paths.
@@ -1306,11 +1049,12 @@ EOF
 }
 
 # confirm_plan REMOVALS IRREVERSIBLE — the single gate for the whole run.
-# --yes suppresses both tiers without ever calling read, which is what keeps
-# remote.sh's five uninstall call sites from hanging on a curl pipe.
+# Two tiers, chosen by the irreversible row count: profile or cache data needs a
+# typed "yes"; anything re-installable takes [Y/n]. On a pipe `read` returns
+# empty, so re-installable targets apply after the plan and profile/cache refuse.
+# Side effects: reads stdin.
 confirm_plan() {
   local removals="$1" irreversible="$2" answer
-  [ "${YES}" -eq 1 ] && return 0
   if [ "${irreversible}" -gt 0 ]; then
     confirm_yes "Proceed? Profile/cache data cannot be recovered. Type yes: "
     return $?
@@ -1328,34 +1072,11 @@ confirm_plan() {
 # lines, channel roots that resolve, and paths whose absence must be provable.
 # Everything about whether removal can succeed stays in preflight_targets.
 plan_preflight() {
-  local t blocker raw left
+  local t blocker raw
   for t in "$@"; do
     if [ "${t}" = aside ]; then
       ( . "${REPO_ROOT}/scripts/aside/lib.sh"; resolve_aside_skills_root >/dev/null ) \
         || die "refusing to start: the aside target cannot resolve its skills root"
-      # Required siblings: every other Aside skill is installed with them.
-      # Removing one alone leaves those installed and unusable, so a subset
-      # that drops one must drop them too. Checked against what is actually
-      # on disk: a resolver installed by itself has nothing to break.
-      if [ -n "${ASIDE_ONLY}" ]; then
-        for r in ${ASIDE_RESOLVERS}; do
-          if aside_selected "${r}"; then
-            left="$(resolver_dependents_left "${r}")" || exit 1
-            [ -z "${left}" ] \
-              || die "refusing to remove ${r} while these Aside skills still need it: ${left} (add them to --only, or select 'aside')"
-          fi
-        done
-      fi
-      # A skill another installed skill loads at runtime cannot go alone: the
-      # dependent stays on disk unable to run. Adding the dependent may pull in
-      # its own dependents, so the message asks for a re-run, not one fixed name.
-      if [ -n "${ASIDE_ONLY}" ]; then
-        left="$(runtime_deps_blocked)" || exit 1
-        [ -z "${left}" ] \
-          || die "refusing to remove Aside skills that installed skills still load:
-${left}
-add each skill named on the left to --only and re-run (it may name more), or select 'aside'"
-      fi
     elif [ "${t}" = agents ]; then
       ( . "${REPO_ROOT}/scripts/agents/lib.sh"; resolve_override_skills >/dev/null ) \
         || die "refusing to start: the agents target cannot resolve its skills root"
@@ -1374,63 +1095,6 @@ add each skill named on the left to --only and re-run (it may name more), or sel
         || die "refusing to start: the cache path cannot be inspected at ${blocker}, so its absence cannot be proven: ${raw}"
     fi
   done
-}
-
-# expand_only LIST — map --only tokens onto targets, SKIP_*, and ASIDE_ONLY.
-# Desugaring rather than a parallel selection path: every downstream guard keeps
-# reading the flags it already reads.
-expand_only() {
-  local list="$1" tok
-  local want_aside=0 want_agents=0 want_profile=0 want_cache=0 want_browser=0
-  local want_claude=0 want_codex=0 want_grok=0 named_agent=0 whole_aside=0
-  local want_hermes=0
-  local channel_named=0
-  for tok in $(printf '%s' "${list}" | tr ',' ' '); do
-    case "${tok}" in
-      aside) want_aside=1; whole_aside=1; channel_named=1 ;;
-      job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store)
-        want_aside=1
-        channel_named=1
-        [ -n "${ASIDE_ONLY}" ] && ASIDE_ONLY="${ASIDE_ONLY} ${tok}" || ASIDE_ONLY="${tok}" ;;
-      agents) want_agents=1; channel_named=1; want_claude=1; want_codex=1; want_grok=1; want_hermes=1 ;;
-      browser-use) want_browser=1; channel_named=1 ;;
-      claude) named_agent=1; want_claude=1 ;;
-      codex)  named_agent=1; want_codex=1 ;;
-      grok)   named_agent=1; want_grok=1 ;;
-      hermes) named_agent=1; want_hermes=1 ;;
-      profile) want_profile=1 ;;
-      cache) want_cache=1 ;;
-      *) die "unknown --only item: ${tok} (aside|job-scout|job-apply|job-prep|job-resume-refine|job-profile-me|job-list|job-match|job-pitch|job-inbox|job-humanize|job-profile-root|job-store|agents|browser-use|claude|codex|grok|hermes|profile|cache)" ;;
-    esac
-  done
-  # Matches the installer: a bare agent-home token still means the agents
-  # channel, but alongside a named channel it only narrows that channel. Neither
-  # `profile` nor `cache` is an agent-home channel, so `--only claude,profile`
-  # keeps meaning the agents channel plus the profile.
-  if [ "${named_agent}" -eq 1 ] && [ "${channel_named}" -eq 0 ]; then
-    want_agents=1
-  fi
-  if [ "${named_agent}" -eq 1 ]; then
-    [ "${want_claude}" -eq 1 ] || SKIP_CLAUDE=1
-    [ "${want_codex}" -eq 1 ] || SKIP_CODEX=1
-    [ "${want_grok}" -eq 1 ] || SKIP_GROK=1
-    [ "${want_hermes}" -eq 1 ] || SKIP_HERMES=1
-  fi
-  # `aside` names the whole channel, so it dominates any subset item in the same
-  # list — cleared after the loop, not inside it, or `aside,job-scout` would
-  # narrow to a subset while `job-scout,aside` removed both.
-  [ "${whole_aside}" -eq 0 ] || ASIDE_ONLY=""
-  # A deselected Aside skill survives the unlink phase still pointing at the
-  # cache, so the purge would refuse mid-run. Refuse the combination instead.
-  if [ -n "${ASIDE_ONLY}" ] && [ "${want_cache}" -eq 1 ]; then
-    die "refusing --only with an Aside skill subset plus cache: the unselected skill would still point at the cache (select 'aside', or omit cache)"
-  fi
-  [ "${want_aside}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} aside"
-  [ "${want_agents}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} agents"
-  [ "${want_browser}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} browser-use"
-  [ "${want_profile}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} profile"
-  [ "${want_cache}" -eq 0 ] || ONLY_TARGETS="${ONLY_TARGETS} cache"
-  [ -n "${ONLY_TARGETS}" ] || die "--only selected nothing"
 }
 
 # first_uninspectable PATH — the first existing component of PATH that cannot be
@@ -1507,16 +1171,6 @@ links_owned_by() {
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
     }
-    # target_skipped TARGET — 0 when --skip-<target> keeps uninstall_agents away.
-    target_skipped() {
-      case "$1" in
-        claude) [ "${SKIP_CLAUDE}" -eq 1 ] ;;
-        codex) [ "${SKIP_CODEX}" -eq 1 ] ;;
-        grok) [ "${SKIP_GROK}" -eq 1 ] ;;
-        hermes) [ "${SKIP_HERMES}" -eq 1 ] ;;
-        *) return 1 ;;
-      esac
-    }
     # Override install root: uninstall_agents only walks CLAUDE_SKILLS when set.
     override="$(resolve_override_skills)" || true
     if [ -n "${override:-}" ]; then
@@ -1533,14 +1187,12 @@ links_owned_by() {
           root="${base}/${rel}"
         fi
         # scope=survivors lists only what the unlink phase will NOT reach.
-        # uninstall_agents walks the raw $HOME roots — except the ones a
-        # --skip-<target> flag excludes, which do survive it. When CLAUDE_SKILLS
-        # is set, uninstall_agents never touches the defaults, so they stay in
-        # the survivor set. Exempt a root only when it can actually be inspected:
+        # uninstall_agents walks the raw $HOME roots. When CLAUDE_SKILLS is set,
+        # uninstall_agents never touches the defaults, so they stay in the
+        # survivor set. Exempt a root only when it can actually be inspected:
         # an unsearchable one hides its links from uninstall_agents too.
         if [ "${scope}" = survivors ] && [ "${base}" = "${HOME}" ] \
           && [ -z "${override:-}" ] \
-          && ! target_skipped "${target}" \
           && [ -z "$(first_uninspectable "${root}")" ]; then
           continue
         fi
@@ -1566,7 +1218,7 @@ EOF
     local base account_dir blocker aside_override
     # Override install root: uninstall_aside walks only this when set, exactly as
     # resolve_aside_skills_root picks it.
-    aside_override="${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-}}"
+    aside_override="${ASIDE_SKILLS:-}"
     scan_root() {
       local r="$1" n blocker
       blocker="$(first_uninspectable "${r}")"
@@ -1578,7 +1230,7 @@ EOF
         owned_by_root "$(skill_dest "${r}" "${n}")" "${n}" "${dest}" "${phys}"
       done
     }
-    # When ASIDE_SKILLS / ASIDE_SKILLS_USER set, scan those roots too (same as
+    # When ASIDE_SKILLS is set, scan that root too (same as
     # uninstall_aside). Default u/* walk stays for non-override installs and for
     # skills under other accounts.
     # Every existing u/<account> is walked, not just ASIDE_ACCOUNT: skills
@@ -1588,11 +1240,6 @@ EOF
     if [ -n "${ASIDE_SKILLS:-}" ]; then
       case "${ASIDE_SKILLS}" in
         /*) scan_root "${ASIDE_SKILLS}" ;;
-      esac
-    fi
-    if [ -n "${ASIDE_SKILLS_USER:-}" ]; then
-      case "${ASIDE_SKILLS_USER}" in
-        /*) scan_root "${ASIDE_SKILLS_USER}" ;;
       esac
     fi
     while IFS= read -r base; do
@@ -1775,7 +1422,7 @@ purge_cache() {
 ${outstanding}
 uninstall those skills first (\`uninstall.sh aside agents\`, or \`all\`)"
 
-  confirm_yes "Remove kit cache at ${dest} (type yes): " || return 1
+  # run_plan already took the typed yes at the plan gate; this cache is in it.
   rm -rf "${dest}" || die "failed to remove cache: ${dest}"
   if [ -L "${raw}" ]; then
     rm -f "${raw}" || die "failed to remove cache symlink: ${raw}"
@@ -1810,25 +1457,11 @@ preflight_targets() {
             printf '%s\n' "${override}"
           else
             for target in ${AGENT_TARGETS}; do
-              # Match uninstall_agents: a skipped agent is never unlinked, so an
-              # unreadable/unwritable home for that agent must not refuse the run.
-              # if/elif (not case-in-$(...)): macOS Bash 3.2 misparses multi-arm
-              # case inside command substitutions.
-              if [ "${target}" = claude ] && [ "${SKIP_CLAUDE}" -eq 1 ]; then
-                continue
-              elif [ "${target}" = codex ] && [ "${SKIP_CODEX}" -eq 1 ]; then
-                continue
-              elif [ "${target}" = grok ] && [ "${SKIP_GROK}" -eq 1 ]; then
-                continue
-              elif [ "${target}" = hermes ] && [ "${SKIP_HERMES}" -eq 1 ]; then
-                continue
-              fi
               agent_skills_root "${target}"
             done
-            # Legacy Codex root is still walked even with --skip-codex — by the
-            # agents target only: uninstall_browser_use never calls
-            # remove_legacy_codex_skills_dir, so refusing on that root would
-            # block a target that cannot touch it.
+            # The legacy Codex root is walked by the agents target only:
+            # uninstall_browser_use never calls remove_legacy_codex_skills_dir,
+            # so refusing on that root would block a target that cannot touch it.
             if [ "${t}" = agents ]; then
               printf '%s\n' "${HOME}/.codex/skills"
             fi
@@ -2115,7 +1748,6 @@ run_plan() {
     return 0
   fi
   confirm_plan "${removals}" "${irreversible}" || return 1
-  YES=1
   echo
   echo "applying"
   for t in ${ordered}; do
@@ -2158,30 +1790,24 @@ main() {
   targets=()
 
   # Before any path list is built, and so before any preflight or removal.
+  # Every path list here is newline-delimited (`profile_delete_candidates`,
+  # `profile_pointer_files`, `home_bases`, the roots passed to `unwritable_roots`)
+  # and every consumer reads it one line at a time, so a break inside one value
+  # splits into extra roots: `XDG_CONFIG_HOME=$'/victim\n/other'` would make the
+  # text before the break its own deletion root, without the `/job-kit` suffix,
+  # and `remove_profile` hands it to `rm -rf`.
   refuse_newline HOME "${HOME}"
   refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
   refuse_newline XDG_DATA_HOME "${XDG_DATA_HOME:-}"
   refuse_newline JOB_KIT_HOME "${JOB_KIT_HOME}"
   refuse_newline CLAUDE_SKILLS "${CLAUDE_SKILLS:-}"
   refuse_newline ASIDE_SKILLS "${ASIDE_SKILLS:-}"
-  refuse_newline ASIDE_SKILLS_USER "${ASIDE_SKILLS_USER:-}"
   refuse_newline ASIDE_ACCOUNT "${ASIDE_ACCOUNT:-}"
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -h|--help) usage; exit 0 ;;
-      -y|--yes) YES=1 ;;
       --dry-run) DRY_RUN=1 ;;
-      --only)
-        shift
-        [ "$#" -gt 0 ] || die "--only needs a comma-separated list (see --help)"
-        expand_only "$1"
-        ;;
-      --only=*) expand_only "${1#--only=}" ;;
-      --skip-claude) SKIP_CLAUDE=1 ;;
-      --skip-codex) SKIP_CODEX=1 ;;
-      --skip-grok) SKIP_GROK=1 ;;
-      --skip-hermes) SKIP_HERMES=1 ;;
       aside|agents|browser-use|profile|cache|all)
         targets[${#targets[@]}]="$1"
         ;;
@@ -2193,18 +1819,12 @@ main() {
   done
 
   if [ "${#targets[@]}" -eq 0 ]; then
-    if [ -n "${ONLY_TARGETS}" ]; then
-      run_plan ${ONLY_TARGETS}
-      return 0
-    fi
     if [ -t 0 ]; then
       interactive_menu
       return 0
     fi
     die "need a target (aside|agents|browser-use|profile|cache|all) when stdin is not a TTY"
   fi
-  [ -z "${ONLY_TARGETS}" ] \
-    || die "--only cannot be combined with positional targets (see --help)"
 
   local t has_all=0
   for t in "${targets[@]}"; do

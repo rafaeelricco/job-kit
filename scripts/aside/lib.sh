@@ -48,11 +48,11 @@ resolve_repo_root() {
 # resolve_aside_skills_root
 # Prints Aside skills directory for this channel.
 # Default: $HOME/.aside/u/0/skills/builtin
-# Override: absolute ASIDE_SKILLS (preferred) or legacy ASIDE_SKILLS_USER, or ASIDE_ACCOUNT for u/<id>.
+# Override: absolute ASIDE_SKILLS, or ASIDE_ACCOUNT for u/<id>.
 # Side effects: none.
 resolve_aside_skills_root() {
   local account path override
-  override="${ASIDE_SKILLS:-${ASIDE_SKILLS_USER:-}}"
+  override="${ASIDE_SKILLS:-}"
   if [ -n "${override}" ]; then
     case "${override}" in
       /*) printf '%s\n' "${override}" ;;
@@ -143,28 +143,9 @@ remove_owned_path() {
   fi
 }
 
-# legacy_names_for_selected NAMES
-# Prints the prior Aside basename for each current skill in NAMES, space-separated.
-# Immediate rename pair only. Older aliases stay on the full LEGACY_SKILL_NAMES sweep.
-# Args: NAMES — current SKILL_NAMES tokens (e.g. ASIDE_ONLY). Side effects: none.
-legacy_names_for_selected() {
-  local names="$1" name out=""
-  for name in ${names}; do
-    case "${name}" in
-      job-scout) out="${out} job-discovery" ;;
-      job-apply) out="${out} job-application" ;;
-      job-resume-refine) out="${out} job-resume" ;;
-      job-profile-me) out="${out} job-profile-config" ;;
-      job-list) out="${out} job-tracker" ;;
-    esac
-  done
-  printf '%s\n' "${out# }"
-}
-
 # unlink_legacy_skills DEST_ROOT REPO [NAMES]
 # Removes DEST_ROOT/<legacy> when kit-owned (old symlink or marked copy).
-# NAMES defaults to LEGACY_SKILL_NAMES. Pass the selected skill's old basename(s)
-# on --only so unselected siblings are left installed.
+# NAMES defaults to LEGACY_SKILL_NAMES.
 # Source dir need not exist (post-rename orphans). Prints status lines.
 # Side effects: may rm kit-owned legacy paths. Does not touch foreign paths.
 unlink_legacy_skills() {
@@ -319,11 +300,9 @@ unlink_skill() {
 # When DEST_ROOT is the same physical path as skills/user, only remove LEGACY basenames
 # (do not delete current SKILL_NAMES just installed there via ASIDE_SKILLS override).
 # Side effects: may rm kit-owned paths under skills/user.
-# NAMES (optional, 3rd arg) narrows the current-name sweep; legacy basenames are
-# LEGACY (optional, 4th arg; default LEGACY_SKILL_NAMES). On --only, pass only the
-# selected skill's old basename so unselected siblings under skills/user stay.
+# NAMES (optional, 3rd arg) narrows the current-name sweep.
 remove_legacy_user_skills() {
-  local repo="$1" dest_root="${2:-}" names="${3:-${SKILL_NAMES}}" legacy="${4:-${LEGACY_SKILL_NAMES}}"
+  local repo="$1" dest_root="${2:-}" names="${3:-${SKILL_NAMES}}"
   local account="${ASIDE_ACCOUNT:-0}" user_root name dest
   local user_phys dest_phys
   user_root="${HOME}/.aside/u/${account}/skills/user"
@@ -332,12 +311,12 @@ remove_legacy_user_skills() {
   if [ -n "${dest_root}" ] && [ -d "${dest_root}" ]; then
     dest_phys="$(cd "${dest_root}" && pwd -P)"
     if [ "${user_phys}" = "${dest_phys}" ]; then
-      unlink_legacy_skills "${user_root}" "${repo}" "${legacy}" || return 1
+      unlink_legacy_skills "${user_root}" "${repo}" "${LEGACY_SKILL_NAMES}" || return 1
       echo "skipped user skill migration: install dest is ${user_phys}"
       return 0
     fi
   fi
-  unlink_legacy_skills "${user_root}" "${repo}" "${legacy}" || return 1
+  unlink_legacy_skills "${user_root}" "${repo}" "${LEGACY_SKILL_NAMES}" || return 1
   for name in ${names}; do
     dest="$(skill_dest "${user_root}" "${name}")"
     unlink_skill "${dest}" "${repo}" "${name}" || return 1

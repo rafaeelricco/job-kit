@@ -89,28 +89,23 @@ bash remote.sh all
 | `uninstall`    | See [Uninstall](#uninstall)                                                                                                                                                                                                                               |
 | `-h`, `--help` | Nothing. Prints usage                                                                                                                                                                                                                                     |
 
-Options after the argument are forwarded to the installer. `all` forwards only
-`--force`; use an explicit channel for the skip flags:
+Options after the argument are forwarded to the installer. The only one is
+`--dry-run`.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- agents --skip-codex
-```
+| Knob            | Default                  | Role                                |
+| --------------- | ------------------------ | ----------------------------------- |
+| `--dry-run`     | off                      | Print the plan, install nothing     |
+| `JOB_KIT_HOME`  | `$XDG_DATA_HOME/job-kit` | Cached checkout                     |
+| `JOB_KIT_REF`   | `main`                   | Branch or tag                       |
+| `JOB_KIT_SLUG`  | `rafaeelricco/job-kit`   | GitHub `owner/repo`                 |
+| `ASIDE_ACCOUNT` | `0`                      | Aside account profile               |
+| `ASIDE_SKILLS`  | none                     | Custom Aside builtin root, absolute |
+| `CLAUDE_SKILLS` | none                     | Single absolute agent dest          |
 
-| Knob                                                               | Default                  | Role                                                              |
-| ------------------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------- |
-| `--force`                                                          | off                      | Replace a foreign (non-kit) destination                           |
-| `--skip-claude` / `--skip-codex` / `--skip-grok` / `--skip-hermes` | off                      | Skip one agent target                                             |
-| `JOB_KIT_HOME`                                                     | `$XDG_DATA_HOME/job-kit` | Cached checkout                                                   |
-| `JOB_KIT_REF`                                                      | `main`                   | Branch or tag                                                     |
-| `JOB_KIT_SLUG`                                                     | `rafaeelricco/job-kit`   | GitHub `owner/repo`                                               |
-| `ASIDE_ACCOUNT`                                                    | `0`                      | Aside account profile                                             |
-| `ASIDE_SKILLS`                                                     | none                     | Custom Aside builtin root, absolute (legacy: `ASIDE_SKILLS_USER`) |
-| `CLAUDE_SKILLS`                                                    | none                     | Single absolute agent dest; skip flags ignored                    |
-
-Re-runs are safe: kit-owned destinations re-sync, foreign ones fail unless you
-pass `--force`. Uses `git` when present (shallow clone, shallow fetch on
-re-run), otherwise `curl`/`wget` + `tar`. Run as your normal user, not with
-`sudo`.
+Re-runs are safe: kit-owned destinations re-sync, foreign ones fail and name
+the path — remove it and re-run. Uses `git` when present (shallow clone,
+shallow fetch on re-run), otherwise `curl`/`wget` + `tar`. Run as your normal
+user, not with `sudo`.
 
 ### Windows 11
 
@@ -333,33 +328,27 @@ bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/unin
 
 Only kit-owned skill paths are removed. Foreign skills stay. A plan containing
 profile or cache data requires typing `yes`; a plan of re-installable links takes
-`[Y/n]`. `--yes` skips both, `--dry-run` prints the plan and stops.
-
-`--only` selects a subset instead of positional targets: by channel (`aside`,
-`agents`, `browser-use`), by Aside skill (`job-scout`, `job-apply`, `job-prep`,
-`job-resume-refine`, `job-profile-me`, `job-list`, `job-match`, `job-pitch`,
-`job-inbox`, `job-humanize`, `job-profile-root`, `job-store`), or by agent home
-(`claude`, `codex`, `grok`, `hermes`), plus `profile` and `cache`. An Aside skill subset
-cannot be combined with `cache`: the unselected skill would still point at it.
-
-```bash
-bash scripts/uninstall.sh --only claude,job-scout --dry-run
-```
+`[Y/n]`. `--dry-run` prints the plan and stops. On a pipe, re-installable targets
+apply after the plan and profile/cache refuse.
 
 Curl / non-interactive skills-only (does not delete profile data):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall
-# skills + kit cache:
-curl -fsSL https://raw.githubusercontent.com/rafaeelricco/job-kit/main/scripts/remote.sh | bash -s -- uninstall --purge
 ```
 
-`uninstall agents` and `uninstall browser-use` via remote still accept
-`--skip-claude` / `--skip-codex` / `--skip-grok` / `--skip-hermes`. `--purge` is full-skills
-uninstall only (refused on partial targets or while `CLAUDE_SKILLS` /
-`ASIDE_SKILLS` narrow a channel).
+Dropping the cache too needs a typed `yes`, which a pipe cannot answer, so
+`--purge` is refused over one. Run it from a terminal against the cached
+checkout instead:
 
-Windows 11 (no Aside): `powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1` (menu, or `agents` / `browser-use` / `profile` / `cache` / `all`). Remote skills-only: `powershell -ExecutionPolicy Bypass -File remote.ps1 uninstall`. `--purge` drops the cache too.
+```bash
+bash "${XDG_DATA_HOME:-$HOME/.local/share}/job-kit/scripts/remote.sh" uninstall --purge
+```
+
+`--purge` is full-skills uninstall only (refused on partial targets or while
+`CLAUDE_SKILLS` / `ASIDE_SKILLS` narrow a channel).
+
+Windows 11 (no Aside): `powershell -ExecutionPolicy Bypass -File scripts\uninstall.ps1` (menu, or `agents` / `browser-use` / `profile` / `cache` / `all`). Remote skills-only: `powershell -ExecutionPolicy Bypass -File remote.ps1 uninstall`. `--purge` drops the cache too, and like the shell path is refused when stdin is redirected — run it from a console against the cached `remote.ps1`.
 
 ## Work locally
 
@@ -392,12 +381,11 @@ Private clone: use whatever auth your host requires
 (`gh repo clone rafaeelricco/job-kit`, HTTPS token, or SSH remote).
 
 Run the installer from this checkout, or pass an absolute path to it. It
-never clones for you and never runs from a profile directory. Channel wrappers
-(`scripts/agents/install.sh`, `scripts/aside/install.sh`) still work.
+never clones for you and never runs from a profile directory. `install.sh` only
+routes; the channel installers do the work and can be called directly.
 
 ```bash
-bash scripts/install.sh agents --skip-codex
-bash scripts/install.sh --only claude --dry-run
+bash scripts/agents/install.sh --dry-run
 CLAUDE_SKILLS=/path/to/skills bash scripts/install.sh agents
 ASIDE_ACCOUNT=1 bash scripts/install.sh aside
 ```
@@ -423,10 +411,13 @@ multi-target install also removes legacy kit links there, which the
 | `skill/job-pitch/`         | Vetting script and work-experience bullets from the deck         |
 | `skill/job-humanize/`      | Rewrite pass for already-drafted Summary, resume, or pitch prose |
 | `app/`                     | Dashboard served at r1cco.com/jobs; reads the same dossiers      |
-| `scripts/install.sh`       | Single install: plan, confirm, apply (aside+agents+browser-use)  |
-| `scripts/install.ps1`      | Windows install: plan, confirm, apply (agents+browser-use)       |
-| `scripts/aside/`           | Aside lib + thin install wrapper                                 |
-| `scripts/agents/`          | Agents lib + thin install wrapper (`.sh` and `.ps1`)             |
+| `scripts/install.sh`       | Router: menu, targets, exec. No plan of its own                  |
+| `scripts/install.ps1`      | Windows router (agents+browser-use)                              |
+| `scripts/common.sh`        | Shared plan render, confirm, readiness gates                     |
+| `scripts/common.ps1`       | Windows equivalent                                               |
+| `scripts/aside/`           | Aside lib + installer (copy)                                     |
+| `scripts/agents/`          | Agents lib + installer (symlink, `.sh` and `.ps1`)               |
+| `scripts/browser-use/`     | Browser skills + driver installer                                |
 | `scripts/uninstall.sh`     | Single uninstall: plan, confirm, apply                           |
 | `scripts/uninstall.ps1`    | Windows uninstall: agents+browser-use+profile+cache              |
 | `scripts/remote.sh`        | Fetch to cache + install or uninstall (no clone)                 |

@@ -81,6 +81,8 @@ $script:KitOwnershipFiles = @(
 )
 
 $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
+  'scripts\common.sh',
+  'scripts\browser-use\install.sh',
   'skill\job-apply\SKILL.md',
   'skill\job-prep\SKILL.md',
   'skill\job-resume-refine\SKILL.md',
@@ -103,7 +105,10 @@ $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
 $script:WindowsRequiredFiles = @(
   'scripts\install.ps1',
   'scripts\uninstall.ps1',
-  'scripts\agents\lib.ps1'
+  'scripts\agents\lib.ps1',
+  'scripts\agents\install.ps1',
+  'scripts\common.ps1',
+  'scripts\browser-use\install.ps1'
 )
 
 function Show-RemoteUsage {
@@ -135,15 +140,15 @@ Uninstall:
 
   -h, --help  Show this help
 
-Install options after the channel are forwarded to the installer, e.g.
-`remote.ps1 agents --skip-codex`. Channel `all` forwards only --force.
+Install options after the channel are forwarded to the installer. The only
+one is --dry-run.
 
 Uninstall options:
   --purge             After full uninstall only, remove the cached checkout
                       (refused on a partial target such as `uninstall agents`,
-                      and while CLAUDE_SKILLS narrows a channel)
-  --skip-claude|codex|grok|hermes  Forwarded only with `uninstall agents` or
-                      `uninstall browser-use`
+                      while CLAUDE_SKILLS narrows a channel, and with stdin
+                      redirected, which cannot type the required `yes` —
+                      run it from a console against the cached checkout)
 
 Environment:
   JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
@@ -357,15 +362,6 @@ function Invoke-EnsureKitCache {
   }
 }
 
-function Test-AgentsReady {
-  if ($env:CLAUDE_SKILLS) { return $true }
-  $userHome = Get-KitUserHome
-  foreach ($rel in @('.claude', '.agents', '.grok', '.hermes')) {
-    if (Test-Path -LiteralPath (Join-Path $userHome $rel) -PathType Container) { return $true }
-  }
-  return $false
-}
-
 function Invoke-CachedScript {
   param([string]$RelPath, [string[]]$Forward)
   $file = Join-Path $script:JobKitHome $RelPath
@@ -384,7 +380,6 @@ function Invoke-RemoteMain {
   $mode = 'install'
   $target = 'all'
   $purge = $false
-  $agentFlags = New-Object System.Collections.Generic.List[string]
   $forward = New-Object System.Collections.Generic.List[string]
 
   $i = 0
@@ -416,19 +411,20 @@ function Invoke-RemoteMain {
         continue
       }
       if ($arg -eq '-h' -or $arg -eq '--help') { Show-RemoteUsage; exit 0 }
-      if ($target -eq 'all') {
-        Write-KitDie "uninstall all accepts only --purge (got: $arg); use 'uninstall agents' for --skip-*"
-      } elseif ($target -eq 'agents' -or $target -eq 'browser-use') {
-        if (@('--skip-claude', '--skip-codex', '--skip-grok', '--skip-hermes') -contains $arg) {
-          $agentFlags.Add($arg) | Out-Null
-        } else {
-          Write-KitDie "unknown uninstall $target option: $arg (expected --skip-* or --purge)"
-        }
-      }
-      $i++
+      Write-KitDie "uninstall $target accepts only --purge (got: $arg)"
     }
 
     if ($purge) {
+      # The cache is an irreversible row, so uninstall.ps1 gates it behind a
+      # typed "yes" read from stdin. With stdin redirected, that read returns
+      # $null and the whole run aborts after the plan is printed — nothing
+      # removed, no hint shown. Refuse up front and name the local command,
+      # which prompts on a console.
+      $isConsole = $true
+      try { $isConsole = -not [Console]::IsInputRedirected } catch { $isConsole = $true }
+      if (-not $isConsole) {
+        Write-KitDie "refusing --purge with redirected input (removing the cache needs a typed 'yes'; run: powershell -ExecutionPolicy Bypass -File `"$($script:JobKitHome)\scripts\remote.ps1`" uninstall --purge)"
+      }
       if ($target -ne 'all') {
         Write-KitDie "refusing --purge with partial uninstall (use 'uninstall all --purge' or omit --purge)"
       }
@@ -441,18 +437,16 @@ function Invoke-RemoteMain {
 
     switch ($target) {
       'agents' {
-        $flags = @('--yes', 'agents') + @($agentFlags.ToArray())
-        Invoke-CachedScript 'scripts\uninstall.ps1' $flags
+        Invoke-CachedScript 'scripts\uninstall.ps1' @('agents')
       }
       'browser-use' {
-        $flags = @('--yes', 'browser-use') + @($agentFlags.ToArray())
-        Invoke-CachedScript 'scripts\uninstall.ps1' $flags
+        Invoke-CachedScript 'scripts\uninstall.ps1' @('browser-use')
       }
       'all' {
         if ($purge) {
-          Invoke-CachedScript 'scripts\uninstall.ps1' @('--yes', 'agents', 'browser-use', 'cache')
+          Invoke-CachedScript 'scripts\uninstall.ps1' @('agents', 'browser-use', 'cache')
         } else {
-          Invoke-CachedScript 'scripts\uninstall.ps1' @('--yes', 'agents', 'browser-use')
+          Invoke-CachedScript 'scripts\uninstall.ps1' @('agents', 'browser-use')
         }
       }
     }
@@ -480,28 +474,14 @@ function Invoke-RemoteMain {
   switch ($channel) {
     'fetch' { }
     'agents' {
-      Invoke-CachedScript 'scripts\install.ps1' (@('agents') + @($forward.ToArray()))
+      Invoke-CachedScript 'scripts\agents\install.ps1' @($forward.ToArray())
     }
     'browser-use' {
-      Invoke-CachedScript 'scripts\install.ps1' (@('browser-use') + @($forward.ToArray()))
+      Invoke-CachedScript 'scripts\browser-use\install.ps1' @($forward.ToArray())
     }
     'all' {
-      foreach ($arg in $forward) {
-        if ($arg -ne '--force') {
-          Write-KitDie "channel 'all' forwards only --force (got: $arg); use 'agents' or 'browser-use' for target flags"
-        }
-      }
-      $ran = $false
-      if (Test-AgentsReady) {
-        Invoke-CachedScript 'scripts\install.ps1' (@('agents') + @($forward.ToArray()))
-        $ran = $true
-        Invoke-CachedScript 'scripts\install.ps1' (@('browser-use') + @($forward.ToArray()))
-      } else {
-        Write-Host "Coding agents: no agent home (~/.claude, ~/.agents, ~/.grok, ~/.hermes); skipping."
-      }
-      if (-not $ran) {
-        Write-KitDie 'nothing installed: no coding-agent home'
-      }
+      # install.ps1 owns what "all" means, including the readiness gates.
+      Invoke-CachedScript 'scripts\install.ps1' (@('all') + @($forward.ToArray()))
     }
   }
 
