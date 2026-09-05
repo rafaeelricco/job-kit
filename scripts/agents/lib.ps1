@@ -22,11 +22,12 @@ $script:BrowserSharedDeps = @(
   'job-list',
   'job-profile-me',
   'job-resume-refine',
-  'job-humanize'
+  'job-humanize',
+  'job-captcha-solver'
 ) + $script:CoreSkillNames
 $script:BrowserLegacySkillNames = @('job-resume')
 $script:LegacySkillNames = @('profile-init', 'job-profile-config', 'job-tracker', 'job-resume')
-$script:AllSkillNames = $script:SkillNames + $script:BrowserSkillNames
+$script:AllSkillNames = $script:SkillNames + $script:BrowserSkillNames + $script:BrowserSharedDeps
 $script:AgentTargets = @('claude', 'codex', 'grok', 'hermes')
 $script:AgentsOnlyNames = @('job-profile-init', 'job-stories', 'job-pitch', 'job-inbox')
 

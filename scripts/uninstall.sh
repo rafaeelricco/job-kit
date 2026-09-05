@@ -340,8 +340,7 @@ uninstall_browser_use() {
     local override dest_root target parent label name dest
     local cli_failed=0
 
-    # unlink_browser_skills_from ROOT — browser channel names plus shared deps
-    # when this home is not still an agents install.
+    # Remove browser skills and dependencies unused by a remaining agents install.
     unlink_browser_skills_from() {
       local root="$1" n d agents_owned=0
       for n in ${BROWSER_SKILL_NAMES} ${BROWSER_LEGACY_SKILL_NAMES}; do
@@ -354,10 +353,12 @@ uninstall_browser_use() {
           break
         fi
       done
-      if [ "${agents_owned}" -eq 1 ]; then
-        return 0
-      fi
       for n in ${BROWSER_SHARED_DEPS}; do
+        if [ "${agents_owned}" -eq 1 ]; then
+          case " ${SKILL_NAMES} " in
+            *" ${n} "*) continue ;;
+          esac
+        fi
         d="$(skill_dest "${root}" "${n}")"
         unlink_skill "${d}" "${repo}" "${n}"
       done
@@ -826,10 +827,12 @@ plan_rows_browser_use() {
           break
         fi
       done
-      if [ "${agents_owned}" -eq 1 ]; then
-        return 0
-      fi
       for pname in ${BROWSER_SHARED_DEPS}; do
+        if [ "${agents_owned}" -eq 1 ]; then
+          case " ${SKILL_NAMES} " in
+            *" ${pname} "*) continue ;;
+          esac
+        fi
         plan_row "$(skill_dest "${plan_root}" "${pname}")" "${pname}" current 1
       done
     }
@@ -1614,15 +1617,19 @@ unremovable_skill_entries() {
       if [ "${target}" = browser-use ]; then
         case " ${BROWSER_SHARED_DEPS} " in
           *" ${name} "*)
-            case " ${UNINSTALL_TARGETS} " in
-              *" agents "*) ;;
-              *)
-            for n in job-profile-init job-stories job-pitch job-inbox; do
-              if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
-                continue 2
-              fi
-            done
-              ;;
+            case " ${SKILL_NAMES} " in
+              *" ${name} "*)
+                case " ${UNINSTALL_TARGETS} " in
+                  *" agents "*) ;;
+                  *)
+                    for n in job-profile-init job-stories job-pitch job-inbox; do
+                      if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
+                        continue 2
+                      fi
+                    done
+                    ;;
+                esac
+                ;;
             esac
             ;;
         esac

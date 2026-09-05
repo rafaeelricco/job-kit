@@ -35,6 +35,8 @@ curl -fsSL https://r1cco.com/install.sh | bash -s -- all --dry-run
 ```
 
 Channels are `all` (default), `agents`, `browser-use`, and `aside`.
+The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
+`job-captcha-solver`, and their shared dependencies.
 Browser tasks in coding agents need the local `browser-use` CLI, its driver
 skill, and a Chromium-family browser. Follow the installer's setup guidance,
 enable remote debugging at `chrome://inspect/#remote-debugging`, and sign in

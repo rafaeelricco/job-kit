@@ -268,9 +268,9 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    including the digest check and upload-settle wait. Reprint the package
    only after the live values and attachment match it. If reconciliation
    fails, skip the posting; otherwise continue when no unpreviewed field remains.
-7. A captcha or bot check → load the `captcha-solver` skill and obey it
+7. A captcha or bot check → load the `job-captcha-solver` skill and obey it
    end-to-end on the live tab, then verify the widget reports solved. If
-   `captcha-solver` does not resolve, skip the posting, reason
+   `job-captcha-solver` does not resolve, skip the posting, reason
    `no captcha solver`; never solve one by hand. Up to three rounds; still
    present → skip the posting.
 8. If step 7 replaced or reset the page, repeat step 6 before proceeding.

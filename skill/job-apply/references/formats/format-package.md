@@ -51,7 +51,7 @@ staged letter under **Outbound message**. Empty → omit the section.
 ### Cleared
 
 One line per wall or refusal this run cleared on its own:
-`{what} — {how}` (`reCAPTCHA — captcha-solver, 2 rounds`,
+`{what} — {how}` (`reCAPTCHA — job-captcha-solver, 2 rounds`,
 `email code — Gmail, {address}`, `upload refused — re-attached, attempt 2`).
 Empty → omit the section.
 

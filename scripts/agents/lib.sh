@@ -9,8 +9,8 @@ SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply job-prep"
 # Extra names `install browser-use` links beside BROWSER_SKILL_NAMES.
-# Uninstall removes them only when the home has no agents-only kit link.
-BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-resume-refine job-humanize ${CORE_SKILL_NAMES}"
+# Uninstall preserves dependencies used by agents while that channel remains.
+BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-resume-refine job-humanize job-captcha-solver ${CORE_SKILL_NAMES}"
 
 # agents_names_for_root ROOT REPO
 # Prints SKILL_NAMES, omitting BROWSER_SHARED_DEPS when ROOT still has a
@@ -38,7 +38,7 @@ BROWSER_LEGACY_SKILL_NAMES="job-resume"
 # Every basename this channel may own under an agent home. Removal and the
 # cache-purge survivor scan use the union, so an agents uninstall reaches
 # browser-channel links no matter which target installed them.
-ALL_SKILL_NAMES="${SKILL_NAMES} ${BROWSER_SKILL_NAMES}"
+ALL_SKILL_NAMES="${SKILL_NAMES} ${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
 LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker job-resume"
