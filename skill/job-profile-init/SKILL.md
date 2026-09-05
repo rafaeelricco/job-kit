@@ -44,5 +44,5 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 - Generate a CV PDF or LaTeX
 - Run job-scout or job-apply
 - Edit a non-empty or donor profile
-- Run an installer from under the profile tree. Kit install is the checkout's
+- Run an installer from under the profile tree. Kit install is the kit directory's
   `scripts/install.sh`.

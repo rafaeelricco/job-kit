@@ -40,11 +40,38 @@ skill, and a Chromium-family browser. Follow the installer's setup guidance,
 enable remote debugging at `chrome://inspect/#remote-debugging`, and sign in
 to the sites you use.
 
-Re-run the install command to update. The kit is cached at
+Re-run the install command to install the latest published release. The installer
+prints the installed version and verifies the release archive's SHA-256 checksum
+before replacing the installed package. Installation downloads skills, templates,
+and helper scripts without cloning the repository. The package lives at
 `${XDG_DATA_HOME:-$HOME/.local/share}/job-kit` by default
-(`%USERPROFILE%\.local\share\job-kit` on Windows). Keep the cache: installed
+(`%USERPROFILE%\.local\share\job-kit` on Windows). Keep this directory: installed
 skills depend on it. Installation and updates leave your profile untouched.
-`--dry-run` previews skill changes but still refreshes the cache.
+`--dry-run` previews skill changes but still refreshes the package.
+
+To install a specific published version:
+
+```bash
+curl -fsSL https://r1cco.com/install.sh | JOB_KIT_VERSION=v1.0.0 bash
+```
+
+```powershell
+$env:JOB_KIT_VERSION = 'v1.0.0'
+powershell -ExecutionPolicy Bypass -File install.ps1
+Remove-Item Env:JOB_KIT_VERSION
+```
+
+`JOB_KIT_VERSION` defaults to `latest`. `JOB_KIT_HOME` overrides the installed
+directory and `JOB_KIT_SLUG` selects a GitHub repository with compatible release
+assets. The old `JOB_KIT_REF` selector is rejected when downloading; use a local
+development checkout for unreleased changes.
+
+When migrating an existing checkout or source archive, the installer keeps the
+old directory, including local edits and untracked files, in a sibling
+`job-kit.backup-*` directory and prints its path. Review and remove that backup
+when you no longer need it; uninstall leaves it in place. Git worktrees and
+submodules require manual relocation before migration. Existing cache symlinks
+and junctions continue pointing at the same installed directory.
 
 ## Getting started
 
@@ -109,7 +136,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1 uninstall
 ```
 
 For the interactive removal menu, run `scripts/uninstall.sh` or
-`scripts\uninstall.ps1` from the cached checkout. It shows the removal plan first.
+`scripts\uninstall.ps1` from the installed package. It shows the removal plan first.
 **Choosing `all` in that menu also deletes profile data and the cache**, and
 requires typing `yes`.
 
@@ -132,6 +159,30 @@ Re-run the installer to refresh Aside copies.
 | [`scripts/`](scripts/) | Installers, uninstallers, and test runner.          |
 | [`tests/`](tests/)     | Repository checks.                                  |
 | [`app/`](app/)         | Job dashboard.                                      |
+
+## Releases
+
+Push a stable tag such as `v1.0.0` to run the full test suite and native installer
+checks on Linux, macOS, and Windows. After verification, CI creates a draft
+GitHub Release, uploads the runtime TAR and ZIP archives, `VERSION`, and
+`SHA256SUMS`, then publishes it with generated release notes. Published assets
+are never overwritten. A failed upload leaves a draft that can be recovered by
+rerunning the workflow.
+
+To inspect a package locally:
+
+```bash
+python3 scripts/package_release.py --version v1.0.0 --output /tmp/job-kit-release
+```
+
+Both archives contain the same `job-kit/` tree. Packaging requires Python 3 and
+Git; downloading and installing a release does not. Skill helpers keep their
+existing runtime requirements.
+
+For the first release, tag and publish `v1.0.0` from the reviewed implementation
+commit before merging the new bootstrap installers into `main`. The public
+`r1cco.com` installer URLs redirect to `main`, so the assets must be available
+before that switch.
 
 ## License
 

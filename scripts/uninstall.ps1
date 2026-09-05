@@ -783,7 +783,7 @@ function Remove-Cache {
   $outstanding = @(Get-LinksOwnedBy $raw)
   if ($outstanding.Count -gt 0) {
     $list = $outstanding -join "`n"
-    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first (`uninstall.ps1 agents browser-use`, or `all`)"
+    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first ('uninstall.ps1 agents browser-use', or 'all')"
   }
   # No prompt here: Confirm-UninstallPlan already took the typed yes for the
   # whole plan, and it is the only gate.

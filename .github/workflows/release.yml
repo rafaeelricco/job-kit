@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/test.yml
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate the release tag and package runtime files
+        run: python3 scripts/package_release.py --version "$GITHUB_REF_NAME" --output dist
+
+      - name: Upload assets to a draft and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          if release=$(gh release view "$tag" --json isDraft); then
+            if [ "$(printf '%s' "$release" | python3 -c 'import json,sys; print(json.load(sys.stdin)["isDraft"])')" != "True" ]; then
+              echo "Release $tag is already published; refusing to overwrite it." >&2
+              exit 1
+            fi
+          else
+            gh release create "$tag" --verify-tag --draft --generate-notes --title "$tag"
+          fi
+          gh release upload "$tag" --clobber \
+            "dist/job-kit-$tag.tar.gz" \
+            "dist/job-kit-$tag.zip" \
+            dist/VERSION \
+            dist/SHA256SUMS
+          gh release edit "$tag" --draft=false --latest
