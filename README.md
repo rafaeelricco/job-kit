@@ -94,7 +94,9 @@ Shared skills handle [profile lookup](skill/job-profile-root/SKILL.md) and
 
 ## Uninstall
 
-Remove installed skills while keeping profile data:
+Remove installed skills while keeping Job Kit profile data and the cache.
+These commands also remove the `browser-use` driver skill, CLI, and saved
+state, even if you use them outside Job Kit:
 
 ```bash
 curl -fsSL https://r1cco.com/install.sh | bash -s -- uninstall
