@@ -14,7 +14,18 @@ Requires an attached **browser-use** session. If `browser-use` is not loaded,
 read its `SKILL.md` now and follow it for connection; do not restate that
 skill here.
 
-Run every step as `browser-use <<'PY' … PY`. Prefer helpers already on that
+Send each Python step to browser-use through standard input. Use
+`browser-use <<'PY' … PY` in Bash; in PowerShell use:
+
+```powershell
+@'
+# Python step
+'@ | browser-use
+```
+
+For screenshot steps, include `from pathlib import Path` and
+`from tempfile import gettempdir` in that invocation.
+Prefer helpers already on that
 surface (`click_at_xy`, `js`, `wait`, `page_info`, `capture_screenshot`,
 `fill_input`, `cdp`). When stuck on a mechanic (iframes, screenshots, drag),
 open the matching file under browser-use’s Interaction Skills list — do not
@@ -33,9 +44,12 @@ tab and the user wants it solved → this skill.
 2. Click left-center of the iframe: `click_at_xy(bounds["x"] + 12, bounds["y"] + bounds["height"] / 2)`.
 3. `wait(3)`.
 4. Verify with `page_info()`, a short `js("document.body.innerText.slice(0, 500)")`,
-   and/or `capture_screenshot("/tmp/captcha.png", max_dim=1800)`.
+   and/or `capture_screenshot(str(Path(gettempdir()) / "captcha.png"), max_dim=1800)`.
 
 ```python
+from pathlib import Path
+from tempfile import gettempdir
+
 bounds = js("""(() => {
   const el = document.querySelector(
     'iframe[src*="recaptcha"], iframe[src*="hcaptcha"], iframe[src*="challenges.cloudflare"]'
@@ -50,7 +64,7 @@ click_at_xy(bounds["x"] + 12, bounds["y"] + bounds["height"] / 2)
 wait(3)
 print(page_info())
 print(js("document.body.innerText.slice(0, 500)"))
-print(capture_screenshot("/tmp/captcha.png", max_dim=1800))
+print(capture_screenshot(str(Path(gettempdir()) / "captcha.png"), max_dim=1800))
 ```
 
 ## Slider / puzzle drag
@@ -64,6 +78,9 @@ browser-use’s `drag-and-drop` interaction skill — do not invent a second dra
 API here.
 
 ```python
+from pathlib import Path
+from tempfile import gettempdir
+
 def drag_xy(x0, y0, x1, y1, steps=20):
     cdp("Input.dispatchMouseEvent", type="mouseMoved", x=x0, y=y0)
     cdp("Input.dispatchMouseEvent", type="mousePressed", x=x0, y=y0, button="left", clickCount=1)
@@ -75,12 +92,12 @@ def drag_xy(x0, y0, x1, y1, steps=20):
 # from / to = handle and target centers (CSS px), from screenshot or js bounds
 drag_xy(from_x, from_y, to_x, to_y, steps=40)
 wait(2)
-print(capture_screenshot("/tmp/captcha-drag.png", max_dim=1800))
+print(capture_screenshot(str(Path(gettempdir()) / "captcha-drag.png"), max_dim=1800))
 ```
 
 ## Text / number
 
-1. `path = capture_screenshot("/tmp/captcha-text.png", max_dim=1800)`.
+1. `path = capture_screenshot(str(Path(gettempdir()) / "captcha-text.png"), max_dim=1800)`.
 2. OCR with agent vision on that PNG (no harness `readText`).
 3. Fill the answer field with `fill_input(selector, text)` (or focus + `type_text`).
 4. Submit it — the form's own control, or Enter. Filling the field does not submit.
