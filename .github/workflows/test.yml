@@ -76,3 +76,6 @@ jobs:
 
       - name: Test release packaging and native installers
         run: python -m unittest discover -s tests -p test_release.py
+
+      - name: Test browser channel native installers
+        run: python -m unittest discover -s tests -p test_browser_install.py
