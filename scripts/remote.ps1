@@ -1,4 +1,4 @@
-# Fetch job-kit into a cached checkout, then run the Windows channel installers.
+# Fetch a released job-kit bundle, then run the Windows channel installers.
 # Agents + browser-use only (Aside is not available on Windows 11).
 # Windows PowerShell 5.1 and PowerShell 7. Safe to download, then:
 #   powershell -ExecutionPolicy Bypass -File remote.ps1 all
@@ -7,8 +7,8 @@ Set-StrictMode -Version Latest
 
 $script:JobKitSlug = 'rafaeelricco/job-kit'
 if ($env:JOB_KIT_SLUG) { $script:JobKitSlug = $env:JOB_KIT_SLUG }
-$script:JobKitRef = 'main'
-if ($env:JOB_KIT_REF) { $script:JobKitRef = $env:JOB_KIT_REF }
+$script:JobKitVersion = 'latest'
+if ($env:JOB_KIT_VERSION) { $script:JobKitVersion = $env:JOB_KIT_VERSION }
 
 function Write-KitDie {
   param([Parameter(ValueFromRemainingArguments = $true)][object[]]$Message)
@@ -28,11 +28,6 @@ function Test-RootedPath {
   param([string]$Path)
   if (-not $Path) { return $false }
   return [IO.Path]::IsPathRooted($Path)
-}
-
-function Test-HasCommand {
-  param([Parameter(Mandatory = $true)][string]$Name)
-  return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
 function Get-KitUserHome {
@@ -99,7 +94,10 @@ $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'skill\job-inbox\SKILL.md',
   'skill\job-humanize\SKILL.md',
   'skill\job-profile-root\SKILL.md',
-  'skill\job-store\SKILL.md'
+  'skill\job-store\SKILL.md',
+  'scripts\remote.sh',
+  'scripts\remote.ps1',
+  'LICENSE'
 )
 
 $script:WindowsRequiredFiles = @(
@@ -113,7 +111,7 @@ $script:WindowsRequiredFiles = @(
 
 function Show-RemoteUsage {
   @'
-Install or uninstall job-kit skills without cloning by hand (Windows 11).
+Install or uninstall released job-kit skills (Windows 11; no Git required).
 Aside is not available on Windows; this installer covers agents + browser-use.
 
 Usage: remote.ps1 [channel] [options...]
@@ -124,7 +122,7 @@ Install channels:
   agents       Coding agents only (fails when no agent home exists)
   browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home)
-  fetch        Refresh the cached checkout, install nothing
+  fetch        Refresh the installed release bundle, install no skills
 
 Uninstall:
   uninstall              Agent + browser-use skills (default: all)
@@ -135,7 +133,7 @@ Uninstall:
                          (never your browser)
 
   Interactive (profile data + menu): powershell -File scripts\uninstall.ps1
-  from a local or cached checkout. Remote uninstall never deletes
+  from a local checkout or installed package. Remote uninstall never deletes
   %USERPROFILE%\.config\job-kit.
 
   -h, --help  Show this help
@@ -144,16 +142,21 @@ Install options after the channel are forwarded to the installer. The only
 one is --dry-run.
 
 Uninstall options:
-  --purge             After full uninstall only, remove the cached checkout
+  --purge             After full uninstall only, remove the installed package
                       (refused on a partial target such as `uninstall agents`,
                       while CLAUDE_SKILLS narrows a channel, and with stdin
                       redirected, which cannot type the required `yes` —
-                      run it from a console against the cached checkout)
+                      run it from a console against the installed package)
 
 Environment:
-  JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
-  JOB_KIT_REF   Branch or tag to fetch (default main)
-  JOB_KIT_SLUG  GitHub owner/repo (default rafaeelricco/job-kit)
+  JOB_KIT_HOME     Installed package (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
+  JOB_KIT_VERSION  Released vX.Y.Z tag, or latest (default latest)
+  JOB_KIT_SLUG     GitHub owner/repo (default rafaeelricco/job-kit)
+
+JOB_KIT_REF is no longer supported for fetching. Use JOB_KIT_VERSION for a
+released tag, or run a local checkout for branch development.
+The installed version is recorded in JOB_KIT_HOME\VERSION. Legacy checkouts
+are preserved in a sibling backup when first replaced by a release bundle.
 '@ | Write-Host
 }
 
@@ -199,143 +202,188 @@ function Get-KitCheckoutMissing {
   return (Get-KitPathsMissing $Dir $script:WindowsRequiredFiles)
 }
 
-function Test-IsGitRepo {
+function Get-InstalledKitVersion {
   param([string]$Dir)
-  $git = Join-Path $Dir '.git'
-  if (-not (Test-Path -LiteralPath $git)) { return $false }
-  & git -C $Dir rev-parse --git-dir 2>$null | Out-Null
-  return ($LASTEXITCODE -eq 0)
-}
-
-function Invoke-FetchTarball {
-  param([string]$Dest)
-  if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
-    $missing = Get-KitOwnedMissing $Dest
-    if ($missing) {
-      Write-KitDie "cache path exists and is not a job-kit checkout (missing $missing): $Dest"
-    }
-  }
-  if (-not (Test-HasCommand 'tar')) {
-    Write-KitDie 'need git, or tar.exe, to fetch job-kit'
-  }
-  $url = "https://codeload.github.com/$($script:JobKitSlug)/tar.gz/$($script:JobKitRef)"
-  $parent = Split-Path $Dest -Parent
-  if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
-    New-Item -ItemType Directory -Path $parent | Out-Null
-  }
-  $stage = Join-Path $parent ('.job-kit-fetch.' + $PID)
-  $tgz = $stage + '.tgz'
-  if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
-  if (Test-Path -LiteralPath $tgz) { Remove-Item -LiteralPath $tgz -Force }
-  New-Item -ItemType Directory -Path $stage | Out-Null
-  try {
-    Invoke-WebRequest -Uri $url -OutFile $tgz -UseBasicParsing
-    & tar -xzf $tgz -C $stage --strip-components=1
-    if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-      throw "tar extract failed"
-    }
-  } catch {
-    if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue }
-    if (Test-Path -LiteralPath $tgz) { Remove-Item -LiteralPath $tgz -Force -ErrorAction SilentlyContinue }
-    Write-KitDie "download failed: $url"
-  }
-  if (Test-Path -LiteralPath $tgz) { Remove-Item -LiteralPath $tgz -Force }
-  $missing = Get-KitCheckoutMissing $stage
-  if ($missing) {
-    Remove-Item -LiteralPath $stage -Recurse -Force
-    Write-KitDie "downloaded $($script:JobKitSlug)@$($script:JobKitRef) is not a job-kit checkout (missing $missing); cache left unchanged"
-  }
-  if (Test-Path -LiteralPath $Dest) { Remove-Item -LiteralPath $Dest -Recurse -Force }
-  Move-Item -LiteralPath $stage -Destination $Dest
-  Write-Host "fetched: $Dest @ $($script:JobKitRef)"
-}
-
-function Invoke-FetchGitClone {
-  param([string]$Dest)
-  $parent = Split-Path $Dest -Parent
-  if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
-    New-Item -ItemType Directory -Path $parent | Out-Null
-  }
-  & git clone --depth 1 --branch $script:JobKitRef "https://github.com/$($script:JobKitSlug).git" $Dest
-  if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { Write-KitDie 'git clone failed' }
-  $missing = Get-GitRefMissing $Dest 'HEAD'
-  if ($missing) {
-    Remove-Item -LiteralPath $Dest -Recurse -Force
-    Write-KitDie "cloned $($script:JobKitSlug)@$($script:JobKitRef) is not a job-kit checkout (missing $missing)"
-  }
-  $missing = Get-KitCheckoutMissing $Dest
-  if ($missing) {
-    Remove-Item -LiteralPath $Dest -Recurse -Force
-    Write-KitDie "cloned $($script:JobKitSlug)@$($script:JobKitRef) is not a job-kit checkout (missing $missing)"
-  }
-  Write-Host "cloned: $Dest @ $($script:JobKitRef)"
-}
-
-function Get-GitRefMissing {
-  param([string]$Dir, [string]$Ref)
-  $files = $script:KitRequiredFiles + $script:WindowsRequiredFiles
-  $skillType = & git -C $Dir cat-file -t "${Ref}:skill" 2>$null
-  if ($skillType -ne 'tree') { return 'skill/' }
-  foreach ($rel in $files) {
-    $posix = $rel -replace '\\', '/'
-    $line = & git -C $Dir ls-tree $Ref -- $posix 2>$null
-    if (-not $line) { return $posix }
-    $mode = ([string]$line).Split("`t")[0].Split(' ')[0]
-    if ($mode -ne '100644' -and $mode -ne '100755') { return $posix }
-  }
+  $file = Join-Path $Dir 'VERSION'
+  if ((Test-ReparsePoint $file) -or -not (Test-Path -LiteralPath $file -PathType Leaf)) { return '' }
+  $version = [IO.File]::ReadAllText($file)
+  if ($version -cmatch '\Av[0-9]+\.[0-9]+\.[0-9]+\n\z') { return $version.TrimEnd([char]"`n") }
   return ''
 }
 
-function Invoke-FetchGitUpdate {
-  param([string]$Dest)
-  & git -C $Dest fetch --depth 1 "https://github.com/$($script:JobKitSlug).git" $script:JobKitRef
-  if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-    Write-KitDie "git fetch failed for $($script:JobKitSlug)@$($script:JobKitRef)"
+function Resolve-KitCachePath {
+  param([string]$Path)
+  $current = Get-FullPathNormalized $Path
+  for ($i = 0; $i -lt 32; $i++) {
+    if (-not (Test-ReparsePoint $current)) { return $current }
+    $item = Get-Item -LiteralPath $current -Force
+    $targets = @($item.Target)
+    if ($targets.Count -eq 0 -or -not $targets[0]) {
+      throw "cannot resolve cache alias: $current"
+    }
+    $target = [string]$targets[0]
+    if ($target.StartsWith('\??\')) { $target = $target.Substring(4) }
+    if (-not [IO.Path]::IsPathRooted($target)) {
+      $target = Join-Path (Split-Path $current -Parent) $target
+    }
+    $current = Get-FullPathNormalized $target
   }
-  $missing = Get-GitRefMissing $Dest 'FETCH_HEAD'
-  if ($missing) {
-    Write-KitDie "fetched $($script:JobKitSlug)@$($script:JobKitRef) is not a job-kit checkout (missing $missing); cache left unchanged"
+  throw "cache alias chain is too deep: $Path"
+}
+
+function Expand-KitRelease {
+  param([string]$Archive, [string]$Dest)
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $zip = [IO.Compression.ZipFile]::OpenRead($Archive)
+  try {
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in $zip.Entries) {
+      $name = $entry.FullName
+      if (-not $name.StartsWith('job-kit/', [StringComparison]::Ordinal) -or $name.Contains('\')) {
+        throw "unsafe release archive path: $name"
+      }
+      $parts = $name.TrimEnd('/').Split('/')
+      foreach ($part in $parts) {
+        if (-not $part -or $part -eq '.' -or $part -eq '..' -or
+            $part -match '[\x00-\x1f<>:"|?*]' -or $part -match '[. ]$' -or
+            $part -match '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
+          throw "unsafe release archive path: $name"
+        }
+      }
+      if ($parts.Count -gt 1 -and $parts[1] -eq '.git') {
+        throw 'release archive must not contain .git'
+      }
+      $mode = ($entry.ExternalAttributes -shr 16) -band 0xF000
+      if (($mode -ne 0 -and $mode -ne 0x8000 -and $mode -ne 0x4000) -or
+          ($entry.ExternalAttributes -band [int][IO.FileAttributes]::ReparsePoint)) {
+        throw "release archive contains a link or special file: $name"
+      }
+      if (-not $seen.Add($name.TrimEnd('/'))) {
+        throw "duplicate release archive path: $name"
+      }
+    }
+  } finally {
+    $zip.Dispose()
   }
-  & git -C $Dest checkout --detach FETCH_HEAD
-  if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-    Write-KitDie "git checkout failed in $Dest (local changes?)"
-  }
-  Write-Host "updated: $Dest @ $($script:JobKitRef)"
+  # All member paths and types are checked before any member is extracted.
+  [IO.Compression.ZipFile]::ExtractToDirectory($Archive, $Dest)
 }
 
 function Invoke-FetchKit {
   param([string]$Dest)
-  if (-not (Test-Path -LiteralPath $Dest) -and -not (Test-ReparsePoint $Dest)) {
-    if (Test-HasCommand 'git') {
-      Invoke-FetchGitClone $Dest
-    } else {
-      Invoke-FetchTarball $Dest
-    }
-    return
+  if ($env:JOB_KIT_REF) {
+    Write-KitDie 'JOB_KIT_REF is no longer supported; unset it and use JOB_KIT_VERSION=vX.Y.Z, or run a local checkout for branch development'
   }
-  $missing = Get-KitOwnedMissing $Dest
-  if ($missing) {
-    Write-KitDie "cache path exists and is not a job-kit checkout (missing $missing): $Dest"
+  if ($script:JobKitVersion -cne 'latest' -and $script:JobKitVersion -cnotmatch '\Av[0-9]+\.[0-9]+\.[0-9]+\z') {
+    Write-KitDie "JOB_KIT_VERSION must be latest or a released vX.Y.Z tag (got: $($script:JobKitVersion))"
   }
-  $gitEntry = Join-Path $Dest '.git'
-  if ((Test-Path -LiteralPath $gitEntry) -or (Test-ReparsePoint $gitEntry)) {
-    if (-not (Test-HasCommand 'git')) {
-      Write-KitDie "cached checkout is a git repository but git is not installed: $Dest"
+
+  $stage = ''
+  $failure = ''
+  try {
+    $physical = Resolve-KitCachePath $Dest
+    $exists = (Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)
+    $legacy = $false
+    if ($exists) {
+      $missing = Get-KitOwnedMissing $physical
+      if ($missing) { throw "cache path exists and is not a job-kit package (missing $missing): $Dest" }
+      $gitEntry = Join-Path $physical '.git'
+      if ((Test-ReparsePoint $gitEntry) -or
+          ((Test-Path -LiteralPath $gitEntry) -and -not (Test-Path -LiteralPath $gitEntry -PathType Container))) {
+        throw "refusing to migrate a cache with a .git file or link: $Dest; use a separate JOB_KIT_HOME"
+      }
+      $legacy = (Test-Path -LiteralPath $gitEntry) -or -not (Get-InstalledKitVersion $physical) -or
+        [bool](Get-KitCheckoutMissing $physical)
     }
-    if (-not (Test-IsGitRepo $Dest)) {
-      Write-KitDie "cache path has a .git entry but is not a usable git repository: $Dest"
+
+    $parent = Split-Path $physical -Parent
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
+      New-Item -ItemType Directory -Path $parent | Out-Null
     }
-    Invoke-FetchGitUpdate $Dest
-    return
+    $token = [Guid]::NewGuid().ToString('N')
+    $stage = Join-Path $parent ('.job-kit-fetch.' + $token)
+    $backup = $physical + '.backup-' + $token
+    New-Item -ItemType Directory -Path $stage | Out-Null
+
+    $version = $script:JobKitVersion
+    $releaseRoot = "https://github.com/$($script:JobKitSlug)/releases"
+    if ($version -ceq 'latest') {
+      $versionFile = Join-Path $stage 'VERSION'
+      Invoke-WebRequest -Uri "$releaseRoot/latest/download/VERSION" -OutFile $versionFile -UseBasicParsing
+      $version = Get-InstalledKitVersion $stage
+      if (-not $version) {
+        throw 'latest release VERSION must contain a released vX.Y.Z tag'
+      }
+    }
+    $asset = "job-kit-$version.zip"
+    $releaseUrl = "$releaseRoot/download/$version"
+    $archive = Join-Path $stage $asset
+    $checksums = Join-Path $stage 'SHA256SUMS'
+    Invoke-WebRequest -Uri "$releaseUrl/$asset" -OutFile $archive -UseBasicParsing
+    Invoke-WebRequest -Uri "$releaseUrl/SHA256SUMS" -OutFile $checksums -UseBasicParsing
+    $pattern = '\A([0-9a-fA-F]{64}) [ *]' + [regex]::Escape($asset) + '\z'
+    $expected = @(
+      foreach ($line in [IO.File]::ReadAllLines($checksums)) {
+        if ($line -cmatch $pattern) { $Matches[1] }
+      }
+    )
+    if ($expected.Count -ne 1) { throw "SHA256SUMS must contain exactly one checksum for $asset" }
+    $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash
+    if ($actual -ne $expected[0]) { throw "checksum mismatch for $asset" }
+
+    $unpacked = Join-Path $stage 'unpacked'
+    Expand-KitRelease $archive $unpacked
+    $package = Join-Path $unpacked 'job-kit'
+    $missing = Get-KitCheckoutMissing $package
+    if ($missing) { throw "release $version is missing $missing; cache left unchanged" }
+    if ((Get-InstalledKitVersion $package) -cne $version) {
+      throw "release bundle VERSION does not match $version; cache left unchanged"
+    }
+
+    # Replace the physical directory, preserving any alias and existing junction targets.
+    if ($exists) { Move-Item -LiteralPath $physical -Destination $backup }
+    try {
+      Move-Item -LiteralPath $package -Destination $physical
+    } catch {
+      $moveError = $_.Exception.Message
+      if ($exists) {
+        try {
+          if ((Test-Path -LiteralPath $physical) -or (Test-ReparsePoint $physical)) {
+            throw "replacement destination already exists: $physical"
+          }
+          Move-Item -LiteralPath $backup -Destination $physical
+        } catch {
+          throw "release replacement failed ($moveError); rollback failed; previous package kept at $backup"
+        }
+        throw "release replacement failed ($moveError); previous cache restored"
+      }
+      throw "release replacement failed ($moveError)"
+    }
+    if ($exists) {
+      if ($legacy) {
+        Write-Host "legacy checkout preserved at: $backup"
+      } else {
+        try { Remove-Item -LiteralPath $backup -Recurse -Force } catch {
+          Write-Warning "release installed, but previous bundle could not be removed: $backup"
+        }
+      }
+    }
+    Write-Host "fetched: $Dest @ $version"
+  } catch {
+    $failure = $_.Exception.Message
+  } finally {
+    if ($stage -and (Test-Path -LiteralPath $stage)) {
+      Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
+    }
   }
-  Invoke-FetchTarball $Dest
+  if ($failure) { Write-KitDie "release install failed: $failure" }
 }
 
 function Assert-Checkout {
   param([string]$Dir)
   $missing = Get-KitCheckoutMissing $Dir
   if ($missing) {
-    Write-KitDie "not a job-kit checkout (missing $missing): $Dir"
+    Write-KitDie "not a job-kit package (missing $missing): $Dir"
   }
 }
 
@@ -348,7 +396,7 @@ function Invoke-EnsureKitCache {
   }
   $missing = Get-KitOwnedMissing $Dest
   if ($missing) {
-    Write-KitDie "cache path exists and is not a job-kit checkout (missing $missing): $Dest"
+    Write-KitDie "cache path exists and is not a job-kit package (missing $missing): $Dest"
   }
   # Caches fetched by the Git Bash installer before this channel pass the
   # ownership probe but carry none of the Windows scripts, so the cached
@@ -368,6 +416,8 @@ function Invoke-CachedScript {
   if (-not (Test-Path -LiteralPath $file -PathType Leaf)) {
     Write-KitDie "cached installer missing: $file"
   }
+  # Downloads no longer invoke native git/tar, so there may be no prior exit code.
+  $global:LASTEXITCODE = 0
   & $file @Forward
   if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }

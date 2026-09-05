@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Fetch job-kit into a cached checkout, then run the channel installers.
+# Fetch a released job-kit bundle, then run the channel installers.
 # Compatible with macOS Bash 3.2. Safe to pipe: curl -fsSL … | bash -s -- all
 set -euo pipefail
 
 JOB_KIT_SLUG="${JOB_KIT_SLUG:-rafaeelricco/job-kit}"
-JOB_KIT_REF="${JOB_KIT_REF:-main}"
+JOB_KIT_VERSION="${JOB_KIT_VERSION:-latest}"
 JOB_KIT_HOME="${JOB_KIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/job-kit}"
 
 # strip_trailing_slashes PATH
@@ -27,7 +27,7 @@ JOB_KIT_HOME="$(strip_trailing_slashes "${JOB_KIT_HOME}")"
 # Side effects: none.
 usage() {
   cat <<'EOF'
-Install or uninstall job-kit skills without cloning by hand.
+Install or uninstall job-kit skills from a verified release bundle.
 
 Usage: remote.sh [channel] [options…]
        remote.sh uninstall [target] [options…]
@@ -39,7 +39,7 @@ Install channels:
   browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home), driven by
                the local browser-use CLI over your own browser
-  fetch        Refresh the cached checkout, install nothing
+  fetch        Refresh the installed bundle, install no skills
 
 Uninstall:
   uninstall              Aside + agent + browser-use skills (default: all)
@@ -51,7 +51,7 @@ Uninstall:
                          (never your browser)
 
   Interactive (profile data + menu): bash scripts/uninstall.sh
-  from a local or cached checkout. Remote uninstall never deletes
+  from a local checkout or installed bundle. Remote uninstall never deletes
   ~/.config/job-kit.
 
   -h, --help  Show this help
@@ -60,16 +60,20 @@ Install options after the channel are forwarded to the installer. The only
 one is --dry-run.
 
 Uninstall options:
-  --purge             After full uninstall only, remove the cached checkout
+  --purge             After full uninstall only, remove the installed bundle
                       (refused on a partial target such as `uninstall aside`,
                       while CLAUDE_SKILLS/ASIDE_SKILLS narrow a channel, and
                       over a pipe, which cannot type the required `yes` —
-                      run it from a terminal against the cached checkout)
+                      run it from a terminal against the installed bundle)
 
 Environment:
-  JOB_KIT_HOME  Cached checkout (default $XDG_DATA_HOME/job-kit)
-  JOB_KIT_REF   Branch or tag to fetch (default main)
-  JOB_KIT_SLUG  GitHub owner/repo (default rafaeelricco/job-kit)
+  JOB_KIT_HOME     Installed bundle (default $XDG_DATA_HOME/job-kit)
+  JOB_KIT_VERSION  Release tag vX.Y.Z, or latest (default latest stable release)
+  JOB_KIT_SLUG     GitHub owner/repo (default rafaeelricco/job-kit)
+
+JOB_KIT_REF is no longer supported when fetching. Use JOB_KIT_VERSION for a
+published release, or run scripts/install.sh from a local source checkout.
+Legacy source/Git caches are backed up beside JOB_KIT_HOME during migration.
 
 Install keeps the cache (agent skills symlink into it; Aside ownership
 markers point at it). Uninstall leaves the cache unless full
@@ -90,7 +94,7 @@ die() { echo "error: $*" >&2; exit 1; }
 # (update, purge) use this set so a cache created before a skill was added is
 # still recognized as kit-owned and can be upgraded or removed. A stray
 # `skill/` alone is never enough. Single source of truth for the filesystem
-# ownership probe and (when used) the git-ref ownership probe.
+# ownership probe.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 scripts/install.sh
@@ -108,7 +112,7 @@ skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md"
 
 # Full layout expected after fetch / before install: ownership files plus every
-# skill this revision ships. Post-fetch validation uses this set so a wrong-ref
+# skill this revision ships. Post-fetch validation uses this set so an invalid
 # download cannot replace the cache with a tree missing a new skill.
 # `require_skill_source` in scripts/{agents,aside}/lib.sh rejects a skill
 # without SKILL.md, and by then the cache has already been replaced — so the
@@ -132,7 +136,10 @@ skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md
 skill/job-humanize/SKILL.md
 skill/job-profile-root/SKILL.md
-skill/job-store/SKILL.md"
+skill/job-store/SKILL.md
+scripts/remote.sh
+scripts/remote.ps1
+LICENSE"
 
 # kit_paths_missing DIR FILE_LIST
 # Prints the first path from FILE_LIST missing from DIR (or present as a
@@ -140,7 +147,7 @@ skill/job-store/SKILL.md"
 # `skill/` directory. Rejects a symlink at any path component because Bash
 # `test -f`/`-d` follow intermediate links, which would accept a tarball where
 # e.g. `skill/job-scout` is mode-`120000` while the leaf `SKILL.md` is a
-# regular file — a shape the git-ref probe rejects.
+# regular file.
 # Side effects: none.
 kit_paths_missing() {
   local dir="$1" files="$2" rel cur part rest
@@ -182,39 +189,10 @@ kit_owned_missing() { kit_paths_missing "$1" "${KIT_OWNERSHIP_FILES}"; }
 # kit_checkout_missing DIR — full post-fetch / pre-install layout.
 kit_checkout_missing() { kit_paths_missing "$1" "${KIT_REQUIRED_FILES}"; }
 
-# git_ref_paths_missing DIR REF FILE_LIST
-# Prints the first path from FILE_LIST that REF does not carry with the right
-# object type; prints nothing when REF is complete for FILE_LIST. Probes the
-# object store so an update can be rejected before it reaches the working tree.
-# Matches on tree-entry mode, not mere existence: a blob named `skill` is not a
-# skills directory, and only regular-file modes (`100644`/`100755`) are accepted
-# so a mode-`120000` symlink cannot pass the probe.
-# Side effects: none.
-git_ref_paths_missing() {
-  local dir="$1" ref="$2" files="$3" rel mode
-  if [ "$(git -C "${dir}" cat-file -t "${ref}:skill" 2>/dev/null)" != "tree" ]; then
-    printf '%s\n' "skill/"
-    return 0
-  fi
-  for rel in ${files}; do
-    mode="$(git -C "${dir}" ls-tree "${ref}" -- "${rel}" 2>/dev/null | awk '{print $1}')"
-    case "${mode}" in
-      100644|100755) ;;
-      *)
-        printf '%s\n' "${rel}"
-        return 0
-        ;;
-    esac
-  done
-}
-
-# git_ref_missing DIR REF — full layout on a fetched/cloned ref.
-git_ref_missing() { git_ref_paths_missing "$1" "$2" "${KIT_REQUIRED_FILES}"; }
-
 # resolve_cache_path PATH
 # Prints PATH after stripping trailing slashes. When PATH is an existing
 # symlink, prints the physical directory it resolves to (`pwd -P`), so a
-# tarball refresh updates the real cache that agent installers record via
+# bundle refresh updates the real cache that agent installers record via
 # `pwd -P` rather than deleting the link and orphaning that target.
 # Side effects: none. Dies on a dangling symlink.
 resolve_cache_path() {
@@ -228,146 +206,154 @@ resolve_cache_path() {
   printf '%s' "${p}"
 }
 
-# fetch_tarball DEST [OWNERSHIP_FILES]
-# Downloads JOB_KIT_REF, verifies the extracted tree, then replaces DEST. No git
-# required. DEST is removed only once the download proves to be a complete
-# job-kit checkout, so a wrong-repo or wrong-ref fetch leaves the cache intact.
-# OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES and must carry whatever list
-# the caller already probed with: a non-git legacy cache reaches its refresh
-# through here, so re-probing the default signature would reject it for the very
-# file the refresh installs. DEST is slash-normalized and symlink-resolved so a
-# cache behind a link is refreshed in place (agent links/`pwd -P` markers stay
-# valid) rather than replacing the link itself.
-# Side effects: may rm -rf DEST — only when DEST is absent or a complete checkout.
-fetch_tarball() {
-  local dest url stage parent missing files
-  dest="$(resolve_cache_path "$1")"
-  files="${2:-${KIT_OWNERSHIP_FILES}}"
-  if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    # Ownership only: a pre-this-skill cache must still be replaceable.
-    missing="$(kit_paths_missing "${dest}" "${files}")"
-    [ -z "${missing}" ] \
-      || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
-  fi
-  have tar || die "need git, or tar plus curl/wget, to fetch job-kit"
-  url="https://codeload.github.com/${JOB_KIT_SLUG}/tar.gz/${JOB_KIT_REF}"
-  parent="$(dirname "${dest}")"
-  mkdir -p "${parent}" || die "failed to create: ${parent}"
-  stage="${parent}/.job-kit-fetch.$$"
-  rm -rf "${stage}"
-  mkdir -p "${stage}" || die "failed to create: ${stage}"
+# release_version_file FILE
+# Prints one strict vX.Y.Z version. The file must contain exactly that line.
+release_version_file() {
+  local file="$1" version
+  [ -f "${file}" ] && [ ! -L "${file}" ] || return 1
+  version="$(cat "${file}")" || return 1
+  [[ "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+  printf '%s\n' "${version}" | cmp -s - "${file}" || return 1
+  printf '%s\n' "${version}"
+}
+
+# download_release_file URL DEST
+# Downloads to a staging file. Never executes the response.
+download_release_file() {
+  local url="$1" dest="$2"
   if have curl; then
-    curl -fsSL "${url}" | tar -xzf - -C "${stage}" --strip-components=1 \
-      || { rm -rf "${stage}"; die "download failed: ${url}"; }
-  elif have wget; then
-    wget -qO- "${url}" | tar -xzf - -C "${stage}" --strip-components=1 \
-      || { rm -rf "${stage}"; die "download failed: ${url}"; }
+    curl -fsSL "${url}" > "${dest}"
   else
-    rm -rf "${stage}"
-    die "need curl or wget to fetch job-kit"
+    wget -qO- "${url}" > "${dest}"
   fi
-  # Full layout: the download must carry every skill this revision installs.
-  missing="$(kit_checkout_missing "${stage}")"
-  if [ -n "${missing}" ]; then
-    rm -rf "${stage}"
-    die "downloaded ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing}); cache left unchanged"
-  fi
-  rm -rf "${dest}"
-  mv "${stage}" "${dest}" || { rm -rf "${stage}"; die "failed to cache: ${dest}"; }
-  echo "fetched: ${dest} @ ${JOB_KIT_REF}"
 }
 
-# is_git_repo DIR
-# Exit 0 when DIR is itself a git repository root, including a linked worktree
-# or submodule where `.git` is a file rather than a directory.
-# Side effects: none.
-is_git_repo() {
-  local dir="$1"
-  [ -e "${dir}/.git" ] || return 1
-  git -C "${dir}" rev-parse --git-dir >/dev/null 2>&1
-}
-
-# fetch_git_update DEST
-# Shallow-fetches JOB_KIT_REF from the configured JOB_KIT_SLUG into the existing
-# git checkout at DEST, and verifies the fetched tree before checking it out, so
-# a ref without the kit layout leaves the working cache — and the agent symlinks
-# into it — untouched. Fetches the slug URL directly rather than the literal
-# `origin`, so JOB_KIT_SLUG stays authoritative for a cache cloned from
-# elsewhere.
-# Side effects: fetches into DEST; detaches HEAD only after validation.
-fetch_git_update() {
-  local dest="$1" missing
-  git -C "${dest}" fetch --depth 1 "https://github.com/${JOB_KIT_SLUG}.git" "${JOB_KIT_REF}" \
-    || die "git fetch failed for ${JOB_KIT_SLUG}@${JOB_KIT_REF}"
-  missing="$(git_ref_missing "${dest}" FETCH_HEAD)"
-  [ -z "${missing}" ] \
-    || die "fetched ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing}); cache left unchanged"
-  git -C "${dest}" checkout --detach FETCH_HEAD >/dev/null 2>&1 \
-    || die "git checkout failed in ${dest} (local changes?)"
-  echo "updated: ${dest} @ ${JOB_KIT_REF}"
-}
-
-# fetch_git_clone DEST
-# Shallow-clones JOB_KIT_SLUG at JOB_KIT_REF into a DEST that does not exist.
-# Removes the clone it just made when the result is not a job-kit checkout, so a
-# wrong slug or ref cannot leave a foreign tree parked at the cache path where
-# the ownership guard would then block every later run. Validates via
-# `git_ref_missing` (object modes) rather than the filesystem probe alone, so a
-# `core.symlinks=false` checkout that materializes mode-`120000` entries as
-# plain files still fails before the cache is kept.
-# Side effects: creates DEST; removes it again only on a failed layout check.
-fetch_git_clone() {
-  local dest="$1" missing
-  mkdir -p "$(dirname "${dest}")" || die "failed to create: $(dirname "${dest}")"
-  git clone --depth 1 --branch "${JOB_KIT_REF}" \
-    "https://github.com/${JOB_KIT_SLUG}.git" "${dest}" || die "git clone failed"
-  missing="$(git_ref_missing "${dest}" HEAD)"
-  if [ -n "${missing}" ]; then
-    rm -rf "${dest}"
-    die "cloned ${JOB_KIT_SLUG}@${JOB_KIT_REF} is not a job-kit checkout (missing ${missing})"
-  fi
-  echo "cloned: ${dest} @ ${JOB_KIT_REF}"
+# release_archive_safe ARCHIVE STAGE
+# Releases contain only regular files/directories below job-kit/. Check names
+# and entry types before extraction so traversal or links cannot escape STAGE.
+release_archive_safe() {
+  local archive="$1" stage="$2" entry
+  tar -tzf "${archive}" > "${stage}/entries" || return 1
+  [ -s "${stage}/entries" ] || return 1
+  LC_ALL=C awk '/[[:cntrl:]]/ { exit 1 }' "${stage}/entries" || return 1
+  while IFS= read -r entry; do
+    case "${entry}" in
+      job-kit/.git|job-kit/.git/*) return 1 ;;
+      job-kit|job-kit/|job-kit/*) ;;
+      *) return 1 ;;
+    esac
+    case "/${entry}/" in
+      */../*|*/./*|*\\*) return 1 ;;
+    esac
+  done < "${stage}/entries"
+  tar -tvzf "${archive}" > "${stage}/entry-types" || return 1
+  LC_ALL=C awk '
+    substr($0, 1, 1) != "-" && substr($0, 1, 1) != "d" { exit 1 }
+    END { if (NR == 0) exit 1 }
+  ' "${stage}/entry-types"
 }
 
 # fetch_kit DEST [OWNERSHIP_FILES]
-# Refreshes DEST at JOB_KIT_REF. Proves ownership before any mutation: a path
-# that is not kit-owned (ownership signature) is never fetched into, checked
-# out, or deleted, and a git-shaped DEST never enters the destructive tarball
-# path. OWNERSHIP_FILES defaults to KIT_OWNERSHIP_FILES; the migration path
-# passes KIT_LEGACY_OWNERSHIP_FILES so a cache from before the unified
-# uninstaller is not rejected by the very signature it is being refreshed to
-# gain. DEST is slash-normalized and symlink-resolved first so a cache behind a
-# link is refreshed at its physical path (matching agent `pwd -P` markers).
-# Side effects: creates or updates DEST.
-fetch_kit() {
-  local dest missing raw files
-  raw="$(strip_trailing_slashes "$1")"
+# Downloads a release, verifies its checksum/version/layout, then swaps it into
+# the same physical path. Legacy caches keep a sibling backup; bundle updates
+# remove their temporary backup after success. All staging is cleaned on exit.
+fetch_kit() (
+  local dest files missing parent stage version asset base archive expected actual
+  local payload backup="" retain_backup=1
+  [ -z "${JOB_KIT_REF:-}" ] \
+    || die "JOB_KIT_REF is no longer supported; use JOB_KIT_VERSION=vX.Y.Z for a published release, or scripts/install.sh from a local source checkout"
+  version="${JOB_KIT_VERSION}"
+  if [ "${version}" != latest ]; then
+    [[ "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+      || die "JOB_KIT_VERSION must be latest or a release tag vX.Y.Z (got: ${version})"
+  fi
+  dest="$(resolve_cache_path "$1")"
   files="${2:-${KIT_OWNERSHIP_FILES}}"
-  if [ ! -L "${raw}" ] && [ ! -e "${raw}" ]; then
-    dest="${raw}"
-    if have git; then
-      fetch_git_clone "${dest}"
-    else
-      fetch_tarball "${dest}" "${files}"
+  if [ -L "${dest}" ] || [ -e "${dest}" ]; then
+    missing="$(kit_paths_missing "${dest}" "${files}")"
+    [ -z "${missing}" ] \
+      || die "cache path exists and is not a job-kit installation (missing ${missing}): ${dest}"
+    if [ -L "${dest}/.git" ] || { [ -e "${dest}/.git" ] && [ ! -d "${dest}/.git" ]; }; then
+      die "cannot migrate a cache with a .git file or symlink: ${dest}; use a separate JOB_KIT_HOME or install from the local checkout"
     fi
-    return 0
+    # Only a prior complete release bundle can be discarded after an update.
+    # A source checkout, including one with local edits, keeps its full backup.
+    if [ ! -e "${dest}/.git" ] \
+      && release_version_file "${dest}/VERSION" >/dev/null \
+      && [ -z "$(kit_checkout_missing "${dest}")" ]; then
+      retain_backup=0
+    fi
   fi
-
-  dest="$(resolve_cache_path "${raw}")"
-  missing="$(kit_paths_missing "${dest}" "${files}")"
+  have tar || die "need tar to install a job-kit release"
+  { have curl || have wget; } || die "need curl or wget to download a job-kit release"
+  { have sha256sum || have shasum; } || die "need sha256sum or shasum to verify a job-kit release"
+  parent="$(dirname "${dest}")"
+  mkdir -p "${parent}" || die "failed to create: ${parent}"
+  stage="$(mktemp -d "${parent}/.job-kit-fetch.XXXXXX")" \
+    || die "failed to create release staging directory under ${parent}"
+  trap 'rm -rf "${stage}"' EXIT
+  if [ "${version}" = latest ]; then
+    download_release_file "https://github.com/${JOB_KIT_SLUG}/releases/latest/download/VERSION" "${stage}/VERSION" \
+      || die "failed to resolve the latest job-kit release; cache left unchanged"
+    version="$(release_version_file "${stage}/VERSION")" \
+      || die "latest release VERSION must contain one vX.Y.Z line; cache left unchanged"
+  fi
+  asset="job-kit-${version}.tar.gz"
+  base="https://github.com/${JOB_KIT_SLUG}/releases/download/${version}"
+  archive="${stage}/${asset}"
+  download_release_file "${base}/${asset}" "${archive}" \
+    || die "download failed: ${base}/${asset}; cache left unchanged"
+  download_release_file "${base}/SHA256SUMS" "${stage}/SHA256SUMS" \
+    || die "download failed: ${base}/SHA256SUMS; cache left unchanged"
+  expected="$(awk -v asset="${asset}" '
+    NF == 2 && $2 == asset { count++; hash = $1 }
+    END { if (count != 1) exit 1; print hash }
+  ' "${stage}/SHA256SUMS")" \
+    || die "SHA256SUMS must contain exactly one checksum for ${asset}; cache left unchanged"
+  case "${expected}" in
+    ""|*[!0-9a-fA-F]*) die "invalid SHA256 checksum for ${asset}; cache left unchanged" ;;
+  esac
+  [ "${#expected}" -eq 64 ] || die "invalid SHA256 checksum for ${asset}; cache left unchanged"
+  if have sha256sum; then
+    actual="$(sha256sum "${archive}")" || die "failed to hash ${asset}; cache left unchanged"
+  else
+    actual="$(shasum -a 256 "${archive}")" || die "failed to hash ${asset}; cache left unchanged"
+  fi
+  actual="${actual%% *}"
+  expected="$(printf '%s' "${expected}" | tr 'A-F' 'a-f')"
+  [ "${actual}" = "${expected}" ] || die "checksum mismatch for ${asset}; cache left unchanged"
+  release_archive_safe "${archive}" "${stage}" \
+    || die "release archive contains invalid paths or non-regular entries; cache left unchanged"
+  mkdir "${stage}/unpack" || die "failed to prepare release extraction"
+  tar -xzf "${archive}" -C "${stage}/unpack" || die "failed to extract ${asset}; cache left unchanged"
+  payload="${stage}/unpack/job-kit"
+  missing="$(kit_checkout_missing "${payload}")"
   [ -z "${missing}" ] \
-    || die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
-
-  if [ -L "${dest}/.git" ] || [ -e "${dest}/.git" ]; then
-    have git || die "cached checkout is a git repository but git is not installed: ${dest}"
-    is_git_repo "${dest}" \
-      || die "cache path has a .git entry but is not a usable git repository: ${dest}"
-    fetch_git_update "${dest}"
-    return 0
+    || die "downloaded ${JOB_KIT_SLUG}@${version} is not a job-kit bundle (missing ${missing}); cache left unchanged"
+  [ "$(release_version_file "${payload}/VERSION")" = "${version}" ] \
+    || die "bundle VERSION does not match ${version}; cache left unchanged"
+  if [ -e "${dest}" ]; then
+    backup="$(mktemp -d "${dest}.backup-XXXXXX")" || die "failed to create cache backup"
+    rmdir "${backup}" || die "failed to prepare cache backup: ${backup}"
+    mv "${dest}" "${backup}" || die "failed to back up cache: ${dest}; cache left unchanged"
   fi
-
-  fetch_tarball "${dest}" "${files}"
-}
+  if ! mv "${payload}" "${dest}"; then
+    if [ -n "${backup}" ]; then
+      mv "${backup}" "${dest}" \
+        || die "failed to install bundle and restore cache; previous installation remains at ${backup}"
+      die "failed to install bundle at ${dest}; previous cache restored"
+    fi
+    die "failed to install bundle at ${dest}"
+  fi
+  if [ -n "${backup}" ]; then
+    if [ "${retain_backup}" -eq 1 ]; then
+      echo "legacy installation backed up at: ${backup}"
+    else
+      rm -rf "${backup}" || die "bundle installed, but failed to remove previous bundle backup: ${backup}"
+    fi
+  fi
+  echo "installed bundle: ${dest} @ ${version}"
+)
 
 # require_checkout DIR
 # Fails unless DIR has the full layout the channel installers expect for this
@@ -377,7 +363,7 @@ fetch_kit() {
 require_checkout() {
   local dir="$1" missing
   missing="$(kit_checkout_missing "${dir}")"
-  [ -z "${missing}" ] || die "not a job-kit checkout (missing ${missing}): ${dir}"
+  [ -z "${missing}" ] || die "not a job-kit bundle (missing ${missing}): ${dir}"
 }
 
 # ensure_kit_cache DEST
@@ -420,7 +406,7 @@ scripts/uninstall.sh"
       require_checkout "${raw}"
       return 0
     fi
-    die "cache path exists and is not a job-kit checkout (missing ${missing}): ${dest}"
+    die "cache path exists and is not a job-kit installation (missing ${missing}): ${dest}"
   fi
   # Unified-layout caches from before this channel accept the ownership
   # signature but die on the new `browser-use` positional target. Detect that
@@ -523,7 +509,7 @@ main() {
     else
       echo "job-kit uninstall finished"
       echo "  cache kept at: ${JOB_KIT_HOME}"
-      echo "  reinstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- all"
+      echo "  reinstall: curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/main/scripts/remote.sh | bash -s -- all"
       echo "  purge cache: bash ${JOB_KIT_HOME}/scripts/remote.sh uninstall --purge"
       echo "           or: rm -rf ${JOB_KIT_HOME}"
     fi
@@ -555,7 +541,7 @@ main() {
   echo "job-kit cached at: ${JOB_KIT_HOME}"
   echo "  keep it: agent skills symlink into it, Aside re-runs prove ownership by it"
   echo "  uninstall (interactive / profile): bash ${JOB_KIT_HOME}/scripts/uninstall.sh"
-  echo "  uninstall (skills only): curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/${JOB_KIT_REF}/scripts/remote.sh | bash -s -- uninstall"
+  echo "  uninstall (skills only): curl -fsSL https://raw.githubusercontent.com/${JOB_KIT_SLUG}/main/scripts/remote.sh | bash -s -- uninstall"
 }
 
 main "$@"
