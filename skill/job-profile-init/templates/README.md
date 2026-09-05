@@ -66,7 +66,7 @@ roots stay active until the tree is deleted.
   operator actions. job-apply queues postings, fills the form from Facts, prints
   the package it will record, then clears what the form puts in the path —
   terms, upload, a sign-in with an existing session or `Continue with Google`
-  as your profile email, a code from Gmail, a captcha via `captcha-solver`,
+  as your profile email, a code from Gmail, a captcha via `job-captcha-solver`,
   Submit — and records to `scout/jobs/` on submit success (or when you confirm
   you submitted outside it). A blocker no rule clears skips the posting; it
   never waits for you.

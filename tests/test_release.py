@@ -289,7 +289,8 @@ class ReleaseArchiveTests(unittest.TestCase):
         self.assertEqual(files["job-kit/VERSION"], b"v1.0.0\n")
         self.assertEqual(assets["VERSION"], b"v1.0.0\n")
         self.assertIn("job-kit/LICENSE", files)
-        self.assertEqual(sum(name.endswith("/SKILL.md") for name in files), 14)
+        self.assertEqual(sum(name.endswith("/SKILL.md") for name in files), 15)
+        self.assertIn("job-kit/skill/job-captcha-solver/SKILL.md", files)
         for installer in INSTALLERS:
             for name in required_files(installer.path):
                 self.assertIn("job-kit/" + name, files)
@@ -469,6 +470,7 @@ class ReleaseInstallerTests(unittest.TestCase):
                                                   "0" * 64 + "  job-kit-v1.0.1.zip\n")
             self.assertNotEqual(f.run("fetch", version="v1.0.1").returncode, 0)
             for change in ({"skill/job-match/scripts/models.py": None},
+                           {"skill/job-captcha-solver/SKILL.md": None},
                            {"VERSION": b"v9.9.9\n"}, {"scripts/remote.ps1": None},
                            {"VERSION": b"v1.0.1\n\n"}, {".git/HEAD": b"ref: refs/heads/main\n"},
                            {"../escaped.txt": b"must not extract"}):

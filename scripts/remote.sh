@@ -120,6 +120,7 @@ skill/job-scout/SKILL.md"
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
 scripts/common.sh
 scripts/browser-use/install.sh
+skill/job-captcha-solver/SKILL.md
 skill/job-apply/SKILL.md
 skill/job-prep/SKILL.md
 skill/job-resume-refine/SKILL.md

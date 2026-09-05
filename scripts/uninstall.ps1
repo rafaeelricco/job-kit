@@ -262,8 +262,9 @@ function Add-BrowserSharedDepRows {
     }
     return
   }
-  if (Test-AgentsHomeOwned $PlanRoot $script:RepoRoot) { return }
+  $agentsOwned = Test-AgentsHomeOwned $PlanRoot $script:RepoRoot
   foreach ($pname in $script:BrowserSharedDeps) {
+    if ($agentsOwned -and ($script:SkillNames -contains $pname)) { continue }
     $row = New-UninstallSkillRow (Get-SkillDest $PlanRoot $pname) $pname 'current'
     if ($row) { $Rows.Add($row) | Out-Null }
   }
@@ -466,8 +467,9 @@ function Unlink-BrowserSkillsFrom {
   foreach ($n in ($script:BrowserSkillNames + $script:BrowserLegacySkillNames)) {
     Unlink-Skill (Get-SkillDest $Root $n) $script:RepoRoot $n
   }
-  if (Test-AgentsHomeOwned $Root $script:RepoRoot) { return }
+  $agentsOwned = Test-AgentsHomeOwned $Root $script:RepoRoot
   foreach ($n in $script:BrowserSharedDeps) {
+    if ($agentsOwned -and ($script:SkillNames -contains $n)) { continue }
     Unlink-Skill (Get-SkillDest $Root $n) $script:RepoRoot $n
   }
 }

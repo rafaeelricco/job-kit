@@ -639,7 +639,7 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
             apply,
             r"field the printed package did not carry[^.]{0,120}resolution order",
         )
-        self.assertRegex(apply, r"load the `captcha-solver` skill")
+        self.assertRegex(apply, r"load the `job-captcha-solver` skill")
         self.assertRegex(apply, r"gmail capability")
 
     def test_ambiguous_submit_is_logged_not_requeued(self):
