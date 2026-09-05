@@ -97,8 +97,9 @@ copy it.
 3. Click each cell center with `click_at_xy` (CSS px).
 4. Click the widget's own Verify / Next / Skip control. Selecting cells does
    not submit, and without it no response token is issued.
-5. Verify with another screenshot / `js` / `page_info`. reCAPTCHA and hCaptcha
-   chain rounds routinely — while a new grid appears, repeat from step 1.
+5. Verify with another screenshot / `js` / `page_info`, then return whether
+   solved or another grid remains. Each invocation handles one grid round;
+   the caller owns retries and their limit.
 
 No annotated overlay helper exists — cell geometry is yours from the PNG and
 widget bounds.
