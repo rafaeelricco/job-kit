@@ -163,7 +163,16 @@ prefilled value, the resolution order, and the rules for salary and
 authorization. Load `./references/contracts/contract-prose.md` the first time
 a field wants composed prose.
 
-Open the apply path and read its fields. Label is not authority: a control that
+Open the apply path and read its fields. A stored `dm_request` channel does not
+prove the live posting lacks a form: Ashby postings can expose an Application
+link at `{posting_url}/application`. Inspect that route before composing a DM;
+use the employer's live form when it exists and print the corrected `ats` route.
+Ashby may show the attached filename while field autosaves are still pending;
+wait for those updates to settle before submitting. A `possible spam` screen is
+an explicit failure, not an ambiguous success; retry only under §5's failure
+rule and never mark it applied without confirmation.
+
+Label is not authority: a control that
 only reveals the form is navigation and is allowed here; the same label that
 posts is submit, and nothing that posts is clicked before §5.
 
@@ -305,5 +314,13 @@ After Record, take the next posting. After the last one print `### Skipped`, the
 — whenever this run recorded any dossier — load the `job-inbox` skill and obey it
 end-to-end, once per run and not per posting, naming every dossier this run
 recorded as its argument. Only those postings' mail can have changed; a
-board-wide refresh is a standalone `/job-inbox`. The inbox report is this run's
-last output.
+board-wide refresh is a standalone `/job-inbox`.
+
+Operator convention: finish every application run by committing and pushing its
+persisted changes, including chained preparation and learned workflow fixes, in
+each owning repository. Git bookkeeping is allowed in addition to the file
+write-set. Load `commit-message` and validate the changed scope before committing;
+stage only this run's changes, never unrelated work or raw mailbox/browser traces.
+Use the configured upstream without force, then verify the remote commit and
+report any remaining dirty or unpushed files. A blocked push does not undo a
+confirmed application. Emit the inbox report after this persistence result.
