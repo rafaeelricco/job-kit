@@ -140,6 +140,7 @@ if wanted lint; then
   banner "lint — distribution and skill-document integrity"
   status=0
   discover 'test_packaging.py' || status=1
+  discover 'test_release.py' || status=1
   discover 'test_prose.py' || status=1
   record lint "${status}"
 fi
