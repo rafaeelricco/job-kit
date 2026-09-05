@@ -9,6 +9,9 @@ on:
       - "tests/**"
       - ".gitattributes"
       - "LICENSE"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pyrightconfig.json"
       - ".github/workflows/test.yml"
       - ".github/workflows/release.yml"
   pull_request:
@@ -18,11 +21,42 @@ on:
       - "tests/**"
       - ".gitattributes"
       - "LICENSE"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pyrightconfig.json"
       - ".github/workflows/test.yml"
       - ".github/workflows/release.yml"
   workflow_call:
+    inputs:
+      ref:
+        description: Exact commit to verify
+        required: false
+        type: string
 
 jobs:
+  release_types:
+    runs-on: ubuntu-latest
+    name: Release automation types
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.33.0"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install development dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check release automation types
+        run: pnpm typecheck:release
+
   pipeline:
     runs-on: ubuntu-latest
     strategy:
@@ -34,6 +68,8 @@ jobs:
     name: Python ${{ matrix.python-version }} test suite
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/setup-python@v5
         with:
@@ -50,6 +86,8 @@ jobs:
     name: Shell script syntax
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Validate shell script syntax
         run: |
@@ -69,6 +107,8 @@ jobs:
     name: Release installers (${{ matrix.os }})
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/setup-python@v5
         with:

@@ -1,52 +1,67 @@
 name: Release
 
 on:
-  push:
-    tags: ["v*"]
+  pull_request_target:
+    branches: [main]
+    types: [closed]
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: job-kit-release
   cancel-in-progress: false
+  queue: max
 
 jobs:
-  verify:
-    uses: ./.github/workflows/test.yml
-
-  publish:
-    needs: verify
+  admission:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      proceed: ${{ steps.admit.outputs.proceed }}
+      merge_sha: ${{ steps.admit.outputs.merge_sha }}
+      bump: ${{ steps.admit.outputs.bump }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Validate the release tag and package runtime files
-        run: python3 scripts/package_release.py --version "$GITHUB_REF_NAME" --output dist
-
-      - name: Upload assets to a draft and publish the release
+      - id: admit
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          tag="$GITHUB_REF_NAME"
-          if release=$(gh release view "$tag" --json isDraft); then
-            if [ "$(printf '%s' "$release" | python3 -c 'import json,sys; print(json.load(sys.stdin)["isDraft"])')" != "True" ]; then
-              echo "Release $tag is already published; refusing to overwrite it." >&2
-              exit 1
-            fi
-          else
-            gh release create "$tag" --verify-tag --draft --generate-notes --title "$tag"
-          fi
-          gh release upload "$tag" --clobber \
-            "dist/job-kit-$tag.tar.gz" \
-            "dist/job-kit-$tag.zip" \
-            dist/VERSION \
-            dist/SHA256SUMS
-          gh release edit "$tag" --draft=false --latest
+          RELEASE_SKIP_THROUGH_RUN: ${{ vars.RELEASE_SKIP_THROUGH_RUN || '0' }}
+        run: python3 scripts/auto_release.py admit
+
+  verify:
+    needs: admission
+    if: needs.admission.outputs.proceed == 'true'
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ needs.admission.outputs.merge_sha }}
+
+  publish:
+    needs: [admission, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.admission.outputs.merge_sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Publish the verified merged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.admission.outputs.merge_sha }}
+          RELEASE_BUMP: ${{ needs.admission.outputs.bump }}
+        run: python3 scripts/auto_release.py publish --output dist

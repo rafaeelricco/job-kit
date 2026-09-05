@@ -1,0 +1,5 @@
+{
+  "include": ["scripts/auto_release.py"],
+  "pythonVersion": "3.9",
+  "typeCheckingMode": "strict"
+}

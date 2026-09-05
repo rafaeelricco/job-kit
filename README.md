@@ -162,12 +162,30 @@ Re-run the installer to refresh Aside copies.
 
 ## Releases
 
-Push a stable tag such as `v1.0.0` to run the full test suite and native installer
-checks on Linux, macOS, and Windows. After verification, CI creates a draft
-GitHub Release, uploads the runtime TAR and ZIP archives, `VERSION`, and
-`SHA256SUMS`, then publishes it with generated release notes. Published assets
-are never overwritten. A failed upload leaves a draft that can be recovered by
-rerunning the workflow.
+Merge a PR into `main` to start a release. Every merged PR, including documentation
+changes, runs the full test suite and native installer checks on Linux, macOS,
+and Windows before publication. Direct pushes and tag pushes do not publish
+releases.
+
+Versions increment automatically: patch by default, `release:minor` for a minor
+bump, and `release:major` for a major bump. Major wins when both labels are present.
+Create these optional repository labels before using them. When no stable tags
+exist, the first automatic release is `v1.0.0`.
+
+After verification, CI tags the tested commit, creates a draft GitHub Release,
+uploads the runtime TAR and ZIP archives, `VERSION`, and `SHA256SUMS`, then
+publishes it with generated release notes. Published assets are never overwritten.
+A failed upload leaves a draft that can be recovered by rerunning the workflow.
+
+A failed release blocks later release runs. Rerun the failed workflow after
+repairing the problem, then rerun blocked workflows in ascending run-number order.
+Reruns retain their original commit and reuse any reserved release version.
+
+If an old commit cannot be released, explicitly abandon it by setting the
+repository Actions variable `RELEASE_SKIP_THROUGH_RUN` to its Release workflow run
+number, not its run ID. This skips that run and all earlier runs; it does not
+publish them or bypass tests for subsequent releases. Existing tags and drafts
+are not deleted.
 
 To inspect a package locally:
 
@@ -178,11 +196,6 @@ python3 scripts/package_release.py --version v1.0.0 --output /tmp/job-kit-releas
 Both archives contain the same `job-kit/` tree. Packaging requires Python 3 and
 Git; downloading and installing a release does not. Skill helpers keep their
 existing runtime requirements.
-
-For the first release, tag and publish `v1.0.0` from the reviewed implementation
-commit before merging the new bootstrap installers into `main`. The public
-`r1cco.com` installer URLs redirect to `main`, so the assets must be available
-before that switch.
 
 ## License
 
