@@ -197,7 +197,9 @@ function Move-Item {
   }
   Microsoft.PowerShell.Management\Move-Item -LiteralPath $LiteralPath -Destination $Destination -Force:$Force
 }
+$global:LASTEXITCODE = 0
 & $env:RELEASE_TEST_INSTALLER @args
+exit $LASTEXITCODE
 '''
 
 
@@ -249,6 +251,10 @@ class InstallFixture:
                 env["MSYS"] = "winsymlinks:nativestrict"
             command = [self.executable, shell_path(installer, self.kind), *args]
         else:
+            # Let each PowerShell edition build its own module search path.
+            # CI launches Python from pwsh; inheriting that path breaks 5.1.
+            env = {key: value for key, value in env.items()
+                   if key.upper() != "PSMODULEPATH"}
             env["RELEASE_TEST_INSTALLER"] = str(installer)
             command = [self.executable, "-NoLogo", "-NoProfile", "-NonInteractive",
                        "-ExecutionPolicy", "Bypass", "-File", str(self.wrapper), *args]
