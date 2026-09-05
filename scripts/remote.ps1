@@ -78,6 +78,7 @@ $script:KitOwnershipFiles = @(
 $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'scripts\common.sh',
   'scripts\browser-use\install.sh',
+  'skill\job-captcha-solver\SKILL.md',
   'skill\job-apply\SKILL.md',
   'skill\job-prep\SKILL.md',
   'skill\job-resume-refine\SKILL.md',
