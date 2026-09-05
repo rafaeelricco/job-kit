@@ -113,14 +113,15 @@ exit /b 97
         env["PATH"] = str(self.bin) + os.pathsep + os.environ.get("PATH", "")
         env["PYTHONDONTWRITEBYTECODE"] = "1"
         suffix = ".sh" if self.kind == "bash" else ".ps1"
-        script = self.kit / "scripts" / (entrypoint + suffix)
+        script = self.kit / "scripts" / (entrypoint + suffix) if entrypoint is not None else None
         if self.kind == "bash":
             if os.name == "nt":
                 env["MSYS"] = "winsymlinks:nativestrict"
             command = [self.executable, shell_path(script, self.kind), *args]
         else:
             command = [self.executable, "-NoLogo", "-NoProfile", "-NonInteractive",
-                       "-ExecutionPolicy", "Bypass", "-File", str(script), *args]
+                       "-ExecutionPolicy", "Bypass"]
+            command += ["-Command", "exit 0"] if script is None else ["-File", str(script), *args]
         return subprocess.run(command, cwd=self.root, env=env, input="",
                               capture_output=True, text=True, encoding="utf-8",
                               errors="replace", timeout=90)
@@ -156,6 +157,9 @@ class BrowserChannelTests(unittest.TestCase):
 
     def test_dry_runs_select_solver_only_for_browser(self):
         def scenario(f):
+            if f.kind != "bash":
+                # PowerShell initializes its user directories on first launch.
+                self.success(f.run(None))
             before = sorted(str(path.relative_to(f.root)) for path in f.root.rglob("*"))
             browser = f.run("browser-use/install", "--dry-run")
             agents = f.run("agents/install", "--dry-run")
