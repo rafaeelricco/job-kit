@@ -289,7 +289,8 @@ class ReleaseArchiveTests(unittest.TestCase):
         self.assertEqual(files["job-kit/VERSION"], b"v1.0.0\n")
         self.assertEqual(assets["VERSION"], b"v1.0.0\n")
         self.assertIn("job-kit/LICENSE", files)
-        self.assertEqual(sum(name.endswith("/SKILL.md") for name in files), 14)
+        self.assertEqual(sum(name.endswith("/SKILL.md") for name in files), 15)
+        self.assertIn("job-kit/skill/job-captcha-solver/SKILL.md", files)
         for installer in INSTALLERS:
             for name in required_files(installer.path):
                 self.assertIn("job-kit/" + name, files)
