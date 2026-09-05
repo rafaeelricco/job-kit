@@ -3,7 +3,17 @@ name: CI
 on:
   push:
     branches: ["**"]
+    paths:
+      - "skill/**"
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/test.yml"
   pull_request:
+    paths:
+      - "skill/**"
+      - "scripts/**"
+      - "tests/**"
+      - ".github/workflows/test.yml"
 
 jobs:
   pipeline:
