@@ -20,6 +20,7 @@ REPO: Path = Path(__file__).resolve().parents[1]
 SKILL: Path = REPO / "skill"
 MATCH: Path = SKILL / "job-match" / "scripts"
 REFINE: Path = SKILL / "job-resume-refine" / "scripts"
+STORE: Path = SKILL / "job-store" / "scripts"
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ TARGETS: Tuple[Target, ...] = (
     Target(MATCH / "scaffold_guidance.py", MATCH),
     Target(MATCH / "validate_guidance.py", MATCH),
     Target(REFINE / "check_parse.py", REFINE),
+    Target(STORE / "normalize_url.py", STORE),
 )
 
 
