@@ -14,6 +14,7 @@ through a copied regex, so a rewrite of either matcher shows up here.
 """
 
 import unittest
+import re
 from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Dict, FrozenSet, Mapping, Optional, Sequence, Tuple, get_args
@@ -28,6 +29,7 @@ score = harness.load(harness.MATCH / "score.py")
 scaffold_guidance = harness.load(harness.MATCH / "scaffold_guidance.py")
 validate_guidance = harness.load(harness.MATCH / "validate_guidance.py")
 check_parse = harness.load(harness.REFINE / "check_parse.py")
+normalize_url = harness.load(harness.STORE / "normalize_url.py")
 
 CONTRACT_MATCH: Path = (
     harness.MATCH.parent / "references" / "contracts" / "contract-match.md"
@@ -50,6 +52,12 @@ CONTRACT_SCREENING: Path = (
 )
 SCHEMA_DOSSIER: Path = (
     harness.SKILL / "job-store" / "references" / "schemas" / "schema-dossier.md"
+)
+FLOW_GATE: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-gate.md"
+)
+FLOW_SEARCH: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
 )
 
 
@@ -692,6 +700,34 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("immediately before posting, re-read the dossier", apply)
         self.assertIn("digest `review` never qualify", apply)
         self.assertIn("omit pending dossiers", prep)
+
+
+class JobScoutStoreInstructionTests(unittest.TestCase):
+    def test_gate_reapplies_date_after_extract(self):
+        gate = instruction_text(FLOW_GATE)
+        self.assertIn("drop a `jd_date` older than the kit `date_posted` window", gate)
+        self.assertIn("blank is not a drop", gate)
+
+    def test_zero_keep_runs_are_a_named_defect(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`zero_result_runs` = runs that kept no card", search)
+        self.assertIn("→ `defect: zero_results`", search)
+        self.assertNotIn("empty and clean is `pass`", search)
+
+    def test_normalizer_is_the_shipped_script(self):
+        section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
+        self.assertIn("run `./scripts/normalize_url.py`", section)
+        self.assertIn("never by hand", section)
+        self.assertIn("`hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}`", section)
+
+    def test_tracker_keys_match_prose(self):
+        section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
+        rule = section.partition("3. drop tracker query keys")[2].partition("(case-insensitive)")[0]
+        prose = frozenset(re.findall(r"`([^`]+)`", rule))
+        script = frozenset(prefix + "*" for prefix in normalize_url.TRACKER_PREFIXES) | frozenset(
+            key.lower() for key in normalize_url.TRACKER_KEYS
+        )
+        self.assertEqual(prose, script)
 
 
 if __name__ == "__main__":
