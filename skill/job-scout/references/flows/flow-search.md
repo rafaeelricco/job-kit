@@ -52,7 +52,8 @@ Every pack prints `### Candidates` then `### Defect log`:
 `company | title | url | source | channel | author | contact | date | matched_query`
 
 `pack | formulations_run | zero_result_runs | verdict`
-`verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. Empty and clean is `pass`.
+`zero_result_runs` = runs that kept no card; a run is one formulation, per named location under `listed`. Every run zero-keep, or every run for one named location zero-keep → `defect: zero_results`.
+`verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`.
 
 ## 2 Merge
 
