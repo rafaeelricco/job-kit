@@ -9,7 +9,8 @@ Load-path only. No verb, no Profile-root probe, no glob, no view.
 
 Caller already resolved Profile root. This skill does not print `Profile root:` or `Store:`.
 
-Skill-local files: `./references/**` only.
+Skill-local files: `./references/**` and `./scripts/*.py` only. Resolve both
+against the directory containing this loaded `SKILL.md`, never the caller's CWD.
 
 Read now, in order:
 

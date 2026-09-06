@@ -1,0 +1,17 @@
+{
+  "script": "skill/job-store/scripts/normalize_url.py",
+  "argv": [],
+  "stdin": {
+    "urls": [
+      "https://hiringcafe.com/job/senior-software-engineer-python-coforge-brazil-6vby83d1s9bapqd1",
+      "https://www.linkedin.com/jobs/view/4123456789/?trackingId=x"
+    ]
+  },
+  "exit": 0,
+  "stdout": {
+    "urls": [
+      "https://hiringcafe.com/job/6vby83d1s9bapqd1",
+      "https://www.linkedin.com/jobs/view/4123456789"
+    ]
+  }
+}

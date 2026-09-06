@@ -17,12 +17,12 @@ Date is a label, never a key. Re-run lookup is by frontmatter `url` across the d
 
 ## URL normalize
 
-Identity is this normalized URL (search emit, merge, persist, apply, resume):
+Identity is this normalized URL (search emit, merge, persist, apply, resume). Run `./scripts/normalize_url.py` from the job-store skill root — launcher as job-match's score node: `python3`; on Windows `py -3`; else `python` when its major version is 3 — with `{"urls": [...]}` on stdin; it prints `{"urls": [...]}` in the same order, or `{"normalize_error": …}` with exit 1. Never by hand. Its rules:
 
-1. Lowercase host; strip trailing slash on path (except root).
+1. Lowercase scheme and host; keep path case; strip trailing slashes (root stays `/`).
 2. Drop fragment (`#…`).
-3. Drop query keys matching: `utm_*`, `li_*`, `ref`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId` (and similar trackers) when path alone is unique.
-4. Keep path. Keep job-id query keys only when path alone is non-unique.
+3. Drop tracker query keys `utm_*`, `li_*`, `ref`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId`, `gclid`, `fbclid`, `gh_src` (case-insensitive); keep every other key, sorted by key — a job id in the query survives.
+4. Collapse a board slug beside an opaque id: `hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}` (16 `[a-z0-9]`). The board rewrites the slug (title, company, place); the id it does not.
 5. One row per normalized URL.
 
 ## File format
