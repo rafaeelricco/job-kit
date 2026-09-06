@@ -711,6 +711,9 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)
         self.assertIn("`zero_result_runs` = runs that kept no card", search)
+        self.assertIn("a routed run is one expanded formulation, with location applied only as a keep filter", search)
+        self.assertIn("a dom run is one expanded formulation, per named location under `listed`, or once under `worldwide`", search)
+        self.assertIn("for dom runs under `listed`, every run for one named location zero-keep", search)
         self.assertIn("→ `defect: zero_results`", search)
         self.assertNotIn("empty and clean is `pass`", search)
 

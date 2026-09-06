@@ -52,7 +52,7 @@ Every pack prints `### Candidates` then `### Defect log`:
 `company | title | url | source | channel | author | contact | date | matched_query`
 
 `pack | formulations_run | zero_result_runs | verdict`
-`zero_result_runs` = runs that kept no card; a run is one formulation, per named location under `listed`. Every run zero-keep, or every run for one named location zero-keep → `defect: zero_results`.
+`zero_result_runs` = runs that kept no card. A routed run is one expanded formulation, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide`. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`.
 `verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`.
 
 ## 2 Merge
