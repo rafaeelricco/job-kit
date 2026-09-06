@@ -21,7 +21,7 @@ Identity is this normalized URL (search emit, merge, persist, apply, resume). Ru
 
 1. Lowercase scheme and host; keep path case; strip trailing slashes (root stays `/`).
 2. Drop fragment (`#…`).
-3. Drop tracker query keys `utm_*`, `li_*`, `ref`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId`, `gclid`, `fbclid`, `gh_src` (case-insensitive); keep every other key, sorted by key — a job id in the query survives.
+3. Drop tracker query keys `utm_*`, `li_*`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId`, `gclid`, `fbclid`, `gh_src` (case-insensitive); keep every other key, including `ref`, sorted by key while preserving the order of values with the same key — a job id in the query survives.
 4. Collapse a board slug beside an opaque id: `hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}` (16 `[a-z0-9]`). The board rewrites the slug (title, company, place); the id it does not.
 5. One row per normalized URL.
 

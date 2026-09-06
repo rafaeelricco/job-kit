@@ -17,7 +17,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 TRACKER_PREFIXES: Tuple[str, ...] = ("utm_", "li_")
 TRACKER_KEYS: Tuple[str, ...] = (
-    "ref", "trk", "trackingId", "trkInfo", "originalSubdomain", "eBP",
+    "trk", "trackingId", "trkInfo", "originalSubdomain", "eBP",
     "position", "pageNum", "refId", "gclid", "fbclid", "gh_src",
 )
 _TRACKERS = frozenset(key.lower() for key in TRACKER_KEYS)
@@ -46,13 +46,15 @@ def normalize(raw: str) -> str:
     host = (parts.hostname or "").lower()
     if scheme not in ("http", "https") or not host:
         raise ValueError("not an http(s) url: {0!r}".format(raw))
-    netloc = host if parts.port is None else "{0}:{1}".format(host, parts.port)
+    authority_host = "[{0}]".format(host) if ":" in host else host
+    netloc = authority_host if parts.port is None else "{0}:{1}".format(authority_host, parts.port)
     path = collapse_path(host, parts.path.rstrip("/") or "/")
-    pairs = sorted(
+    pairs = [
         (key, value)
         for key, value in parse_qsl(parts.query, keep_blank_values=True)
         if not is_tracker(key)
-    )
+    ]
+    pairs.sort(key=lambda pair: pair[0])
     return urlunsplit((scheme, netloc, path, urlencode(pairs), ""))
 
 

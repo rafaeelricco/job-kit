@@ -20,7 +20,12 @@ CASES = (
     # trailing slash and LinkedIn trackers
     ("https://www.linkedin.com/jobs/view/4123456789/", "https://www.linkedin.com/jobs/view/4123456789"),
     ("https://www.linkedin.com/jobs/view/4123456789/?refId=a&trackingId=b&position=1&pageNum=0", "https://www.linkedin.com/jobs/view/4123456789"),
-    ("https://jobs.lever.co/acme/0f1e2d3c?utm_source=x&li_fat_id=y&ref=z", "https://jobs.lever.co/acme/0f1e2d3c"),
+    ("https://jobs.lever.co/acme/0f1e2d3c?utm_source=x&li_fat_id=y&ref=z", "https://jobs.lever.co/acme/0f1e2d3c?ref=z"),
+    ("https://example.test/job?ref=101", "https://example.test/job?ref=101"),
+    ("https://example.test/job?ref=102", "https://example.test/job?ref=102"),
+    ("https://[2001:db8::1]/jobs/7", "https://[2001:db8::1]/jobs/7"),
+    ("https://[2001:db8::1]:8443/jobs/7", "https://[2001:db8::1]:8443/jobs/7"),
+    ("https://example.test/job?b=x&id=2&a=y&id=1", "https://example.test/job?a=y&b=x&id=2&id=1"),
     ("https://boards.greenhouse.io/acme/jobs/123?gh_src=abc&b=2&a=1", "https://boards.greenhouse.io/acme/jobs/123?a=1&b=2"),
     # host lowercased, path case kept (ashby company slug, gem base64 id)
     ("HTTPS://Jobs.AshbyHQ.com/Stepful/6a1b-uuid", "https://jobs.ashbyhq.com/Stepful/6a1b-uuid"),
