@@ -715,6 +715,8 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("a dom run is one expanded formulation, per named location under `listed`, or once under `worldwide`", search)
         self.assertIn("for dom runs under `listed`, every run for one named location zero-keep", search)
         self.assertIn("→ `defect: zero_results`", search)
+        self.assertIn("a pack with `location: keep-only` runs under `listed` as under `worldwide`", search)
+        self.assertIn("a `location: keep-only` pack has no per-location runs", search)
         self.assertNotIn("empty and clean is `pass`", search)
 
     def test_normalizer_is_the_shipped_script(self):

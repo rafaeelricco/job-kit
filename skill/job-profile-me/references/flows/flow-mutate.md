@@ -72,14 +72,15 @@ that is `refresh-card`.
 - `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥1 formulation
   from the user. `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or
   another); scout opens `entry`, it does not load a playbook file. `entry` is one
-  `http(s)` URL. Accept optional `route_required` and `route` only when supplied
-  by the user. A board is a pack, never a row inside one.
+  `http(s)` URL. Accept optional `route_required`, `route`, and `location` only
+  when supplied by the user. A board is a pack, never a row inside one.
 
 Route invariant: `route_required`, when present, is boolean. A present route is
 a mapping with `kind: json`, a `url` containing `{formulation}` and `{page}`, and
 non-empty `pages`, `items`, and `posting_url` strings. An enabled pack
 (`enabled` absent or true) with `route_required: true` must have that complete
 route. A disabled required pack may omit it. Never hardcode board ids.
+`location`, when present, is `keep-only`; any other value fails validation.
 
 ## `cvs.yaml` — writable keys
 

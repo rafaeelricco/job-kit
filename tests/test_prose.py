@@ -582,6 +582,7 @@ class SearchPackRouteTests(unittest.TestCase):
             "{formulation}",
             "{page}",
             "keep gate",
+            "location: keep-only",
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(
@@ -612,6 +613,15 @@ class SearchPackRouteTests(unittest.TestCase):
                         defect,
                         "enabled pack {0} at {1} {2}".format(
                             pack.identifier, pack.where, defect
+                        ),
+                    )
+                location = pack.value(4, "location")
+                if location is not None:
+                    self.assertEqual(
+                        location,
+                        "keep-only",
+                        "{0} at {1} writes an unknown `location: {2}`".format(
+                            pack.identifier, pack.where, location
                         ),
                     )
 
@@ -667,17 +677,18 @@ class SearchPackRouteTests(unittest.TestCase):
                     "`defect: route_failed`",
                     "`defect: list_truncated`",
                     "— no others",
+                    "`location: keep-only`",
                 ),
             ),
             (
                 "job-profile-me/references/flows/flow-show.md",
                 show,
-                ("Route status, first match", "route=json"),
+                ("Route status, first match", "route=json", "location=keep-only"),
             ),
             (
                 "job-profile-me/references/flows/flow-mutate.md",
                 mutate,
-                ("Route invariant",),
+                ("Route invariant", "`location`, when present, is `keep-only`"),
             ),
         )
         for source, text, phrases in pinned:
