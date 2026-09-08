@@ -66,6 +66,11 @@ cancels that retry exception.
 A selected dossier whose `status:` is not `new` → print
 `Already {status} per scout/jobs/{filename}` and continue; it never blocks.
 
+Two readable `scout/jobs/` dossiers whose stored `url` values normalize equal
+(schema-dossier rule 6), one of them selected → stop that posting and name
+both files; no invocation form proceeds, `--yolo` included. Identity is one row
+per normalized `url`; repair the store before applying.
+
 Global duplicate guard: for every selector, drop any for which another
 readable `scout/jobs/` dossier has a different normalized `url`, the same
 `company` and `title` slug (schema-dossier "Filename" slug rule on the

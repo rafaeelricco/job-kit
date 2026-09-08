@@ -698,6 +698,7 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         prep = instruction_text(FLOW_PREP)
         self.assertIn("\nGlobal pending guard: for every selector", raw)
         self.assertIn("\nGlobal duplicate guard: for every selector", raw)
+        self.assertIn("whose stored `url` values normalize equal", apply)
         self.assertIn("§1's global duplicate guard", raw)
         self.assertIn("\nDuplicate guard, every queue path:", harness.read(FLOW_PREP))
         self.assertEqual(apply.count("`submit unconfirmed` line from `job-apply` with no later `applied via` line"), 2)
