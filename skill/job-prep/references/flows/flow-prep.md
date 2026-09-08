@@ -49,6 +49,15 @@ Sort by `first_seen` ascending, then filename; take the first N.
 
 `{slug}` is the dossier filename minus `.md`, never rebuilt from company and title.
 
+Duplicate guard, every queue path: a queued dossier is a `Skipped` outcome with
+reason `possible duplicate of scout/jobs/{other}` when another readable
+`scout/jobs/` dossier has a different normalized `url`, the same `company` and
+`title` slug (schema-dossier "Filename" slug rule applied to the frontmatter
+values), and `status:` `applied`, `interview`, or `offer`. No `plan.json` is
+written; the `next:` row says to apply from the other dossier or set this one
+`dropped`. Same slug with `status: new` on both is not a duplicate. This is the
+only company+title comparison in the kit; identity stays the normalized `url`.
+
 Print only the run metadata `Browser: <driver>` (the same bar as
 `job-apply/references/flows/flow-apply.md` §1: it must open a page and read a form)
 and `Prep queue: {n}`. A `--from-match` queue slot is one capped linked URL,
