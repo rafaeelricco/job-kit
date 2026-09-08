@@ -159,8 +159,10 @@ Put an explicit `next:` action on every row. Prepared → normal
 skips; External blockers → print the package path and use normal
 `/job-apply {slug}.md`, which clears the wall in §5 or skips; Dead → `none`;
 Skipped → fix the named reason and rerun
-`/job-prep {slug}.md`. A selection skip with no dossier instead says to fix the
-URL-to-dossier mapping and rerun `--from-match`.
+`/job-prep {slug}.md`, except a `possible duplicate` skip, whose `next:` is
+`/job-apply {other}.md` or set this dossier `dropped` — never a rerun. A
+selection skip with no dossier instead says to fix the URL-to-dossier mapping
+and rerun `--from-match`.
 
 ## Digest
 

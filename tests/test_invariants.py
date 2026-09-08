@@ -706,6 +706,7 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("immediately before posting, re-read the dossier", apply)
         self.assertIn("digest `review` never qualify", apply)
         self.assertIn("omit pending dossiers", prep)
+        self.assertIn("except a `possible duplicate` skip", prep)
 
 
 class JobScoutStoreInstructionTests(unittest.TestCase):
