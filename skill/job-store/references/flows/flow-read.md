@@ -63,7 +63,7 @@ write is in flight. Skip them silently: neither a dossier nor a defect.
 
 ## Identity
 
-Join and re-find on normalized `url` only — the filename is not an id. A dossier is
+Join and re-find on normalized `url` only, normalizing the stored value too (schema-dossier rule 6) — the filename is not an id. A dossier is
 named `{first_seen}-{company}--{title}.md`; the date is the day it was created, so
 it does not track `last_seen`, and a `-2` suffix means two dossiers share one base,
 told apart only by `url`. `uncertain` rows and `dead` rows never seen live have no

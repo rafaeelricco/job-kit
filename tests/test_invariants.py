@@ -724,6 +724,7 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("run `./scripts/normalize_url.py`", section)
         self.assertIn("never by hand", section)
         self.assertIn("`hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}`", section)
+        self.assertIn("compare normalized to normalized", section)
 
     def test_tracker_keys_match_prose(self):
         section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
