@@ -167,8 +167,9 @@ and rerun `--from-match`.
 ## Digest
 
 `--digest` opens no browser and writes nothing. Omit pending dossiers per
-`job-apply/references/flows/flow-apply.md` §1's global pending guard;
-never modify or delete their plans. Glob
+`job-apply/references/flows/flow-apply.md` §1's global pending guard, and
+dossiers §1's duplicate guard above would skip; never modify or delete their
+plans. Glob
 `scout/applications/*/plan.json`; keep every valid current plan whose `cv` bytes
 still hash to `cv_sha256` and whose `scout/jobs/{slug}.md` reads with frontmatter
 `status: new` and no dead-by-log posting-state line per
