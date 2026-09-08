@@ -700,6 +700,8 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         self.assertIn("\nGlobal duplicate guard: for every selector", raw)
         self.assertIn("§1's global duplicate guard", raw)
         self.assertIn("\nDuplicate guard, every queue path:", harness.read(FLOW_PREP))
+        self.assertEqual(apply.count("`submit unconfirmed` line from `job-apply` with no later `applied via` line"), 2)
+        self.assertIn("`submit unconfirmed` line from `job-apply` with no later `applied via` line", prep)
         self.assertIn("immediately before posting, re-read the dossier", apply)
         self.assertIn("digest `review` never qualify", apply)
         self.assertIn("omit pending dossiers", prep)

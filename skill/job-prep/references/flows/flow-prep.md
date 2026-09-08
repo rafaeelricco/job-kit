@@ -53,9 +53,11 @@ Duplicate guard, every queue path: a queued dossier is a `Skipped` outcome with
 reason `possible duplicate of scout/jobs/{other}` when another readable
 `scout/jobs/` dossier has a different normalized `url`, the same `company` and
 `title` slug (schema-dossier "Filename" slug rule applied to the frontmatter
-values), and `status:` `applied`, `interview`, or `offer`. No `plan.json` is
-written; the `next:` row says to apply from the other dossier or set this one
-`dropped`. Same slug with `status: new` on both is not a duplicate. This is the
+values), and either `status:` `applied`, `interview`, or `offer`, or a log
+carrying a top-level `submit unconfirmed` line from `job-apply` with no later
+`applied via` line. No `plan.json` is written; the `next:` row says to apply
+from the other dossier or set this one `dropped`. Same slug with `status: new`
+on both is not a duplicate unless the other carries that pending line. This is the
 only company+title comparison in the kit; identity stays the normalized `url`.
 
 Print only the run metadata `Browser: <driver>` (the same bar as
