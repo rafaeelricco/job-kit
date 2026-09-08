@@ -6,7 +6,7 @@ Interpolate `[role]` from positions (file order), `[industry]` from the card.
 Drop an empty leftover token. Build every formulation × position before opening
 a surface.
 
-`worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query.
+`worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query. A pack with `location: keep-only` runs under `listed` as under `worldwide`: each formulation once, location control unset, named `locations` applied at keep and gate only. Never infer keep-only from the surface; only the pack declares it. Any other present `location` value records `defect: query_not_submitted` and scans nothing, as an incomplete route does.
 
 When a pack has `route`, consume it before any DOM search. Routed packs run once
 per expanded formulation; location remains a keep filter instead of repeating
@@ -35,7 +35,7 @@ index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
 instead; an `entry` with a path opens directly.
 
 Surface filter controls matching Constraints `date_posted`, `work_model`,
-`job_types`, and location — no others → set them before scanning. Paginate until
+`job_types`, and location (location omitted on a `location: keep-only` pack) — no others → set them before scanning. Paginate until
 no next page or a page adds no new result URL, capped at five pages per
 formulation run. A zero-keep page is not a stop. Cap hit →
 `defect: list_truncated`.
@@ -52,7 +52,7 @@ Every pack prints `### Candidates` then `### Defect log`:
 `company | title | url | source | channel | author | contact | date | matched_query`
 
 `pack | formulations_run | zero_result_runs | verdict`
-`zero_result_runs` = runs that kept no card. A routed run is one expanded formulation, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide`. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`.
+`zero_result_runs` = runs that kept no card. A routed run is one expanded formulation, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide` or on a `location: keep-only` pack. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`; a `location: keep-only` pack has no per-location runs.
 `verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`.
 
 ## 2 Merge

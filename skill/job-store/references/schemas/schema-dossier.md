@@ -11,9 +11,9 @@ Main writes; a spawned search/extract subagent never does.
 `{first_seen}-{company}--{title}.md`. ISO day of create; **never** rewrite the date.
 
 Slug: lowercased; runs of non-alphanumerics → one `-`; trimmed.
-Name taken by a file whose `url` differs → append `-2`, `-3`.
+Name taken by a file whose normalized `url` differs → append `-2`, `-3`.
 
-Date is a label, never a key. Re-run lookup is by frontmatter `url` across the directory — same job re-found lands on the file it already owns.
+Date is a label, never a key. Re-run lookup is by normalized frontmatter `url` across the directory (rule 6 below) — same job re-found lands on the file it already owns.
 
 ## URL normalize
 
@@ -24,6 +24,7 @@ Identity is this normalized URL (search emit, merge, persist, apply, resume). Ru
 3. Drop tracker query keys `utm_*`, `li_*`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId`, `gclid`, `fbclid`, `gh_src` (case-insensitive); keep every other key, including `ref`, sorted by key while preserving the order of values with the same key — a job id in the query survives.
 4. Collapse a board slug beside an opaque id: `hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}` (16 `[a-z0-9]`). The board rewrites the slug (title, company, place); the id it does not.
 5. One row per normalized URL.
+6. Compare normalized to normalized: every stored `url` passes through the script before any match, so a dossier written before a rule landed still re-finds. The script is idempotent; a stored value already normalized is unchanged.
 
 ## File format
 

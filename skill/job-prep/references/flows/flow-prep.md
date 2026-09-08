@@ -49,6 +49,17 @@ Sort by `first_seen` ascending, then filename; take the first N.
 
 `{slug}` is the dossier filename minus `.md`, never rebuilt from company and title.
 
+Duplicate guard, every queue path: a queued dossier is a `Skipped` outcome with
+reason `possible duplicate of scout/jobs/{other}` when another readable
+`scout/jobs/` dossier has a different normalized `url`, the same `company` and
+`title` slug (schema-dossier "Filename" slug rule applied to the frontmatter
+values), and either `status:` `applied`, `interview`, or `offer`, or a log
+carrying a top-level `submit unconfirmed` line from `job-apply` with no later
+`applied via` line. No `plan.json` is written; the `next:` row says to apply
+from the other dossier or set this one `dropped`. Same slug with `status: new`
+on both is not a duplicate unless the other carries that pending line. This is the
+only company+title comparison in the kit; identity stays the normalized `url`.
+
 Print only the run metadata `Browser: <driver>` (the same bar as
 `job-apply/references/flows/flow-apply.md` §1: it must open a page and read a form)
 and `Prep queue: {n}`. A `--from-match` queue slot is one capped linked URL,
@@ -148,14 +159,17 @@ Put an explicit `next:` action on every row. Prepared → normal
 skips; External blockers → print the package path and use normal
 `/job-apply {slug}.md`, which clears the wall in §5 or skips; Dead → `none`;
 Skipped → fix the named reason and rerun
-`/job-prep {slug}.md`. A selection skip with no dossier instead says to fix the
-URL-to-dossier mapping and rerun `--from-match`.
+`/job-prep {slug}.md`, except a `possible duplicate` skip, whose `next:` is
+`/job-apply {other}.md` or set this dossier `dropped` — never a rerun. A
+selection skip with no dossier instead says to fix the URL-to-dossier mapping
+and rerun `--from-match`.
 
 ## Digest
 
 `--digest` opens no browser and writes nothing. Omit pending dossiers per
-`job-apply/references/flows/flow-apply.md` §1's global pending guard;
-never modify or delete their plans. Glob
+`job-apply/references/flows/flow-apply.md` §1's global pending guard, and
+dossiers §1's duplicate guard above would skip; never modify or delete their
+plans. Glob
 `scout/applications/*/plan.json`; keep every valid current plan whose `cv` bytes
 still hash to `cv_sha256` and whose `scout/jobs/{slug}.md` reads with frontmatter
 `status: new` and no dead-by-log posting-state line per

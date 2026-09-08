@@ -697,9 +697,17 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         apply = instruction_text(FLOW_APPLY)
         prep = instruction_text(FLOW_PREP)
         self.assertIn("\nGlobal pending guard: for every selector", raw)
+        self.assertIn("\nGlobal duplicate guard: for every selector", raw)
+        self.assertIn("whose stored `url` values normalize equal", apply)
+        self.assertIn("§1's global duplicate guard", raw)
+        self.assertIn("\nDuplicate guard, every queue path:", harness.read(FLOW_PREP))
+        self.assertEqual(apply.count("`submit unconfirmed` line from `job-apply` with no later `applied via` line"), 2)
+        self.assertIn("`submit unconfirmed` line from `job-apply` with no later `applied via` line", prep)
         self.assertIn("immediately before posting, re-read the dossier", apply)
         self.assertIn("digest `review` never qualify", apply)
         self.assertIn("omit pending dossiers", prep)
+        self.assertIn("except a `possible duplicate` skip", prep)
+        self.assertIn("dossiers §1's duplicate guard above would skip", prep)
 
 
 class JobScoutStoreInstructionTests(unittest.TestCase):
@@ -715,6 +723,8 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("a dom run is one expanded formulation, per named location under `listed`, or once under `worldwide`", search)
         self.assertIn("for dom runs under `listed`, every run for one named location zero-keep", search)
         self.assertIn("→ `defect: zero_results`", search)
+        self.assertIn("a pack with `location: keep-only` runs under `listed` as under `worldwide`", search)
+        self.assertIn("a `location: keep-only` pack has no per-location runs", search)
         self.assertNotIn("empty and clean is `pass`", search)
 
     def test_normalizer_is_the_shipped_script(self):
@@ -722,6 +732,7 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("run `./scripts/normalize_url.py`", section)
         self.assertIn("never by hand", section)
         self.assertIn("`hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}`", section)
+        self.assertIn("compare normalized to normalized", section)
 
     def test_tracker_keys_match_prose(self):
         section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
