@@ -6,7 +6,7 @@ Interpolate `[role]` from positions (file order), `[industry]` from the card.
 Drop an empty leftover token. Build every formulation × position before opening
 a surface.
 
-`worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query. A pack with `location: keep-only` runs under `listed` as under `worldwide`: each formulation once, location control unset, named `locations` applied at keep and gate only. Never infer keep-only from the surface; only the pack declares it.
+`worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query. A pack with `location: keep-only` runs under `listed` as under `worldwide`: each formulation once, location control unset, named `locations` applied at keep and gate only. Never infer keep-only from the surface; only the pack declares it. Any other present `location` value records `defect: query_not_submitted` and scans nothing, as an incomplete route does.
 
 When a pack has `route`, consume it before any DOM search. Routed packs run once
 per expanded formulation; location remains a keep filter instead of repeating

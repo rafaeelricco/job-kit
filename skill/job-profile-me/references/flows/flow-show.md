@@ -31,8 +31,8 @@ owner; job-scout preflight derives its card and constraints from it:
   work auth · employment_routes · relocation
 
 `### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
-enabled|disabled · route=json|DOM|missing|invalid|disabled · location=surface|keep-only · tokens`.
-`location=keep-only` when the pack declares `location: keep-only`; else `location=surface`.
+enabled|disabled · route=json|DOM|missing|invalid|disabled · location=surface|keep-only|invalid · tokens`.
+`location=keep-only` when the pack declares `location: keep-only`; key absent → `location=surface`; any other present value → `location=invalid`, naming the pack.
 A complete JSON route has `kind: json`, a `url` containing `{formulation}` and
 `{page}`, and non-empty `pages`, `items`, and `posting_url` dot paths.
 Route status, first match: complete route → `route=json`; any other present

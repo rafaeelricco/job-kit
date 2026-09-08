@@ -678,12 +678,13 @@ class SearchPackRouteTests(unittest.TestCase):
                     "`defect: list_truncated`",
                     "— no others",
                     "`location: keep-only`",
+                    "other present `location` value records `defect: query_not_submitted`",
                 ),
             ),
             (
                 "job-profile-me/references/flows/flow-show.md",
                 show,
-                ("Route status, first match", "route=json", "location=keep-only"),
+                ("Route status, first match", "route=json", "location=keep-only", "location=invalid"),
             ),
             (
                 "job-profile-me/references/flows/flow-mutate.md",
