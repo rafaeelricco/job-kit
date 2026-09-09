@@ -29,7 +29,15 @@ the package prints the rule as `source`. Nothing waits for the operator.
 2. "Derived answers" below computes it → `derived`.
 3. `data/candidate.yaml` `screening_defaults` prints it (`on_call`,
    `hours_overlap`, `timezone`, `referral_source`, `consent_to_data_processing`,
-   `qa[]` as `question` / `answer` pairs matched on the label) → `data/candidate.yaml`.
+   or a `qa[]` row) → `data/candidate.yaml`. A `qa[]` row applies when its
+   `question` equals the form label after normalizing both — lowercase,
+   non-alphanumeric runs → one space, trim — and its `scope` holds: `country`
+   equals the jurisdiction the label asks about, else the posting's printed
+   hire-from country; `ats` equals the URL host family (`greenhouse`, `lever`,
+   `ashby`); `company` slug-equals frontmatter `company`; absent scope always
+   holds. Several rows hold → the one with a scope, then the latest
+   `confirmed_at`; a tie skips rule 3. A row with an empty `answer` is no
+   answer. Never adapt, paraphrase, or merge a `qa[]` answer.
 4. The field wants composed prose → author it under `./contract-prose.md` → `authored`.
 5. A required application-terms or privacy checkbox needed to process this
    application, with no answer above, also takes `Yes` → `default`.

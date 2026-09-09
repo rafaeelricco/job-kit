@@ -41,6 +41,11 @@ attempt. One line each, naming the candidate or thread and the reason.
 A reply with no dossier, or one the transition table blocked, keeps its
 `## Replies` row and gains a trailing `— {why it was not written}`.
 
+Every `rejected` row that wrote `status:` this run adds one line after
+`## Written`, so the search can learn from it:
+
+    Exclude: /job-profile-me set exclude_companies + "{company}"
+
 When `## Replies` holds no `interview` and no `offer`:
 
     Next: /job-scout

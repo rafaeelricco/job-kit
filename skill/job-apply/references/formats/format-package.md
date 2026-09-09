@@ -9,6 +9,10 @@ Submit, sections in this order. Unknown = `—`, never invented.
 
 The `{company} · {title} · {channel} · {url}` line.
 
+Then `eligibility: {confirmed | unknown} · {eligibility_evidence or —}` from
+the dossier's Posting facts as stored (absent row → `unknown · —`). An
+`incompatible` dossier never reaches a package.
+
 Then, when the posting is not the employer's own — an intermediary, an agency, a
 staffing partner, an AI screen forwarding a shortlist — one line naming who
 receives the application and what happens to it. The posting's own words decide

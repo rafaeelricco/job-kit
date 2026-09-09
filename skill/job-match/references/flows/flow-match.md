@@ -45,7 +45,7 @@ Zero → `No dossiers to match.` and end.
 
 ## filter₁
 
-Main. Contract hard filters 1–5 on Posting facts + frontmatter `title` + `state.candidate`. `--posting`: same filters on the JobProfile after extract (`title` / `location` / `work_model` / `work_auth` / `hiring_route` / `salary`). First hit → `state.blocked`. Do not score.
+Main. Contract hard filters 1–6 on Posting facts + frontmatter `company` / `title` + `state.candidate`. `--posting`: same filters on the JobProfile after extract (`title` / `location` / `work_model` / `work_auth` / `hiring_route` / `eligibility` / `salary`). First hit → `state.blocked`. Do not score.
 
 ## extract
 
@@ -53,7 +53,7 @@ Load `./references/workers/worker-extract.md`. Paste per that file, including it
 
 ## filter₂
 
-Main. Contract HF6 on JobProfile + `state.candidate`. Hit → move to `state.blocked`, drop from `state.jobs`.
+Main. Contract HF7 on JobProfile + `state.candidate`. Hit → move to `state.blocked`, drop from `state.jobs`.
 
 ## match
 

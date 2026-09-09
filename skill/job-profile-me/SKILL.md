@@ -13,14 +13,15 @@ Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 Skill-local files: `./references/**` only.
 
 Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.yaml`,
-`data/cvs.yaml`, and their `*.yaml.tmp` staging siblings during atomic rename.
+`data/cvs.yaml`, `data/candidate.yaml` (`screening_defaults.qa[]` only), and their
+`*.yaml.tmp` staging siblings during atomic rename.
 
 When the operator asks to create a profile / set one up from a CV, hand off
 `job-profile-init`, then end this skill.
 When the operator asks to find jobs / scout openings, hand off `job-scout`, then
 end this skill.
-When the operator mutates search config, packs, the profile card, or CV settings
-(`set` / `packs` / `refresh-card` / `cvs set`), or asks to change salary, notice,
+When the operator mutates search config, packs, the profile card, CV settings, or
+reusable answers (`set` / `packs` / `refresh-card` / `cvs set` / `qa`), or asks to change salary, notice,
 visa, sponsorship, EOR, Fact fields, or identity, read `./references/flows/flow-mutate.md` now.
 Otherwise read `./references/flows/flow-show.md` now.
 Load each additional reference only when that flow names it.

@@ -31,12 +31,15 @@ work_preferences_from_resume:
   open_to_relocation: ""
 
 # Read by job-apply resolution rule 3. Absent key → later rules apply.
-# qa: label-matched pairs, e.g. {question: "Why us?", answer: "..."}. Never a
-# demographic or EEO label; those are declined, not answered.
+# qa: one row per reusable answer. `question` is the form label as printed;
+# `scope` limits where it applies — {country: "Canada"} | {ats: greenhouse|lever|ashby}
+# | {company: "Acme"}; absent = global. `source` names where the answer came from;
+# `confirmed_at` is the ISO day you last checked it. A Fact file always wins over a
+# qa row. Never a demographic or EEO label; those are declined, not answered.
 screening_defaults:
   on_call: ""
   hours_overlap: ""
   timezone: ""
   referral_source: ""
   consent_to_data_processing: ""
-  qa: []
+  qa: [] # each: {question, answer, scope?, source, confirmed_at}

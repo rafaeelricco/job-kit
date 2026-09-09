@@ -36,6 +36,7 @@ Orchestrator holds this object in-session. Nodes write only their keys. Never a 
 | `constraints.locations`           | `job_search.yaml` `locations`                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `constraints.location_scope`      | `job_search.yaml` `location_scope`                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `constraints.exclude_locations`   | `job_search.yaml` `exclude_locations`                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `constraints.exclude_companies`   | `job_search.yaml` `exclude_companies`                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `constraints.market_currencies`   | `job_search.yaml` `market_currencies`                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `constraints.legal_authorization` | `candidate.yaml` `legal_authorization`                                                                                                                                                                                                                                                                                                                                                                                                |
 
@@ -53,6 +54,7 @@ Orchestrator holds this object in-session. Nodes write only their keys. Never a 
     "locations": [],
     "location_scope": "",
     "exclude_locations": [],
+    "exclude_companies": [],
     "market_currencies": [],
     "legal_authorization": {}
   }
@@ -78,6 +80,8 @@ Extractor output. Unknown → `null` or `[]`. Copy printed tokens only.
   "years_experience": null,
   "work_auth": null,
   "hiring_route": null,
+  "eligibility": null,
+  "eligibility_evidence": null,
   "required_skills": [],
   "preferred_skills": [],
   "languages_required": [],

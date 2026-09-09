@@ -6,9 +6,9 @@ Workers do not invent criteria.
 
 First match wins → blocked. Do not invent auth paths.
 
-1–5. Drop when the posting cannot hire this seeker (first match): `listed` onsite or location-restricted place that matches no named `locations` (and `Anywhere` not listed); named onsite place with no shared work_model flag; remote bound to a country the kit has no authorization for; hire-from only in `exclude_locations`; salary currencies none of which are in `market_currencies`. Blank is not a drop. Never infer authorization or currency from a company or country name. Hire-from is printed location, `work_auth`, `hiring_route`, or a title country tag — never the company's country. Against `state.candidate.constraints` + JobProfile / Posting facts.
+1–6. Drop when the posting cannot hire this seeker (first match): Posting facts `eligibility` reads `incompatible`; `listed` onsite or location-restricted place that matches no named `locations` (and `Anywhere` not listed); named onsite place with no shared work_model flag; remote bound to a country the kit has no authorization for; hire-from only in `exclude_locations`; salary currencies none of which are in `market_currencies`; company slug in `exclude_companies`. Blank is not a drop. Never infer authorization or currency from a company or country name. Hire-from is printed location, `work_auth`, `hiring_route`, `eligibility_evidence`, or a title country tag — never the company's country. Against `state.candidate.constraints` + JobProfile / Posting facts.
 
-6. Explicit language requirement `state.candidate.languages` cannot meet
+7. Explicit language requirement `state.candidate.languages` cannot meet
    (printed must-have only; blank → not a block). Compare levels only when
    posting and profile print the same scheme; cross-scheme or incomparable
    tokens → unknown, not a block.

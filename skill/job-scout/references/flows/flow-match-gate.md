@@ -18,7 +18,7 @@ Fan-out batch ~10. Per row, paste that row's Verified extract as the posting bod
 — never fetch, never open Profile root.
 
 extract → JobProfile. Malformed → Gaps, drop.
-HF6 (`contract-match.md` hard filter 6, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–5.
+HF7 (`contract-match.md` hard filter 7, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–6.
 match → MatchResult, then invoke the resolved scorer with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
 on stdin. A row carrying `score_error` → Gaps; continue with the remaining rows.

@@ -22,7 +22,7 @@ Write-set: `scout/jobs/*.md` + lock furniture per job-store `contract-persistenc
 1. Read `./references/flows/flow-preflight.md`; obey end-to-end.
 2. Read `./references/flows/flow-search.md`; obey end-to-end (includes merge).
 3. Read `./references/flows/flow-extract.md`; obey end-to-end.
-4. Read `./references/flows/flow-gate.md`; obey end-to-end.
+4. Validate every extract row with `job-store/scripts/validate_extract.py` per `./references/flows/flow-extract.md`; then read `./references/flows/flow-gate.md`; obey end-to-end.
 5. Read `./references/flows/flow-rank.md`; obey end-to-end.
 6. Persist set from `./references/flows/flow-match-gate.md`. Obey job-store
    schema + persistence. One dossier per persist-set row. No dossier for kit

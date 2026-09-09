@@ -23,6 +23,8 @@ already in the brief. Never open Profile root. Never fetch a URL. Never score.
   "years_experience": null,
   "work_auth": null,
   "hiring_route": null,
+  "eligibility": null,
+  "eligibility_evidence": null,
   "required_skills": [],
   "preferred_skills": [],
   "languages_required": [],

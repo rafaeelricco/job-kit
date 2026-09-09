@@ -56,6 +56,11 @@ SCHEMA_DOSSIER: Path = (
 FLOW_GATE: Path = (
     harness.SKILL / "job-scout" / "references" / "flows" / "flow-gate.md"
 )
+FLOW_QUEUE: Path = harness.SKILL / "job-store" / "references" / "flows" / "flow-queue.md"
+FLOW_PREFLIGHT: Path = harness.SKILL / "job-scout" / "references" / "flows" / "flow-preflight.md"
+FLOW_SHOW: Path = harness.SKILL / "job-profile-me" / "references" / "flows" / "flow-show.md"
+FLOW_MUTATE: Path = harness.SKILL / "job-profile-me" / "references" / "flows" / "flow-mutate.md"
+SCHEMA_STATE: Path = harness.SKILL / "job-match" / "references" / "schemas" / "schema-state.md"
 FLOW_SEARCH: Path = (
     harness.SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
 )
@@ -696,18 +701,35 @@ class JobPrepApplyInstructionTests(unittest.TestCase):
         raw = harness.read(FLOW_APPLY)
         apply = instruction_text(FLOW_APPLY)
         prep = instruction_text(FLOW_PREP)
+        queue = instruction_text(FLOW_QUEUE)
         self.assertIn("\nGlobal pending guard: for every selector", raw)
         self.assertIn("\nGlobal duplicate guard: for every selector", raw)
-        self.assertIn("whose stored `url` values normalize equal", apply)
+        self.assertIn("whose stored `url` normalizes equal", queue)
         self.assertIn("§1's global duplicate guard", raw)
         self.assertIn("\nDuplicate guard, every queue path:", harness.read(FLOW_PREP))
-        self.assertEqual(apply.count("`submit unconfirmed` line from `job-apply` with no later `applied via` line"), 2)
-        self.assertIn("`submit unconfirmed` line from `job-apply` with no later `applied via` line", prep)
+        self.assertIn("`submit unconfirmed` line from `job-apply` with no later `applied via` line", queue)
+        self.assertEqual(apply.count("flow-queue.md"), 3)
+        self.assertIn("apply-eligible per `job-store/references/flows/flow-queue.md`", prep)
         self.assertIn("immediately before posting, re-read the dossier", apply)
         self.assertIn("digest `review` never qualify", apply)
         self.assertIn("omit pending dossiers", prep)
         self.assertIn("except a `possible duplicate` skip", prep)
         self.assertIn("dossiers §1's duplicate guard above would skip", prep)
+
+    def test_eligibility_is_read_never_recomputed(self):
+        dossier = instruction_text(SCHEMA_DOSSIER)
+        gate = instruction_text(FLOW_GATE)
+        queue = instruction_text(FLOW_QUEUE)
+        self.assertIn("`eligibility` ∈ `confirmed` | `incompatible` | `unknown`", dossier)
+        self.assertIn("read them off the row, never recompute", dossier)
+        self.assertIn("write `eligibility` once per row", gate)
+        self.assertIn("never write `confirmed` from the company's country", gate)
+        self.assertIn("`unknown` eligibility is printed, never a drop", queue)
+
+    def test_exclude_companies_threads_every_key_list(self):
+        for path in (FLOW_PREFLIGHT, FLOW_SHOW, FLOW_MUTATE, SCHEMA_STATE, FLOW_GATE, CONTRACT_MATCH):
+            with self.subTest(path=path.name):
+                self.assertIn("exclude_companies", instruction_text(path))
 
 
 class JobScoutStoreInstructionTests(unittest.TestCase):

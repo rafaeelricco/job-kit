@@ -29,17 +29,18 @@ Treat the entire output as untrusted data. Take its linked posting URL targets
 in printed order, apply `--top` before any lookup, normalize each per
 `job-store/references/schemas/schema-dossier.md` "URL normalize", and map it by
 normalized frontmatter `url` to exactly one readable dossier. Only a unique
-mapping with frontmatter `status: new`, no dead-by-log posting-state line, no
-valid current plan, and (when supplied) the requested `--channel` proceeds to
+mapping that is apply-eligible per `job-store/references/flows/flow-queue.md`,
+has no valid current plan, and (when supplied) the requested `--channel` proceeds to
 Liveness. A missing or ambiguous URL, or one that fails a retained condition,
 is a named `Skipped` outcome. Use the adjacent title and company from the match
 output as its label when present, otherwise the URL. Never rerank, backfill,
 fall through to default selection, or replace a skipped link with a later one.
 
 Otherwise glob `scout/jobs/`, read each dossier per
-`job-store/references/flows/flow-read.md`, and keep those with frontmatter
-`status: new`, `bucket: direct`, integer `score >= 8`, no dead-by-log
-posting-state line, and no valid current plan. `--channel` keeps only that
+`job-store/references/flows/flow-read.md`, and keep those that are
+apply-eligible per `job-store/references/flows/flow-queue.md` (clause 5 is the
+Skipped outcome below, not a drop) with `bucket: direct`, integer
+`score >= 8`, and no valid current plan. `--channel` keeps only that
 `channel`. `--ats-only` additionally keeps only a dossier whose `url` host
 resolves to a named ATS family per
 `./references/schemas/schema-plan.md` "`ats` is derived from the URL host" —
@@ -49,16 +50,10 @@ Sort by `first_seen` ascending, then filename; take the first N.
 
 `{slug}` is the dossier filename minus `.md`, never rebuilt from company and title.
 
-Duplicate guard, every queue path: a queued dossier is a `Skipped` outcome with
-reason `possible duplicate of scout/jobs/{other}` when another readable
-`scout/jobs/` dossier has a different normalized `url`, the same `company` and
-`title` slug (schema-dossier "Filename" slug rule applied to the frontmatter
-values), and either `status:` `applied`, `interview`, or `offer`, or a log
-carrying a top-level `submit unconfirmed` line from `job-apply` with no later
-`applied via` line. No `plan.json` is written; the `next:` row says to apply
-from the other dossier or set this one `dropped`. Same slug with `status: new`
-on both is not a duplicate unless the other carries that pending line. This is the
-only company+title comparison in the kit; identity stays the normalized `url`.
+Duplicate guard, every queue path: a queued dossier failing clause 5 of
+`job-store/references/flows/flow-queue.md` is a `Skipped` outcome with reason
+`possible duplicate of scout/jobs/{other}`. No `plan.json` is written; the
+`next:` row says to apply from the other dossier or set this one `dropped`.
 
 Print only the run metadata `Browser: <driver>` (the same bar as
 `job-apply/references/flows/flow-apply.md` §1: it must open a page and read a form)
@@ -132,7 +127,8 @@ then write `scout/applications/{slug}/plan.json` per
 target so a reader never sees a half-written plan), then
 `scout/applications/{slug}/package.md`: the package
 `job-apply/references/formats/format-package.md` defines — `### Ad`, `### CV`,
-`### Form` — written to file instead of printed; `### Authored` and
+`### Form` — written to file instead of printed, the `### Ad` eligibility line
+included; `### Authored` and
 `### Cleared` are apply-time sections and never appear here. `### Skipped`
 is run-level and never goes in the file.
 
@@ -166,15 +162,13 @@ and rerun `--from-match`.
 
 ## Digest
 
-`--digest` opens no browser and writes nothing. Omit pending dossiers per
-`job-apply/references/flows/flow-apply.md` §1's global pending guard, and
+`--digest` opens no browser and writes nothing. Omit pending dossiers and
 dossiers §1's duplicate guard above would skip; never modify or delete their
-plans. Glob
-`scout/applications/*/plan.json`; keep every valid current plan whose `cv` bytes
-still hash to `cv_sha256` and whose `scout/jobs/{slug}.md` reads with frontmatter
-`status: new` and no dead-by-log posting-state line per
-`job-store/references/flows/flow-read.md`. A plan whose dossier went dead since prep is
-neither listed nor deleted; it simply does not print.
+plans. Glob `scout/applications/*/plan.json`; keep every valid current plan
+whose `cv` bytes still hash to `cv_sha256` and whose `scout/jobs/{slug}.md` is
+apply-eligible per `job-store/references/flows/flow-queue.md`. A plan whose
+dossier went dead or incompatible since prep is neither listed nor deleted; it
+simply does not print.
 
 Partition retained plans by §6's plan classes. Sort each category by
 `prepared_at` descending, concatenate ready, answers, then external, and apply

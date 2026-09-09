@@ -70,24 +70,28 @@ Factor with no evidence stays `—`. Never write `0` for unknown, never omit the
 
 ## Posting facts
 
-Keys below, plus main-derived `blocker`. `role_*` → `## The role`; `status_reason` is the closure log line. `—` = page did not print it.
+Keys below, plus main-derived `blocker`. `role_*` → `## The role`; `status_reason` is the closure log line. `—` = page did not print it. `eligibility` is gate-derived once (`job-scout/references/flows/flow-gate.md`) and read as stored by every consumer; `eligibility_evidence` is the printed hire-from sentence it was derived from, collapsed to one line.
 
-| key              | value              |
-| ---------------- | ------------------ |
-| status           | live               |
-| seniority        | Senior             |
-| work_model       | Remote             |
-| location         | United Kingdom     |
-| salary           | —                  |
-| equity           | —                  |
-| years_experience | 6+                 |
-| work_auth        | —                  |
-| hiring_route     | contractor / B2B   |
-| required_skills  | TypeScript, Python |
-| jd_date          | 2026-08-01         |
-| blocker          | —                  |
+| key                  | value                      |
+| -------------------- | -------------------------- |
+| status               | live                       |
+| seniority            | Senior                     |
+| work_model           | Remote                     |
+| location             | United Kingdom             |
+| salary               | —                          |
+| equity               | —                          |
+| years_experience     | 6+                         |
+| work_auth            | —                          |
+| hiring_route         | contractor / B2B           |
+| eligibility          | confirmed                  |
+| eligibility_evidence | Remote, anywhere in the UK |
+| required_skills      | TypeScript, Python         |
+| jd_date              | 2026-08-01                 |
+| blocker              | —                          |
 
-`blocker` is main-derived (SKILL.md Bucket), not a gated column — recompute here; never read it off a row.
+`blocker` is main-derived (`job-scout/references/flows/flow-rank.md` Bucket), not a gated column — recompute here; never read it off a row.
+
+`eligibility` ∈ `confirmed` | `incompatible` | `unknown`; a dossier with no such row reads as `unknown`. `eligibility_evidence` is `—` when the page printed no hire-from sentence. Both are gated columns: read them off the row, never recompute.
 
 ## The role
 
@@ -144,16 +148,17 @@ Blocks below the log from `job-apply` / `job-inbox` may carry posting-derived te
 
 Opening `---` through the ownership marker = scout-owned, rewritten each run. Below the marker, and `status:` in frontmatter, belong to operator / `job-apply` / `job-inbox`.
 
-| On re-run                                             | Do                                                                                                   |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**          |
-| Body carries a `## From the posting` section          | Replaced, not merged: rewritten body holds only sections this file prints                            |
-| `status:` already set                                 | Never touch it — not even back to `new`                                                              |
-| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                     |
-| Row now `dead`                                        | Append a log line; set no status; leave the body                                                     |
-| Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                  |
-| No file yet                                           | Create with `status: new`                                                                            |
-| File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log |
+| On re-run                                             | Do                                                                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                         |
+| Body carries a `## From the posting` section          | Replaced, not merged: rewritten body holds only sections this file prints                                           |
+| `status:` already set                                 | Never touch it — not even back to `new`                                                                             |
+| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                                    |
+| Row now `dead`                                        | Append a log line; set no status; leave the body                                                                    |
+| Row now `eligibility: incompatible`                   | Existing file: rewrite the scout-owned body so the row reads `incompatible`; set no status. No file: create nothing |
+| Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                                 |
+| No file yet                                           | Create with `status: new`                                                                                           |
+| File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log                |
 
 Closure is a log event, not a field. Append reopen whenever a URL whose latest
 posting-state line from any permitted writer (`job-scout` | `job-prep` |

@@ -1,0 +1,55 @@
+{
+  "script": "skill/job-store/scripts/validate_extract.py",
+  "argv": [],
+  "stdin": {
+    "rows": [
+      {
+        "url": "https://boards.greenhouse.io/acme/jobs/123",
+        "status": "live",
+        "work_auth": "Must be legally authorized to work in the UK",
+        "hiring_route": "contractor / B2B",
+        "eligibility": "confirmed",
+        "eligibility_evidence": "Remote, anywhere in the UK",
+        "location": "London, United Kingdom",
+        "salary": "£80,000 - £100,000",
+        "equity": "0.1% - 0.3%",
+        "seniority": "Senior",
+        "work_model": "Remote",
+        "years_experience": "5+",
+        "required_skills": "TypeScript, Python",
+        "jd_date": "2026-08-01"
+      },
+      {
+        "url": "https://jobs.lever.co/acme/0f1e2d3c",
+        "status": "live",
+        "work_auth": "based insights (e",
+        "hiring_route": "contractor / B2B",
+        "eligibility": "confirmed",
+        "eligibility_evidence": "Remote, anywhere in the UK",
+        "location": "London, United Kingdom",
+        "salary": "£80,000 - £100,000",
+        "equity": "0.1% - 0.3%",
+        "seniority": "Senior",
+        "work_model": "Remote",
+        "years_experience": "5+",
+        "required_skills": "TypeScript, Python",
+        "jd_date": "2026-08-01"
+      }
+    ]
+  },
+  "exit": 0,
+  "stdout": {
+    "rows": [
+      {
+        "url": "https://boards.greenhouse.io/acme/jobs/123",
+        "errors": []
+      },
+      {
+        "url": "https://jobs.lever.co/acme/0f1e2d3c",
+        "errors": [
+          "work_auth: cut mid-phrase"
+        ]
+      }
+    ]
+  }
+}

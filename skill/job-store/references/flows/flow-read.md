@@ -14,10 +14,11 @@ fetch or a write.
 
 ## Two different words spelled `status`
 
-| where                           | vocabulary                                               | owner                            |
-| ------------------------------- | -------------------------------------------------------- | -------------------------------- |
-| frontmatter `status:`           | `new` `applied` `rejected` `interview` `offer` `dropped` | operator / job-apply / job-inbox |
-| `## Posting facts` row `status` | `live` `dead` `uncertain`                                | job-scout                        |
+| where                                | vocabulary                                                    | owner                            |
+| ------------------------------------ | ------------------------------------------------------------- | -------------------------------- |
+| frontmatter `status:`                | `new` `applied` `rejected` `interview` `offer` `dropped`      | operator / job-apply / job-inbox |
+| `## Posting facts` row `status`      | `live` `dead` `uncertain`                                     | job-scout                        |
+| `## Posting facts` row `eligibility` | `confirmed` `incompatible` `unknown` (absent row = `unknown`) | job-scout                        |
 
 Never answer a lifecycle question from the Posting facts row, or a posting question
 from frontmatter.

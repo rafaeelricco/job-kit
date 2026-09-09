@@ -58,7 +58,27 @@ function line(row: Dossier): string {
 }
 
 function skipReasons(row: Dossier): readonly string[] {
-  return [...statusReason(row), ...postingReason(row.posting), ...urlReason(row.url)]
+  return [
+    ...statusReason(row),
+    ...postingReason(row.posting),
+    ...pendingReason(row.log),
+    ...eligibilityReason(row.facts),
+    ...urlReason(row.url),
+  ]
+}
+
+// Mirrors job-store flow-queue.md clauses 3 and 6. Clause 5 (duplicate) needs
+// the whole store, which this prompt does not receive; the skill enforces it.
+function pendingReason(log: Dossier["log"]): readonly string[] {
+  const last = log.filter((e) => e.event.startsWith("submit unconfirmed") || e.event.startsWith("applied via")).at(-1)
+  return last !== undefined && last.event.startsWith("submit unconfirmed")
+    ? ["submit unconfirmed, not yet applied"]
+    : []
+}
+
+function eligibilityReason(facts: Dossier["facts"]): readonly string[] {
+  const value = facts.eligibility
+  return value.kind === "known" && value.text === "incompatible" ? ["eligibility is incompatible"] : []
 }
 
 function statusReason(row: Dossier): readonly string[] {
