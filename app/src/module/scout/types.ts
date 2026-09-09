@@ -61,6 +61,10 @@ const FACT_KEYS = [
   "eligibility_evidence",
   "required_skills",
   "jd_date",
+  "apply_url",
+  "ats",
+  "match_score",
+  "match_decision",
   "blocker",
 ] as const
 
@@ -102,6 +106,10 @@ const FACT_LABELS: Readonly<Record<FactKey, string>> = {
   eligibility_evidence: "Eligibility evidence",
   required_skills: "Required skills",
   jd_date: "Posted",
+  apply_url: "Apply URL",
+  ats: "ATS",
+  match_score: "Match score",
+  match_decision: "Match decision",
   blocker: "Blocker",
 }
 

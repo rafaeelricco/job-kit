@@ -134,6 +134,7 @@ skill/job-match/scripts/validate_guidance.py
 skill/job-resume-refine/scripts/check_parse.py
 skill/job-store/scripts/normalize_url.py
 skill/job-store/scripts/validate_extract.py
+skill/job-store/scripts/boards_from_store.py
 skill/job-stories/SKILL.md
 skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md

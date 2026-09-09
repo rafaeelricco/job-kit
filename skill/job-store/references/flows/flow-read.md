@@ -19,9 +19,11 @@ fetch or a write.
 | frontmatter `status:`                | `new` `applied` `rejected` `interview` `offer` `dropped`      | operator / job-apply / job-inbox |
 | `## Posting facts` row `status`      | `live` `dead` `uncertain`                                     | job-scout                        |
 | `## Posting facts` row `eligibility` | `confirmed` `incompatible` `unknown` (absent row = `unknown`) | job-scout                        |
+| frontmatter `score:`                 | 0–10 skill share (`job-scout/references/flows/flow-rank.md`)  | job-scout                        |
+| `## Posting facts` row `match_score` | 0–100 `job-match` score; absent row = unscored                | job-scout                        |
 
 Never answer a lifecycle question from the Posting facts row, or a posting question
-from frontmatter.
+from frontmatter. `score` and `match_score` are two scales, never one.
 
 ## Frontmatter (reader)
 

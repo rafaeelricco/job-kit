@@ -2,7 +2,7 @@
 
 Shape only, never truth: the page said what it said. Closed vocabularies for
 `status` and `eligibility`; ISO day for `jd_date`; a free-text cell is `—` or
-one complete printed phrase.
+one complete printed phrase. `apply_url` is `—` or an http(s) URL.
 
 stdin: ``{"rows": [{"url": ..., "<posting fact key>": ...}]}``.
 stdout: ``{"rows": [{"url": ..., "errors": [...]}]}`` in the same order, or
@@ -20,10 +20,11 @@ PHRASE_KEYS: Tuple[str, ...] = (
     "work_auth", "hiring_route", "eligibility_evidence", "location", "salary",
     "equity", "seniority", "work_model", "years_experience", "required_skills",
 )
-REQUIRED: Tuple[str, ...] = ("url", "status") + PHRASE_KEYS + ("jd_date",)
+REQUIRED: Tuple[str, ...] = ("url", "status") + PHRASE_KEYS + ("jd_date", "apply_url")
 UNKNOWN = "—"
 MAX_LEN = 200
 ISO_DAY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+HTTP_URL = re.compile(r"^https?://\S+$")
 BAD_TAIL = re.compile(r"[\(\[\{:;,/-]$|\((?:[a-z]|e\.g\.?)?$")
 
 
@@ -58,6 +59,8 @@ def validate(row: Dict[str, object]) -> List[str]:
         errors.append("eligibility: not in {0}".format("|".join(ELIGIBILITY)))
     if row["jd_date"] != UNKNOWN and not ISO_DAY.match(str(row["jd_date"])):
         errors.append("jd_date: not YYYY-MM-DD or —")
+    if row["apply_url"] != UNKNOWN and not HTTP_URL.match(str(row["apply_url"])):
+        errors.append("apply_url: not an http(s) url or —")
     for key in PHRASE_KEYS:
         errors.extend(phrase_errors(key, str(row[key])))
     return errors

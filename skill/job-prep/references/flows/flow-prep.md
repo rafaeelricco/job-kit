@@ -43,10 +43,12 @@ Skipped outcome below, not a drop) with `bucket: direct`, integer
 `score >= 8`, and no valid current plan. `--channel` keeps only that
 `channel`. `--ats-only` additionally keeps only a dossier whose `url` host
 resolves to a named ATS family per
-`./references/schemas/schema-plan.md` "`ats` is derived from the URL host" —
+`job-store/references/schemas/schema-dossier.md` "ATS family" —
 `greenhouse`, `lever`, or `ashby`; `other` is dropped. A dropped dossier is
 not a `Skipped` outcome: it never enters the queue and never opens a page.
-Sort by `first_seen` ascending, then filename; take the first N.
+Sort by Posting-facts `match_score` descending — a dossier with no such row, or a
+non-integer value, sorts after every scored one — then `first_seen` ascending,
+then filename; take the first N.
 
 `{slug}` is the dossier filename minus `.md`, never rebuilt from company and title.
 
@@ -111,7 +113,7 @@ substitutions:
   a `needs_you` entry. A wall on the apply path (captcha, bot check, account
   demanded) is its own exact string in `walls`, never cleared here — job-apply
   §5 clears it at apply time; never join distinct wall values.
-- `channel: ats`: load the field map for the URL host as the starting guess —
+- `channel: ats`: load the field map for the URL host's family (`job-store/references/schemas/schema-dossier.md` "ATS family") as the starting guess —
   `./references/ats/ats-greenhouse.md`, `./references/ats/ats-lever.md`, or
   `./references/ats/ats-ashby.md`; any other host has none. The live form wins; a
   mapped selector absent this run is dropped from the plan.
@@ -127,7 +129,7 @@ then write `scout/applications/{slug}/plan.json` per
 target so a reader never sees a half-written plan), then
 `scout/applications/{slug}/package.md`: the package
 `job-apply/references/formats/format-package.md` defines — `### Ad`, `### CV`,
-`### Form` — written to file instead of printed, the `### Ad` eligibility line
+`### Form` — written to file instead of printed, the `### Ad` eligibility and match lines
 included; `### Authored` and
 `### Cleared` are apply-time sections and never appear here. `### Skipped`
 is run-level and never goes in the file.
@@ -183,15 +185,18 @@ structure; all three headings remain present:
     ### Ready to send
     S1. {title} · {company} · {salary field value or —}
         {ats, or channel when ats is null} · CV: {cv basename}
+        match: {match_score · match_decision from the dossier's Posting facts, or —}
         not-evidenced: {match-report.md `miss:` line, or —}
 
     ### Needs answers
     A1. {title} · {company}
+        match: {match_score · match_decision, or —}
         {count} answers · {first needs_you[].why}{ · +N more when present}
         package: scout/applications/{slug}/package.md
 
     ### External blockers
     B1. {title} · {company}
+        match: {match_score · match_decision, or —}
         {count} blockers · {first exact walls[] value}{ · +N more when present}
         package: scout/applications/{slug}/package.md
 

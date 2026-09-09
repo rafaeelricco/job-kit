@@ -1,6 +1,6 @@
 # Job scout — preflight
 
-Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Runtime: workers` if spawn works, else `inline`.
+Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Boards: {n} rows` from `data/boards.yaml` (`Boards: —` when absent), `Runtime: workers` if spawn works, else `inline`.
 
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`, `exclude_companies`. Any other valued key → stop; migrate via `/job-profile-me`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).
@@ -15,6 +15,7 @@ Empty → list as `N. {id}`; last line `{N+1}. Search in all`. Wait.
 Any token → no wait. Run set: `all` → every enabled pack, else the named ids
 (file order, unique), then each ad-hoc pack in token order; unique by `entry`.
 Unknown `--` flag, leftover non-URL token, `all` plus a non-URL token, unknown id, or named disabled id → stop.
+`--refresh` is the one known flag and takes no other token (any beside it → stop). It binds no pack and skips search: the refresh set is every dossier in `scout/jobs/` whose frontmatter `status:` is `new` and whose latest posting-state line is not a closure (`job-store/references/flows/flow-read.md`), oldest `last_seen` first, capped at 40. Print `Refresh: {n} of {total}` and enter extract with those rows, each carrying its stored frontmatter and Provenance as its search columns.
 Skip-wait → print `Packs: {id}, …` in run order.
 
 Print `### Profile card` (role · skills · industries · languages) and `### Constraints` (those keys plus salary_range_usd, work auth, employment_routes, relocation) — values per `job-profile-me` flow-show Blocks; scout adds no fields and prints no Packs/CV blocks. Pass both into every search.

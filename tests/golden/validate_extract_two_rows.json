@@ -17,7 +17,8 @@
         "work_model": "Remote",
         "years_experience": "5+",
         "required_skills": "TypeScript, Python",
-        "jd_date": "2026-08-01"
+        "jd_date": "2026-08-01",
+        "apply_url": "—"
       },
       {
         "url": "https://jobs.lever.co/acme/0f1e2d3c",
@@ -33,7 +34,8 @@
         "work_model": "Remote",
         "years_experience": "5+",
         "required_skills": "TypeScript, Python",
-        "jd_date": "2026-08-01"
+        "jd_date": "2026-08-01",
+        "apply_url": "—"
       }
     ]
   },

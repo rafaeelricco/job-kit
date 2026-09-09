@@ -22,7 +22,7 @@ Identity is this normalized URL (search emit, merge, persist, apply, resume). Ru
 1. Lowercase scheme and host; keep path case; strip trailing slashes (root stays `/`).
 2. Drop fragment (`#…`).
 3. Drop tracker query keys `utm_*`, `li_*`, `trk`, `trackingId`, `trkInfo`, `originalSubdomain`, `eBP`, `position`, `pageNum`, `refId`, `gclid`, `fbclid`, `gh_src` (case-insensitive); keep every other key, including `ref`, sorted by key while preserving the order of values with the same key — a job id in the query survives.
-4. Collapse a board slug beside an opaque id: `hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}` (16 `[a-z0-9]`). The board rewrites the slug (title, company, place); the id it does not.
+4. Collapse a board slug beside an opaque id: `hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}` (16 `[a-z0-9]`). The board rewrites the slug (title, company, place); the id it does not. Strip the apply step off an ATS posting: `jobs.ashbyhq.com` `/{board}/{id}/application` → `/{board}/{id}`; `jobs.lever.co` `/{board}/{id}/apply` → `/{board}/{id}`.
 5. One row per normalized URL.
 6. Compare normalized to normalized: every stored `url` passes through the script before any match, so a dossier written before a rule landed still re-finds. The script is idempotent; a stored value already normalized is unchanged.
 
@@ -70,7 +70,7 @@ Factor with no evidence stays `—`. Never write `0` for unknown, never omit the
 
 ## Posting facts
 
-Keys below, plus main-derived `blocker`. `role_*` → `## The role`; `status_reason` is the closure log line. `—` = page did not print it. `eligibility` is gate-derived once (`job-scout/references/flows/flow-gate.md`) and read as stored by every consumer; `eligibility_evidence` is the printed hire-from sentence it was derived from, collapsed to one line.
+Keys below, plus main-derived `blocker`, `ats`, `match_score`, and `match_decision`. `role_*` → `## The role`; `status_reason` is the closure log line. `—` = page did not print it. `eligibility` is gate-derived once (`job-scout/references/flows/flow-gate.md`) and read as stored by every consumer; `eligibility_evidence` is the printed hire-from sentence it was derived from, collapsed to one line. `apply_url` is the normalized href of the posting's apply control, `—` when none is printed.
 
 | key                  | value                      |
 | -------------------- | -------------------------- |
@@ -87,11 +87,19 @@ Keys below, plus main-derived `blocker`. `role_*` → `## The role`; `status_rea
 | eligibility_evidence | Remote, anywhere in the UK |
 | required_skills      | TypeScript, Python         |
 | jd_date              | 2026-08-01                 |
+| apply_url            | —                          |
+| ats                  | other                      |
+| match_score          | 78                         |
+| match_decision       | possible_match             |
 | blocker              | —                          |
 
-`blocker` is main-derived (`job-scout/references/flows/flow-rank.md` Bucket), not a gated column — recompute here; never read it off a row.
+`blocker` is main-derived (`job-scout/references/flows/flow-rank.md` Bucket), not a gated column — recompute here; never read it off a row. `ats` is main-derived from the frontmatter `url` host per "ATS family" below, rewritten on every scout write. `match_score` (integer 0–100) and `match_decision` (a `job-match/references/contracts/contract-match.md` decision band) are main-derived from the persist-set row `job-scout/references/flows/flow-match-gate.md` carries; a dossier `job-apply` created, or one written before these rows, prints neither — a consumer reads an absent row as unscored and never recomputes it. None of the four is an extract key.
 
 `eligibility` ∈ `confirmed` | `incompatible` | `unknown`; a dossier with no such row reads as `unknown`. `eligibility_evidence` is `—` when the page printed no hire-from sentence. Both are gated columns: read them off the row, never recompute.
+
+## ATS family
+
+`ats` ∈ `greenhouse` | `lever` | `ashby` | `other`, from the normalized `url` host: `greenhouse.io` or a subdomain → `greenhouse`; `lever.co` or a subdomain → `lever`; `ashbyhq.com` or a subdomain → `ashby`; any other host → `other`. This is the one host→family rule in the kit: job-prep, job-apply, job-profile-me, and the dashboard read the stored row and cite this section; none re-derives it.
 
 ## The role
 
@@ -111,7 +119,7 @@ Each subhead = matching extract key, copied. Key `—` → omit that subhead —
 
 ## Provenance
 
-`source {value} · channel {value} · author {value} · date {value}` from search columns, `—` if unknown. Channel matches frontmatter. Include ` · contact {value}` and ` · query {value}` only when known; omit when `—`. `query` = `matched_query`, verbatim. Never re-derive; never invent a contact.
+`source {value} · channel {value} · author {value} · date {value}` from search columns, `—` if unknown. `source` is the pack `id` that found the row (`job-scout/references/flows/flow-search.md`), never a host. Channel matches frontmatter. Include ` · contact {value}` and ` · query {value}` only when known; omit when `—`. `query` = `matched_query`, verbatim. Never re-derive; never invent a contact.
 
 source ambar · channel ats · author — · query "Senior Software Engineer" · date 2026-08-08
 
@@ -148,17 +156,18 @@ Blocks below the log from `job-apply` / `job-inbox` may carry posting-derived te
 
 Opening `---` through the ownership marker = scout-owned, rewritten each run. Below the marker, and `status:` in frontmatter, belong to operator / `job-apply` / `job-inbox`.
 
-| On re-run                                             | Do                                                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Same normalized `url` exists                          | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                         |
-| Body carries a `## From the posting` section          | Replaced, not merged: rewritten body holds only sections this file prints                                           |
-| `status:` already set                                 | Never touch it — not even back to `new`                                                                             |
-| Ownership marker / log tail                           | Append below the marker; never rewrite or reorder existing log/application lines                                    |
-| Row now `dead`                                        | Append a log line; set no status; leave the body                                                                    |
-| Row now `eligibility: incompatible`                   | Existing file: rewrite the scout-owned body so the row reads `incompatible`; set no status. No file: create nothing |
-| Row `live` again after dead                           | Append a reopen log line; set no status; rewrite the body as normal                                                 |
-| No file yet                                           | Create with `status: new`                                                                                           |
-| File exists with no `## Verdict` (a `job-apply` stub) | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log                |
+| On re-run                                                                                  | Do                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Same normalized `url` exists                                                               | Rewrite scout-owned body; bump `last_seen`; keep `first_seen` **and the existing filename**                                                                                    |
+| Body carries a `## From the posting` section                                               | Replaced, not merged: rewritten body holds only sections this file prints                                                                                                      |
+| `status:` already set                                                                      | Never touch it — not even back to `new`                                                                                                                                        |
+| Ownership marker / log tail                                                                | Append below the marker; never rewrite or reorder existing log/application lines                                                                                               |
+| Row now `dead`                                                                             | Append a log line; set no status; leave the body                                                                                                                               |
+| Row now `eligibility: incompatible`                                                        | Existing file: rewrite the scout-owned body so the row reads `incompatible`; set no status. No file: create nothing                                                            |
+| Row `live` again after dead                                                                | Append a reopen log line; set no status; rewrite the body as normal                                                                                                            |
+| Row's URL folded at extract from `A` to `B` (`job-scout/references/flows/flow-extract.md`) | Dossier for `A` and none for `B` → rewrite that dossier with `url: B`; keep filename, `first_seen`, `status:`, and log. Both exist → update `B` only; name the pair under Gaps |
+| No file yet                                                                                | Create with `status: new`                                                                                                                                                      |
+| File exists with no `## Verdict` (a `job-apply` stub)                                      | Treat as existing: fill scout-owned body first time; keep `status:`, `first_seen`, filename, and log                                                                           |
 
 Closure is a log event, not a field. Append reopen whenever a URL whose latest
 posting-state line from any permitted writer (`job-scout` | `job-prep` |

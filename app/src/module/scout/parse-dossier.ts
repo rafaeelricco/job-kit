@@ -437,6 +437,10 @@ const factsFrom = (found: ReadonlyMap<FactKey, FactValue>): Readonly<Record<Fact
   eligibility_evidence: found.get("eligibility_evidence") ?? UNKNOWN,
   required_skills: found.get("required_skills") ?? UNKNOWN,
   jd_date: found.get("jd_date") ?? UNKNOWN,
+  apply_url: found.get("apply_url") ?? UNKNOWN,
+  ats: found.get("ats") ?? UNKNOWN,
+  match_score: found.get("match_score") ?? UNKNOWN,
+  match_decision: found.get("match_decision") ?? UNKNOWN,
   blocker: found.get("blocker") ?? UNKNOWN,
 })
 

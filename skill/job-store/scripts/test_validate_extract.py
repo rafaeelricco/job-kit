@@ -21,6 +21,7 @@ CLEAN: Dict[str, object] = {
     "years_experience": "5+",
     "required_skills": "TypeScript, Python",
     "jd_date": "2026-08-01",
+    "apply_url": "https://boards.greenhouse.io/acme/jobs/123#app",
 }
 
 # (row override, expected errors). The first three are the corpus defects.
@@ -36,6 +37,7 @@ CASES: Tuple[Tuple[Mapping[str, object], List[str]], ...] = (
     ({"status": "open"}, ["status: not in live|dead|uncertain"]),
     ({"eligibility": "maybe"}, ["eligibility: not in confirmed|incompatible|unknown"]),
     ({"jd_date": "08/01/2026"}, ["jd_date: not YYYY-MM-DD or —"]),
+    ({"apply_url": "mailto:jobs@acme.test"}, ["apply_url: not an http(s) url or —"]),
 )
 
 

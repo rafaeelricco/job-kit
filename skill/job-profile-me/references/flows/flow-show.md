@@ -14,7 +14,8 @@ Packs **list** only (list my boards / packs): print `### Packs` and stop — no 
 | `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*`, `screening_defaults.qa[]`      |
 | `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                                              |
 | `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                                        |
-| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, route requirement, route, tokens — one pack is one board                                                      |
+| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, route requirement, route, tokens — one pack is one surface                                                    |
+| `data/boards.yaml`                                      | boards: rows per `ats`, each `slug`, `company`, `url`, `source`                                                                                   |
 | `data/cvs.yaml`                                         | CV: `adapt_per_vacancy` (absent → true) and `base`                                                                                                |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
@@ -31,11 +32,12 @@ owner; job-scout preflight derives its card and constraints from it:
   work auth · employment_routes · relocation
 
 `### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
-enabled|disabled · route=json|DOM|missing|invalid|disabled · location=surface|keep-only|invalid · tokens`.
+enabled|disabled · route=json|board({n} boards)|DOM|missing|invalid|disabled · location=surface|keep-only|invalid · tokens`.
 `location=keep-only` when the pack declares `location: keep-only`; key absent → `location=surface`; any other present value → `location=invalid`, naming the pack.
 A complete JSON route has `kind: json`, a `url` containing `{formulation}` and
 `{page}`, and non-empty `pages`, `items`, and `posting_url` dot paths.
-Route status, first match: complete route → `route=json`; any other present
+A complete board route has `kind: board`, `ats` in the `job-store/references/schemas/schema-dossier.md` "ATS family" vocabulary, a `url` containing `{slug}`, and non-empty `items`, `posting_url`, and `title` dot paths; `{n}` = `data/boards.yaml` rows with that `ats`.
+Route status, first match: complete JSON route → `route=json`; complete board route → `route=board`; any other present
 route → `route=invalid`; `route_required: true` and enabled → `route=missing`;
 `route_required: true` and disabled → `route=disabled`; else `route=DOM`.
 The same line must name the affected pack.

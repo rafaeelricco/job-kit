@@ -41,9 +41,10 @@ by `job-prep --digest`.
 - `url` is the normalized URL per `job-store/references/schemas/schema-dossier.md`
   "URL normalize"; it is the identity rule 0 matches on.
 - `slug` is the dossier filename minus `.md`.
-- `ats` is derived from the URL host: `greenhouse` (`greenhouse.io`), `lever`
-  (`lever.co`), `ashby` (`ashbyhq.com`), else `other`; `null` when `channel` is
-  not `ats`.
+- `ats` is the dossier's stored Posting-facts `ats` row
+  (`job-store/references/schemas/schema-dossier.md` "ATS family"), or that
+  section's rule applied to `url` when the row is absent; `null` when `channel`
+  is not `ats`.
 - `channel` is the dossier's frontmatter value.
 - `prepared_at` is UTC ISO-8601 with a `Z` suffix.
 - `cv` is an absolute PDF path: under `scout/applications/{slug}/` when
