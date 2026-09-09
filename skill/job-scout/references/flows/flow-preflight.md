@@ -13,7 +13,8 @@ assumed when bare), formulations = `[role]` — under every deck law (ATS-root,
 filters, caps, defect log).
 Empty → list as `N. {id}`; last line `{N+1}. Search in all`. Wait.
 Any token → no wait. Run set: `all` → every enabled pack, else the named ids
-(file order, unique), then each ad-hoc pack in token order; unique by `entry`.
+(file order, unique by `id`), then each ad-hoc pack in token order (unique by
+`entry` among ad-hoc packs). Two deck packs may share an `entry`.
 Unknown `--` flag, leftover non-URL token, `all` plus a non-URL token, unknown id, or named disabled id → stop.
 `--refresh` is the one known flag and takes no other token (any beside it → stop). It binds no pack and skips search: the refresh set is every dossier in `scout/jobs/` whose frontmatter `status:` is `new` and whose latest posting-state line is not a closure (`job-store/references/flows/flow-read.md`), oldest `last_seen` first, capped at 40. Print `Refresh: {n} of {total}` and enter extract with those rows, each carrying its stored frontmatter and Provenance as its search columns.
 Skip-wait → print `Packs: {id}, …` in run order.
