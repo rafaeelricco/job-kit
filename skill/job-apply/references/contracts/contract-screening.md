@@ -36,9 +36,9 @@ the package prints the rule as `source`. Nothing waits for the operator.
    hire-from country; `ats` equals the dossier's `ats` per
    `job-store/references/schemas/schema-dossier.md` "ATS family"; `company`
    slug-equals frontmatter `company`; absent scope always
-   holds. Several rows hold → the one with a scope, then the latest
-   `confirmed_at`; a tie skips rule 3. A row with an empty `answer` is no
-   answer. Never adapt, paraphrase, or merge a `qa[]` answer.
+   holds. A row with an empty `answer` never holds. Several rows hold → the one
+   with a scope, then the latest `confirmed_at`; a tie skips rule 3. Never
+   adapt, paraphrase, or merge a `qa[]` answer.
 4. The field wants composed prose → author it under `./contract-prose.md` → `authored`.
 5. A required application-terms or privacy checkbox needed to process this
    application, with no answer above, also takes `Yes` → `default`.
