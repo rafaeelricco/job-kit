@@ -10,7 +10,7 @@ frontmatter values, which are posting-controlled data.
 import json
 import sys
 from typing import Dict, Optional, Tuple
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from normalize_url import normalize
 
@@ -23,6 +23,10 @@ FAMILIES: Tuple[Tuple[str, str, str], ...] = (
 
 
 def family_of(host: str) -> Optional[Tuple[str, str]]:
+    # Lever's EU instance has its own API host; the registry carries no
+    # instance, so an EU board is skipped rather than routed to the global API.
+    if host == "eu.lever.co" or host.endswith(".eu.lever.co"):
+        return None
     for apex, family, prefix in FAMILIES:
         if host == apex or host.endswith("." + apex):
             return family, prefix
@@ -36,11 +40,17 @@ def board_of(url: str, company: str) -> Optional[Dict[str, str]]:
     if found is None or not segments:
         return None
     family, prefix = found
+    slug = segments[0]
+    if family == "greenhouse" and slug == "embed":
+        # Greenhouse's embed script names the board in ?for=, not the path.
+        slug = (parse_qs(parts.query).get("for") or [""])[0]
+        if not slug:
+            return None
     return {
         "ats": family,
-        "slug": segments[0],
+        "slug": slug,
         "company": company,
-        "url": prefix + segments[0],
+        "url": prefix + slug,
     }
 
 
