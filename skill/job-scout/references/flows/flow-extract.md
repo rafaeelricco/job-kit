@@ -13,10 +13,13 @@ persisting.
 
 `apply_url` is the normalized href of the posting's apply control (`—` when
 none). When its host is an ATS family per
-`job-store/references/schemas/schema-dossier.md` "ATS family" and the row's URL
-host is not, replace the row's URL with the normalized `apply_url` and fold as
-above; persist follows the schema's re-run row for a folded URL so the dossier
-the aggregator URL owns keeps its filename and log.
+`job-store/references/schemas/schema-dossier.md` "ATS family", its path names
+one posting — Ashby and Lever `/{board}/{id}`, Greenhouse `/{board}/jobs/{id}` —
+and the row's URL host is not, replace the row's URL with the normalized
+`apply_url` and fold as above; persist follows the schema's re-run row for a
+folded URL so the dossier the aggregator URL owns keeps its filename and log.
+A family host with any other path (a board root or listing) stays in
+`apply_url` only; the row's URL is unchanged.
 
 `### Verified`: search columns plus schema Posting facts keys except `blocker`, `eligibility`, `ats`, `match_score`, and `match_decision`, and `status_reason`, `role_snapshot`, `role_do`, `role_must`. `eligibility_evidence` is the one printed sentence that says where the hire may live or be employed from (`Remote, anywhere in Canada`, `must reside in South America`); `—` when none is printed. Never compose it from two places.
 
