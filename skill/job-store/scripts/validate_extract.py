@@ -9,6 +9,7 @@ stdout: ``{"rows": [{"url": ..., "errors": [...]}]}`` in the same order, or
 ``{"validate_error": "..."}`` with exit 1.
 """
 
+import datetime
 import json
 import re
 import sys
@@ -45,6 +46,16 @@ def phrase_errors(key: str, value: str) -> List[str]:
     return errors
 
 
+def real_day(value: str) -> bool:
+    if not ISO_DAY.match(value):
+        return False
+    try:
+        datetime.date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
 def validate(row: Dict[str, object]) -> List[str]:
     errors: List[str] = []
     for key in REQUIRED:
@@ -57,7 +68,7 @@ def validate(row: Dict[str, object]) -> List[str]:
     eligibility = row.get("eligibility")
     if eligibility is not None and eligibility not in ELIGIBILITY:
         errors.append("eligibility: not in {0}".format("|".join(ELIGIBILITY)))
-    if row["jd_date"] != UNKNOWN and not ISO_DAY.match(str(row["jd_date"])):
+    if row["jd_date"] != UNKNOWN and not real_day(str(row["jd_date"])):
         errors.append("jd_date: not YYYY-MM-DD or —")
     if row["apply_url"] != UNKNOWN and not HTTP_URL.match(str(row["apply_url"])):
         errors.append("apply_url: not an http(s) url or —")

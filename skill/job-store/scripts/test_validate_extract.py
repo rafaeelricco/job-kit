@@ -37,6 +37,7 @@ CASES: Tuple[Tuple[Mapping[str, object], List[str]], ...] = (
     ({"status": "open"}, ["status: not in live|dead|uncertain"]),
     ({"eligibility": "maybe"}, ["eligibility: not in confirmed|incompatible|unknown"]),
     ({"jd_date": "08/01/2026"}, ["jd_date: not YYYY-MM-DD or —"]),
+    ({"jd_date": "2026-02-30"}, ["jd_date: not YYYY-MM-DD or —"]),
     ({"apply_url": "mailto:jobs@acme.test"}, ["apply_url: not an http(s) url or —"]),
 )
 
