@@ -87,6 +87,7 @@ PROFILE_PREFIXES: Tuple[str, ...] = (
 PROFILE_FILES: FrozenSet[str] = frozenset(
     (
         "basics.yaml",
+        "boards.yaml",
         "candidate.yaml",
         "cvs.yaml",
         "education.yaml",
@@ -116,6 +117,10 @@ CHECKABLE_KINDS: Tuple[str, ...] = (SKILL_LOCAL, FILE_LOCAL, CROSS)
 DECK: Path = SKILL / "job-profile-init" / "templates" / "data" / "search_packs.yaml"
 ROUTE_FIELDS: Tuple[str, ...] = ("kind", "url", "pages", "items", "posting_url")
 ROUTE_TOKENS: Tuple[str, ...] = ("{formulation}", "{page}")
+BOARD_FIELDS: Tuple[str, ...] = ("kind", "ats", "url", "items", "posting_url", "title")
+BOARD_TOKENS: Tuple[str, ...] = ("{slug}",)
+# schema-dossier.md "ATS family" minus `other`: a board pack names a real family.
+ATS_FAMILIES: Tuple[str, ...] = ("greenhouse", "lever", "ashby")
 
 
 @dataclass(frozen=True)
@@ -489,20 +494,26 @@ def search_packs() -> Tuple[Pack, ...]:
 
 
 def route_defect(pack: Pack) -> Optional[str]:
-    """Why ``pack``'s route is not a complete json route, or None when it is."""
+    """Why ``pack``'s route is not a complete json or board route, or None when it is."""
     block = pack.value(4, "route")
     if block is None:
         return "carries no route block"
     if block:
         return "writes route inline as {0!r}, not a block mapping".format(block)
-    missing = [key for key in ROUTE_FIELDS if not pack.value(6, key)]
+    kind = pack.value(6, "kind")
+    if kind == "json":
+        fields, tokens = ROUTE_FIELDS, ROUTE_TOKENS
+    elif kind == "board":
+        fields, tokens = BOARD_FIELDS, BOARD_TOKENS
+    else:
+        return "declares route kind {0!r}, not json or board".format(kind)
+    missing = [key for key in fields if not pack.value(6, key)]
     if missing:
         return "omits route " + ", ".join(missing)
-    kind = pack.value(6, "kind")
-    if kind != "json":
-        return "declares route kind {0!r}, not json".format(kind)
+    if kind == "board" and pack.value(6, "ats") not in ATS_FAMILIES:
+        return "declares route ats {0!r}, not an ATS family".format(pack.value(6, "ats"))
     url = pack.value(6, "url") or ""
-    absent = [token for token in ROUTE_TOKENS if token not in url]
+    absent = [token for token in tokens if token not in url]
     if absent:
         return "writes a route url without " + ", ".join(absent)
     return None

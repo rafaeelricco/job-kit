@@ -14,6 +14,10 @@ CASES = (
     ("https://hiringcafe.com/job/senior-software-engineer-python-coforge-brazil-6vby83d1s9bapqd1", ENCORA),
     (ENCORA, ENCORA),
     ("https://hiringcafe.com/job/not-an-id", "https://hiringcafe.com/job/not-an-id"),
+    # ashby / lever: the apply step is a suffix on the posting path
+    ("https://jobs.ashbyhq.com/greatquestion/094067c8-29ec-4809-8617-06c7269593fb/application", "https://jobs.ashbyhq.com/greatquestion/094067c8-29ec-4809-8617-06c7269593fb"),
+    ("https://jobs.lever.co/acme/0f1e2d3c/apply?lever-source=LinkedIn", "https://jobs.lever.co/acme/0f1e2d3c?lever-source=LinkedIn"),
+    ("https://jobs.ashbyhq.com/greatquestion/application", "https://jobs.ashbyhq.com/greatquestion/application"),
     # query-only ids survive
     (HN, HN),
     (NEWROCKET, NEWROCKET),

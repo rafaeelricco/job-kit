@@ -25,6 +25,9 @@ _TRACKERS = frozenset(key.lower() for key in TRACKER_KEYS)
 # A board whose path carries a mutable slug beside an opaque id. The board
 # rewrites the slug (title, company, place); the id it does not.
 HIRINGCAFE = re.compile(r"^/job/(?:[^/]*-)?([a-z0-9]{16})$")
+# An ATS whose apply step is a path suffix on the posting itself.
+APPLY_SUFFIX = {"jobs.ashbyhq.com": "/application", "jobs.lever.co": "/apply"}
+ATS_POSTING = re.compile(r"^/[^/]+/[^/]+$")
 
 
 def is_tracker(key: str) -> bool:
@@ -37,6 +40,9 @@ def collapse_path(host: str, path: str) -> str:
         match = HIRINGCAFE.match(path)
         if match:
             return "/job/" + match.group(1)
+    suffix = APPLY_SUFFIX.get(host)
+    if suffix and path.endswith(suffix) and ATS_POSTING.match(path[: -len(suffix)]):
+        return path[: -len(suffix)]
     return path
 
 

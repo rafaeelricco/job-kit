@@ -54,6 +54,9 @@ roots stay active until the tree is deleted.
    job-apply attaches `cv/en-us-resume.pdf`.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
    there or via `/job-profile-me packs`.
+   Employer boards for the `*-boards` packs live in `data/boards.yaml`; add them
+   via `/job-profile-me boards add` or seed from found dossiers with
+   `/job-profile-me boards import`.
 5. Free-form details are stored in `data/observations.yaml`.
 6. Story stubs are created empty under `data/stories/`; fill them with
    `/job-stories add`.

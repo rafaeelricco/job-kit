@@ -8,14 +8,15 @@ Packs **list** only (list my boards / packs): print `### Packs` and stop — no 
 
 ## Read set (all under Profile root)
 
-| Path                                                    | Supplies                                                                                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `data/job_search.yaml`                                  | work_model, job_types, date_posted, positions, locations, location_scope, direct_regions, market_currencies, exclude_locations |
-| `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*`              |
-| `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                           |
-| `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                     |
-| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, route requirement, route, tokens — one pack is one board                                   |
-| `data/cvs.yaml`                                         | CV: `adapt_per_vacancy` (absent → true) and `base`                                                                             |
+| Path                                                    | Supplies                                                                                                                                          |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data/job_search.yaml`                                  | work_model, job_types, date_posted, positions, locations, location_scope, direct_regions, market_currencies, exclude_locations, exclude_companies |
+| `data/candidate.yaml`                                   | salary_range_usd, notice_period, `legal_authorization.*`, `employment_routes.*`, `work_preferences_from_resume.*`, `screening_defaults.qa[]`      |
+| `data/skills.yaml`, `experiences.yml`, `languages.yaml` | card                                                                                                                                              |
+| `data/profile_card.yaml`                                | card, when present — else derive in memory                                                                                                        |
+| `data/search_packs.yaml`                                | deck: pack ids, `entry`, `enabled`, route requirement, route, tokens — one pack is one surface                                                    |
+| `data/boards.yaml`                                      | boards: rows per `ats`, each `slug`, `company`, `url`, `source`                                                                                   |
+| `data/cvs.yaml`                                         | CV: `adapt_per_vacancy` (absent → true) and `base`                                                                                                |
 
 Glob `data/*.{yaml,yml}`. A missing optional file is a blank field, never a stop.
 An unreadable file → stop and name it.
@@ -27,15 +28,16 @@ owner; job-scout preflight derives its card and constraints from it:
 
 - Profile card: primary role · top skills · industries · languages
 - Constraints: work model · job types · positions · locations ·
-  date_posted · location_scope · direct_regions · market_currencies · exclude_locations · salary_range_usd ·
+  date_posted · location_scope · direct_regions · market_currencies · exclude_locations · exclude_companies · salary_range_usd ·
   work auth · employment_routes · relocation
 
 `### Packs` third when `data/search_packs.yaml` is readable: `id · entry host ·
-enabled|disabled · route=json|DOM|missing|invalid|disabled · location=surface|keep-only|invalid · tokens`.
+enabled|disabled · route=json|board({n} boards)|DOM|missing|invalid|disabled · location=surface|keep-only|invalid · tokens`.
 `location=keep-only` when the pack declares `location: keep-only`; key absent → `location=surface`; any other present value → `location=invalid`, naming the pack.
 A complete JSON route has `kind: json`, a `url` containing `{formulation}` and
 `{page}`, and non-empty `pages`, `items`, and `posting_url` dot paths.
-Route status, first match: complete route → `route=json`; any other present
+A complete board route has `kind: board`, `ats` in the `job-store/references/schemas/schema-dossier.md` "ATS family" vocabulary, a `url` containing `{slug}`, and non-empty `items`, `posting_url`, and `title` dot paths; `{n}` = `data/boards.yaml` rows with that `ats`.
+Route status, first match: complete JSON route → `route=json`; complete board route → `route=board`; any other present
 route → `route=invalid`; `route_required: true` and enabled → `route=missing`;
 `route_required: true` and disabled → `route=disabled`; else `route=DOM`.
 The same line must name the affected pack.
@@ -43,6 +45,8 @@ Route status belongs in `### Packs`, not the Gaps allowlist.
 
 Absent → one line saying job-scout will STOP until this file exists (emit via
 `/job-profile-init` or add packs via `/job-profile-me`).
+
+`### Answers` fifth when `data/candidate.yaml` `screening_defaults.qa[]` is non-empty or any `scout/applications/*/plan.json` has `needs_you[]`: one line per `qa[]` row, `{question} · {scope or global} · {confirmed_at or unconfirmed}`; answers are not printed. Then `{n} unanswered` = distinct `needs_you[].what` (normalized as `job-apply/references/contracts/contract-screening.md` rule 3) across those plans for which no `qa[]` row has a non-empty `answer`, an equal normalized `question`, and either no `scope` or an `ats` scope equal to that plan's `ats`. A `company` or `country` scope never reduces the count: this flow reads no dossier, so the count is an upper bound.
 
 `### CV` fourth when `data/cvs.yaml` is readable: `base`, plus `missing` when it
 does not resolve under `cv/`, and `no latex` when its `.tex` sibling is absent.

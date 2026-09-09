@@ -18,15 +18,15 @@ Fan-out batch ~10. Per row, paste that row's Verified extract as the posting bod
 — never fetch, never open Profile root.
 
 extract → JobProfile. Malformed → Gaps, drop.
-HF6 (`contract-match.md` hard filter 6, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–5.
+HF8 (`contract-match.md` hard filter 8, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–7.
 match → MatchResult, then invoke the resolved scorer with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
 on stdin. A row carrying `score_error` → Gaps; continue with the remaining rows.
 `decision` below `possible_match` (`weak_match` or `skip`) → Gaps
 `match below bar`, drop.
 
-Do not write `match_score` / `decision` onto the dossier. Scout `score` stays the 0–10 skill share. Do not print the job-match report.
+Carry the scorer's `match_score` and `decision` on each kept row as Posting-facts `match_score` and `match_decision` (`job-store/references/schemas/schema-dossier.md`). Scout `score` stays the 0–10 skill share. Do not print the job-match report.
 
-Output: persist-set rows (url + score + extract fields unchanged). Unreadable
+Output: persist-set rows (url + score + `match_score` + `match_decision` + extract fields unchanged). Unreadable
 job-match reference or scorer, or no Python 3 launcher → name it and end; write
 nothing this run.

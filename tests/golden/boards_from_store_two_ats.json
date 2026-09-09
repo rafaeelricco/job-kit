@@ -1,0 +1,18 @@
+{
+  "script": "skill/job-store/scripts/boards_from_store.py",
+  "argv": [],
+  "stdin": {
+    "dossiers": [
+      { "url": "https://jobs.lever.co/kavak/0f1e2d3c", "company": "Kavak" },
+      { "url": "https://jobs.ashbyhq.com/greatquestion/094067c8/application", "company": "Great Question" },
+      { "url": "https://www.linkedin.com/jobs/view/4123456789", "company": "Acme" }
+    ]
+  },
+  "exit": 0,
+  "stdout": {
+    "boards": [
+      { "ats": "ashby", "slug": "greatquestion", "company": "Great Question", "url": "https://jobs.ashbyhq.com/greatquestion" },
+      { "ats": "lever", "slug": "kavak", "company": "Kavak", "url": "https://jobs.lever.co/kavak" }
+    ]
+  }
+}

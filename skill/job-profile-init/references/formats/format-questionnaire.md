@@ -9,7 +9,7 @@ language/skill/education row, and every `job_search.yaml` key:
 
 - work model, job types, date filters
 - positions, locations, `location_scope` (`worldwide` | `listed`),
-  `direct_regions`, `market_currencies`, `exclude_locations`
+  `direct_regions`, `market_currencies`, `exclude_locations`, `exclude_companies`
 
 Ask each `search_packs.yaml` `packs[].enabled` flag. Never offer to enable a
 `route_required: true` pack that carries no `route` — name it as unavailable and

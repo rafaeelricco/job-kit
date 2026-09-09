@@ -1,0 +1,6 @@
+# Board registry for job-scout's kind: board packs. One row = one employer
+# board on one ATS. job-scout reads it from the Profile root (optional; no
+# rows → the board packs record defect: no_boards).
+# ats: greenhouse | lever | ashby   slug: the board's path segment
+# source: operator | store           (store = /job-profile-me boards import)
+boards: []
