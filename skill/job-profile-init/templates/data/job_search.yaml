@@ -26,3 +26,4 @@ direct_regions: [] # tokens vs extract location for bucket `direct` (e.g. LATAM)
 market_currencies: [] # e.g. USD, EUR, GBP; empty → no markets prose
 exclude_locations: [] # hire-from countries to drop (e.g. Brazil); empty → none
 exclude_companies: [] # company names to drop at search and gate, slug-compared; empty → none
+prune_score_max: 5 # job-prune: dossiers scored at or below this move to scout/jobs/.trash/
