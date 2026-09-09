@@ -28,5 +28,6 @@ Write-set: `scout/jobs/*.md` + lock furniture per job-store `contract-persistenc
    schema + persistence. One dossier per persist-set row. No dossier for kit
    drop or uncertain. Existing dead dossier → closure log only. Under
    `--refresh` every row already owns a dossier: a row that leaves the persist
-   set leaves its dossier untouched beyond the schema's re-run rules for dead
-   and `incompatible`, and Gaps names it.
+   set keeps its body and `status:` untouched beyond the schema's re-run rules
+   for dead and `incompatible`, but every re-extracted row that is not `dead`
+   still bumps `last_seen` so the next sweep moves past it, and Gaps names it.
