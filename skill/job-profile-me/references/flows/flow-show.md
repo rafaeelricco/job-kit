@@ -46,7 +46,7 @@ Route status belongs in `### Packs`, not the Gaps allowlist.
 Absent → one line saying job-scout will STOP until this file exists (emit via
 `/job-profile-init` or add packs via `/job-profile-me`).
 
-`### Answers` fifth when `data/candidate.yaml` `screening_defaults.qa[]` is non-empty: one line per row, `{question} · {scope or global} · {confirmed_at or unconfirmed}`; answers are not printed. Then `{n} unanswered` = distinct `needs_you[].what` across `scout/applications/*/plan.json` whose normalized label matches no `qa[]` row.
+`### Answers` fifth when `data/candidate.yaml` `screening_defaults.qa[]` is non-empty or any `scout/applications/*/plan.json` has `needs_you[]`: one line per `qa[]` row, `{question} · {scope or global} · {confirmed_at or unconfirmed}`; answers are not printed. Then `{n} unanswered` = distinct normalized `needs_you[].what` across those plans for which no `qa[]` row with a non-empty `answer` applies per `job-apply/references/contracts/contract-screening.md` rule 3.
 
 `### CV` fourth when `data/cvs.yaml` is readable: `base`, plus `missing` when it
 does not resolve under `cv/`, and `no latex` when its `.tex` sibling is absent.
