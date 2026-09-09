@@ -97,6 +97,10 @@ route. A disabled required pack may omit it. Board slugs live only in `boards.ya
   `{"dossiers": [{url, company}]}` through `job-store/scripts/boards_from_store.py`
   (launcher per `job-store/references/schemas/schema-dossier.md` "URL normalize"), and append each returned row not
   already present by `(ats, slug)` with `source: store`. `boards_error` → nothing written.
+- `data/boards.yaml` absent → the document is `boards: []` under the template header
+  (`job-profile-init/templates/data/boards.yaml`), never a read-fail or STOP: the cycle
+  diff shows the whole new file, step 6 stages it as a fresh `data/boards.yaml.tmp`, and
+  step 8 renames it into place. `boards remove` on an absent file → say no such row; nothing written.
 
 Boards invariant: `boards` is a list; each row has `ats` in the family vocabulary,
 a non-empty `slug` without `/`, non-empty `company` and `url`, `source` ∈ `operator` | `store`;
