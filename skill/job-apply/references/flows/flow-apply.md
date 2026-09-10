@@ -21,9 +21,11 @@ Never approve a new OAuth grant or expanded permissions. If completing sign-in
 requires account-access consent, or its grant status is uncertain, skip the
 posting even when the selected identity matches the profile.
 
-Profile root and store stay read-only until `flow-record.md`, with two
-exceptions: the closure log line §2 appends when the ad reads dead, and the
-`submit unconfirmed` line §5 step 9 appends after an ambiguous result. A
+Profile root and store stay read-only until `flow-record.md`, with three
+exceptions: the closure log line §2 appends when the ad reads dead, the
+`submit unconfirmed` line §5 step 9 appends after an ambiguous result, and the
+`data/candidate.yaml` `screening_defaults.qa[]` rows `flow-learn.md` appends
+after the last posting, whether or not this run recorded one. A
 chained `job-resume-refine` child may write `scout/applications/`.
 
 ## 1. Queue
