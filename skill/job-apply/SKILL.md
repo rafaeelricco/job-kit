@@ -27,7 +27,8 @@ Write-set: `scout/jobs/` — a confirmed submission (`flow-record.md`), one
 `posting dead` log line when the ad reads dead (`flow-apply.md` §2), or one
 `submit unconfirmed` log line after an ambiguous submit (`flow-apply.md` §5) —
 and `data/candidate.yaml` `screening_defaults.qa[]`, appended once per run
-under `flow-learn.md`. A chained `job-resume-refine` writes
+under `flow-learn.md`, plus its `data/candidate.yaml.{run token}.tmp`
+staging sibling during atomic rename. A chained `job-resume-refine` writes
 `scout/applications/{slug}/` under its own law.
 `scout/applications/{slug}/plan.json` is read-only input here
 (`flow-apply.md` §3 rule 0); only `job-prep` writes it.
@@ -54,9 +55,9 @@ Load each additional reference only when that flow names it.
   or an answer; a missing part is named as not on record, never estimated
 - Read a story body, or ship a `never_say` claim or a process number
 - Write `cv/`, any `data/` path but `data/candidate.yaml`
-  `screening_defaults.qa[]`, or — before a confirmed submission —
-  `scout/jobs/`, except the one `posting dead` or `submit unconfirmed` log
-  line `flow-apply.md` appends
+  `screening_defaults.qa[]` and its `{run token}.tmp` staging sibling, or —
+  before a confirmed submission — `scout/jobs/`, except the one
+  `posting dead` or `submit unconfirmed` log line `flow-apply.md` appends
 - Write an `answer` value, a scope guess, a password, a one-time code, or an
   authentication link into `qa[]`; only a question and an empty `answer`
   belong there
