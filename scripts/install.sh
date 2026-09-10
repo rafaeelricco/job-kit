@@ -13,14 +13,14 @@ DRY_RUN_ARGS=""
 # usage — CLI help.
 usage() {
   cat <<'EOF'
-Install job-kit skills (Aside + coding agents).
+Install job-kit skills (Aside + coding agents). Aside is macOS-only.
 
 Usage: install.sh                 # interactive menu (TTY required)
        install.sh <target>…       # non-interactive (one or more targets)
        install.sh -h|--help
 
 Targets:
-  aside        Aside skills — full copy
+  aside        Aside skills — full copy (macOS only)
   agents       Coding-agent skills — symlinks into every agent home present
   browser-use  Browser skills plus the browser-use driver skill
   all          aside + agents + browser-use, skipping absent
@@ -62,7 +62,9 @@ run_target() {
 # Every channel whose parent exists, in order. Absent is a skip, not an error.
 run_all() {
   local ran=0
-  if aside_ready; then
+  if ! aside_supported; then
+    echo "Aside: macOS-only; skipping."
+  elif aside_ready; then
     run_target aside; ran=1
   else
     echo "Aside: not set up (${HOME}/.aside/u/${ASIDE_ACCOUNT:-0}/skills missing); skipping."
@@ -80,20 +82,24 @@ run_all() {
 # interactive_menu — bash select when stdin is a TTY.
 interactive_menu() {
   local choice
+  local -a options
+  options=()
+  if aside_supported; then
+    options[${#options[@]}]="Aside skills"
+  fi
+  options[${#options[@]}]="Coding-agent skills"
+  options[${#options[@]}]="browser-use skills (job-scout + job-apply in coding agents)"
+  options[${#options[@]}]="All of the above"
+  options[${#options[@]}]="Quit"
+
   PS3="Select component to install (number): "
-  select choice in \
-    "Aside skills" \
-    "Coding-agent skills" \
-    "browser-use skills (job-scout + job-apply in coding agents)" \
-    "All of the above" \
-    "Quit"
-  do
-    case "${REPLY}" in
-      1) run_target aside; return 0 ;;
-      2) run_target agents; return 0 ;;
-      3) run_target browser-use; return 0 ;;
-      4) run_all; return 0 ;;
-      5) echo "quit"; return 0 ;;
+  select choice in "${options[@]}"; do
+    case "${choice}" in
+      "Aside skills") run_target aside; return 0 ;;
+      "Coding-agent skills") run_target agents; return 0 ;;
+      browser-use*) run_target browser-use; return 0 ;;
+      "All of the above") run_all; return 0 ;;
+      "Quit") echo "quit"; return 0 ;;
       *) echo "invalid choice" >&2 ;;
     esac
   done

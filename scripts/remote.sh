@@ -34,7 +34,7 @@ Usage: remote.sh [channel] [options…]
 
 Install channels:
   all          Aside + coding agents + browser-use, skipping absent (default)
-  aside        Aside only (fails when Aside is not set up)
+  aside        Aside only, macOS (fails off macOS, or when Aside is not set up)
   agents       Coding agents only (fails when no agent home exists)
   browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home), driven by

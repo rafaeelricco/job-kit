@@ -27,7 +27,8 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
 The installer detects available targets. Windows supports coding agents and
-browser-use; macOS also supports Aside. To select a channel or preview changes:
+browser-use, as does Linux; macOS also supports Aside. To select a channel or
+preview changes:
 
 ```bash
 curl -fsSL https://r1cco.com/install.sh | bash -s -- agents
@@ -35,6 +36,7 @@ curl -fsSL https://r1cco.com/install.sh | bash -s -- all --dry-run
 ```
 
 Channels are `all` (default), `agents`, `browser-use`, and `aside`.
+The `aside` channel installs on macOS only; `all` skips it elsewhere.
 The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
 `job-captcha-solver`, and their shared dependencies.
 Browser tasks in coding agents need the local `browser-use` CLI, its driver

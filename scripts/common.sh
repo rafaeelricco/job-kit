@@ -169,6 +169,17 @@ confirm_yes() {
   esac
 }
 
+# aside_supported
+# Exit 0 on macOS, or when ASIDE_SKILLS names the destination outright.
+# Aside Browser ships for macOS only; any other host has nowhere to install.
+# Side effects: none.
+aside_supported() {
+  if [ -n "${ASIDE_SKILLS:-}" ]; then
+    return 0
+  fi
+  [ "$(uname -s)" = "Darwin" ]
+}
+
 # aside_ready
 # Exit 0 when Aside's skills parent exists, or ASIDE_SKILLS is set.
 # Side effects: none.

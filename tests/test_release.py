@@ -523,6 +523,18 @@ class ReleaseInstallerTests(unittest.TestCase):
             self.assertEqual(marker.read_text().strip(), str(f.physical / "skill/job-match"))
         self.each_shell(scenario)
 
+    def test_aside_refuses_off_macos_without_an_explicit_root(self):
+        if os.name == "nt":
+            self.skipTest("Aside is not supported on Windows")
+        if sys.platform == "darwin":
+            self.skipTest("Aside installs on macOS")
+        def scenario(f):
+            result = f.run("aside", extra={"ASIDE_SKILLS": ""})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Aside is macOS-only", result.stdout + result.stderr)
+            self.assertFalse(any(f.aside.iterdir()))
+        self.each_shell(scenario)
+
 
 if __name__ == "__main__":
     unittest.main()
