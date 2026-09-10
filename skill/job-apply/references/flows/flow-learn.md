@@ -22,11 +22,19 @@ collapse duplicates within the run, by the normalization in
 `contract-screening.md` rule 3. Nothing left → write nothing and say so.
 
 Write once for the whole run under
-`job-profile-me/references/flows/flow-mutate.md` staging law: render to the
-`*.yaml.tmp` sibling, append at the tail of `qa[]` in collection order, edit
-surgically, never re-serialize, never drop a comment or a key outside the
-appended rows, re-parse, then rename over the original. A parse failure
-discards the staging file and writes nothing.
+`job-profile-me/references/flows/flow-mutate.md` staging law, with two
+additions this leg owns because it runs unattended. Re-read
+`data/candidate.yaml` now and re-apply the drop rule above against that fresh
+`qa[]`. Render to `data/candidate.yaml.{run token}.tmp` — never the bare
+`*.yaml.tmp` sibling, which another writer owns — appending at the tail of
+`qa[]` in collection order, editing surgically, never re-serializing, never
+dropping a comment or a key outside the appended rows. Re-parse, then re-read
+`data/candidate.yaml` once more immediately before the rename: changed since
+the render → discard the staging file, write nothing, and print that the
+profile changed under this run, naming the rows not written. Unchanged →
+rename over the original. A parse failure discards the staging file and writes
+nothing.
 
-Print `qa += {question}` per appended row, then the count. Nothing appended, or
-a discarded staging file, prints one line saying so and no count.
+Print `qa += {question}` per appended row, then the count. Nothing appended, a
+discarded staging file, or a profile that changed under this run prints one
+line saying so and no count.
