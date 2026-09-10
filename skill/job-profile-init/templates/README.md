@@ -71,7 +71,8 @@ roots stay active until the tree is deleted.
   terms, upload, a sign-in with an existing session or `Continue with Google`
   as your profile email, a code from Gmail, a captcha via `job-captcha-solver`,
   Submit — and records to `scout/jobs/` on submit success (or when you confirm
-  you submitted outside it). A blocker no rule clears skips the posting; it
-  never waits for you.
+  you submitted outside it). It never waits for you: only a demand to create an
+  account skips the posting; every other blocker no rule clears leaves it
+  unfinished, and a rerun retries it.
   job-inbox reads Gmail for replies and writes
   `interview` / `offer` / `rejected` when evidence is strong.

@@ -47,8 +47,8 @@ One row per field the form asks except the CV upload control, which is already
 represented under `### CV` and uploaded in `flow-apply.md` §5. `source` is the
 Fact file that printed the value, or the resolution-order name from
 `contract-screening.md`: `derived`, `authored`, `default`, `declined`. An
-optional field with no value prints an empty cell; a required one skipped the
-posting. Never print `—` as an answer.
+optional field with no value prints an empty cell; a required one left the
+posting unfinished. Never print `—` as an answer.
 
 ### Authored
 
