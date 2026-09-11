@@ -112,6 +112,12 @@ main() {
     shift
   done
 
+  if ! aside_supported; then
+    echo "error: Aside is macOS-only (this host: $(uname -s)); nothing to install." >&2
+    echo "  Set ASIDE_SKILLS to an absolute path to install anyway." >&2
+    exit 1
+  fi
+
   rows="$(plan_rows_aside)"
   run_channel_plan "${rows}" "Aside" install_aside
 }
