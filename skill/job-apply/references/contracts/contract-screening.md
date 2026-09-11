@@ -28,8 +28,8 @@ the package prints the rule as `source`. Nothing waits for the operator.
 1. A Fact file above prints it → that file.
 2. "Derived answers" below computes it → `derived`.
 3. `data/candidate.yaml` `screening_defaults` prints it (`on_call`,
-   `hours_overlap`, `timezone`, `referral_source`, `consent_to_data_processing`,
-   or a `qa[]` row) → `data/candidate.yaml`. A `qa[]` row applies when its
+   `hours_overlap`, `timezone`, `consent_to_data_processing`, or a `qa[]` row)
+   → `data/candidate.yaml`. A `qa[]` row applies when its
    `question` equals the form label after normalizing both — lowercase,
    non-alphanumeric runs → one space, trim — and its `scope` holds: `country`
    equals the jurisdiction the label asks about, else the posting's printed
@@ -76,12 +76,6 @@ Before staging any prose, enforce every `never_say` ban below.
   Country of residence is that country.
 - Earliest start date: today plus `availability.notice_period`; `Immediately`
   when the notice is zero.
-- Referral source: the dossier's Provenance `source` (a pack id) mapped to the
-  option that names that board (`linkedin-jobs` → LinkedIn, `work-at-a-startup`
-  → Y Combinator, `we-work-remotely` → We Work Remotely, `hiring-cafe` → Hiring
-  Cafe, `*-boards` → the employer's own site); no such option → `Job board` or
-  `Other`; a free-text ask gets the
-  board name. Never a person.
 - Weekly hours: the posting's stated hours; full-time with none printed → 40.
 - Seniority self-label: the current role's `position` in `data/experiences.yml`.
 - Salary period: `salary_range_usd` is yearly. A monthly ask divides the

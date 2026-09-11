@@ -1,7 +1,8 @@
 # Record confirmed application
 
-This is the only phase that writes the Profile root, and it writes only the
-dossier store.
+This is the only per-posting phase that writes the Profile root, and it writes
+only the dossier store. The run tail's `flow-learn.md` write is the one
+exception.
 
 Before writing, obey `job-store/references/schemas/schema-dossier.md` and
 `job-store/references/contracts/contract-persistence.md`. Do not reproduce or replace those mechanics.
@@ -101,5 +102,5 @@ codes, demographic/EEO answers, or any value the run did not print.
 
 After the schema-compliant write and lock release, print the dossier filename, log line,
 and resulting `status:`, then return to the queue. The queue's terminal step in
-`flow-apply.md` owns the inbox leg, not this Close — a posting skipped after an
-earlier one recorded never reaches here.
+`flow-apply.md` owns the inbox leg, not this Close — a posting that did not
+submit after an earlier one recorded never reaches here.

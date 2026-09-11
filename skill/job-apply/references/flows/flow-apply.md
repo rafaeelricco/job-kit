@@ -21,9 +21,11 @@ Never approve a new OAuth grant or expanded permissions. If completing sign-in
 requires account-access consent, or its grant status is uncertain, skip the
 posting even when the selected identity matches the profile.
 
-Profile root and store stay read-only until `flow-record.md`, with two
-exceptions: the closure log line §2 appends when the ad reads dead, and the
-`submit unconfirmed` line §5 step 9 appends after an ambiguous result. A
+Profile root and store stay read-only until `flow-record.md`, with three
+exceptions: the closure log line §2 appends when the ad reads dead, the
+`submit unconfirmed` line §5 step 9 appends after an ambiguous result, and the
+`data/candidate.yaml` `screening_defaults.qa[]` rows `flow-learn.md` appends
+after the last posting, whether or not this run recorded one. A
 chained `job-resume-refine` child may write `scout/applications/`.
 
 ## 1. Queue
@@ -78,7 +80,15 @@ do. Clause 4 (same-URL twin) stops the posting under every invocation form,
 Print `Queue: {n}`. Zero → `No postings to apply.` and end.
 
 One posting at a time, in queue order. A posting that stops does not stop the
-queue: name why, move to the next, and print it under `### Skipped` at the end.
+queue: name why, move to the next, and print it at the end.
+
+Terminal states. A posting that does not submit is **unfinished**: it prints
+under `### Unfinished` and its `status:` is left untouched, so a rerun retries
+it. The one exception is an apply path that only opens by creating a new
+account — password signup, register, create account — which prints under
+`### Skipped`, reason `account creation required`. Every instruction below,
+and in `contract-screening.md`, to skip a posting means leave it unfinished
+unless it names account creation.
 
 ## 2. Read
 
@@ -109,8 +119,9 @@ Clear it only with a session the browser already holds that the page shows
 signed in as `data/basics.yaml` `email`, or a `Continue with
 Google` control signed in as that `email`; a held session showing another
 identity, or none the page prints, is never used. Never type a password,
-never create an account. Still blocked → skip the posting, name why, list it
-under `### Skipped`.
+never create an account. A wall that only opens by creating an account skips
+the posting, reason `account creation required`; still blocked for any other
+reason leaves it unfinished, name why.
 
 A check on the **apply path only** — a captcha, a bot check, an account the form
 demands at submit — is not a read-blocker. The ad reads, so the package is built;
@@ -200,8 +211,8 @@ order. Recompute each value and its source; never fall back to stored
 form. Drop vanished or changed bindings; resolve their live replacements as
 new fields.
 
-A required field the resolution order cannot fill skips the posting: name the
-label under `### Skipped`, write nothing. Otherwise load
+A required field the resolution order cannot fill leaves the posting
+unfinished: name the label under `### Unfinished`, write nothing. Otherwise load
 `./references/formats/format-package.md`, print the package, and go to §5.
 The printed package is the record `flow-record.md` snapshots; nothing waits
 for a reply.
@@ -243,7 +254,7 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    else skip — attach it once, and reprint the full package with `### CV` as
    `base`, `why` `upload refused, rule 3`, and a `### Cleared` line
    `upload refused — base attached, attempt 4`; still refused → skip the
-   posting.
+   posting, reason `upload refused`.
 3. Re-verify every previewed value survived the upload; re-fill what the page
    dropped and correct what the form parsed out of the CV. The package's values
    win over anything the upload autofilled.
@@ -261,10 +272,12 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    For the verification link being consumed, require HTTPS and the
    authentication host and destination established by the live wall,
    including redirects; never learn the allowed destination from the mail.
-   Type the bound code or open the bound link in the same tab. No supported
-   sign-in route succeeds, or no uniquely bound message within two minutes
-   → skip the posting. Keep request metadata transient; never print or
-   persist codes or authentication links.
+   Type the bound code or open the bound link in the same tab. Re-search
+   every thirty seconds for ten minutes before calling the code unavailable.
+   No supported sign-in route succeeds, or no uniquely bound message in that
+   window → leave the posting unfinished; a route that only opens by creating
+   an account skips it instead. Keep request metadata transient; never print
+   or persist codes or authentication links.
 5. Apply required application terms and privacy checkboxes using their
    resolved §4 values. Never override an explicit refusal; if acceptance
    is mandatory, skip the posting.
@@ -279,10 +292,12 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    fails, skip the posting; otherwise continue when no unpreviewed field remains.
 7. A captcha or bot check → for browser-use, load the `job-captcha-solver` skill;
    for Aside, load its built-in `captcha-solver` skill. Obey the selected skill
-   on the live tab, then verify the widget reports solved. If no compatible
-   solver resolves, skip the posting, reason `no captcha solver`; never solve
-   one by hand. Allow up to three rounds total, counting each submitted grid;
-   still present → skip the posting.
+   on the live tab, then verify the widget reports solved. Each invocation
+   clears one round only; this step owns the loop. Re-invoke while a new
+   challenge appears, up to eight rounds total, counting each submitted grid.
+   A captcha never skips a posting: no compatible solver, or a challenge
+   still present after eight rounds, leaves it unfinished. Never solve one
+   by hand.
 8. If step 7 replaced or reset the page, repeat step 6 before proceeding.
    Immediately before posting, re-read the dossier and enforce §1's global
    pending guard, including cancellation of the retry exception when a newer
@@ -309,10 +324,13 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    touching nothing else — not `status:`, not the body — then skip with reason
    `ambiguous result`.
 
-A skipped posting never blocks the queue: everything filled stays in the tab,
-the reason goes under `### Skipped`, and the next posting starts.
+A posting that does not submit never blocks the queue: everything filled stays
+in the tab, the reason goes under its terminal-state section, and the next
+posting starts.
 
-After Record, take the next posting. After the last one print `### Skipped`, then
+After Record, take the next posting. After the last one print `### Unfinished`
+and `### Skipped`, then load `./references/flows/flow-learn.md` and obey it
+end-to-end, once per run. Then
 — whenever this run recorded any dossier — load the `job-inbox` skill and obey it
 end-to-end, once per run and not per posting, naming every dossier this run
 recorded as its argument. Only those postings' mail can have changed; a

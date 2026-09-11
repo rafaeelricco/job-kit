@@ -40,6 +40,5 @@ screening_defaults:
   on_call: ""
   hours_overlap: ""
   timezone: ""
-  referral_source: ""
   consent_to_data_processing: ""
   qa: [] # each: {question, answer, scope?, source, confirmed_at}

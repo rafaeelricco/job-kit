@@ -135,8 +135,8 @@ target so a reader never sees a half-written plan), then
 `job-apply/references/formats/format-package.md` defines — `### Ad`, `### CV`,
 `### Form` — written to file instead of printed, the `### Ad` eligibility and match lines
 included; `### Authored` and
-`### Cleared` are apply-time sections and never appear here. `### Skipped`
-is run-level and never goes in the file.
+`### Cleared` are apply-time sections and never appear here. `### Skipped` and
+`### Unfinished` are run-level and never go in the file.
 
 A posting with `needs_you` or `walls` still gets both files. Classify plans once
 with this precedence: external when `walls` is non-empty; answers when `walls`
@@ -158,8 +158,9 @@ and for dead/skipped the recorded reason. Never join blocker values.
 Put an explicit `next:` action on every row. Prepared → normal
 `/job-apply {slug}.md`; Needs answers → print the package path and use normal
 `/job-apply {slug}.md` after fixing the named source — apply resolves or
-skips; External blockers → print the package path and use normal
-`/job-apply {slug}.md`, which clears the wall in §5 or skips; Dead → `none`;
+leaves it unfinished; External blockers → print the package path and use normal
+`/job-apply {slug}.md`, which clears the wall in §5 or leaves it unfinished;
+Dead → `none`;
 Skipped → fix the named reason and rerun
 `/job-prep {slug}.md`, except a `possible duplicate` skip, whose `next:` is
 `/job-apply {other}.md` or set this dossier `dropped` — never a rerun. A

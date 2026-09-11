@@ -27,8 +27,13 @@ Load `./references/schemas/schema-profile-card.md` when the verb is `refresh-car
    invariant below; for `boards.yaml`, the boards invariant. Any staging write, parse, or validation that fails →
    delete the staged files and say nothing was written, naming the failing path,
    pack id, and error.
-8. All staged files parse → rename each over its original. Rename is the only
-   step that mutates a live file.
+8. All staged files parse → re-read **every** target against disk before the
+   first rename: any one changed since step 2 → delete the staged files, write
+   nothing, and say the file changed under this cycle, naming the path; the
+   operator re-runs the verb against the fresh content. `job-apply`'s
+   `flow-learn.md` appends `screening_defaults.qa[]` unattended, so a step-2
+   read goes stale while step 4 waits. All unchanged → rename each over its
+   original. Rename is the only step that mutates a live file.
 9. A rename that fails after an earlier one succeeded → restore those originals
    from the step-5 contents and report the cycle rolled back. Never print
    `wrote` for a cycle that did not complete: the card-clear and its

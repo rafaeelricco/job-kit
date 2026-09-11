@@ -47,8 +47,8 @@ One row per field the form asks except the CV upload control, which is already
 represented under `### CV` and uploaded in `flow-apply.md` §5. `source` is the
 Fact file that printed the value, or the resolution-order name from
 `contract-screening.md`: `derived`, `authored`, `default`, `declined`. An
-optional field with no value prints an empty cell; a required one skipped the
-posting. Never print `—` as an answer.
+optional field with no value prints an empty cell; a required one left the
+posting unfinished. Never print `—` as an answer.
 
 ### Authored
 
@@ -65,5 +65,13 @@ Empty → omit the section.
 
 ### Skipped
 
-Printed once, after the last package. One line per posting the queue passed over:
-`{company} · {title} — {reason}`. Empty → omit the section.
+Printed once, after the last package. One line per posting an apply path barred
+by demanding a new account: `{company} · {title} — account creation required`.
+Empty → omit the section.
+
+### Unfinished
+
+Printed once, beside `### Skipped`. One line per posting that did not submit for
+any other reason: `{company} · {title} — {reason}`. Its `status:` is unchanged,
+so a rerun retries it unless a `flow-apply.md` §1 guard drops it.
+Empty → omit the section.
