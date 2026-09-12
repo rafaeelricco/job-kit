@@ -32,6 +32,7 @@ import {
   pairedSeries,
   seriesOf,
   sourceSeries,
+  tallyAppliedBySource,
   tallyBy,
   windowOf,
 } from "@/module/scout/helpers/analytics"
@@ -110,7 +111,9 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
   const applications = useMemo(() => pairedSeries(scoped, current, baseline, appliedDates), [scoped, current, baseline])
   const sources = useMemo(() => sourceSeries(scoped, current, SOURCE_LIMIT), [scoped, current])
   const pipeline = useMemo(() => tallyBy(scoped, current, LIFECYCLES, (d) => d.status), [scoped, current])
+  const appliedBySource = useMemo(() => tallyAppliedBySource(scoped, current), [scoped, current])
   const total = trend.reduce((n, p) => n + p.count, 0)
+  const appliedTotal = applications.reduce((n, p) => n + p.count, 0)
 
   return (
     <>
@@ -216,6 +219,14 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
         />
         <BarList title="Pipeline" Icon={GitBranch} rows={pipeline} total={total} />
       </div>
+
+      <BarList
+        title="Applications by source"
+        Icon={Globe}
+        rows={appliedBySource}
+        total={appliedTotal}
+        empty="No applications in this range."
+      />
     </>
   )
 }
@@ -449,11 +460,13 @@ function BarList({
   Icon,
   rows,
   total,
+  empty = "No dossiers in this range.",
 }: {
   readonly title: string
   readonly Icon: LucideIcon
   readonly rows: readonly TallyRow[]
   readonly total: number
+  readonly empty?: string
 }) {
   const peak = Math.max(...rows.map((r) => r.count), 1)
 
@@ -463,7 +476,7 @@ function BarList({
         <SectionTitle Icon={Icon}>{title}</SectionTitle>
 
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No dossiers in this range.</p>
+          <p className="text-sm text-muted-foreground">{empty}</p>
         ) : (
           <ul className="flex flex-col gap-4">
             {rows.map((row) => (
