@@ -420,6 +420,7 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             "keep search columns (at minimum `url`) with `status` and `status_reason`",
             extract,
         )
+        self.assertIn("the row keeps its pre-redirect url", extract)
         self.assertIn("they are not refilled from the search surface", extract)
         self.assertIn("a row extract later marks `dead` is not refilled", search)
         self.assertIn("set its date control to the `date_posted` window when it has one", search)

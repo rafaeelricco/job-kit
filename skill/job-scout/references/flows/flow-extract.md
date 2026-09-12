@@ -6,10 +6,13 @@ Open the full posting before copying: expand every collapsed or truncated
 block ("read more" / "show more" / accordions) and scroll to the end. A JD
 still truncated after expansion → `status=uncertain`, never partial facts.
 
-A posting that redirects → replace the row's URL with the landed canonical URL
-(`location.href`, else `link[rel=canonical]`), re-normalize per
-`job-store/references/schemas/schema-dossier.md`, and fold it into an existing row for that URL before
-persisting.
+A posting that redirects to another posting → replace the row's URL with the
+landed canonical URL (`location.href`, else `link[rel=canonical]`), re-normalize
+per `job-store/references/schemas/schema-dossier.md`, and fold it into an
+existing row for that URL before persisting. A redirect that lands on a board
+index or listing rather than one posting is `dead` below and is never
+canonicalized: the row keeps its pre-redirect URL, so closure lookup still finds
+the dossier that URL owns.
 
 `apply_url` is the normalized href of the posting's apply control (`—` when
 none). When its host is an ATS family per
