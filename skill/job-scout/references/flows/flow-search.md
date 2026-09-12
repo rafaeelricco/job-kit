@@ -46,7 +46,12 @@ for every named location.
 Without `route`, retain the DOM flow. Open `entry`. ATS roots with no browsable
 index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
 `jobs.ashbyhq.com`) use `site:{entry host} {formulation}` on a search engine
-instead; an `entry` with a path opens directly.
+instead; an `entry` with a path opens directly. On a `site:` run the search
+engine is the surface: set its date control to the `date_posted` window when it
+has one, and expect stale rows regardless — the index is not the board, and
+extract marks them `dead` (`./flow-extract.md`). A `kind: board` pack over the
+same family reads the live board API and is the fresher index once
+`data/boards.yaml` has rows for that `ats`.
 
 Surface filter controls matching Constraints `date_posted`, `work_model`,
 `job_types`, and location (location omitted on a `location: keep-only` pack) — no others → set them before scanning. Paginate until
@@ -55,9 +60,25 @@ formulation run. A zero-keep page is not a stop. Cap hit →
 `defect: list_truncated`.
 
 For DOM runs, proof remains the surface echo matching the submitted string;
-otherwise record `defect: query_not_submitted`.
+otherwise record `defect: query_not_submitted`. A DOM candidate's
+`matched_query` is the expanded formulation whose echo proved the run,
+verbatim. A card reached any other way — a category or index page, a board
+listing, browsing on from `entry` — has no proven run and is not a candidate:
+do not open it, do not emit it. The pack declares its surfaces; a run never
+adds one. A source whose term search misses cards its category pages list is
+a pack-routing change, not a sweep improvised in the run.
 
-Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
+A surface or search engine that stops answering mid-matrix — a bot-wall,
+captcha, throttle page, or an empty page for a query that kept cards earlier in
+the same run — is an interrupt, never a zero and never `query_not_submitted`.
+On the first such page, re-submit one formulation that kept cards earlier in
+this run; a `site:` search-engine run may carry that query to one other engine
+first, and a run that recovers on another engine counts as submitted. Still
+empty → stop the pack there: every built run after the interrupted one
+is unsubmitted, and the verdict is `defect: surface_interrupted`. A query that
+never kept cards in the run and is contradicted by no re-test stays a zero.
+
+Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack: the cap counts kept candidates at search time, and a row extract later marks `dead` is not refilled. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
 
 `channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`. Unknown = `—`.
 
@@ -67,9 +88,9 @@ Every pack prints `### Candidates` then `### Defect log`:
 
 `source` is the pack `id` (an ad-hoc pack's id is its host), never the surface label or the posting host.
 
-`pack | formulations_run | zero_result_runs | verdict`
-`zero_result_runs` = runs that kept no card. A routed run is one expanded formulation, or one board slug on a `kind: board` pack, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide` or on a `location: keep-only` pack. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`; a `location: keep-only` pack has no per-location runs.
-`verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`.
+`pack | formulations_run | zero_result_runs | unsubmitted_runs | verdict`
+`zero_result_runs` = runs that kept no card. `unsubmitted_runs` = built runs never submitted, counted after the interrupted run; `0` when none. An interrupted page is not a zero_result_run. A routed run is one expanded formulation, or one board slug on a `kind: board` pack, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide` or on a `location: keep-only` pack. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`; a `location: keep-only` pack has no per-location runs.
+`verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`. `unsubmitted_runs` above `0` is always `defect: surface_interrupted`; `query_not_submitted` names a pack fault (unknown `location` value, incomplete route, missing echo), never an interrupt.
 
 ## 2 Merge
 

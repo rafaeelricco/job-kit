@@ -573,6 +573,29 @@ class SearchPackRouteTests(unittest.TestCase):
                         ),
                     )
 
+    def test_surfaces_without_a_location_control_declare_keep_only(self):
+        for identifier in (
+            "linkedin-posts",
+            "x-dm-me",
+            "x-funding",
+            "hn-hiring",
+            "work-at-a-startup",
+            "we-work-remotely",
+            "dice",
+        ):
+            pack = self.pack(identifier)
+            with self.subTest(pack=identifier, source=pack.where):
+                self.assertEqual(
+                    pack.value(4, "location"),
+                    "keep-only",
+                    "{0} at {1} has no usable location control but does not "
+                    "declare `location: keep-only`".format(identifier, pack.where),
+                )
+        for pack in self.packs:
+            if pack.value(4, "surface") == "social":
+                with self.subTest(pack=pack.identifier, source=pack.where):
+                    self.assertEqual(pack.value(4, "location"), "keep-only")
+
     def test_shipped_route_dependent_packs(self):
         getonbrd = self.pack("getonbrd")
         for indent, key, want in (

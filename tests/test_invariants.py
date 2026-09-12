@@ -28,6 +28,19 @@ normalize_url = harness.load(harness.STORE / "normalize_url.py")
 SCHEMA_DOSSIER: Path = (
     harness.SKILL / "job-store" / "references" / "schemas" / "schema-dossier.md"
 )
+FLOW_GATE: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-gate.md"
+)
+FLOW_SEARCH: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
+)
+FLOW_EXTRACT: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-extract.md"
+)
+FLOW_RANK: Path = harness.SKILL / "job-scout" / "references" / "flows" / "flow-rank.md"
+FLOW_MATCH_GATE: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-match-gate.md"
+)
 
 
 @dataclass(frozen=True)
@@ -363,6 +376,87 @@ class PolicyAgreementTests(unittest.TestCase):
 
 
 class JobScoutStoreInstructionTests(unittest.TestCase):
+    def test_gate_reapplies_date_after_extract(self):
+        gate = instruction_text(FLOW_GATE)
+        self.assertIn("drop a `jd_date` older than the kit `date_posted` window", gate)
+        self.assertIn("blank is not a drop", gate)
+
+    def test_zero_keep_runs_are_a_named_defect(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`zero_result_runs` = runs that kept no card", search)
+        self.assertIn("a routed run is one expanded formulation, or one board slug on a `kind: board` pack, with location applied only as a keep filter", search)
+        self.assertIn("a dom run is one expanded formulation, per named location under `listed`, or once under `worldwide`", search)
+        self.assertIn("for dom runs under `listed`, every run for one named location zero-keep", search)
+        self.assertIn("→ `defect: zero_results`", search)
+        self.assertIn("a pack with `location: keep-only` runs under `listed` as under `worldwide`", search)
+        self.assertIn("a `location: keep-only` pack has no per-location runs", search)
+        self.assertNotIn("empty and clean is `pass`", search)
+
+    def test_surface_interrupt_is_neither_zero_nor_unsubmitted_fault(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`pack | formulations_run | zero_result_runs | unsubmitted_runs | verdict`", search)
+        self.assertIn("is an interrupt, never a zero and never `query_not_submitted`", search)
+        self.assertIn("re-submit one formulation that kept cards earlier in this run", search)
+        self.assertIn("a run that recovers on another engine counts as submitted", search)
+        self.assertIn("an interrupted page is not a zero_result_run", search)
+        self.assertIn("every built run after the interrupted one is unsubmitted", search)
+        self.assertIn(
+            "`unsubmitted_runs` = built runs never submitted, counted after the interrupted run",
+            search,
+        )
+        self.assertNotIn("every built run from the first interrupted one on", search)
+        self.assertNotIn("counted from the first interrupted run", search)
+        self.assertIn("`unsubmitted_runs` above `0` is always `defect: surface_interrupted`", search)
+        self.assertIn("`query_not_submitted` names a pack fault", search)
+
+    def test_dead_rows_are_decided_on_apply_signals_and_never_refilled(self):
+        extract = instruction_text(FLOW_EXTRACT)
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`dead` is decided at the first page read", extract)
+        self.assertIn("a 200 with a short not-found body counts", extract)
+        self.assertIn("an ats api that returns no payload for the id", extract)
+        self.assertIn("read nothing further on that page", extract)
+        self.assertIn(
+            "keep search columns (at minimum `url`) with `status` and `status_reason`",
+            extract,
+        )
+        self.assertIn("the row keeps its pre-redirect url", extract)
+        self.assertIn("a posting that redirects to another posting", extract)
+        self.assertIn("is `dead` below and is never canonicalized", extract)
+        self.assertIn("owns no dossier under its pre-fold url", extract)
+        self.assertNotIn("closure lookup still finds", extract)
+        self.assertNotIn("a posting that redirects → replace", extract)
+        self.assertIn("they are not refilled from the search surface", extract)
+        self.assertIn("a row extract later marks `dead` is not refilled", search)
+        self.assertIn("set its date control to the `date_posted` window when it has one", search)
+
+    def test_dom_candidates_carry_a_proven_formulation(self):
+        search = instruction_text(FLOW_SEARCH)
+        schema = instruction_text(SCHEMA_DOSSIER)
+        self.assertIn("a dom candidate's `matched_query` is the expanded formulation whose echo proved the run", search)
+        self.assertIn("has no proven run and is not a candidate", search)
+        self.assertIn("the pack declares its surfaces; a run never adds one", search)
+        self.assertIn("an expanded pack formulation, or a `positions[]` entry on a `kind: board` route", schema)
+        self.assertIn("is not a provenance and the row does not persist", schema)
+
+    def test_unscored_rows_are_reported_apart_from_low_scores(self):
+        rank = instruction_text(FLOW_RANK)
+        match_gate = instruction_text(FLOW_MATCH_GATE)
+        self.assertIn("either list empty → unscored (`—`)", rank)
+        self.assertIn("reports it as gaps `unscorable`, never as `score<=7`", rank)
+        self.assertIn("never invent requirements from the profile", rank)
+        self.assertIn("kit drop, unscorable, score≤7", rank)
+        self.assertIn("`score` is `—` → `unscorable: no requirements printed` when `required_skills` is `—`", match_gate)
+        self.assertIn("integer `score` ≤ 7 → `score<=7`", match_gate)
+        self.assertNotIn("`score` is `—` or integer ≤ 7", match_gate)
+
+    def test_normalizer_is_the_shipped_script(self):
+        section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
+        self.assertIn("run `./scripts/normalize_url.py`", section)
+        self.assertIn("never by hand", section)
+        self.assertIn("`hiringcafe.com` `/job/{slug}-{id}` → `/job/{id}`", section)
+        self.assertIn("compare normalized to normalized", section)
+
     def test_tracker_keys_match_prose(self):
         section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")
         rule = section.partition("3. drop tracker query keys")[2].partition("(case-insensitive)")[0]

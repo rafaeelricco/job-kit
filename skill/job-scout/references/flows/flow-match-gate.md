@@ -4,7 +4,8 @@ Input: `status=live` rows that passed `SKILL.md` §4 Gate, with Rank `score`.
 
 Drop to Gaps, no dossier:
 
-- `score` is `—` or integer ≤ 7 → `score<=7`
+- `score` is `—` → `unscorable: no requirements printed` when `required_skills` is `—`, else `unscorable: no profile skills`
+- integer `score` ≤ 7 → `score<=7`
 - then match (below) fails
 
 Keep: integer `score` 8–10 and match decision at/above `possible_match` (`match_score` ≥ 70).
