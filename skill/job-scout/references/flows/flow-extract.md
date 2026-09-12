@@ -34,7 +34,8 @@ not-found body counts), a redirect to or a landing on a board index or listing
 rather than one posting, or an ATS API that returns no payload for the id.
 Record `status_reason` as the printed line cut at 80 characters, else
 `http 404` / `redirect to board index` / `empty api payload`, and read nothing
-further on that page — no expansion, no field copy; every other Verified cell
+further on that page — no expansion, no field copy; keep search columns (at
+minimum `url`) with `status` and `status_reason`; every other Verified cell
 is `—`. A dead row still passes through validate and gate as a row; it never
 persists except as a closure log on an existing dossier. Dead rows count
 against the pack cap like any kept candidate; they are not refilled from the

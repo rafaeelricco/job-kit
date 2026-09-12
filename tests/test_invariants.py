@@ -773,6 +773,10 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("a 200 with a short not-found body counts", extract)
         self.assertIn("an ats api that returns no payload for the id", extract)
         self.assertIn("read nothing further on that page", extract)
+        self.assertIn(
+            "keep search columns (at minimum `url`) with `status` and `status_reason`",
+            extract,
+        )
         self.assertIn("they are not refilled from the search surface", extract)
         self.assertIn("a row extract later marks `dead` is not refilled", search)
         self.assertIn("set its date control to the `date_posted` window when it has one", search)
