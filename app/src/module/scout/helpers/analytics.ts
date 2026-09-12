@@ -218,18 +218,16 @@ function sourceSeries(
 
 // Applications are stamped on send day (`applied via`), not firstSeen: a
 // dossier found in March and applied to yesterday belongs to yesterday.
-// Vocabulary is the pack ids on those stamps, busiest first; sources with
-// no in-window attempt are omitted.
+// Vocabulary is every pack id in `all`, so a source with no in-window
+// attempt still appears as zero — same keep-empty rule as `tallyBy`.
 function tallyAppliedBySource(all: readonly Dossier[], w: Window): readonly TallyRow[] {
   const counts = new Map<string, number>()
   for (const d of all) {
-    let n = 0
+    if (!counts.has(d.provenance.source)) counts.set(d.provenance.source, 0)
     for (const date of appliedDates(d)) {
       if (date < w.from || date > w.to) continue
-      n += 1
+      counts.set(d.provenance.source, (counts.get(d.provenance.source) ?? 0) + 1)
     }
-    if (n === 0) continue
-    counts.set(d.provenance.source, (counts.get(d.provenance.source) ?? 0) + n)
   }
   return [...counts]
     .map(([label, count]) => ({ label, count }))
