@@ -81,12 +81,16 @@ packs:
   - id: greenhouse
     surface: open-web
     entry: https://job-boards.greenhouse.io
+    # Undated search-engine site: harvest; stale rows read dead at extract.
+    # Prefer greenhouse-boards once data/boards.yaml has rows for this family.
     formulations:
       - "[role]"
 
   - id: lever
     surface: open-web
     entry: https://jobs.lever.co
+    # Undated search-engine site: harvest; stale rows read dead at extract.
+    # Prefer lever-boards once data/boards.yaml has rows for this family.
     formulations:
       - "[role]"
 
@@ -142,6 +146,8 @@ packs:
   - id: linkedin-posts
     surface: social
     entry: https://www.linkedin.com/search/results/content/
+    # Posts content search has no location control; Anywhere is the only view.
+    location: keep-only
     formulations:
       - '"we''re hiring" [role]'
       - '"now hiring" [role]'
@@ -152,6 +158,8 @@ packs:
   - id: x-dm-me
     surface: social
     entry: https://x.com/search?f=live
+    # Live search has no location control; Anywhere is the only view.
+    location: keep-only
     formulations:
       - 'hiring "DM me" [role]'
       - '"we''re hiring" "email me" [role]'
@@ -162,6 +170,8 @@ packs:
   - id: x-funding
     surface: social
     entry: https://x.com/search?f=live
+    # Live search has no location control; Anywhere is the only view.
+    location: keep-only
     formulations:
       - '"just raised" hiring [role]'
       - '"Series A" hiring [role]'

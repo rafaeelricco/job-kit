@@ -64,6 +64,13 @@ SCHEMA_STATE: Path = harness.SKILL / "job-match" / "references" / "schemas" / "s
 FLOW_SEARCH: Path = (
     harness.SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
 )
+FLOW_EXTRACT: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-extract.md"
+)
+FLOW_RANK: Path = harness.SKILL / "job-scout" / "references" / "flows" / "flow-rank.md"
+FLOW_MATCH_GATE: Path = (
+    harness.SKILL / "job-scout" / "references" / "flows" / "flow-match-gate.md"
+)
 
 
 @dataclass(frozen=True)
@@ -748,6 +755,47 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("a pack with `location: keep-only` runs under `listed` as under `worldwide`", search)
         self.assertIn("a `location: keep-only` pack has no per-location runs", search)
         self.assertNotIn("empty and clean is `pass`", search)
+
+    def test_surface_interrupt_is_neither_zero_nor_unsubmitted_fault(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`pack | formulations_run | zero_result_runs | unsubmitted_runs | verdict`", search)
+        self.assertIn("is an interrupt, never a zero and never `query_not_submitted`", search)
+        self.assertIn("re-submit one formulation that kept cards earlier in this run", search)
+        self.assertIn("a run that recovers on another engine counts as submitted", search)
+        self.assertIn("an interrupted page is not a zero_result_run", search)
+        self.assertIn("`unsubmitted_runs` above `0` is always `defect: surface_interrupted`", search)
+        self.assertIn("`query_not_submitted` names a pack fault", search)
+
+    def test_dead_rows_are_decided_on_apply_signals_and_never_refilled(self):
+        extract = instruction_text(FLOW_EXTRACT)
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn("`dead` is decided at the first page read", extract)
+        self.assertIn("a 200 with a short not-found body counts", extract)
+        self.assertIn("an ats api that returns no payload for the id", extract)
+        self.assertIn("read nothing further on that page", extract)
+        self.assertIn("they are not refilled from the search surface", extract)
+        self.assertIn("a row extract later marks `dead` is not refilled", search)
+        self.assertIn("set its date control to the `date_posted` window when it has one", search)
+
+    def test_dom_candidates_carry_a_proven_formulation(self):
+        search = instruction_text(FLOW_SEARCH)
+        schema = instruction_text(SCHEMA_DOSSIER)
+        self.assertIn("a dom candidate's `matched_query` is the expanded formulation whose echo proved the run", search)
+        self.assertIn("has no proven run and is not a candidate", search)
+        self.assertIn("the pack declares its surfaces; a run never adds one", search)
+        self.assertIn("an expanded pack formulation, or a `positions[]` entry on a `kind: board` route", schema)
+        self.assertIn("is not a provenance and the row does not persist", schema)
+
+    def test_unscored_rows_are_reported_apart_from_low_scores(self):
+        rank = instruction_text(FLOW_RANK)
+        match_gate = instruction_text(FLOW_MATCH_GATE)
+        self.assertIn("either list empty → unscored (`—`)", rank)
+        self.assertIn("reports it as gaps `unscorable`, never as `score<=7`", rank)
+        self.assertIn("never invent requirements from the profile", rank)
+        self.assertIn("kit drop, unscorable, score≤7", rank)
+        self.assertIn("`score` is `—` → `unscorable: no requirements printed` when `required_skills` is `—`", match_gate)
+        self.assertIn("integer `score` ≤ 7 → `score<=7`", match_gate)
+        self.assertNotIn("`score` is `—` or integer ≤ 7", match_gate)
 
     def test_normalizer_is_the_shipped_script(self):
         section = instruction_section(SCHEMA_DOSSIER, "## URL normalize", "## File format")

@@ -3,7 +3,7 @@
 One mutation per confirm cycle. Several related edits in one user message are one
 batch — still one diff, one yes.
 
-Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/add/remove), `boards` (`boards.yaml`: add/remove/import),
+Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/location/add/remove), `boards` (`boards.yaml`: add/remove/import),
 `refresh-card` (`profile_card.yaml`), `cvs set` (`cvs.yaml`), `qa` (`candidate.yaml`
 `screening_defaults.qa[]`: add/answer/remove/ingest).
 Load `./references/schemas/schema-profile-card.md` when the verb is `refresh-card` or when a
@@ -76,6 +76,9 @@ that is `refresh-card`.
   compose a formulation, never widen one, never look a term up. Empty list → refuse.
   A typed line that contains `[industry]` → warn (scout drops an empty
   `[industry]` token), then let the user decide.
+- `location` — `packs location <id> keep-only` writes `location: keep-only` on one
+  pack; `packs location <id> surface` removes the key. No id match → say so. Only
+  the operator declares keep-only; scout never infers it from the surface.
 - `add` / `remove` a pack — require `id`, `surface`, `entry`, and ≥1 formulation
   from the user. `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or
   another); scout opens `entry`, it does not load a playbook file. `entry` is one
