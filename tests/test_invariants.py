@@ -763,6 +763,13 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("re-submit one formulation that kept cards earlier in this run", search)
         self.assertIn("a run that recovers on another engine counts as submitted", search)
         self.assertIn("an interrupted page is not a zero_result_run", search)
+        self.assertIn("every built run after the interrupted one is unsubmitted", search)
+        self.assertIn(
+            "`unsubmitted_runs` = built runs never submitted, counted after the interrupted run",
+            search,
+        )
+        self.assertNotIn("every built run from the first interrupted one on", search)
+        self.assertNotIn("counted from the first interrupted run", search)
         self.assertIn("`unsubmitted_runs` above `0` is always `defect: surface_interrupted`", search)
         self.assertIn("`query_not_submitted` names a pack fault", search)
 

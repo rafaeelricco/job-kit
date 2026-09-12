@@ -74,7 +74,7 @@ the same run — is an interrupt, never a zero and never `query_not_submitted`.
 On the first such page, re-submit one formulation that kept cards earlier in
 this run; a `site:` search-engine run may carry that query to one other engine
 first, and a run that recovers on another engine counts as submitted. Still
-empty → stop the pack there: every built run from the first interrupted one on
+empty → stop the pack there: every built run after the interrupted one
 is unsubmitted, and the verdict is `defect: surface_interrupted`. A query that
 never kept cards in the run and is contradicted by no re-test stays a zero.
 
@@ -89,7 +89,7 @@ Every pack prints `### Candidates` then `### Defect log`:
 `source` is the pack `id` (an ad-hoc pack's id is its host), never the surface label or the posting host.
 
 `pack | formulations_run | zero_result_runs | unsubmitted_runs | verdict`
-`zero_result_runs` = runs that kept no card. `unsubmitted_runs` = built runs never submitted, counted from the first interrupted run; `0` when none. An interrupted page is not a zero_result_run. A routed run is one expanded formulation, or one board slug on a `kind: board` pack, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide` or on a `location: keep-only` pack. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`; a `location: keep-only` pack has no per-location runs.
+`zero_result_runs` = runs that kept no card. `unsubmitted_runs` = built runs never submitted, counted after the interrupted run; `0` when none. An interrupted page is not a zero_result_run. A routed run is one expanded formulation, or one board slug on a `kind: board` pack, with location applied only as a keep filter. A DOM run is one expanded formulation, per named location under `listed`, or once under `worldwide` or on a `location: keep-only` pack. Every run zero-keep → `defect: zero_results`. For DOM runs under `listed`, every run for one named location zero-keep also → `defect: zero_results`; a `location: keep-only` pack has no per-location runs.
 `verdict` ∈ `pass` | `auth_gate` | `defect: {name}`. No defect and no auth gate is `pass`. `unsubmitted_runs` above `0` is always `defect: surface_interrupted`; `query_not_submitted` names a pack fault (unknown `location` value, incomplete route, missing echo), never an interrupt.
 
 ## 2 Merge
