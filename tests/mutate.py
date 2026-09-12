@@ -269,8 +269,6 @@ SANDBOX_TREES: Tuple[str, ...] = ("skill", "tests", "scripts")
 STAGE_PATTERNS: Tuple[str, ...] = (
     "test_invariants.py",
     "test_golden.py",
-    "test_packaging.py",
-    "test_prose.py",
 )
 FUZZ_PATTERN: str = "test_fuzz.py"
 

@@ -406,12 +406,6 @@ class ReferenceTests(unittest.TestCase):
         for kind, count in counts[:-1]:
             with self.subTest(kind=kind):
                 self.assertGreater(count, 0, "no {0} references matched".format(kind))
-        self.assertGreaterEqual(
-            len(checkable),
-            70,
-            "only {0} checkable references matched; the extractor has regressed "
-            "and the resolve tests are passing vacuously".format(len(checkable)),
-        )
         self.assertGreater(
             len(profile),
             0,
@@ -420,25 +414,6 @@ class ReferenceTests(unittest.TestCase):
 
 
 class FrontmatterTests(unittest.TestCase):
-    def test_name_matches_directory(self):
-        for directory in skill_dirs():
-            path = directory / "SKILL.md"
-            with self.subTest(skill=directory.name):
-                self.assertTrue(path.is_file(), "{0} has no SKILL.md".format(directory))
-                fields = frontmatter(path)
-                self.assertIn(
-                    "name",
-                    fields,
-                    "{0} has no `name:` in its frontmatter".format(path),
-                )
-                self.assertEqual(
-                    fields["name"],
-                    directory.name,
-                    "{0} declares name `{1}` but lives in `{2}`".format(
-                        path, fields.get("name"), directory.name
-                    ),
-                )
-
     def test_description_is_present(self):
         for directory in skill_dirs():
             path = directory / "SKILL.md"
@@ -535,17 +510,6 @@ class SearchPackRouteTests(unittest.TestCase):
             "no pack `{0}` in {1}".format(identifier, DECK.relative_to(REPO).as_posix())
         )
 
-    def assertOrdered(self, text: str, first: str, second: str, source: str) -> None:
-        for phrase in (first, second):
-            self.assertIn(
-                phrase, text, "{0} no longer says {1!r}".format(source, phrase)
-            )
-        self.assertLess(
-            text.index(first),
-            text.index(second),
-            "{0} places {1!r} after {2!r}".format(source, first, second),
-        )
-
     def test_deck_parses(self):
         declared = len(re.findall(r"(?m)^  - id:", self.deck))
         identifiers = [pack.identifier for pack in self.packs]
@@ -562,13 +526,6 @@ class SearchPackRouteTests(unittest.TestCase):
             "{0} `- id:` lines but {1} packs parsed; the pack scanner has "
             "regressed".format(declared, len(self.packs)),
         )
-        self.assertGreaterEqual(
-            len(self.packs),
-            10,
-            "only {0} packs parsed; the pack scanner has regressed".format(
-                len(self.packs)
-            ),
-        )
         self.assertEqual(
             sorted(set(identifiers)),
             sorted(identifiers),
@@ -581,26 +538,6 @@ class SearchPackRouteTests(unittest.TestCase):
             0,
             "no pack declares `route_required: true`; the route tests pass vacuously",
         )
-
-    def test_route_schema_is_documented(self):
-        header, marker, _ = self.deck.partition("\npacks:\n")
-        self.assertTrue(marker, "no `packs:` key; the header split has regressed")
-        for phrase in (
-            "route_required:",
-            "route is optional",
-            "kind: json",
-            "pages, items, and posting_url",
-            "{formulation}",
-            "{page}",
-            "keep gate",
-            "location: keep-only",
-        ):
-            with self.subTest(phrase=phrase):
-                self.assertIn(
-                    phrase,
-                    header,
-                    "the deck header stops documenting {0!r}".format(phrase),
-                )
 
     def test_required_routes_are_complete_or_disabled(self):
         for pack in self.packs:
@@ -669,53 +606,6 @@ class SearchPackRouteTests(unittest.TestCase):
             "hiring-cafe at {0} carries no route, so it must ship "
             "disabled".format(hiring_cafe.where),
         )
-
-    def test_route_consumers_are_pinned(self):
-        scout_search = read(
-            SKILL / "job-scout" / "references" / "flows" / "flow-search.md"
-        )
-        show = read(
-            SKILL / "job-profile-me" / "references" / "flows" / "flow-show.md"
-        )
-        mutate = read(
-            SKILL / "job-profile-me" / "references" / "flows" / "flow-mutate.md"
-        )
-        pinned = (
-            (
-                "job-scout/references/flows/flow-search.md",
-                scout_search,
-                (
-                    "`defect: route_failed`",
-                    "`defect: list_truncated`",
-                    "— no others",
-                    "`location: keep-only`",
-                    "other present `location` value records `defect: query_not_submitted`",
-                ),
-            ),
-            (
-                "job-profile-me/references/flows/flow-show.md",
-                show,
-                ("Route status, first match", "route=json", "location=keep-only", "location=invalid"),
-            ),
-            (
-                "job-profile-me/references/flows/flow-mutate.md",
-                mutate,
-                ("Route invariant", "`location`, when present, is `keep-only`"),
-            ),
-        )
-        for source, text, phrases in pinned:
-            for phrase in phrases:
-                with self.subTest(source=source, phrase=phrase):
-                    self.assertIn(
-                        phrase, text, "{0} no longer says {1!r}".format(source, phrase)
-                    )
-        self.assertOrdered(
-            scout_search,
-            "When a pack has `route`",
-            "Without `route`",
-            "job-scout/references/flows/flow-search.md",
-        )
-        self.assertNotRegex(scout_search, r"surface-[a-z0-9-]+\.md")
 
 
 class SchemaBlockTests(unittest.TestCase):

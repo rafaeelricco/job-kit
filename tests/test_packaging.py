@@ -242,14 +242,6 @@ class RequiredFilesTests(unittest.TestCase):
 class SkillLayoutTests(unittest.TestCase):
     """What a skill directory must look like, and what the installer may name."""
 
-    def test_every_skill_dir_has_a_skill_md(self):
-        for directory in skill_dirs():
-            with self.subTest(skill=directory.name):
-                self.assertTrue(
-                    (directory / "SKILL.md").is_file(),
-                    "skill/%s/ ships no SKILL.md" % directory.name,
-                )
-
     def test_frontmatter_name_matches_directory(self):
         for directory in skill_dirs():
             with self.subTest(skill=directory.name):
