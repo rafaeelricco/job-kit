@@ -9,6 +9,7 @@ export {
   pairedSeries,
   seriesOf,
   sourceSeries,
+  tallyAppliedBySource,
   tallyBy,
   windowOf,
 }
@@ -92,7 +93,12 @@ function daily(all: readonly Dossier[], w: Window, stamps: Stamps): readonly Ser
     }
   }
 
-  const start = w.from === "0000-01-01" ? earliest(all, w) : w.from
+  // All-time still has to emit stamps older than min firstSeen (backfilled
+  // applications on a stub whose first_seen is today).
+  let start = w.from === "0000-01-01" ? earliest(all, w) : w.from
+  if (w.from === "0000-01-01") {
+    for (const date of counts.keys()) if (date < start) start = date
+  }
   const points: SeriesPoint[] = []
   for (let ms = toUtc(start); ms <= toUtc(w.to); ms += DAY_MS) {
     const date = toIso(ms)
@@ -213,4 +219,22 @@ function sourceSeries(
     points.push({ date, ...Object.fromEntries(rows.map((r) => [r.label, day?.get(r.label) ?? 0])) })
   }
   return { rows, points }
+}
+
+// Applications are stamped on send day (`applied via`), not firstSeen: a
+// dossier found in March and applied to yesterday belongs to yesterday.
+// Vocabulary is every pack id in `all`, so a source with no in-window
+// attempt still appears as zero — same keep-empty rule as `tallyBy`.
+function tallyAppliedBySource(all: readonly Dossier[], w: Window): readonly TallyRow[] {
+  const counts = new Map<string, number>()
+  for (const d of all) {
+    if (!counts.has(d.provenance.source)) counts.set(d.provenance.source, 0)
+    for (const date of appliedDates(d)) {
+      if (date < w.from || date > w.to) continue
+      counts.set(d.provenance.source, (counts.get(d.provenance.source) ?? 0) + 1)
+    }
+  }
+  return [...counts]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
 }
