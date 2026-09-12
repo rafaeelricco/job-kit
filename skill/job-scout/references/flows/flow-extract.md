@@ -11,8 +11,10 @@ landed canonical URL (`location.href`, else `link[rel=canonical]`), re-normalize
 per `job-store/references/schemas/schema-dossier.md`, and fold it into an
 existing row for that URL before persisting. A redirect that lands on a board
 index or listing rather than one posting is `dead` below and is never
-canonicalized: the row keeps its pre-redirect URL, so closure lookup still finds
-the dossier that URL owns.
+canonicalized: the row keeps its pre-redirect URL, so a closure log can land on
+the dossier that URL owns. A posting folded to another URL on an earlier run
+owns no dossier under its pre-fold URL; that closure waits for the refresh read
+of the folded URL.
 
 `apply_url` is the normalized href of the posting's apply control (`—` when
 none). When its host is an ATS family per
