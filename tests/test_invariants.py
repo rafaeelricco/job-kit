@@ -421,6 +421,9 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             extract,
         )
         self.assertIn("the row keeps its pre-redirect url", extract)
+        self.assertIn("a posting that redirects to another posting", extract)
+        self.assertIn("is `dead` below and is never canonicalized", extract)
+        self.assertNotIn("a posting that redirects → replace", extract)
         self.assertIn("they are not refilled from the search surface", extract)
         self.assertIn("a row extract later marks `dead` is not refilled", search)
         self.assertIn("set its date control to the `date_posted` window when it has one", search)
