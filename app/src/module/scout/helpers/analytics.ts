@@ -93,7 +93,12 @@ function daily(all: readonly Dossier[], w: Window, stamps: Stamps): readonly Ser
     }
   }
 
-  const start = w.from === "0000-01-01" ? earliest(all, w) : w.from
+  // All-time still has to emit stamps older than min firstSeen (backfilled
+  // applications on a stub whose first_seen is today).
+  let start = w.from === "0000-01-01" ? earliest(all, w) : w.from
+  if (w.from === "0000-01-01") {
+    for (const date of counts.keys()) if (date < start) start = date
+  }
   const points: SeriesPoint[] = []
   for (let ms = toUtc(start); ms <= toUtc(w.to); ms += DAY_MS) {
     const date = toIso(ms)
