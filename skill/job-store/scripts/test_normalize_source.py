@@ -51,6 +51,22 @@ class CanonicalTests(unittest.TestCase):
                 self.assertEqual(canonical(raw), raw)
         self.assertEqual(canonical("  some-new-pack  "), "some-new-pack")
 
+    def test_declared_id_outranks_the_alias_table(self):
+        # An ad-hoc pack's id IS its host, so a run that declares the host must
+        # keep it: folding would credit a pack that never ran.
+        for raw, folded in CASES:
+            with self.subTest(raw=raw):
+                self.assertEqual(canonical(raw, frozenset([raw])), raw)
+                self.assertEqual(canonical(raw), folded)
+
+    def test_declared_id_survives_the_legacy_prefix(self):
+        self.assertEqual(canonical("source linkedin.com", frozenset(["linkedin.com"])), "linkedin.com")
+
+    def test_fold_still_fires_when_another_pack_is_declared(self):
+        # Only the token itself is an identity; an unrelated vocabulary must not
+        # suppress the fold.
+        self.assertEqual(canonical("linkedin.com", frozenset(["ashby", "lever"])), "linkedin-jobs")
+
 
 class PayloadTests(unittest.TestCase):
     def test_batch_keeps_order(self):
@@ -83,6 +99,36 @@ class PayloadTests(unittest.TestCase):
                 code, result = normalize_payload(payload)
                 self.assertEqual(code, 0)
                 self.assertEqual(result["unknown"], [])
+
+    def test_ad_hoc_host_id_is_not_folded_away(self):
+        # The deck + ad-hoc shape: without ids-first precedence this rewrote the
+        # ad-hoc id to a pack that never ran, and reported nothing unknown.
+        code, result = normalize_payload(
+            {"sources": ["linkedin.com", "ashby"], "ids": ["linkedin.com", "ashby"]}
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(result["sources"], ["linkedin.com", "ashby"])
+        self.assertEqual(result["unknown"], [])
+
+    def test_declared_id_is_never_reported_unknown(self):
+        # The second-order symptom: a folded token absent from ids was minted by
+        # the script and then named as a gap.
+        code, result = normalize_payload(
+            {"sources": ["jobs.ashbyhq.com"], "ids": ["jobs.ashbyhq.com"]}
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(result["sources"], ["jobs.ashbyhq.com"])
+        self.assertEqual(result["unknown"], [])
+
+    def test_drifted_spelling_still_folds_for_a_deck_pack(self):
+        # The PR's own purpose must survive: a host spelling of a deck pack that
+        # no ad-hoc pack claims still folds onto the pack id.
+        code, result = normalize_payload(
+            {"sources": ["linkedin.com", "hiringcafe"], "ids": ["linkedin-jobs", "hiring-cafe"]}
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(result["sources"], ["linkedin-jobs", "hiring-cafe"])
+        self.assertEqual(result["unknown"], [])
 
     def test_empty_batch(self):
         self.assertEqual(

@@ -13,7 +13,7 @@ stdout: ``{"sources": [...], "unknown": [...]}`` in the same order, or
 
 import json
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, FrozenSet, List, Tuple
 
 # Policy, not derivation: a host cannot be mapped to a pack id by rule, because
 # an ad-hoc pack's id IS its host. Every entry below is a spelling observed in
@@ -36,10 +36,18 @@ ALIASES: Dict[str, str] = {
 PREFIX = "source "
 
 
-def canonical(raw: str) -> str:
+def canonical(raw: str, known: FrozenSet[str] = frozenset()) -> str:
+    """Fold a spelling onto its pack id, unless the run already declares it.
+
+    ``known`` is the run's id vocabulary. A token in it is an identity the run
+    itself declared — an ad-hoc pack's id IS its host — so it outranks the alias
+    table; folding it would attribute the row to a pack that never ran.
+    """
     token = raw.strip()
     if token.startswith(PREFIX):
         token = token[len(PREFIX):].strip()
+    if token in known:
+        return token
     return ALIASES.get(token, token)
 
 
@@ -52,10 +60,12 @@ def normalize_payload(payload: object) -> Tuple[int, Dict[str, object]]:
         raw_ids = []
     if not isinstance(raw_ids, list) or not all(isinstance(i, str) for i in raw_ids):
         return 1, {"normalize_error": "ids array must be strings when present"}
-    out: List[str] = [canonical(raw) for raw in sources]
+    # The run's own vocabulary outranks the alias table, so it is built before
+    # the fold: an id the run declared is an identity, not a spelling to fold.
+    known = frozenset(raw_ids)
+    out: List[str] = [canonical(raw, known) for raw in sources]
     # Without a vocabulary nothing can be judged unknown, so an empty deck of
     # ids reports nothing rather than reporting everything.
-    known = frozenset(raw_ids)
     unknown: List[str] = sorted(set(out) - known) if known else []
     return 0, {"sources": out, "unknown": unknown}
 
