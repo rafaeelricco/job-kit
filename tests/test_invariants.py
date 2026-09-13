@@ -24,6 +24,15 @@ scaffold_guidance = harness.load(harness.MATCH / "scaffold_guidance.py")
 validate_guidance = harness.load(harness.MATCH / "validate_guidance.py")
 check_parse = harness.load(harness.REFINE / "check_parse.py")
 normalize_url = harness.load(harness.STORE / "normalize_url.py")
+normalize_source = harness.load(harness.STORE / "normalize_source.py")
+
+DECK: Path = (
+    harness.SKILL
+    / "job-profile-init"
+    / "templates"
+    / "data"
+    / "search_packs.yaml"
+)
 
 SCHEMA_DOSSIER: Path = (
     harness.SKILL / "job-store" / "references" / "schemas" / "schema-dossier.md"
@@ -313,6 +322,42 @@ class EnumDriftTests(unittest.TestCase):
             validate_guidance.ALLOWED_WARNINGS,
             emittable_warnings() | frozenset({"no_relevant_role"}),
         )
+
+    def test_alias_targets_are_shipped_pack_ids(self):
+        """Every fold target must name a pack some deck declares.
+
+        The aliases are policy, not derivation (a host cannot be mapped to an
+        id by rule), so nothing else catches a target that was renamed out of
+        the deck or typo'd — the fold would simply mint a new label.
+
+        The runtime authority is the operator's own deck, which tests never
+        read (`tests/test_prose.py` keeps the profile root out of the suite),
+        so the shipped template stands in for it. OPERATOR_ONLY names the ids
+        the template omits but an operator deck may declare; each one is a
+        template gap, not an alias defect.
+        """
+        # The template ships the board-API pack for Ashby but not the DOM
+        # `site:` pack, though it ships both for Greenhouse and Lever.
+        operator_only = frozenset({"ashby"})
+        declared = frozenset(
+            re.findall(r"(?m)^  - id:\s*(\S+)", DECK.read_text(encoding="utf-8"))
+        )
+        self.assertTrue(declared, "parsed no pack ids from the shipped deck")
+        for alias, target in sorted(normalize_source.ALIASES.items()):
+            with self.subTest(alias=alias):
+                self.assertIn(target, declared | operator_only)
+
+    def test_no_alias_target_is_itself_an_alias(self):
+        """A fold must land in one hop, or `canonical` would depend on order."""
+        aliases = normalize_source.ALIASES
+        self.assertEqual(frozenset(aliases.values()) & frozenset(aliases), frozenset())
+
+    def test_alias_keys_are_not_themselves_pack_ids(self):
+        """A deck id must never be an alias key, or a real source would fold away."""
+        declared = frozenset(
+            re.findall(r"(?m)^  - id:\s*(\S+)", DECK.read_text(encoding="utf-8"))
+        )
+        self.assertEqual(frozenset(normalize_source.ALIASES) & declared, frozenset())
 
 
 class BoundaryAgreementTests(unittest.TestCase):
