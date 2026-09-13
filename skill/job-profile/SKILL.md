@@ -52,6 +52,8 @@ Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.
 
 When the operator asks to find jobs / scout openings, hand off `job-scout`, then
 end this skill.
+When the operator says `continue fill`, with or without naming a field, read
+`./references/flows/flow-fill.md` now.
 When the operator mutates search config, packs, the profile card, CV settings, or
 reusable answers (`set` / `packs` / `boards` / `refresh-card` / `cvs set` / `qa`), or asks to change salary, notice,
 visa, sponsorship, EOR, Fact fields, or identity, read `./references/flows/flow-mutate.md` now.
