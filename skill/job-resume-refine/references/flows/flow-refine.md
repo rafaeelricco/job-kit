@@ -43,7 +43,7 @@ with a source extension. Identify which is on disk and print it:
 
 Read, do not write: `data/experiences.yml`, `data/skills.yaml`,
 `data/languages.yaml`, `data/basics.yaml`, and `data/stories/*.md` frontmatter.
-Story bodies stay closed. Empty deck is normal. `job-profile-me` is the
+Story bodies stay closed. Empty deck is normal. `job-profile` is the
 interactive editor for these files; this skill reads them directly, so a refine
 never opens a write prompt.
 

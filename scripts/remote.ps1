@@ -71,6 +71,17 @@ $script:KitOwnershipFiles = @(
   'scripts\aside\lib.sh',
   'scripts\install.sh',
   'scripts\uninstall.sh',
+  'skill\job-profile\SKILL.md',
+  'skill\job-scout\SKILL.md'
+)
+
+$script:KitPreviousOwnershipFiles = @(
+  'scripts\agents\install.sh',
+  'scripts\agents\lib.sh',
+  'scripts\aside\install.sh',
+  'scripts\aside\lib.sh',
+  'scripts\install.sh',
+  'scripts\uninstall.sh',
   'skill\job-profile-init\SKILL.md',
   'skill\job-scout\SKILL.md'
 )
@@ -78,11 +89,10 @@ $script:KitOwnershipFiles = @(
 $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'scripts\common.sh',
   'scripts\browser-use\install.sh',
-  'skill\job-captcha-solver\SKILL.md',
+  'skill\captcha-solver\SKILL.md',
   'skill\job-apply\SKILL.md',
   'skill\job-prep\SKILL.md',
   'skill\job-resume-refine\SKILL.md',
-  'skill\job-profile-me\SKILL.md',
   'skill\job-list\SKILL.md',
   'skill\job-match\SKILL.md',
   'skill\job-match\scripts\score.py',
@@ -94,7 +104,6 @@ $script:KitRequiredFiles = $script:KitOwnershipFiles + @(
   'skill\job-store\scripts\validate_extract.py',
   'skill\job-store\scripts\boards_from_store.py',
   'skill\job-stories\SKILL.md',
-  'skill\job-pitch\SKILL.md',
   'skill\job-inbox\SKILL.md',
   'skill\job-humanize\SKILL.md',
   'skill\job-profile-root\SKILL.md',
@@ -400,6 +409,13 @@ function Invoke-EnsureKitCache {
   }
   $missing = Get-KitOwnedMissing $Dest
   if ($missing) {
+    $previous = Get-KitPathsMissing $Dest $script:KitPreviousOwnershipFiles
+    if (-not $previous) {
+      Write-Host "refreshing kit cache (skill names changed): $Dest"
+      Invoke-FetchKit $Dest
+      Assert-Checkout $Dest
+      return
+    }
     Write-KitDie "cache path exists and is not a job-kit package (missing $missing): $Dest"
   }
   # Caches fetched by the Git Bash installer before this channel pass the

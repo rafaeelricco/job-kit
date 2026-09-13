@@ -4,7 +4,7 @@ Main writes; a spawned search/extract subagent never does.
 
 ## Layout (under Profile root)
 
-`scout/jobs/` is created by this phase, never by `job-profile-init`.
+`scout/jobs/` is created by this phase, never by `job-profile`.
 
 ## Filename
 
@@ -99,7 +99,7 @@ Keys below, plus main-derived `blocker`, `ats`, `match_score`, and `match_decisi
 
 ## ATS family
 
-`ats` ∈ `greenhouse` | `lever` | `ashby` | `other`, from the normalized `url` host: `greenhouse.io` or a subdomain → `greenhouse`; `lever.co` or a subdomain → `lever`; `ashbyhq.com` or a subdomain → `ashby`; any other host → `other`. This is the one host→family rule in the kit: job-prep, job-apply, job-profile-me, and the dashboard read the stored row and cite this section; none re-derives it.
+`ats` ∈ `greenhouse` | `lever` | `ashby` | `other`, from the normalized `url` host: `greenhouse.io` or a subdomain → `greenhouse`; `lever.co` or a subdomain → `lever`; `ashbyhq.com` or a subdomain → `ashby`; any other host → `other`. This is the one host→family rule in the kit: job-prep, job-apply, job-profile, and the dashboard read the stored row and cite this section; none re-derives it.
 
 ## The role
 

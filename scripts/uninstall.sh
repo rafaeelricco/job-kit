@@ -18,7 +18,7 @@ ASIDE_ACCOUNT_ID="${ASIDE_ACCOUNT:-0}"
 # libraries under a real `skill/` directory already identify a job-kit tree.
 KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
-skill/job-profile-init/SKILL.md
+skill/job-profile/SKILL.md
 skill/job-scout/SKILL.md"
 
 DRY_RUN=0
@@ -244,8 +244,8 @@ Usage: uninstall.sh                 # interactive menu (TTY required)
        uninstall.sh -h|--help
 
 Targets:
-  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile-me, job-list, job-match, job-pitch, job-inbox, job-humanize, job-profile-root, job-store)
-  agents    Coding-agent skills (job-profile-init, job-profile-me, job-list, job-match, job-stories, job-pitch, job-inbox, job-humanize, job-profile-root, job-store, job-resume-refine)
+  aside     Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile, job-list, job-match, job-stories, job-inbox, job-humanize, job-profile-root, job-store)
+  agents    Coding-agent skills (job-profile, job-list, job-match, job-stories, job-inbox, job-humanize, job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
                Never a browser app bundle
@@ -347,7 +347,7 @@ uninstall_browser_use() {
         d="$(skill_dest "${root}" "${n}")"
         unlink_skill "${d}" "${repo}" "${n}"
       done
-      for n in job-profile-init job-stories job-pitch job-inbox; do
+      for n in job-stories job-inbox; do
         if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${repo}" "${n}"; then
           agents_owned=1
           break
@@ -646,6 +646,12 @@ kit_owned_missing() {
       fi
     done
     if [ ! -f "${dir}/${rel}" ]; then
+      if [ "${rel}" = "skill/job-profile/SKILL.md" ] \
+        && [ ! -L "${dir}/skill/job-profile-init" ] \
+        && [ ! -L "${dir}/skill/job-profile-init/SKILL.md" ] \
+        && [ -f "${dir}/skill/job-profile-init/SKILL.md" ]; then
+        continue
+      fi
       printf '%s\n' "${rel}"
       return 0
     fi
@@ -821,7 +827,7 @@ plan_rows_browser_use() {
           return 0
           ;;
       esac
-      for pn in job-profile-init job-stories job-pitch job-inbox; do
+      for pn in job-stories job-inbox; do
         if is_kit_skill_link "$(skill_dest "${plan_root}" "${pn}")" "${repo}" "${pn}"; then
           agents_owned=1
           break
@@ -1622,7 +1628,7 @@ unremovable_skill_entries() {
                 case " ${UNINSTALL_TARGETS} " in
                   *" agents "*) ;;
                   *)
-                    for n in job-profile-init job-stories job-pitch job-inbox; do
+                    for n in job-stories job-inbox; do
                       if is_kit_skill_link "$(skill_dest "${root}" "${n}")" "${REPO_ROOT}" "${n}"; then
                         continue 2
                       fi

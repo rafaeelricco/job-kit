@@ -1,9 +1,20 @@
 ---
-name: job-profile-init
-description: "Scaffold a job-search profile and fill Fact-law data from a user-provided source of truth (CV, LinkedIn export file, notes). Use when the user runs /job-profile-init, asks to scaffold a profile, create a profile for job skills, or set up job scout data for someone new. Not for editing an existing profile (job-profile-me)."
+name: job-profile
+description: "Create, register, or edit a job-search profile. Use when the user runs /job-profile, /job-profile-init, or /job-profile-me, asks to scaffold a profile, show search config, change positions or boards, or what is missing for scout. Not for finding jobs (job-scout)."
 ---
 
-# Job profile init
+# Job profile
+
+Create or register a profile, or edit one that already exists.
+
+When the operator asks to create / scaffold / register a profile, or no
+Profile root resolves: obey **Init** below. Do not load `job-profile-root` on
+the create path.
+
+When a Profile root already resolves and the operator is not creating: load
+the `job-profile-root` skill now; obey it end-to-end; then **Edit**.
+
+## Init (create / register)
 
 Create a **new** data-only profile checkout. Refuse non-empty targets.
 Materialize shells only from `./templates/`.
@@ -27,15 +38,38 @@ Outside `<target>`, write only Profile-root pointer files, and only via
    - **No**, otherwise → obey `./references/flows/flow-activate.md` for Activate-skipped handoff
      (next-steps only).
 
+## Edit (existing profile)
+
+Edit an existing profile.
+
+Resolve every `data/*` path against Profile root (not CWD, not skill dir).
+`scout/jobs/*.md` is read only by `boards import`, per `job-store/references/flows/flow-read.md`.
+Skill-local files: `./references/**` only.
+
+Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.yaml`,
+`data/boards.yaml`, `data/cvs.yaml`, `data/candidate.yaml` (`screening_defaults.qa[]` only), and their
+`*.yaml.tmp` staging siblings during atomic rename.
+
+When the operator asks to find jobs / scout openings, hand off `job-scout`, then
+end this skill.
+When the operator mutates search config, packs, the profile card, CV settings, or
+reusable answers (`set` / `packs` / `boards` / `refresh-card` / `cvs set` / `qa`), or asks to change salary, notice,
+visa, sponsorship, EOR, Fact fields, or identity, read `./references/flows/flow-mutate.md` now.
+Otherwise read `./references/flows/flow-show.md` now.
+Load each additional reference only when that flow names it.
+
 ## References
 
 - Intake: `./references/flows/flow-intake.md`
 - Emit tree: `./references/flows/flow-emit-tree.md`
 - Fill: `./references/flows/flow-fill.md`
 - Activate: `./references/flows/flow-activate.md`
+- Show: `./references/flows/flow-show.md`
+- Mutate: `./references/flows/flow-mutate.md`
 - Next steps: `./references/formats/format-next-steps.md`
 - Templates: `./templates/`
 - Questionnaire: `./references/formats/format-questionnaire.md`
+- Profile card: `./references/schemas/schema-profile-card.md`
 
 ## Hard refuses
 
@@ -43,6 +77,6 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 - Network scrape / session harvest of LinkedIn (user-handed export **file** is OK as SoT)
 - Generate a CV PDF or LaTeX
 - Run job-scout or job-apply
-- Edit a non-empty or donor profile
+- Edit a non-empty or donor profile on the Init path
 - Run an installer from under the profile tree. Kit install is the kit directory's
   `scripts/install.sh`.

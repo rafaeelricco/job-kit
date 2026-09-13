@@ -4,13 +4,13 @@
 
 # Skill folder names under skill/ for coding agents.
 CORE_SKILL_NAMES="job-profile-root job-store"
-SKILL_NAMES="job-profile-init job-profile-me job-list job-match job-stories job-pitch job-inbox job-humanize job-resume-refine ${CORE_SKILL_NAMES}"
+SKILL_NAMES="job-profile job-list job-match job-stories job-inbox job-humanize job-resume-refine ${CORE_SKILL_NAMES}"
 # Browser-channel skills: same agent homes, installed only by the `browser-use`
 # target, which needs the browser-use CLI to drive a real browser.
 BROWSER_SKILL_NAMES="job-scout job-apply job-prep"
 # Extra names `install browser-use` links beside BROWSER_SKILL_NAMES.
 # Uninstall preserves dependencies used by agents while that channel remains.
-BROWSER_SHARED_DEPS="job-match job-list job-profile-me job-resume-refine job-humanize job-captcha-solver ${CORE_SKILL_NAMES}"
+BROWSER_SHARED_DEPS="job-match job-list job-profile job-resume-refine job-humanize captcha-solver ${CORE_SKILL_NAMES}"
 
 # agents_names_for_root ROOT REPO
 # Prints SKILL_NAMES, omitting BROWSER_SHARED_DEPS when ROOT still has a
@@ -41,7 +41,7 @@ BROWSER_LEGACY_SKILL_NAMES="job-resume"
 ALL_SKILL_NAMES="${SKILL_NAMES} ${BROWSER_SKILL_NAMES} ${BROWSER_SHARED_DEPS}"
 # Prior basenames for this channel; install/uninstall may remove orphans.
 # Predicates use is_kit_skill_link (readlink == REPO/skill/NAME); source dir need not exist.
-LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker job-resume"
+LEGACY_SKILL_NAMES="profile-init job-profile-config job-tracker job-resume job-profile-init job-profile-me job-pitch job-captcha-solver"
 
 # AGENT_TARGETS — space-separated ids. Dest map matches personal dotfiles:
 #   claude → $HOME/.claude/skills   (parent $HOME/.claude)

@@ -290,7 +290,7 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    including the digest check and upload-settle wait. Reprint the package
    only after the live values and attachment match it. If reconciliation
    fails, skip the posting; otherwise continue when no unpreviewed field remains.
-7. A captcha or bot check → for browser-use, load the `job-captcha-solver` skill;
+7. A captcha or bot check → for browser-use, load the `captcha-solver` skill;
    for Aside, load its built-in `captcha-solver` skill. Obey the selected skill
    on the live tab, then verify the widget reports solved. Each invocation
    clears one round only; this step owns the loop. Re-invoke while a new

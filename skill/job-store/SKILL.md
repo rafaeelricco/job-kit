@@ -1,6 +1,6 @@
 ---
 name: job-store
-description: "Read this when you need dossier schema, persistence lock, or untrusted-read law for scout/jobs/. Use when another job-* skill says to load job-store. Not for listing views (job-list), searching (job-scout), or applying (job-apply)."
+description: "Internal dossier law for job-* skills. Not user-invoked."
 ---
 
 # Job store

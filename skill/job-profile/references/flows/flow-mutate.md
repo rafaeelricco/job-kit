@@ -106,7 +106,7 @@ route. A disabled required pack may omit it. Board slugs live only in `boards.ya
   (launcher per `job-store/references/schemas/schema-dossier.md` "URL normalize"), and append each returned row not
   already present by `(ats, slug)` with `source: store`. `boards_error` → nothing written.
 - `data/boards.yaml` absent → the document is `boards: []` under the template header
-  (`job-profile-init/templates/data/boards.yaml`), never a read-fail or STOP: the cycle
+  (`./templates/data/boards.yaml`), never a read-fail or STOP: the cycle
   diff shows the whole new file, step 6 stages it as a fresh `data/boards.yaml.tmp`, and
   step 8 renames it into place. `boards remove` on an absent file → say no such row; nothing written.
 
@@ -147,12 +147,12 @@ Protocol write path. Empty fields stay `""` / `[]`.
 
 ## Refuse (redirect, never write)
 
-| Ask                                                                                                                                            | Answer                                                                                                       |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*`, any `candidate.yaml` key but `screening_defaults.qa[]` | Print what is on disk. Editing is `job-profile-init` blocker fill, or a human editing `data/candidate.yaml`. |
-| experiences, skills, languages, projects, basics, profiles                                                                                     | Read-only here.                                                                                              |
-| identity (LinkedIn username)                                                                                                                   | Read-only here.                                                                                              |
-| "find me boards"                                                                                                                               | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.          |
-| Copy another profile's data                                                                                                                    | Refuse. Never read a donor Profile root; values come from the operator for _this_ profile.                   |
+| Ask                                                                                                                                            | Answer                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*`, any `candidate.yaml` key but `screening_defaults.qa[]` | Print what is on disk. Editing is `job-profile` blocker fill, or a human editing `data/candidate.yaml`. |
+| experiences, skills, languages, projects, basics, profiles                                                                                     | Read-only here.                                                                                         |
+| identity (LinkedIn username)                                                                                                                   | Read-only here.                                                                                         |
+| "find me boards"                                                                                                                               | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes.     |
+| Copy another profile's data                                                                                                                    | Refuse. Never read a donor Profile root; values come from the operator for _this_ profile.              |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.

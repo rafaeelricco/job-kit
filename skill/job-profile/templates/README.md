@@ -10,7 +10,7 @@ Skills live in **job-kit**, not in this tree.
 | Folder          | What's in it                                                                                                                                                              |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `data/`         | Canonical YAML about you. Edit here first.                                                                                                                                |
-| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, job-pitch, and job-resume-refine, the body is not                                                |
+| `data/stories/` | One markdown file per interview story; frontmatter is read by job-apply, job-stories, and job-resume-refine, the body is not                                              |
 | `cv/`           | The base resume PDF plus its LaTeX source                                                                                                                                 |
 | `scout/`        | Written by job-scout; `status:` and Application-log records by job-apply and job-inbox; read by job-list: `jobs/` per-job dossiers (`{first_seen}-{company}--{title}.md`) |
 
@@ -19,13 +19,13 @@ YAML frontmatter.
 
 ## Register Profile root
 
-`/job-profile-init` offers **Activate** at the end of the flow. Registration
+`/job-profile` offers **Activate** at the end of the flow. Registration
 runs only when the operator answers **Yes**. **No** leaves a data-only tree
 (not allowed when the target is host-default / `JOB_KIT_CONFIG`, which would
 auto-activate from the probe files alone).
 
 To register manually, or to switch the active profile later, re-run
-`/job-profile-init` against this path and answer **Activate: Yes**.
+`/job-profile` against this path and answer **Activate: Yes**.
 
 Host-default `~/.config/job-kit` is always skill-probed, and usually needs no
 pointer. Two exceptions where Activate does register it, per the Activate flow — do
@@ -45,18 +45,18 @@ roots stay active until the tree is deleted.
 
 ## Fill before a useful run
 
-1. Run `/job-profile-init`; it asks every user-owned field, then plans every
+1. Run `/job-profile`; it asks every user-owned field, then plans every
    write for one approval. Source values and defaults require explicit
    confirmation, edits, or skips.
 2. Review Gaps in the fill report; fix any empty fields scout needs.
 3. The compiled CV PDF goes in `cv/`; name it in `data/cvs.yaml` `base` (set via
-   `/job-profile-me cvs`). Set `adapt_per_vacancy` there too. With no `base`,
+   `/job-profile cvs`). Set `adapt_per_vacancy` there too. With no `base`,
    job-apply attaches `cv/en-us-resume.pdf`.
 4. Search packs live in this profile at `data/search_packs.yaml`; tune formulations
-   there or via `/job-profile-me packs`.
+   there or via `/job-profile packs`.
    Employer boards for the `*-boards` packs live in `data/boards.yaml`; add them
-   via `/job-profile-me boards add` or seed from found dossiers with
-   `/job-profile-me boards import`.
+   via `/job-profile boards add` or seed from found dossiers with
+   `/job-profile boards import`.
 5. Free-form details are stored in `data/observations.yaml`.
 6. Story stubs are created empty under `data/stories/`; fill them with
    `/job-stories add`.
@@ -69,7 +69,7 @@ roots stay active until the tree is deleted.
   operator actions. job-apply queues postings, fills the form from Facts, prints
   the package it will record, then clears what the form puts in the path —
   terms, upload, a sign-in with an existing session or `Continue with Google`
-  as your profile email, a code from Gmail, a captcha via `job-captcha-solver`,
+  as your profile email, a code from Gmail, a captcha via `captcha-solver`,
   Submit — and records to `scout/jobs/` on submit success (or when you confirm
   you submitted outside it). It never waits for you: only a demand to create an
   account skips the posting; every other blocker no rule clears leaves it

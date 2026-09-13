@@ -91,7 +91,7 @@
    - `{{ACTIVATE_NOTE}}` — if Activate ran: host-default-location active, **or**
      host path written + mirror yes/no (including XDG-only defaults); session
      export yes/no. If skipped: how to Activate later — re-run
-     `/job-profile-init`, choose register-existing on `<target>`, answer Yes
+     `/job-profile`, choose register-existing on `<target>`, answer Yes
      (mirrors Aside when runtime home exists).
    - `{{KIT_INSTALL}}` — **one** of the two blocks below (pick by resolve).
      Never print bare `bash scripts/install.sh` (or a channel installer) without
@@ -104,7 +104,7 @@
      Register-existing: probe the same paths under `<target>`.
 
    **Resolve `KIT_ROOT` (optional):** take the real path of the skill root that
-   holds `SKILL.md` (`…/skill/job-profile-init`), not this file's own
+   holds `SKILL.md` (`…/skill/job-profile`), not this file's own
    `references/` directory. Parent of `skill/` is the kit root when
    `$KIT_ROOT/scripts/install.sh` exists. Symlink installs usually resolve; a
    copied skill with no kit tree does not — then treat as unresolved.
@@ -147,8 +147,8 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
 
    **If unresolved** — probe Aside repo-agnostically first: every
    `$ASIDE_ROOT/<name>/.job-kit` for the Aside skill names this kit ships
-   (`job-scout`, `job-apply`, `job-prep`, `job-resume-refine`, `job-profile-me`, `job-list`,
-   `job-match`, `job-pitch`, `job-inbox`, `job-humanize`, `job-profile-root`, `job-store`)
+   (`job-scout`, `job-apply`, `job-prep`, `job-resume-refine`, `job-profile`, `job-list`,
+   `job-match`, `job-stories`, `job-inbox`, `job-humanize`, `job-profile-root`, `job-store`)
    exists → say Aside skills are already present from some checkout, so the
    operator does not reinstall over a working channel. Then set `{{KIT_INSTALL}}`
    to (mirror README SSOT; do not invent a different host or script path):
@@ -163,7 +163,7 @@ bash "<KIT_ROOT>/scripts/install.sh" agents`
    > git clone https://github.com/rafaeelricco/job-kit.git
    > cd job-kit
    > bash scripts/install.sh aside    # Aside skills
-   > bash scripts/install.sh agents   # only if coding-agent homes lack job-profile-init
+   > bash scripts/install.sh agents   # only if coding-agent homes lack job-profile
    > # or: bash scripts/install.sh all
    > ```
    >

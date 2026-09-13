@@ -12,7 +12,7 @@ Never write a label classified demographic or EEO (`contract-screening.md`
 rule 6). Never write an `answer` value, a password, a one-time code, or an
 authentication link. The operator fills answers; this leg only asks.
 
-Row shape is the one `job-profile-me/references/flows/flow-mutate.md` defines
+Row shape is the one `job-profile/references/flows/flow-mutate.md` defines
 for `screening_defaults.qa[]`. Per row: `question` is the form label as printed,
 collapsed to one line; `answer` is `""`; `source` is `job-apply · {slug}`;
 `confirmed_at` is today. Omit `scope`.
@@ -22,7 +22,7 @@ collapse duplicates within the run, by the normalization in
 `contract-screening.md` rule 3. Nothing left → write nothing and say so.
 
 Write once for the whole run under
-`job-profile-me/references/flows/flow-mutate.md` staging law, with two
+`job-profile/references/flows/flow-mutate.md` staging law, with two
 additions this leg owns because it runs unattended. Re-read
 `data/candidate.yaml` now and re-apply the drop rule above against that fresh
 `qa[]`. Render to `data/candidate.yaml.{run token}.tmp` — never the bare

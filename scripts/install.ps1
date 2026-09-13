@@ -19,8 +19,8 @@ Usage: install.ps1                 # interactive menu (console required)
        install.ps1 -h|--help
 
 Targets:
-  agents       Coding-agent skills (job-profile-init, job-profile-me, job-list,
-               job-match, job-stories, job-pitch, job-inbox, job-humanize,
+  agents       Coding-agent skills (job-profile, job-list,
+               job-match, job-stories, job-inbox, job-humanize,
                job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) plus the browser-use
                driver skill into coding-agent homes; driven by the local

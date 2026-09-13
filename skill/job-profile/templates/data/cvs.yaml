@@ -1,4 +1,4 @@
-# The one CV job-apply attaches. job-profile-me edits this file.
+# The one CV job-apply attaches. job-profile edits this file.
 # base = filename under `cv/`; must open as a PDF. NEVER a `.tex`.
 # The LaTeX source job-resume-refine copies is the same stem with `.tex`.
 # adapt_per_vacancy = true → job-apply chains job-resume-refine on a
