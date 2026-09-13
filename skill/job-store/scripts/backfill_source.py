@@ -29,6 +29,7 @@ import argparse
 import hashlib
 import os
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -37,6 +38,7 @@ from typing import Dict, List, Optional, Tuple
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from normalize_source import canonical  # noqa: E402  (sibling import, as the kit ships it)
+from normalize_url import normalize  # noqa: E402  (the lock contract's identity)
 
 MARKER = "<!-- scout never writes below this line -->"
 PROVENANCE = "## Provenance"
@@ -46,10 +48,18 @@ SOURCE_LINE = re.compile(r"^source (?P<rest>.*)$")
 URL_FIELD = re.compile(r'^url:\s*"?(?P<url>[^"]+)"?\s*$', re.MULTILINE)
 LOCK_RETRIES = 5
 LOCK_SLEEP = 2.0
+# `contract-persistence.md` step 3: a lock older than this is stale and is
+# reclaimed exactly once, so a crashed writer cannot strand a dossier forever.
+LOCK_STALE_SECONDS = 900.0
 
 
 def digest(url: str) -> str:
-    """First 32 lowercase hex characters of the UTF-8 URL, per the lock contract."""
+    """First 32 lowercase hex characters of the UTF-8 URL, per the lock contract.
+
+    The caller passes the *normalized* URL: identity is the normalized URL
+    (``contract-persistence.md`` step 2), so hashing the raw frontmatter value
+    would name a different lock than every other writer takes for the same row.
+    """
     return hashlib.sha256(url.encode("utf-8")).hexdigest()[:32]
 
 
@@ -103,13 +113,41 @@ def repair_text(text: str) -> Tuple[Optional[str], Optional[str], Optional[str]]
     return None, None, None
 
 
+def stale(lock: str) -> bool:
+    """True when the lock directory is older than the contract's staleness window."""
+    try:
+        return (time.time() - os.stat(lock).st_mtime) > LOCK_STALE_SECONDS
+    except FileNotFoundError:
+        # Released between the failed mkdir and this stat: not stale, just gone.
+        return False
+    except OSError:
+        return False
+
+
 def acquire(lock: str) -> bool:
-    """Exclusive mkdir, retried while a fresh lock is held by someone else."""
+    """Exclusive mkdir, retried while a fresh lock is held by someone else.
+
+    A lock older than ``LOCK_STALE_SECONDS`` belongs to a writer that died
+    holding it; the contract reclaims such a lock once (``contract-persistence.md``
+    step 3). Reclaiming is attempted a single time per call, so two racing
+    backfills cannot ping-pong on the same directory.
+    """
+    reclaimed = False
     for _ in range(LOCK_RETRIES):
         try:
             os.mkdir(lock)
             return True
         except FileExistsError:
+            if not reclaimed and stale(lock):
+                reclaimed = True
+                try:
+                    # The holder may have left an `owner` token beside the dir.
+                    shutil.rmtree(lock)
+                except FileNotFoundError:
+                    pass
+                except OSError:
+                    return False
+                continue
             time.sleep(LOCK_SLEEP)
         except OSError:
             return False
@@ -145,7 +183,15 @@ def run(store: str, apply: bool) -> Dict[str, List[str]]:
         if found is None:
             report["skipped"].append("{0}: no url: field".format(name))
             continue
-        lock = os.path.join(store, "url-{0}.lock".format(digest(found.group("url"))))
+        try:
+            # Identity is the normalized URL, so this names the same lock every
+            # other writer takes for the row — a stored value that predates a
+            # normalize rule would otherwise hash to a lock nobody else holds.
+            identity = normalize(found.group("url"))
+        except ValueError as error:
+            report["skipped"].append("{0}: {1}".format(name, error))
+            continue
+        lock = os.path.join(store, "url-{0}.lock".format(digest(identity)))
         if not apply:
             report["changed"].append("{0}\n    - {1}\n    + {2}".format(name, before, after))
             continue
