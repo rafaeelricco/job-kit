@@ -14,10 +14,12 @@ When Edit `continue fill` has no Intake Source and no questionnaire:
 
 1. Collect Source now (path / paste / scaffold-only), same modes as
    `flow-intake.md` **Source**.
-2. Ask a questionnaire covering only the named blocker fields, or salary /
-   notice / visa / sponsorship / EOR / `legal_authorization.*` /
-   `employment_routes.*` when none were named. Chat-stated values are
-   proposals; require confirm / edit / skip.
+2. Ask a questionnaire covering only the named fields when the operator
+   named a blocker or a redirected Fact/identity field (experiences, skills,
+   languages, projects, basics, profiles, identity). When none were named:
+   salary / notice / visa / sponsorship / EOR / `legal_authorization.*` /
+   `employment_routes.*`. Chat-stated values are proposals; require
+   confirm / edit / skip.
    On Edit, skip of a field that already has a non-empty on-disk value
    leaves that value unchanged. Empty writes stay for Init and for an
    explicit clear. This overrides Invent-matrix "skip leaves empty" for
@@ -67,6 +69,8 @@ win over extracted or template-provided proposals. Apply only confirmed values,
 explicit skips, and confirmed pack enablement choices.
 
 - Write all confirmed candidate, basics, collection (experiences, skills, projects, languages, education), and job-search fields.
+- On Edit, write confirmed LinkedIn/GitHub usernames (and derived URLs) into
+  `data/profiles.yaml`.
 - Write `adapt_per_vacancy` and `base` on `data/cvs.yaml`.
 - Write empty values/lists for explicit skips where supported, except the
   Edit keep-on-disk skip rule above.
@@ -75,7 +79,9 @@ explicit skips, and confirmed pack enablement choices.
   `company` set to the confirmed employer when it matches `data/experiences.yml`,
   else `""` for a confirmed project; every other field empty, no prose — and write
   the final observations response to `data/observations.yaml`.
-- Do not rewrite identity tokens unless the operator corrects approved values.
+- Do not rewrite identity tokens unless the operator corrects approved values,
+  except the Edit `data/profiles.yaml` write above when identity was confirmed
+  on this fill.
 
 ## Questionnaire-derived suggestions and packs
 
