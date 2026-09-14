@@ -18,6 +18,10 @@ When Edit `continue fill` has no Intake Source and no questionnaire:
    notice / visa / sponsorship / EOR / `legal_authorization.*` /
    `employment_routes.*` when none were named. Chat-stated values are
    proposals; require confirm / edit / skip.
+   On Edit, skip of a field that already has a non-empty on-disk value
+   leaves that value unchanged. Empty writes stay for Init and for an
+   explicit clear. This overrides Invent-matrix "skip leaves empty" for
+   those fields.
 3. Then continue this gate with that Source and buffer.
 
 ### Resolve
@@ -64,7 +68,8 @@ explicit skips, and confirmed pack enablement choices.
 
 - Write all confirmed candidate, basics, collection (experiences, skills, projects, languages, education), and job-search fields.
 - Write `adapt_per_vacancy` and `base` on `data/cvs.yaml`.
-- Write empty values/lists for explicit skips where supported.
+- Write empty values/lists for explicit skips where supported, except the
+  Edit keep-on-disk skip rule above.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
 - Write one `data/stories/<slug>.md` stub per confirmed story name — `status: draft`,
   `company` set to the confirmed employer when it matches `data/experiences.yml`,
