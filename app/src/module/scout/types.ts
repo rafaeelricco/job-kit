@@ -1,6 +1,7 @@
 export {
   BUCKETS,
   CHANNELS,
+  DIRECT_APPLY,
   FACT_KEYS,
   FACT_LABELS,
   LIFECYCLES,
@@ -130,6 +131,10 @@ const toIsoDate = (raw: string): IsoDate | null => (/^\d{4}-\d{2}-\d{2}$/.test(r
 type FactValue = { readonly kind: "known"; readonly text: string } | { readonly kind: "unknown" }
 
 const UNKNOWN_TEXT = "—"
+// A job-apply stub carries no `## Provenance`: flow-record.md:79 forbids
+// fabricating one. The absence is meaningful — nobody's pack found it — so it
+// reads as its own source rather than an em dash in the tally.
+const DIRECT_APPLY = "direct-apply"
 
 // The one place an unknown becomes a glyph.
 const factText = (value: FactValue): string => (value.kind === "known" ? value.text : UNKNOWN_TEXT)
