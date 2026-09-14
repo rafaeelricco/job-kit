@@ -46,9 +46,10 @@ Resolve every `data/*` path against Profile root (not CWD, not skill dir).
 `scout/jobs/*.md` is read only by `boards import`, per `job-store/references/flows/flow-read.md`.
 Skill-local files: `./references/**` only.
 
-Write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.yaml`,
+Mutate write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.yaml`,
 `data/boards.yaml`, `data/cvs.yaml`, `data/candidate.yaml` (`screening_defaults.qa[]` only), and their
-`*.yaml.tmp` staging siblings during atomic rename.
+`*.yaml.tmp` staging siblings during atomic rename. Continuation fill writes the
+`./references/flows/flow-fill.md` set instead.
 
 When the operator asks to find jobs / scout openings, hand off `job-scout`, then
 end this skill.
