@@ -33,6 +33,7 @@ import shutil
 import sys
 import tempfile
 import time
+import uuid
 from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -127,34 +128,64 @@ def stale(lock: str) -> bool:
         return False
 
 
-def acquire(lock: str) -> bool:
-    """Exclusive mkdir, retried while a fresh lock is held by someone else.
+def owner_file(lock: str) -> str:
+    return os.path.join(lock, "owner")
 
-    A lock older than ``LOCK_STALE_SECONDS`` belongs to a writer that died
-    holding it; the contract reclaims such a lock once (``contract-persistence.md``
-    step 3). Reclaiming is attempted a single time per call, so two racing
-    backfills cannot ping-pong on the same directory.
+
+def write_owner(lock: str, token: str) -> None:
+    with open(owner_file(lock), "w", encoding="utf-8") as stream:
+        stream.write(token)
+
+
+def read_owner(lock: str) -> Optional[str]:
+    try:
+        with open(owner_file(lock), encoding="utf-8") as stream:
+            return stream.read()
+    except (FileNotFoundError, OSError):
+        return None
+
+
+def release(lock: str, token: str) -> None:
+    """Drop the lock only while `owner` still matches, per contract step 7."""
+    if read_owner(lock) != token:
+        return
+    try:
+        os.unlink(owner_file(lock))
+        os.rmdir(lock)
+    except OSError:
+        pass
+
+
+def acquire(lock: str) -> Optional[str]:
+    """Exclusive mkdir + owner token. None when the lock cannot be taken.
+
+    A stale lock is reclaimed once. Reclaim re-checks staleness immediately
+    before `rmtree` so a lock another writer just acquired is not deleted.
     """
+    token = "{0}-{1}".format(os.getpid(), uuid.uuid4().hex)
     reclaimed = False
     for _ in range(LOCK_RETRIES):
         try:
             os.mkdir(lock)
-            return True
+            write_owner(lock, token)
+            return token
         except FileExistsError:
             if not reclaimed and stale(lock):
                 reclaimed = True
                 try:
-                    # The holder may have left an `owner` token beside the dir.
+                    if not stale(lock):
+                        time.sleep(LOCK_SLEEP)
+                        continue
                     shutil.rmtree(lock)
                 except FileNotFoundError:
                     pass
                 except OSError:
-                    return False
+                    return None
                 continue
             time.sleep(LOCK_SLEEP)
         except OSError:
-            return False
-    return False
+            return None
+    return None
 
 
 def commit(path: str, text: str) -> None:
@@ -198,10 +229,14 @@ def run(store: str, apply: bool) -> Dict[str, List[str]]:
         if not apply:
             report["changed"].append("{0}\n    - {1}\n    + {2}".format(name, before, after))
             continue
-        if not acquire(lock):
+        token = acquire(lock)
+        if token is None:
             report["locked"].append(name)
             continue
         try:
+            if read_owner(lock) != token:
+                report["locked"].append(name)
+                continue
             # Re-read under the lock: a concurrent writer may have landed first.
             with open(path, encoding="utf-8") as stream:
                 fresh = stream.read()
@@ -209,10 +244,13 @@ def run(store: str, apply: bool) -> Dict[str, List[str]]:
             if again is None:
                 report["skipped"].append("{0}: repaired by another writer".format(name))
             else:
-                commit(path, again)
-                report["changed"].append("{0}\n    - {1}\n    + {2}".format(name, before, after))
+                if read_owner(lock) != token:
+                    report["locked"].append(name)
+                else:
+                    commit(path, again)
+                    report["changed"].append("{0}\n    - {1}\n    + {2}".format(name, before, after))
         finally:
-            os.rmdir(lock)
+            release(lock, token)
     return report
 
 
