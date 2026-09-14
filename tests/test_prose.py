@@ -114,7 +114,7 @@ FILE_LOCAL: str = "file-relative"
 CROSS: str = "cross-skill"
 CHECKABLE_KINDS: Tuple[str, ...] = (SKILL_LOCAL, FILE_LOCAL, CROSS)
 
-DECK: Path = SKILL / "job-profile-init" / "templates" / "data" / "search_packs.yaml"
+DECK: Path = SKILL / "job-profile" / "templates" / "data" / "search_packs.yaml"
 ROUTE_FIELDS: Tuple[str, ...] = ("kind", "url", "pages", "items", "posting_url")
 ROUTE_TOKENS: Tuple[str, ...] = ("{formulation}", "{page}")
 BOARD_FIELDS: Tuple[str, ...] = ("kind", "ats", "url", "items", "posting_url", "title")

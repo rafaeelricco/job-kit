@@ -1,6 +1,6 @@
 ---
 name: job-resume-refine
-description: "Read this when you need a one-page resume tailored to one posting — obtain fresh read-only job-match guidance, resolve it against full profile Facts, humanize allowed prose, compile a PDF, and report what changed. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for preparing the whole application package (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile-me)."
+description: "Tailor a one-page resume to one posting — obtain fresh read-only job-match guidance, resolve it against full profile Facts, humanize allowed prose, compile a PDF, and report what changed. Use when the user runs /job-resume-refine or asks for a tailored resume or CV PDF for a posting. Not for preparing the whole application package (job-apply), ranking openings (job-scout), or editing Fact YAML (job-profile)."
 ---
 
 # Job resume refine

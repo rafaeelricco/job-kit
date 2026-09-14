@@ -15,7 +15,7 @@ from test_packaging import _powershell_list, _shell_list
 from test_release import native_shells, shell_path
 
 REPO = Path(__file__).resolve().parents[1]
-SOLVER = "job-captcha-solver"
+SOLVER = "captcha-solver"
 
 BASH_DRIVER = r'''#!/bin/sh
 if [ "$#" -eq 5 ] && [ "$1" = skill ] && [ "$2" = install ] &&
@@ -186,7 +186,7 @@ class BrowserChannelTests(unittest.TestCase):
             self.success(f.run("agents/install"))
             self.assertNotIn(SOLVER, f.names())
             self.assertNotIn("browser-use", f.names())
-            self.assertIn("job-profile-init", f.names())
+            self.assertIn("job-profile", f.names())
             self.success(f.run("uninstall", "agents"))
             self.assertEqual(f.names(), set())
         self.each_shell(scenario)
@@ -206,7 +206,7 @@ class BrowserChannelTests(unittest.TestCase):
             self.assertEqual(before - f.names(),
                              {SOLVER, "job-scout", "job-apply", "job-prep", "browser-use"})
             self.assertIn("job-match", f.names())
-            self.assertIn("job-profile-init", f.names())
+            self.assertIn("job-profile", f.names())
             self.success(f.run("uninstall", "agents"))
             self.assertEqual(f.names(), set())
         self.each_shell(scenario)
@@ -219,7 +219,7 @@ class BrowserChannelTests(unittest.TestCase):
             self.assertIn(SOLVER, f.names())
             self.assertIn("job-match", f.names())
             self.assertIn("job-apply", f.names())
-            self.assertNotIn("job-profile-init", f.names())
+            self.assertIn("job-profile", f.names())
             self.success(f.run("uninstall", "browser-use"))
             self.assertEqual(f.names(), set())
         self.each_shell(scenario)
@@ -252,7 +252,6 @@ class BrowserDependencyTests(unittest.TestCase):
                 entries = _shell_list(bash, sh_name)
                 self.assertTrue(entries)
                 self.assertEqual(entries, _powershell_list(powershell, ps_name))
-                self.assertNotIn("captcha-solver", entries)
                 self.assertEqual(SOLVER in entries,
                                  sh_name in ("BROWSER_SHARED_DEPS", "ALL_SKILL_NAMES"))
         aside = (REPO / "scripts/aside/lib.sh").read_text(encoding="utf-8")

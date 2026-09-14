@@ -13,7 +13,7 @@ salary_expectations:
 legal_authorization:
   # One row per country. job-apply reads the row whose `country` matches the
   # question (`job-apply/references/contracts/contract-screening.md`); job-match reads the
-  # row matching the posting; job-profile-me shows and edits them. A country
+  # row matching the posting; job-profile shows and edits them. A country
   # with no row has no stored answer — never copy another row onto it. Profiles
   # that still carry the old us_*/eu_*/canada_*/uk_* scalars and no
   # `jurisdictions` list keep them readable.

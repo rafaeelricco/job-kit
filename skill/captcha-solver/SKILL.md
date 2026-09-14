@@ -1,5 +1,5 @@
 ---
-name: job-captcha-solver
+name: captcha-solver
 description: >
   Solve a CAPTCHA already on the attached browser-use page (reCAPTCHA,
   Turnstile, hCaptcha, image/text challenge). Use when: captcha, recaptcha,
@@ -8,7 +8,7 @@ description: >
   avoiding captchas up front — that stays browser-use cloud guidance.
 ---
 
-# Job CAPTCHA solver
+# CAPTCHA solver
 
 Requires an attached **browser-use** session. If `browser-use` is not loaded,
 read its `SKILL.md` now and follow it for connection; do not restate that

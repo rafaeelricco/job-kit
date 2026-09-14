@@ -17,7 +17,7 @@ $script:KitOwnershipFiles = @(
   'scripts\agents\lib.sh',
   'scripts\aside\install.sh',
   'scripts\aside\lib.sh',
-  'skill\job-profile-init\SKILL.md',
+  'skill\job-profile\SKILL.md',
   'skill\job-scout\SKILL.md'
 )
 
@@ -31,8 +31,8 @@ Usage: uninstall.ps1                 # interactive menu (console required)
        uninstall.ps1 -h|--help
 
 Targets:
-  agents       Coding-agent skills (job-profile-init, job-profile-me, job-list,
-               job-match, job-stories, job-pitch, job-inbox, job-humanize,
+  agents       Coding-agent skills (job-profile, job-list,
+               job-match, job-stories, job-inbox, job-humanize,
                job-profile-root, job-store, job-resume-refine)
   browser-use  Browser skills (job-scout, job-apply, job-prep) in coding-agent homes, plus
                the browser-use driver: its skill, its CLI, its state directory.
@@ -702,6 +702,13 @@ function Get-KitOwnedMissing {
       if (Test-ReparsePoint $cur) { return ($rel -replace '\\', '/') }
     }
     if (-not (Test-Path -LiteralPath (Join-Path $Dir $rel) -PathType Leaf)) {
+      $init = Join-Path $Dir 'skill\job-profile-init\SKILL.md'
+      if ($rel -eq 'skill\job-profile\SKILL.md' `
+        -and -not (Test-ReparsePoint (Join-Path $Dir 'skill\job-profile-init')) `
+        -and -not (Test-ReparsePoint $init) `
+        -and (Test-Path -LiteralPath $init -PathType Leaf)) {
+        continue
+      }
       return ($rel -replace '\\', '/')
     }
   }

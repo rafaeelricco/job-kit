@@ -38,7 +38,7 @@ curl -fsSL https://r1cco.com/install.sh | bash -s -- all --dry-run
 Channels are `all` (default), `agents`, `browser-use`, and `aside`.
 The `aside` channel installs on macOS only; `all` skips it elsewhere.
 The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
-`job-captcha-solver`, and their shared dependencies.
+`captcha-solver`, and their shared dependencies.
 Browser tasks in coding agents need the local `browser-use` CLI, its driver
 skill, and a Chromium-family browser. Follow the installer's setup guidance,
 enable remote debugging at `chrome://inspect/#remote-debugging`, and sign in
@@ -81,13 +81,13 @@ and junctions continue pointing at the same installed directory.
 
 Run these skills in your agent:
 
-1. `/job-profile-init` — create and activate a profile from your CV or register
-   an existing profile. Profile setup requires a coding agent.
-2. `/job-profile-me` — review your search preferences, search packs, and CV settings.
-3. `/job-scout` — find openings from selected search packs or a site URL.
-4. `/job-list` — review saved jobs and application statuses.
-5. `/job-apply` — fill, submit, and record applications.
-6. `/job-inbox` — check replies from a session with Gmail access.
+1. `/job-profile` — create and activate a profile from your CV, register an
+   existing one, or edit search preferences, packs, and CV settings. Profile
+   setup requires a coding agent.
+2. `/job-scout` — find openings from selected search packs or a site URL.
+3. `/job-list` — review saved jobs and application statuses.
+4. `/job-apply` — fill, submit, and record applications.
+5. `/job-inbox` — check replies from a session with Gmail access.
 
 **`/job-apply` submits without pausing for approval.** Use `/job-prep` to prepare
 application packages without submitting. Scout finds and records jobs; inbox
@@ -95,30 +95,27 @@ reads mail and updates matching records.
 
 Your profile defaults to `${XDG_CONFIG_HOME:-$HOME/.config}/job-kit`:
 `data/` holds your facts, `cv/` holds base resumes, and `scout/` holds jobs and
-application packages. Use `/job-profile-init` to activate another directory.
+application packages. Use `/job-profile` to activate another directory.
 Aside needs filesystem access to that directory.
 
 Resume tailoring requires a base CV PDF and its matching `.tex` source under
-`cv/`. Use `/job-profile-me cvs` to select the base or disable per-vacancy tailoring.
+`cv/`. Use `/job-profile cvs` to select the base or disable per-vacancy tailoring.
 
 ## Documentation
 
 Each skill contains its usage and detailed workflow:
 
-| Skill                                                 | Purpose                                     |
-| ----------------------------------------------------- | ------------------------------------------- |
-| [job-profile-init](skill/job-profile-init/SKILL.md)   | Create or register a profile.               |
-| [job-profile-me](skill/job-profile-me/SKILL.md)       | Edit profile, search, and CV settings.      |
-| [job-scout](skill/job-scout/SKILL.md)                 | Find and rank live openings.                |
-| [job-list](skill/job-list/SKILL.md)                   | Read saved jobs and statuses.               |
-| [job-match](skill/job-match/SKILL.md)                 | Assess fit and get resume guidance.         |
-| [job-prep](skill/job-prep/SKILL.md)                   | Prepare applications without submitting.    |
-| [job-apply](skill/job-apply/SKILL.md)                 | Submit and record applications.             |
-| [job-resume-refine](skill/job-resume-refine/SKILL.md) | Tailor a one-page resume.                   |
-| [job-inbox](skill/job-inbox/SKILL.md)                 | Track Gmail replies.                        |
-| [job-stories](skill/job-stories/SKILL.md)             | Build interview stories.                    |
-| [job-pitch](skill/job-pitch/SKILL.md)                 | Draft video scripts and experience bullets. |
-| [job-humanize](skill/job-humanize/SKILL.md)           | Refine prose while preserving claims.       |
+| Skill                                                 | Purpose                                                   |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| [job-profile](skill/job-profile/SKILL.md)             | Create, register, or edit a profile.                      |
+| [job-scout](skill/job-scout/SKILL.md)                 | Find and rank live openings.                              |
+| [job-list](skill/job-list/SKILL.md)                   | Read saved jobs and statuses.                             |
+| [job-match](skill/job-match/SKILL.md)                 | Assess fit and get resume guidance.                       |
+| [job-prep](skill/job-prep/SKILL.md)                   | Prepare applications without submitting.                  |
+| [job-apply](skill/job-apply/SKILL.md)                 | Submit and record applications.                           |
+| [job-resume-refine](skill/job-resume-refine/SKILL.md) | Tailor a one-page resume.                                 |
+| [job-inbox](skill/job-inbox/SKILL.md)                 | Track Gmail replies.                                      |
+| [job-stories](skill/job-stories/SKILL.md)             | Build interview stories, scripts, and experience bullets. |
 
 Shared skills handle [profile lookup](skill/job-profile-root/SKILL.md) and
 [job records](skill/job-store/SKILL.md).

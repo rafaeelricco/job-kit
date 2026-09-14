@@ -2,5 +2,5 @@
 # board on one ATS. job-scout reads it from the Profile root (optional; no
 # rows → the board packs record defect: no_boards).
 # ats: greenhouse | lever | ashby   slug: the board's path segment
-# source: operator | store           (store = /job-profile-me boards import)
+# source: operator | store           (store = /job-profile boards import)
 boards: []

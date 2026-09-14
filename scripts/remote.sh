@@ -99,7 +99,7 @@ KIT_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
 scripts/install.sh
 scripts/uninstall.sh
-skill/job-profile-init/SKILL.md
+skill/job-profile/SKILL.md
 skill/job-scout/SKILL.md"
 
 # Ownership signature for caches predating the unified uninstaller: the same
@@ -108,6 +108,15 @@ skill/job-scout/SKILL.md"
 # channel `uninstall.sh` has already proved the tree is an older job-kit.
 KIT_LEGACY_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
 scripts/aside/install.sh scripts/aside/lib.sh
+skill/job-profile-init/SKILL.md
+skill/job-scout/SKILL.md"
+
+# Ownership signature for caches shipped before the profile/captcha rename.
+# ensure_kit_cache uses this to refresh trees that still have job-profile-init.
+KIT_PREVIOUS_OWNERSHIP_FILES="scripts/agents/install.sh scripts/agents/lib.sh
+scripts/aside/install.sh scripts/aside/lib.sh
+scripts/install.sh
+scripts/uninstall.sh
 skill/job-profile-init/SKILL.md
 skill/job-scout/SKILL.md"
 
@@ -120,11 +129,10 @@ skill/job-scout/SKILL.md"
 KIT_REQUIRED_FILES="${KIT_OWNERSHIP_FILES}
 scripts/common.sh
 scripts/browser-use/install.sh
-skill/job-captcha-solver/SKILL.md
+skill/captcha-solver/SKILL.md
 skill/job-apply/SKILL.md
 skill/job-prep/SKILL.md
 skill/job-resume-refine/SKILL.md
-skill/job-profile-me/SKILL.md
 skill/job-list/SKILL.md
 skill/job-match/SKILL.md
 skill/job-match/scripts/score.py
@@ -137,7 +145,6 @@ skill/job-store/scripts/validate_extract.py
 skill/job-store/scripts/boards_from_store.py
 skill/job-store/scripts/normalize_source.py
 skill/job-stories/SKILL.md
-skill/job-pitch/SKILL.md
 skill/job-inbox/SKILL.md
 skill/job-humanize/SKILL.md
 skill/job-profile-root/SKILL.md
@@ -390,6 +397,14 @@ ensure_kit_cache() {
   dest="$(resolve_cache_path "${raw}")"
   missing="$(kit_owned_missing "${dest}")"
   if [ -n "${missing}" ]; then
+    # Caches from before the profile/captcha skill rename still have
+    # skill/job-profile-init/SKILL.md as the ownership probe.
+    if [ -z "$(kit_paths_missing "${dest}" "${KIT_PREVIOUS_OWNERSHIP_FILES}")" ]; then
+      echo "refreshing kit cache (skill names changed): ${dest}"
+      fetch_kit "${raw}" "${KIT_PREVIOUS_OWNERSHIP_FILES}"
+      require_checkout "${raw}"
+      return 0
+    fi
     # Pre-single-uninstall caches still have channel uninstall.sh; refresh once,
     # probing with the legacy signature so the refresh is not rejected for the
     # very file it exists to install.

@@ -44,7 +44,7 @@ The same line must name the affected pack.
 Route status belongs in `### Packs`, not the Gaps allowlist.
 
 Absent → one line saying job-scout will STOP until this file exists (emit via
-`/job-profile-init` or add packs via `/job-profile-me`).
+`/job-profile` or add packs via `/job-profile`).
 
 `### Answers` fifth when `data/candidate.yaml` `screening_defaults.qa[]` is non-empty or any `scout/applications/*/plan.json` has `needs_you[]`: one line per `qa[]` row, `{question} · {scope or global} · {unanswered when the answer is empty, else confirmed_at or unconfirmed}`; answers are not printed. Then `{n} unanswered` = the union of distinct normalized `question`s of `qa[]` rows with an empty `answer`, and distinct `needs_you[].what` (normalized as `job-apply/references/contracts/contract-screening.md` rule 3) across those plans for which no `qa[]` row has a non-empty `answer`, an equal normalized `question`, and either no `scope` or an `ats` scope equal to that plan's `ats`. A `company` or `country` scope never reduces the count: this flow reads no dossier, so the count is an upper bound.
 

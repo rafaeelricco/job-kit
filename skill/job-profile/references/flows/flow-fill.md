@@ -2,13 +2,43 @@
 
 Runs only after emit-tree succeeds and profile Approve is explicit (or on an
 already scaffolded target when the operator says "continue fill"). Applies the
-in-memory questionnaire buffer; it does not ask new profile questions.
+in-memory questionnaire buffer; it does not ask new profile questions except
+the Edit continue-fill seed below.
 Hard refuses: `../../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent.
 
 ## Source gate
 
-1. Resolve SoT from intake **Source** (paths and/or paste). Compute the same
-   **Source key** as intake (sorted absolute path(s), or paste fingerprint).
+### Edit continue-fill seed
+
+When Edit `continue fill`:
+
+1. Collect Source now (path / paste / scaffold-only), same modes as
+   `flow-intake.md` **Source**, when the current request supplies a path,
+   paste, or explicit scaffold-only — that Source replaces any Intake or
+   prior-fill Source. When the request supplies none: collect Source now
+   if there is no Intake or prior-fill Source; reuse the existing Intake
+   or prior-fill Source otherwise.
+2. Run **Resolve** below now, before the questionnaire, so path/paste SoT
+   is in the session buffer. Reuse vs fresh read still applies.
+3. Ask a questionnaire covering only the named fields when the operator
+   named a blocker or a redirected Fact/identity field (experiences, skills,
+   languages, projects, basics, profiles, identity). When none were named:
+   salary / notice / visa / sponsorship / EOR / `legal_authorization.*` /
+   `employment_routes.*`. Always ask this questionnaire for the current
+   edit, even when a prior Intake or fill questionnaire remains.
+   Chat-stated values are proposals; require confirm / edit / skip.
+   Show source-derived values from the SoT buffer as proposals.
+   On Edit, skip of a field that already has a non-empty on-disk value
+   leaves that value unchanged. Empty writes stay for Init and for an
+   explicit clear. This overrides Invent-matrix "skip leaves empty" for
+   those fields.
+4. Then continue this gate with that Source and buffer.
+
+### Resolve
+
+1. Resolve SoT from this gate's **Source** (paths and/or paste). Compute the
+   **Source key** the same way as intake (sorted absolute path(s), or paste
+   fingerprint).
 2. Paths must exist and be readable. Unreadable → STOP; name path; ask again.
 3. No path and no paste → continue only when the questionnaire was explicitly
    scaffold-only; otherwise STOP with the same follow-up as intake Source.
@@ -48,14 +78,19 @@ win over extracted or template-provided proposals. Apply only confirmed values,
 explicit skips, and confirmed pack enablement choices.
 
 - Write all confirmed candidate, basics, collection (experiences, skills, projects, languages, education), and job-search fields.
+- On Edit, write confirmed LinkedIn/GitHub usernames (and derived URLs) into
+  `data/profiles.yaml`.
 - Write `adapt_per_vacancy` and `base` on `data/cvs.yaml`.
-- Write empty values/lists for explicit skips where supported.
+- Write empty values/lists for explicit skips where supported, except the
+  Edit keep-on-disk skip rule above.
 - Keep typed defaults only when the questionnaire records explicit `keep`.
 - Write one `data/stories/<slug>.md` stub per confirmed story name — `status: draft`,
   `company` set to the confirmed employer when it matches `data/experiences.yml`,
   else `""` for a confirmed project; every other field empty, no prose — and write
   the final observations response to `data/observations.yaml`.
-- Do not rewrite identity tokens unless the operator corrects approved values.
+- Do not rewrite identity tokens unless the operator corrects approved values,
+  except the Edit `data/profiles.yaml` write above when identity was confirmed
+  on this fill.
 
 ## Questionnaire-derived suggestions and packs
 

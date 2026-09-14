@@ -28,7 +28,7 @@ normalize_source = harness.load(harness.STORE / "normalize_source.py")
 
 DECK: Path = (
     harness.SKILL
-    / "job-profile-init"
+    / "job-profile"
     / "templates"
     / "data"
     / "search_packs.yaml"
