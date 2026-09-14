@@ -81,7 +81,10 @@ def repair_line(line: str) -> Optional[str]:
     if match is None:
         return None
     token, tail = split_source(match.group("rest"))
-    folded = canonical(token)
+    # A host-shaped token is a legal ad-hoc pack id. This repair has no run
+    # vocabulary, so treat that token as `known` and still fold a bare alias.
+    known = frozenset([token]) if "." in token else frozenset()
+    folded = canonical(token, known)
     # The labeled reader regex requires a ` · date ` tail; without one the line
     # falls to the legacy branch and keeps its label word. `—` is the schema's
     # own unknown, so restoring it loses nothing the page ever printed.
