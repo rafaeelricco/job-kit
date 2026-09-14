@@ -8,8 +8,9 @@ description: "Create, register, or edit a job-search profile. Use when the user 
 Create or register a profile, or edit one that already exists.
 
 When the operator asks to create / scaffold / register a profile, or no
-Profile root resolves: obey **Init** below. Do not load `job-profile-root` on
-the create path.
+Profile root resolves: if `$HOME` ends with `/.aside/runtime/home`, STOP —
+profile setup requires a coding agent. Otherwise obey **Init** below. Do not
+load `job-profile-root` on the create path.
 
 When a Profile root already resolves and the operator is not creating: load
 the `job-profile-root` skill now; obey it end-to-end; then **Edit**.
