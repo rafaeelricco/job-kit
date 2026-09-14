@@ -13,8 +13,11 @@ Hard refuses: `../../SKILL.md`. Invent / propose-vs-ask: matrix below. Never inv
 When Edit `continue fill`:
 
 1. Collect Source now (path / paste / scaffold-only), same modes as
-   `flow-intake.md` **Source**, when there is no Intake Source. Reuse an
-   existing Intake or prior-fill Source otherwise.
+   `flow-intake.md` **Source**, when the current request supplies a path,
+   paste, or explicit scaffold-only — that Source replaces any Intake or
+   prior-fill Source. When the request supplies none: collect Source now
+   if there is no Intake or prior-fill Source; reuse the existing Intake
+   or prior-fill Source otherwise.
 2. Run **Resolve** below now, before the questionnaire, so path/paste SoT
    is in the session buffer. Reuse vs fresh read still applies.
 3. Ask a questionnaire covering only the named fields when the operator
@@ -33,8 +36,9 @@ When Edit `continue fill`:
 
 ### Resolve
 
-1. Resolve SoT from intake **Source** (paths and/or paste). Compute the same
-   **Source key** as intake (sorted absolute path(s), or paste fingerprint).
+1. Resolve SoT from this gate's **Source** (paths and/or paste). Compute the
+   **Source key** the same way as intake (sorted absolute path(s), or paste
+   fingerprint).
 2. Paths must exist and be readable. Unreadable → STOP; name path; ask again.
 3. No path and no paste → continue only when the questionnaire was explicitly
    scaffold-only; otherwise STOP with the same follow-up as intake Source.
