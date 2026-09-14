@@ -2,10 +2,25 @@
 
 Runs only after emit-tree succeeds and profile Approve is explicit (or on an
 already scaffolded target when the operator says "continue fill"). Applies the
-in-memory questionnaire buffer; it does not ask new profile questions.
+in-memory questionnaire buffer; it does not ask new profile questions except
+the Edit continue-fill seed below.
 Hard refuses: `../../SKILL.md`. Invent / propose-vs-ask: matrix below. Never invent.
 
 ## Source gate
+
+### Edit continue-fill seed
+
+When Edit `continue fill` has no Intake Source and no questionnaire:
+
+1. Collect Source now (path / paste / scaffold-only), same modes as
+   `flow-intake.md` **Source**.
+2. Ask a questionnaire covering only the named blocker fields, or salary /
+   notice / visa / sponsorship / EOR / `legal_authorization.*` /
+   `employment_routes.*` when none were named. Chat-stated values are
+   proposals; require confirm / edit / skip.
+3. Then continue this gate with that Source and buffer.
+
+### Resolve
 
 1. Resolve SoT from intake **Source** (paths and/or paste). Compute the same
    **Source key** as intake (sorted absolute path(s), or paste fingerprint).
