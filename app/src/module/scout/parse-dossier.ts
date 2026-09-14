@@ -1,7 +1,16 @@
 export { parseDossier }
 
 import { err, ok } from "@/module/scout/result"
-import { UNKNOWN_TEXT, isBucket, isChannel, isFactKey, isLifecycle, isWriter, toIsoDate } from "@/module/scout/types"
+import {
+  DIRECT_APPLY,
+  UNKNOWN_TEXT,
+  isBucket,
+  isChannel,
+  isFactKey,
+  isLifecycle,
+  isWriter,
+  toIsoDate,
+} from "@/module/scout/types"
 import type {
   Dossier,
   Excerpt,
@@ -177,7 +186,7 @@ function parseDossier(file: string, raw: string): ParsedDossier {
       role: EMPTY_ROLE,
       excerpt: { kind: "absent" },
       provenance: {
-        source: UNKNOWN_TEXT,
+        source: DIRECT_APPLY,
         author: { kind: "unknown" },
         contact: { kind: "unknown" },
         matchedQuery: { kind: "unknown" },
@@ -401,7 +410,9 @@ function parseProvenance(provLine: string | undefined): Provenance | null {
   }
   // Legacy unlabeled: source · author · contact · date (author may contain " · ").
   const parts = line.split(" · ")
-  const source = parts[0]
+  // A modern line with no ` · date ` tail lands here too (the labeled regex
+  // requires it), and its first segment still carries the label word.
+  const source = parts[0]?.replace(/^source /, "")
   const seen = parts.at(-1)
   const contact = parts.at(-2)
   const author = parts.slice(1, -2).join(" · ")

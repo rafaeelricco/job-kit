@@ -48,6 +48,7 @@ TARGETS: Tuple[Target, ...] = (
     Target(STORE / "normalize_url.py", STORE),
     Target(STORE / "validate_extract.py", STORE),
     Target(STORE / "boards_from_store.py", STORE),
+    Target(STORE / "normalize_source.py", STORE),
 )
 
 
