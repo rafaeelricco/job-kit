@@ -159,8 +159,9 @@ def release(lock: str, token: str) -> None:
 def acquire(lock: str) -> Optional[str]:
     """Exclusive mkdir + owner token. None when the lock cannot be taken.
 
-    A stale lock is reclaimed once. Reclaim re-checks staleness immediately
-    before `rmtree` so a lock another writer just acquired is not deleted.
+    A stale lock is reclaimed once. Reclaim renames the observed directory to a
+    unique tombstone before `rmtree` so a fresh lock at the live path is not
+    deleted.
     """
     token = "{0}-{1}".format(os.getpid(), uuid.uuid4().hex)
     reclaimed = False
@@ -176,7 +177,13 @@ def acquire(lock: str) -> Optional[str]:
                     if not stale(lock):
                         time.sleep(LOCK_SLEEP)
                         continue
-                    shutil.rmtree(lock)
+                    tomb = "{0}.reclaim-{1}".format(lock, token)
+                    os.rename(lock, tomb)
+                    if not stale(tomb):
+                        os.rename(tomb, lock)
+                        time.sleep(LOCK_SLEEP)
+                        continue
+                    shutil.rmtree(tomb)
                 except FileNotFoundError:
                     pass
                 except OSError:

@@ -54,6 +54,19 @@ class LockTests(unittest.TestCase):
         rmtree.assert_not_called()
         self.assertTrue(os.path.isdir(self.lock))
 
+    def test_reclaim_rename_puts_back_a_fresh_lock(self):
+        token = acquire(self.lock)
+        self.assertIsNotNone(token)
+        with mock.patch.object(backfill_source, "LOCK_SLEEP", 0), mock.patch.object(
+            backfill_source, "LOCK_RETRIES", 1
+        ), mock.patch.object(
+            backfill_source, "stale", side_effect=[True, False]
+        ):
+            other = acquire(self.lock)
+        self.assertIsNone(other)
+        self.assertEqual(read_owner(self.lock), token)
+        self.assertTrue(os.path.isdir(self.lock))
+
 
 if __name__ == "__main__":
     unittest.main()
