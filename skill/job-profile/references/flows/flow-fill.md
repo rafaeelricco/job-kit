@@ -10,21 +10,26 @@ Hard refuses: `../../SKILL.md`. Invent / propose-vs-ask: matrix below. Never inv
 
 ### Edit continue-fill seed
 
-When Edit `continue fill` has no Intake Source and no questionnaire:
+When Edit `continue fill`:
 
 1. Collect Source now (path / paste / scaffold-only), same modes as
-   `flow-intake.md` **Source**.
-2. Ask a questionnaire covering only the named fields when the operator
+   `flow-intake.md` **Source**, when there is no Intake Source. Reuse an
+   existing Intake or prior-fill Source otherwise.
+2. Run **Resolve** below now, before the questionnaire, so path/paste SoT
+   is in the session buffer. Reuse vs fresh read still applies.
+3. Ask a questionnaire covering only the named fields when the operator
    named a blocker or a redirected Fact/identity field (experiences, skills,
    languages, projects, basics, profiles, identity). When none were named:
    salary / notice / visa / sponsorship / EOR / `legal_authorization.*` /
-   `employment_routes.*`. Chat-stated values are proposals; require
-   confirm / edit / skip.
+   `employment_routes.*`. Always ask this questionnaire for the current
+   edit, even when a prior Intake or fill questionnaire remains.
+   Chat-stated values are proposals; require confirm / edit / skip.
+   Show source-derived values from the SoT buffer as proposals.
    On Edit, skip of a field that already has a non-empty on-disk value
    leaves that value unchanged. Empty writes stay for Init and for an
    explicit clear. This overrides Invent-matrix "skip leaves empty" for
    those fields.
-3. Then continue this gate with that Source and buffer.
+4. Then continue this gate with that Source and buffer.
 
 ### Resolve
 
