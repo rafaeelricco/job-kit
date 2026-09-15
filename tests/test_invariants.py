@@ -430,6 +430,19 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             gate,
         )
 
+    def test_search_keep_skips_printed_unauthorized_hire_from(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn(
+            "remote or hybrid-with-remote → keep unless the card already prints a hire-from country",
+            search,
+        )
+        self.assertIn(
+            "legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: yes",
+            search,
+        )
+        self.assertIn("defect: locations_unauthorized", search)
+        self.assertIn("location unknown → keep", search)
+
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)
         self.assertIn("`zero_result_runs` = runs that kept no card", search)
