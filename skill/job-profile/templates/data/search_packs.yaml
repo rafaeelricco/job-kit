@@ -1,24 +1,46 @@
-# Intent packs for job scout. One pack = one site × one intent.
-# job-scout reads this file from the Profile root only (required).
-# surface is a label (linkedin-jobs, open-web, social, …); scout opens entry.
-# entry = the one URL this pack starts from.
-# [role] = job_search.yaml positions.
-# [industry] = profile card.
-# enabled: false keeps a pack in the file but out of the run (absent = true).
-# route_required: true means DOM search is not viable; an enabled pack needs route.
-# route is optional; kind: json requires url, pages, items, and posting_url.
-# url substitutes percent-encoded {formulation} and 1-based {page}; response
-# fields are dot paths, with posting_url resolved inside each item.
-# A route url is fixed: it carries no constraint filters, so work_model,
-# date_posted, job_types, and location fall to scout's keep gate.
-# kind: board requires ats, url with {slug}, and items, posting_url, title dot
-# paths (location, date, listed optional); slugs are discovered each run from
-# site:{entry host} and store URLs. items: $ is the response root.
-# location: keep-only marks a surface whose location control cannot express
-# kit locations (absent, non-persisting, inert, or a taxonomy that hides
-# remote-worldwide cards). Under listed, scout runs each formulation once with
-# the location control unset and applies locations at the keep gate only.
-# Absent = scout sets the surface location control.
+# One object per pack. One pack = one site × one intent.
+# Keys: id, surface, entry, formulations; optional enabled, location, route_required, route
+# job-scout reads this file from the Profile root; absent → scout stops.
+#
+# How a pack is searched, and why:
+#
+#   [id + surface + entry] + [formulations × positions] + [location] + [route when DOM cannot search]
+#
+#   id            Unique pack name. The run set is these ids, in file order.
+#
+#   surface       A label (linkedin-jobs, open-web, social, or another). Scout
+#                 opens entry; it does not load a playbook file.
+#
+#   entry         The one http(s) URL this pack starts from.
+#
+#   formulations  Query strings scout types or substitutes. `[role]` expands
+#                 from job_search.yaml positions, file order. `[industry]`
+#                 expands from the profile card. An empty leftover token is
+#                 dropped. Board packs match titles against positions instead.
+#
+#   enabled       false keeps the pack in the file but out of the run.
+#                 Absent means true.
+#
+#   location      keep-only when the surface location control cannot express
+#                 kit locations (absent, non-persisting, inert, or a taxonomy
+#                 that hides remote-worldwide cards). Under listed, scout runs
+#                 each formulation once with the control unset and applies
+#                 locations at the keep gate only. Absent = scout sets the
+#                 surface location control. Only the operator writes this key.
+#
+#   route         Optional. Use when DOM search is not viable (route_required:
+#                 true on an enabled pack needs a complete route). kind json:
+#                 url with {formulation} and {page}, plus pages, items, and
+#                 posting_url. kind board: ats, url with {slug}, plus items,
+#                 posting_url, and title; slugs are discovered each run from
+#                 site:{entry host} and store URLs; items: $ is the response
+#                 root. A route url carries no constraint filters, so
+#                 work_model, date_posted, job_types, and location fall to the
+#                 keep gate.
+#
+#   Rules: a pack is a surface, not an employer. location, when present, is
+#   keep-only. An enabled pack with route_required: true must have a complete
+#   route; a disabled required pack may omit it.
 
 packs:
   - id: linkedin-jobs
@@ -54,12 +76,6 @@ packs:
     entry: https://weworkremotely.com
     # country[] has no Anywhere option; a country filter hides worldwide cards.
     location: keep-only
-    formulations:
-      - "[role]"
-
-  - id: himalayas
-    surface: open-web
-    entry: https://himalayas.app
     formulations:
       - "[role]"
 

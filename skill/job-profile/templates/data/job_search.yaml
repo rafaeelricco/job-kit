@@ -1,3 +1,30 @@
+# Search constraints for job-scout. Scout preflight stops on any other valued key.
+# Keys: work_model, job_types, date_posted, positions, locations, location_scope,
+#   direct_regions, market_currencies, exclude_locations, exclude_companies,
+#   prune_score_max
+#
+# How a search is constrained, and why:
+#
+#   [positions × formulations] + [location_scope] + [work_model / job_types / date_posted]
+#
+#   work_model         remote / hybrid / onsite flags. Scout keep uses kit-true flags.
+#   job_types          full_time, contract, and the other printed types.
+#   date_posted        one window: 24_hours, week, month, or all_time.
+#   positions          title strings; [role] and board title-match use this list,
+#                      file order.
+#   locations          named places when location_scope is listed.
+#   location_scope     worldwide | listed. listed needs a named location (not
+#                      only Anywhere). Empty → scout STOP.
+#   direct_regions     hire-from tokens that count as direct (LATAM, worldwide,
+#                      anywhere, global).
+#   market_currencies  salary currencies the gate keeps (USD, EUR, GBP).
+#   exclude_locations  hire-from countries to drop. Empty → drop none.
+#   exclude_companies  company names dropped at search and gate, slug-compared.
+#                      Empty → drop none.
+#   prune_score_max    job-prune threshold; scout ignores it.
+#
+#   Rules: bool maps are explicit. Anywhere is a keep token, never a query.
+
 work_model:
   remote: false
   hybrid: false

@@ -1,3 +1,21 @@
+# Identity and contact facts for job-apply forms.
+# Keys: name, email, phone, location, country, url.label, url.href
+#
+# How a form field is filled, and why:
+#
+#   [this file] then [a derived split of name or location]
+#
+#   name      Display name. First / last split at the first space.
+#   email     Application email.
+#   phone     Application phone.
+#   location  City, region, country as printed.
+#   country   Country of residence as a form lists it. When absent, apply may
+#             derive it from location's last comma part only if that part names
+#             a country.
+#   url       Personal site: label + href.
+#
+#   Rules: never invent a country, phone, or email. Empty is no answer.
+
 name: "{{display_name}}"
 email: "{{email}}"
 phone: ""

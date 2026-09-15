@@ -1,3 +1,18 @@
+# One object per skill category.
+# Keys: category, items
+# job-apply and job-resume-refine read items as the skill inventory, file order.
+# Optional data/skills-by-company.yml, when present, is read after this file.
+#
+# How a skill is listed, and why:
+#
+#   [category] + [items as printed tokens]
+#
+#   category  Group label. Order is file order; never re-ranked by judgement.
+#   items     Skill tokens as the owner spells them. Resume refine may use the
+#             ad's spelling when it names the same Fact.
+#
+#   Rules: never invent a skill. Empty items is a category with nothing in it.
+
 skills:
   - category: "Programming Languages"
     items: [] # TODO

@@ -1,9 +1,32 @@
+# Screening and authorization facts for job-apply and job-match.
+# Keys: availability.notice_period, salary_expectations.salary_range_usd,
+#   legal_authorization.jurisdictions[], employment_routes.*,
+#   work_preferences_from_resume.*, screening_defaults.*
+# job-profile may write screening_defaults.qa[] only; other keys are continue fill.
+#
+# How an answer is chosen, and why:
+#
+#   [Fact file] then [derived] then [qa row] then [authored] — never invent
+#
+#   notice_period      Time before a start. Earliest start is today plus this.
+#   salary_range_usd   Our band. Printed job USD numbers win; this band decides
+#                      only when the job prints none. Never convert non-USD.
+#   jurisdictions      One row per country. Apply reads the matching country
+#                      only; never copy a row onto another country.
+#   employment_routes  employer_of_record, direct_contractor, local_employment.
+#   work_preferences   remote_work, in_person_work, open_to_relocation, verbatim.
+#   screening_defaults on_call, hours_overlap, timezone, consent_to_data_processing,
+#                      qa[]. Absent key → later apply rules.
+#   qa[]               Reusable form answers: question, answer, optional scope
+#                      (country | ats | company), source, confirmed_at.
+#
+#   Rules: no EEO or demographic data in this file. Empty is absent. A Fact
+#   file always wins over a qa row. Never invent visa, salary, or notice.
+
 availability:
   notice_period: "" # TODO e.g. "2 weeks"
 
 salary_expectations:
-  # How job-apply answers a salary question from this band and the posting's
-  # printed figures: job-apply/references/contracts/contract-screening.md, Salary expectation.
   salary_range_usd: "" # TODO e.g. "80000-120000"
 
 # No self-identification block, deliberately. EEO / demographic questions are
@@ -11,12 +34,6 @@ salary_expectations:
 # No kit skill stages protected-class data from a file.
 
 legal_authorization:
-  # One row per country. job-apply reads the row whose `country` matches the
-  # question (`job-apply/references/contracts/contract-screening.md`); job-match reads the
-  # row matching the posting; job-profile shows and edits them. A country
-  # with no row has no stored answer — never copy another row onto it. Profiles
-  # that still carry the old us_*/eu_*/canada_*/uk_* scalars and no
-  # `jurisdictions` list keep them readable.
   jurisdictions: [] # TODO each: {country, work_authorization, legally_allowed_to_work, requires_visa, requires_sponsorship}
 
 employment_routes:
@@ -30,12 +47,6 @@ work_preferences_from_resume:
   in_person_work_note: ""
   open_to_relocation: ""
 
-# Read by job-apply resolution rule 3. Absent key → later rules apply.
-# qa: one row per reusable answer. `question` is the form label as printed;
-# `scope` limits where it applies — {country: "Canada"} | {ats: greenhouse|lever|ashby}
-# | {company: "Acme"}; absent = global. `source` names where the answer came from;
-# `confirmed_at` is the ISO day you last checked it. A Fact file always wins over a
-# qa row. Never a demographic or EEO label; those are declined, not answered.
 screening_defaults:
   on_call: ""
   hours_overlap: ""
