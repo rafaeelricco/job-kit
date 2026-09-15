@@ -443,6 +443,19 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("defect: locations_unauthorized", search)
         self.assertIn("location unknown → keep", search)
 
+    def test_equivalent_posting_is_a_log_not_a_merge(self):
+        schema = instruction_text(SCHEMA_DOSSIER)
+        self.assertIn("equivalent of scout/jobs/{other}", schema)
+        self.assertIn("scout writes four events", schema)
+        self.assertNotIn("scout writes exactly three events", schema)
+        scout = instruction_text(harness.SKILL / "job-scout" / "SKILL.md")
+        self.assertIn("do not merge", scout)
+        queue = instruction_text(
+            harness.SKILL / "job-store" / "references" / "flows" / "flow-queue.md"
+        )
+        self.assertIn("possible duplicate of scout/jobs/{other}", queue)
+        self.assertNotIn("either `status:` `applied`, `interview`, or `offer`", queue)
+
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)
         self.assertIn("`zero_result_runs` = runs that kept no card", search)

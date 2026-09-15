@@ -25,7 +25,11 @@ Write-set: `scout/jobs/*.md` + lock furniture per job-store `contract-persistenc
 4. Validate every extract row with `job-store/scripts/validate_extract.py` per `./references/flows/flow-extract.md`; then read `./references/flows/flow-gate.md`; obey end-to-end.
 5. Read `./references/flows/flow-rank.md`; obey end-to-end.
 6. Persist set from `./references/flows/flow-match-gate.md`. Obey job-store
-   schema + persistence. One dossier per persist-set row. No dossier for kit
+   schema + persistence. One dossier per persist-set row. After the write, if
+   another readable dossier has a different normalized `url` and the same
+   `company` and `title` slug (schema-dossier "Filename"), append
+   `- {date} · equivalent of scout/jobs/{other} — job-scout` on this file and
+   on the other. Do not merge. Do not change `url`. No dossier for kit
    drop or uncertain. Existing dead dossier → closure log only. Under
    `--refresh` every row already owns a dossier: a row that leaves the persist
    set keeps its body and `status:` untouched beyond the schema's re-run rules
