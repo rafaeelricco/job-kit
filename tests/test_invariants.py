@@ -427,7 +427,7 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("drop a `jd_date` older than the kit `date_posted` window", gate)
         self.assertIn("blank is not a drop", gate)
         self.assertIn(
-            "printed work_model that does not intersect kit-true flags (unknown → not a drop)",
+            "printed work_model that does not intersect kit-true flags (unknown → not a drop; no kit-true flag → not a drop)",
             gate,
         )
 
@@ -441,8 +441,14 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             "legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: yes",
             search,
         )
+        self.assertIn("legally_allowed_to_work_in_us", search)
+        self.assertIn("under `listed` only", search)
         self.assertIn("defect: locations_unauthorized", search)
         self.assertIn("location unknown → keep", search)
+        self.assertIn("no kit-true flag → keep", search)
+        self.assertIn("still gets stored slugs (2)", search)
+        self.assertIn("`/embed/job_app`", search)
+        self.assertIn("the `for` query value", search)
 
     def test_equivalent_posting_is_a_log_not_a_merge(self):
         schema = instruction_text(SCHEMA_DOSSIER)
@@ -451,11 +457,12 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertNotIn("scout writes exactly three events", schema)
         scout = instruction_text(harness.SKILL / "job-scout" / "SKILL.md")
         self.assertIn("do not merge", scout)
+        self.assertIn("neither file already has", scout)
         queue = instruction_text(
             harness.SKILL / "job-store" / "references" / "flows" / "flow-queue.md"
         )
         self.assertIn("possible duplicate of scout/jobs/{other}", queue)
-        self.assertNotIn("either `status:` `applied`, `interview`, or `offer`", queue)
+        self.assertIn("not `rejected` or `dropped`", queue)
 
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)

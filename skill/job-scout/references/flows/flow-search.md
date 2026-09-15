@@ -10,10 +10,13 @@ a surface.
 
 When a pack has `route`, consume it before any DOM search, except a
 `kind: board` pack first runs `site:{entry host} {formulation}` on a
-search engine the same way a no-route ATS root does, then GETs the
-route. That harvest is slug discovery, not a second surface and not a
-DOM fallback: `entry` already declared the host, and a later route
-failure still never falls back to DOM. A `kind: json` pack runs once
+search engine for slug discovery, then GETs the route. That harvest
+is not a second surface and not a DOM fallback: `entry` already
+declared the host, and a later route failure still never falls back
+to DOM. A bot-wall, captcha, throttle, or empty interrupt on that
+harvest records `defect: surface_interrupted` for the harvest and
+still GETs stored slugs (2); it does not stop the pack or mark route
+GETs unsubmitted. A `kind: json` pack runs once
 per expanded formulation; a `kind: board` pack runs once per board
 slug. Location remains a keep filter instead of repeating the same
 routed URL for every named location.
@@ -38,9 +41,11 @@ routed URL for every named location.
   "ATS family" vocabulary), a `url` containing `{slug}`, and `items`,
   `posting_url`, `title` dot paths; `location`, `date`, and `listed` are
   optional dot paths. `items: $` names the response root. Collect slugs
-  unique by lowercased slug: (1) first path segment of each `site:`
-  result URL this run; (2) first path segment of every readable store
-  dossier whose url host is this ATS family. New = (1) not in (2).
+  unique by lowercased slug: (1) each `site:` result URL this run;
+  (2) every readable store dossier whose url host is this ATS family.
+  Slug = first path segment, except a Greenhouse embed URL
+  (`/embed/job_app`) whose slug is the `for` query value; no `for` →
+  skip that URL. New = (1) not in (2).
   GET new first, then remaining (2) oldest min `last_seen` first.
   One GET per slug, `{slug}` percent-encoded, serial. Stop at the
   40-candidate keep cap. Empty (1)+(2) → `defect: no_boards`, scan
@@ -89,10 +94,12 @@ On the first such page, re-submit one formulation that kept cards earlier in
 this run; a `site:` search-engine run may carry that query to one other engine
 first, and a run that recovers on another engine counts as submitted. Still
 empty → stop the pack there: every built run after the interrupted one
-is unsubmitted, and the verdict is `defect: surface_interrupted`. A query that
+is unsubmitted, and the verdict is `defect: surface_interrupted`. A
+`kind: board` harvest interrupt is the exception above: stored-slug
+GETs still run. A query that
 never kept cards in the run and is contradicted by no re-test stays a zero.
 
-Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep unless the card already prints a hire-from country (printed location or a title country tag — never the company name) that matches no `legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: Yes`; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack: the cap counts kept candidates at search time, and a row extract later marks `dead` is not refilled. If every named `locations` entry matches no such Yes row, record `defect: locations_unauthorized` and scan nothing. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
+Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep; no kit-true flag → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep unless the card already prints a hire-from country (printed location or a title country tag — never the company name) that matches no Yes-authorization (a `legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: Yes`, or when no jurisdictions list exists, a legacy `legally_allowed_to_work_in_us` / `_eu` / `_canada` / `_uk` Yes for that country per `job-apply/references/contracts/contract-screening.md`); onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack: the cap counts kept candidates at search time, and a row extract later marks `dead` is not refilled. Under `listed` only, when `locations` is nonempty and every named entry matches no such Yes, record `defect: locations_unauthorized` and scan nothing — not on `worldwide`, a `location: keep-only` pack, empty `locations`, or empty authorization. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
 
 `channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`. Unknown = `—`.
 
