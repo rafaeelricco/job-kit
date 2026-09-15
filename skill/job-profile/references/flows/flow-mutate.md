@@ -3,7 +3,7 @@
 One mutation per confirm cycle. Several related edits in one user message are one
 batch — still one diff, one yes.
 
-Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/location/add/remove), `boards` (`boards.yaml`: add/remove/import),
+Verbs: `set` (`job_search.yaml`), `packs` (enable/disable/formulations/location/add/remove),
 `refresh-card` (`profile_card.yaml`), `cvs set` (`cvs.yaml`), `qa` (`candidate.yaml`
 `screening_defaults.qa[]`: add/answer/remove/ingest).
 Load `./references/schemas/schema-profile-card.md` when the verb is `refresh-card` or when a
@@ -24,7 +24,7 @@ Load `./references/schemas/schema-profile-card.md` when the verb is `refresh-car
    Edit surgically: never re-serialize the document, never drop comments or
    keys outside the diff. A live file is never edited in place.
 7. Re-parse **every** staged file. For `search_packs.yaml`, also apply the route
-   invariant below; for `boards.yaml`, the boards invariant. Any staging write, parse, or validation that fails →
+   invariant below. Any staging write, parse, or validation that fails →
    delete the staged files and say nothing was written, naming the failing path,
    pack id, and error.
 8. All staged files parse → re-read **every** target against disk before the
@@ -83,7 +83,7 @@ that is `refresh-card`.
   from the user. `surface` is a label (`linkedin-jobs`, `open-web`, `social`, or
   another); scout opens `entry`, it does not load a playbook file. `entry` is one
   `http(s)` URL. Accept optional `route_required`, `route`, and `location` only
-  when supplied by the user. A pack is a surface; an employer board is a `boards.yaml` row, never a pack.
+  when supplied by the user. A pack is a surface; an employer board is a slug, never a pack.
 
 Route invariant: `route_required`, when present, is boolean. A present route is
 a mapping that is either `kind: json` with a `url` containing `{formulation}` and `{page}` and
@@ -91,28 +91,8 @@ non-empty `pages`, `items`, and `posting_url` strings, or `kind: board` with `at
 `job-store/references/schemas/schema-dossier.md` "ATS family" vocabulary, a `url` containing
 `{slug}`, and non-empty `items`, `posting_url`, and `title` strings. An enabled pack
 (`enabled` absent or true) with `route_required: true` must have that complete
-route. A disabled required pack may omit it. Board slugs live only in `boards.yaml`.
+route. A disabled required pack may omit it.
 `location`, when present, is `keep-only`; any other value fails validation.
-
-## `boards.yaml` — `boards` verb
-
-- `boards add <ats> <slug> <company>`: append `{ats, slug, company, url, source: operator}`;
-  `url` is the family board URL — `https://jobs.ashbyhq.com/{slug}`,
-  `https://job-boards.greenhouse.io/{slug}`, `https://jobs.lever.co/{slug}`.
-- `boards remove <ats> <slug>`.
-- `boards import`: read every readable `scout/jobs/*.md` frontmatter `url` and
-  `company` per `job-store/references/flows/flow-read.md`, pipe
-  `{"dossiers": [{url, company}]}` through `job-store/scripts/boards_from_store.py`
-  (launcher per `job-store/references/schemas/schema-dossier.md` "URL normalize"), and append each returned row not
-  already present by `(ats, slug)` with `source: store`. `boards_error` → nothing written.
-- `data/boards.yaml` absent → the document is `boards: []` under the template header
-  (`./templates/data/boards.yaml`), never a read-fail or STOP: the cycle
-  diff shows the whole new file, step 6 stages it as a fresh `data/boards.yaml.tmp`, and
-  step 8 renames it into place. `boards remove` on an absent file → say no such row; nothing written.
-
-Boards invariant: `boards` is a list; each row has `ats` in the family vocabulary,
-a non-empty `slug` without `/`, non-empty `company` and `url`, `source` ∈ `operator` | `store`;
-`(ats, slug)` is unique. No network under any verb.
 
 ## `cvs.yaml` — writable keys
 
@@ -152,7 +132,7 @@ Protocol write path. Empty fields stay `""` / `[]`.
 | salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*`, any `candidate.yaml` key but `screening_defaults.qa[]` | Print what is on disk. Editing is `continue fill`, or a human editing `data/candidate.yaml`.        |
 | experiences, skills, languages, projects, basics, profiles                                                                                     | Print what is on disk. Editing is `continue fill`.                                                  |
 | identity (LinkedIn username)                                                                                                                   | Print what is on disk. Editing is `continue fill`.                                                  |
-| "find me boards"                                                                                                                               | No network. Suggest only from files already on disk, labelled **suggestion**, and still diff → yes. |
+| "find me boards"                                                                                                                               | No network. Scout discovers slugs at search from `site:` and the store.                             |
 | Copy another profile's data                                                                                                                    | Refuse. Never read a donor Profile root; values come from the operator for _this_ profile.          |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.

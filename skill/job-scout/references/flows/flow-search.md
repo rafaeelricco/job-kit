@@ -8,10 +8,15 @@ a surface.
 
 `worldwide` → each formulation once, location unfiltered: location control unset, nonempty `locations` ignored for coverage. `listed` → cycle named `locations`. `Anywhere` is a keep token, never a query. A pack with `location: keep-only` runs under `listed` as under `worldwide`: each formulation once, location control unset, named `locations` applied at keep and gate only. Never infer keep-only from the surface; only the pack declares it. Any other present `location` value records `defect: query_not_submitted` and scans nothing, as an incomplete route does.
 
-When a pack has `route`, consume it before any DOM search. A `kind: json` pack
-runs once per expanded formulation; a `kind: board` pack runs once per board
-slug. Location remains a keep filter instead of repeating the same routed URL
-for every named location.
+When a pack has `route`, consume it before any DOM search, except a
+`kind: board` pack first runs `site:{entry host} {formulation}` on a
+search engine the same way a no-route ATS root does, then GETs the
+route. That harvest is slug discovery, not a second surface and not a
+DOM fallback: `entry` already declared the host, and a later route
+failure still never falls back to DOM. A `kind: json` pack runs once
+per expanded formulation; a `kind: board` pack runs once per board
+slug. Location remains a keep filter instead of repeating the same
+routed URL for every named location.
 
 - `kind: json` and `kind: board` are supported. Open `entry` to establish its browser origin,
   substitute the percent-encoded formulation and 1-based page into `url`, then
@@ -32,16 +37,25 @@ for every named location.
 - `kind: board` needs `ats` (`job-store/references/schemas/schema-dossier.md`
   "ATS family" vocabulary), a `url` containing `{slug}`, and `items`,
   `posting_url`, `title` dot paths; `location`, `date`, and `listed` are
-  optional dot paths. `items: $` names the response root. Slugs are the
-  `data/boards.yaml` rows whose `ats` equals the pack's; none →
-  `defect: no_boards`, scan nothing. One GET per slug, `{slug}`
-  percent-encoded, serial. Per item: `posting_url` normalized; `company` = the
-  board row's `company`; `matched_query` = the first `positions[]` entry the
-  item's `title` contains as whole words, case-insensitive, punctuation ignored —
-  no entry → drop the item; `listed` resolving to `false` → drop; `channel` =
-  `ats`. `date` is ISO-8601 or Unix epoch (seconds or milliseconds) and feeds the
-  `date_posted` keep. A slug whose GET fails, returns non-JSON, or lacks the
-  `items` path is a zero-keep run; every slug failing → `defect: route_failed`.
+  optional dot paths. `items: $` names the response root. Collect slugs
+  unique by lowercased slug: (1) first path segment of each `site:`
+  result URL this run; (2) first path segment of every readable store
+  dossier whose url host is this ATS family. New = (1) not in (2).
+  GET new first, then remaining (2) oldest min `last_seen` first.
+  One GET per slug, `{slug}` percent-encoded, serial. Stop at the
+  40-candidate keep cap. Empty (1)+(2) → `defect: no_boards`, scan
+  nothing. `site:` cards on a `kind: board` pack are slug sources,
+  not candidates; candidates come only from a successful route GET.
+  Company = the `site:` card company, else the store company, else
+  the slug. Per item: `posting_url` normalized; `matched_query` = the
+  first `positions[]` entry the item's `title` contains as whole
+  words, case-insensitive, punctuation ignored — no entry → drop the
+  item; `listed` resolving to `false` → drop; `channel` = `ats`.
+  `date` is ISO-8601 or Unix epoch (seconds or milliseconds) and
+  feeds the `date_posted` keep. When the date path is present, order
+  items by `date` descending before keep. A slug whose GET fails,
+  returns non-JSON, or lacks the `items` path is a zero-keep run;
+  every slug failing → `defect: route_failed`.
 
 Without `route`, retain the DOM flow. Open `entry`. ATS roots with no browsable
 index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
@@ -50,8 +64,8 @@ instead; an `entry` with a path opens directly. On a `site:` run the search
 engine is the surface: set its date control to the `date_posted` window when it
 has one, and expect stale rows regardless — the index is not the board, and
 extract marks them `dead` (`./flow-extract.md`). A `kind: board` pack over the
-same family reads the live board API and is the fresher index once
-`data/boards.yaml` has rows for that `ats`.
+same family reads the live board API after that harvest. There is no
+board-registry file.
 
 Surface filter controls matching Constraints `date_posted`, `work_model`,
 `job_types`, and location (location omitted on a `location: keep-only` pack) — no others → set them before scanning. Paginate until

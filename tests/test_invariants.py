@@ -50,6 +50,7 @@ FLOW_RANK: Path = harness.SKILL / "job-scout" / "references" / "flows" / "flow-r
 FLOW_MATCH_GATE: Path = (
     harness.SKILL / "job-scout" / "references" / "flows" / "flow-match-gate.md"
 )
+FLOW_PREP: Path = harness.SKILL / "job-prep" / "references" / "flows" / "flow-prep.md"
 
 
 @dataclass(frozen=True)
@@ -513,6 +514,23 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("the pack declares its surfaces; a run never adds one", search)
         self.assertIn("an expanded pack formulation, or a `positions[]` entry on a `kind: board` route", schema)
         self.assertIn("is not a provenance and the row does not persist", schema)
+
+    def test_board_slugs_are_discovered_new_first(self):
+        search = instruction_text(FLOW_SEARCH)
+        prep = instruction_text(FLOW_PREP)
+        self.assertIn(
+            "`site:` cards on a `kind: board` pack are slug sources, not candidates",
+            search,
+        )
+        self.assertIn("get new first", search)
+        self.assertIn("there is no board-registry file", search)
+        self.assertNotIn("`data/boards.yaml` is an optional seed", search)
+        self.assertNotIn(
+            "slugs are the `data/boards.yaml` rows whose `ats` equals the pack's; none → `defect: no_boards`",
+            search,
+        )
+        self.assertIn("then `first_seen` descending", prep)
+        self.assertNotIn("then `first_seen` ascending", prep)
 
     def test_unscored_rows_are_reported_apart_from_low_scores(self):
         rank = instruction_text(FLOW_RANK)

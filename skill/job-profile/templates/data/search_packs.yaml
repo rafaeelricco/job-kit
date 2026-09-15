@@ -12,8 +12,8 @@
 # A route url is fixed: it carries no constraint filters, so work_model,
 # date_posted, job_types, and location fall to scout's keep gate.
 # kind: board requires ats, url with {slug}, and items, posting_url, title dot
-# paths (location, date, listed optional); slugs come from data/boards.yaml
-# rows whose ats matches. items: $ is the response root.
+# paths (location, date, listed optional); slugs are discovered each run from
+# site:{entry host} and store URLs. items: $ is the response root.
 # location: keep-only marks a surface whose location control cannot express
 # kit locations (absent, non-persisting, inert, or a taxonomy that hides
 # remote-worldwide cards). Under listed, scout runs each formulation once with
@@ -82,7 +82,7 @@ packs:
     surface: open-web
     entry: https://job-boards.greenhouse.io
     # Undated search-engine site: harvest; stale rows read dead at extract.
-    # Prefer greenhouse-boards once data/boards.yaml has rows for this family.
+    # Prefer greenhouse-boards for the live API after site: harvest.
     formulations:
       - "[role]"
 
@@ -90,7 +90,7 @@ packs:
     surface: open-web
     entry: https://jobs.lever.co
     # Undated search-engine site: harvest; stale rows read dead at extract.
-    # Prefer lever-boards once data/boards.yaml has rows for this family.
+    # Prefer lever-boards for the live API after site: harvest.
     formulations:
       - "[role]"
 
