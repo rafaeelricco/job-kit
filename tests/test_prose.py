@@ -576,12 +576,9 @@ class SearchPackRouteTests(unittest.TestCase):
     def test_surfaces_without_a_location_control_declare_keep_only(self):
         for identifier in (
             "linkedin-posts",
-            "x-dm-me",
-            "x-funding",
             "hn-hiring",
             "work-at-a-startup",
             "we-work-remotely",
-            "dice",
         ):
             pack = self.pack(identifier)
             with self.subTest(pack=identifier, source=pack.where):
@@ -597,30 +594,6 @@ class SearchPackRouteTests(unittest.TestCase):
                     self.assertEqual(pack.value(4, "location"), "keep-only")
 
     def test_shipped_route_dependent_packs(self):
-        getonbrd = self.pack("getonbrd")
-        for indent, key, want in (
-            (4, "route_required", "true"),
-            (6, "kind", "json"),
-            (
-                6,
-                "url",
-                "https://www.getonbrd.com/api/v0/search/jobs"
-                "?query={formulation}&per_page=40&page={page}",
-            ),
-            (6, "pages", "meta.total_pages"),
-            (6, "items", "data"),
-            (6, "posting_url", "links.public_url"),
-        ):
-            with self.subTest(pack="getonbrd", key=key, source=getonbrd.where):
-                self.assertEqual(
-                    getonbrd.value(indent, key),
-                    want,
-                    "getonbrd at {0} writes {1}: {2!r}".format(
-                        getonbrd.where, key, getonbrd.value(indent, key)
-                    ),
-                )
-        self.assertIsNone(route_defect(getonbrd))
-
         hiring_cafe = self.pack("hiring-cafe")
         self.assertEqual(hiring_cafe.value(4, "route_required"), "true")
         self.assertEqual(

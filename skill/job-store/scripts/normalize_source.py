@@ -26,7 +26,6 @@ ALIASES: Dict[str, str] = {
     "hiringcafe.com": "hiring-cafe",
     "workatastartup": "work-at-a-startup",
     "workatastartup.com": "work-at-a-startup",
-    "x.com": "x-funding",
     "jobs.ashbyhq.com": "ashby",
     "job-boards.greenhouse.io": "greenhouse",
 }

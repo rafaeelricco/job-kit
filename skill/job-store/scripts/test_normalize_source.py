@@ -11,7 +11,6 @@ CASES = (
     ("hiringcafe.com", "hiring-cafe"),
     ("workatastartup", "work-at-a-startup"),
     ("workatastartup.com", "work-at-a-startup"),
-    ("x.com", "x-funding"),
     ("jobs.ashbyhq.com", "ashby"),
     ("job-boards.greenhouse.io", "greenhouse"),
 )
@@ -22,7 +21,7 @@ PASSTHROUGH = ("lever", "greenhouse", "ashby", "example.test", "jobs.gem.com", "
 
 class CanonicalTests(unittest.TestCase):
     def test_alias_table(self):
-        self.assertEqual(len(ALIASES), 10)
+        self.assertEqual(len(ALIASES), 9)
         self.assertEqual(CASES, tuple(ALIASES.items()))
         for raw, expected in CASES:
             with self.subTest(raw=raw):
@@ -71,11 +70,12 @@ class CanonicalTests(unittest.TestCase):
 class PayloadTests(unittest.TestCase):
     def test_batch_keeps_order(self):
         code, result = normalize_payload(
-            {"sources": ["x.com", "lever", "source linkedin", "hiringcafe"]}
+            {"sources": ["workatastartup", "lever", "source linkedin", "hiringcafe"]}
         )
         self.assertEqual(code, 0)
         self.assertEqual(
-            result["sources"], ["x-funding", "lever", "linkedin-jobs", "hiring-cafe"]
+            result["sources"],
+            ["work-at-a-startup", "lever", "linkedin-jobs", "hiring-cafe"],
         )
 
     def test_unknown_is_deduped_and_sorted(self):
