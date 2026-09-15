@@ -127,12 +127,12 @@ Protocol write path. Empty fields stay `""` / `[]`.
 
 ## Refuse (redirect, never write)
 
-| Ask                                                                                                                                            | Answer                                                                                              |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*`, any `candidate.yaml` key but `screening_defaults.qa[]` | Print what is on disk. Editing is `continue fill`, or a human editing `data/candidate.yaml`.        |
-| experiences, skills, languages, projects, basics, profiles                                                                                     | Print what is on disk. Editing is `continue fill`.                                                  |
-| identity (LinkedIn username)                                                                                                                   | Print what is on disk. Editing is `continue fill`.                                                  |
-| "find me boards"                                                                                                                               | No network. Scout discovers slugs at search from `site:` and the store.                             |
-| Copy another profile's data                                                                                                                    | Refuse. Never read a donor Profile root; values come from the operator for _this_ profile.          |
+| Ask                                                                                                                                            | Answer                                                                                       |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| salary, notice, visa, sponsorship, EOR, `legal_authorization.*`, `employment_routes.*`, any `candidate.yaml` key but `screening_defaults.qa[]` | Print what is on disk. Editing is `continue fill`, or a human editing `data/candidate.yaml`. |
+| experiences, skills, languages, projects, basics, profiles                                                                                     | Print what is on disk. Editing is `continue fill`.                                           |
+| identity (LinkedIn username)                                                                                                                   | Print what is on disk. Editing is `continue fill`.                                           |
+| "find me boards"                                                                                                                               | No network. Scout discovers slugs at search from `site:` and the store.                      |
+| Copy another profile's data                                                                                                                    | Refuse. Never read a donor Profile root; values come from the operator for _this_ profile.   |
 
 A suggestion is never a write. An unanswered suggestion stays a suggestion.
