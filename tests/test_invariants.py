@@ -430,6 +430,10 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             "printed work_model that does not intersect kit-true flags (unknown → not a drop; no kit-true flag → not a drop)",
             gate,
         )
+        self.assertIn(
+            "named onsite place with no shared work_model flag (no kit-true flag → not a drop)",
+            gate,
+        )
 
     def test_search_keep_skips_printed_unauthorized_hire_from(self):
         search = instruction_text(FLOW_SEARCH)
@@ -443,6 +447,7 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             search,
         )
         self.assertIn("legally_allowed_to_work_in_us", search)
+        self.assertIn("a `direct_regions` token", search)
         self.assertIn("under `listed` only", search)
         self.assertIn("defect: locations_unauthorized", search)
         self.assertIn("city tokens that name no country", search)
