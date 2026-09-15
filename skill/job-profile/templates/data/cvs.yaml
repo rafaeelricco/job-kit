@@ -1,10 +1,19 @@
-# The one CV job-apply attaches. job-profile edits this file.
-# base = filename under `cv/`; must open as a PDF. NEVER a `.tex`.
-# The LaTeX source job-resume-refine copies is the same stem with `.tex`.
-# adapt_per_vacancy = true → job-apply chains job-resume-refine on a
-# status:new dossier and attaches the tailored PDF. false → attach `base`
-# unchanged. Absent key → true.
-# Absent file or empty `base` → job-apply falls back to cv/en-us-resume.pdf.
+# The one CV job-apply attaches.
+# Keys: base, adapt_per_vacancy
+#
+# How a PDF is chosen, and why:
+#
+#   [adapt_per_vacancy] then [base under cv/] else [cv/en-us-resume.pdf]
+#
+#   base               Filename under cv/; must already exist and open as a
+#                      PDF, never a .tex. The LaTeX source job-resume-refine
+#                      copies is the same stem with .tex.
+#   adapt_per_vacancy  true → job-apply chains job-resume-refine on a
+#                      status:new dossier and attaches the tailored PDF.
+#                      false → attach base unchanged. Absent means true.
+#
+#   Rules: empty base → job-apply falls back to cv/en-us-resume.pdf.
+#   Never generate LaTeX here.
 
 base: ""
 adapt_per_vacancy: true

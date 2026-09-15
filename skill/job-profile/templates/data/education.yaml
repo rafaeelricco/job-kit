@@ -1,4 +1,16 @@
-# TODO: one object per credential.
+# One object per credential.
 # Keys: institution, credential, field, location, date
-# date = start -- end when both known, else the printed end only. Never guess start.
+#
+# How a credential is written, and why:
+#
+#   [institution] + [credential / field] + [date]
+#
+#   institution  School or issuer, as printed.
+#   credential   Degree or certificate name.
+#   field        Field of study when the credential names one.
+#   location     Optional place.
+#   date         start -- end when both known, else the printed end only.
+#
+#   Rules: never guess a start date. Empty list is allowed.
+
 []
