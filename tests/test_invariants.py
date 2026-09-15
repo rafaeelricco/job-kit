@@ -425,6 +425,10 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         gate = instruction_text(FLOW_GATE)
         self.assertIn("drop a `jd_date` older than the kit `date_posted` window", gate)
         self.assertIn("blank is not a drop", gate)
+        self.assertIn(
+            "printed work_model that does not intersect kit-true flags (unknown → not a drop)",
+            gate,
+        )
 
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)
