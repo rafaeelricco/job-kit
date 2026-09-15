@@ -87,7 +87,6 @@ PROFILE_PREFIXES: Tuple[str, ...] = (
 PROFILE_FILES: FrozenSet[str] = frozenset(
     (
         "basics.yaml",
-        "boards.yaml",
         "candidate.yaml",
         "cvs.yaml",
         "education.yaml",

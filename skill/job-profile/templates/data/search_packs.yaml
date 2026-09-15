@@ -1,7 +1,6 @@
 # One object per pack. One pack = one site × one intent.
 # Keys: id, surface, entry, formulations; optional enabled, location, route_required, route
 # job-scout reads this file from the Profile root; absent → scout stops.
-# Employer boards are data/boards.yaml rows, never packs.
 #
 # How a pack is searched, and why:
 #
@@ -33,10 +32,11 @@
 #                 true on an enabled pack needs a complete route). kind json:
 #                 url with {formulation} and {page}, plus pages, items, and
 #                 posting_url. kind board: ats, url with {slug}, plus items,
-#                 posting_url, and title; slugs come from data/boards.yaml
-#                 rows whose ats matches; items: $ is the response root.
-#                 A route url carries no constraint filters, so work_model,
-#                 date_posted, job_types, and location fall to the keep gate.
+#                 posting_url, and title; slugs are discovered each run from
+#                 site:{entry host} and store URLs; items: $ is the response
+#                 root. A route url carries no constraint filters, so
+#                 work_model, date_posted, job_types, and location fall to the
+#                 keep gate.
 #
 #   Rules: a pack is a surface, not an employer. location, when present, is
 #   keep-only. An enabled pack with route_required: true must have a complete
@@ -98,7 +98,7 @@ packs:
     surface: open-web
     entry: https://job-boards.greenhouse.io
     # Undated search-engine site: harvest; stale rows read dead at extract.
-    # Prefer greenhouse-boards once data/boards.yaml has rows for this family.
+    # Prefer greenhouse-boards for the live API after site: harvest.
     formulations:
       - "[role]"
 
@@ -106,7 +106,7 @@ packs:
     surface: open-web
     entry: https://jobs.lever.co
     # Undated search-engine site: harvest; stale rows read dead at extract.
-    # Prefer lever-boards once data/boards.yaml has rows for this family.
+    # Prefer lever-boards for the live API after site: harvest.
     formulations:
       - "[role]"
 

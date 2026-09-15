@@ -1,6 +1,6 @@
 ---
 name: job-profile
-description: "Create, register, or edit a job-search profile. Use when the user runs /job-profile, /job-profile-init, or /job-profile-me, asks to scaffold a profile, show search config, change positions or boards, or what is missing for scout. Not for finding jobs (job-scout)."
+description: "Create, register, or edit a job-search profile. Use when the user runs /job-profile, /job-profile-init, or /job-profile-me, asks to scaffold a profile, show search config, change positions or packs, or what is missing for scout. Not for finding jobs (job-scout)."
 ---
 
 # Job profile
@@ -44,11 +44,11 @@ Outside `<target>`, write only Profile-root pointer files, and only via
 Edit an existing profile.
 
 Resolve every `data/*` path against Profile root (not CWD, not skill dir).
-`scout/jobs/*.md` is read only by `boards import`, per `job-store/references/flows/flow-read.md`.
+Do not read `scout/jobs/*.md`.
 Skill-local files: `./references/**` only.
 
 Mutate write-set: `data/job_search.yaml`, `data/profile_card.yaml`, `data/search_packs.yaml`,
-`data/boards.yaml`, `data/cvs.yaml`, `data/candidate.yaml` (`screening_defaults.qa[]` only), and their
+`data/cvs.yaml`, `data/candidate.yaml` (`screening_defaults.qa[]` only), and their
 `*.yaml.tmp` staging siblings during atomic rename. Continuation fill writes the
 `./references/flows/flow-fill.md` set instead.
 
@@ -57,7 +57,7 @@ end this skill.
 When the operator says `continue fill`, with or without naming a field, read
 `./references/flows/flow-fill.md` now.
 When the operator mutates search config, packs, the profile card, CV settings, or
-reusable answers (`set` / `packs` / `boards` / `refresh-card` / `cvs set` / `qa`), or asks to change salary, notice,
+reusable answers (`set` / `packs` / `refresh-card` / `cvs set` / `qa`), or asks to change salary, notice,
 visa, sponsorship, EOR, Fact fields, or identity, read `./references/flows/flow-mutate.md` now.
 Otherwise read `./references/flows/flow-show.md` now.
 Load each additional reference only when that flow names it.

@@ -51,7 +51,7 @@ resolves to a named ATS family per
 `greenhouse`, `lever`, or `ashby`; `other` is dropped. A dropped dossier is
 not a `Skipped` outcome: it never enters the queue and never opens a page.
 Sort by Posting-facts `match_score` descending — a dossier with no such row, or a
-non-integer value, sorts after every scored one — then `first_seen` ascending,
+non-integer value, sorts after every scored one — then `first_seen` descending,
 then filename; take the first N.
 
 `{slug}` is the dossier filename minus `.md`, never rebuilt from company and title.

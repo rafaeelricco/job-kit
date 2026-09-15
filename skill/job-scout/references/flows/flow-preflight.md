@@ -1,6 +1,6 @@
 # Job scout — preflight
 
-Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Boards: {n} rows` from `data/boards.yaml` (`Boards: —` when absent), `Runtime: workers` if spawn works, else `inline`.
+Print `Profile root:`, `Deck:` (`data/search_packs.yaml`), `Runtime: workers` if spawn works, else `inline`.
 
 `job_search.yaml` keys: `work_model`, `job_types`, `date_posted`, `positions`, `locations`, `location_scope`, `direct_regions`, `market_currencies`, `exclude_locations`, `exclude_companies`, `prune_score_max` (job-prune's threshold; scout ignores it). Any other valued key → stop; migrate via `/job-profile`.
 `location_scope` is `worldwide` or `listed`. `listed` needs a named location (not only `Anywhere`).

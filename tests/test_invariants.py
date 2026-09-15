@@ -50,6 +50,7 @@ FLOW_RANK: Path = harness.SKILL / "job-scout" / "references" / "flows" / "flow-r
 FLOW_MATCH_GATE: Path = (
     harness.SKILL / "job-scout" / "references" / "flows" / "flow-match-gate.md"
 )
+FLOW_PREP: Path = harness.SKILL / "job-prep" / "references" / "flows" / "flow-prep.md"
 
 
 @dataclass(frozen=True)
@@ -425,6 +426,52 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         gate = instruction_text(FLOW_GATE)
         self.assertIn("drop a `jd_date` older than the kit `date_posted` window", gate)
         self.assertIn("blank is not a drop", gate)
+        self.assertIn(
+            "printed work_model that does not intersect kit-true flags (unknown → not a drop; no kit-true flag → not a drop)",
+            gate,
+        )
+        self.assertIn(
+            "named onsite place with no shared work_model flag (no kit-true flag → not a drop)",
+            gate,
+        )
+
+    def test_search_keep_skips_printed_unauthorized_hire_from(self):
+        search = instruction_text(FLOW_SEARCH)
+        self.assertIn(
+            "remote or hybrid-with-remote that already prints a hire-from country",
+            search,
+        )
+        self.assertIn("→ drop; `worldwide` → keep", search)
+        self.assertIn(
+            "legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: yes",
+            search,
+        )
+        self.assertIn("legally_allowed_to_work_in_us", search)
+        self.assertIn("a `direct_regions` token", search)
+        self.assertIn("under `listed` only", search)
+        self.assertIn("defect: locations_unauthorized", search)
+        self.assertIn("city tokens that name no country", search)
+        self.assertIn("location unknown → keep", search)
+        self.assertIn("no kit-true flag → keep", search)
+        self.assertIn("still gets stored slugs (2)", search)
+        self.assertIn("`/embed/job_app`", search)
+        self.assertIn("the `for` query value", search)
+        self.assertIn("jobs.eu.lever.co", search)
+
+    def test_equivalent_posting_is_a_log_not_a_merge(self):
+        schema = instruction_text(SCHEMA_DOSSIER)
+        self.assertIn("equivalent of scout/jobs/{other}", schema)
+        self.assertIn("scout writes four events", schema)
+        self.assertNotIn("scout writes exactly three events", schema)
+        scout = instruction_text(harness.SKILL / "job-scout" / "SKILL.md")
+        self.assertIn("do not merge", scout)
+        self.assertIn("neither file already has", scout)
+        queue = instruction_text(
+            harness.SKILL / "job-store" / "references" / "flows" / "flow-queue.md"
+        )
+        self.assertIn("possible duplicate of scout/jobs/{other}", queue)
+        self.assertIn("`new` and not dead-by-log", queue)
+        self.assertIn("`applied`, `interview`, or `offer`", queue)
 
     def test_zero_keep_runs_are_a_named_defect(self):
         search = instruction_text(FLOW_SEARCH)
@@ -483,6 +530,23 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
         self.assertIn("the pack declares its surfaces; a run never adds one", search)
         self.assertIn("an expanded pack formulation, or a `positions[]` entry on a `kind: board` route", schema)
         self.assertIn("is not a provenance and the row does not persist", schema)
+
+    def test_board_slugs_are_discovered_new_first(self):
+        search = instruction_text(FLOW_SEARCH)
+        prep = instruction_text(FLOW_PREP)
+        self.assertIn(
+            "`site:` cards on a `kind: board` pack are slug sources, not candidates",
+            search,
+        )
+        self.assertIn("get new first", search)
+        self.assertIn("there is no board-registry file", search)
+        self.assertNotIn("`data/boards.yaml` is an optional seed", search)
+        self.assertNotIn(
+            "slugs are the `data/boards.yaml` rows whose `ats` equals the pack's; none → `defect: no_boards`",
+            search,
+        )
+        self.assertIn("then `first_seen` descending", prep)
+        self.assertNotIn("then `first_seen` ascending", prep)
 
     def test_unscored_rows_are_reported_apart_from_low_scores(self):
         rank = instruction_text(FLOW_RANK)
