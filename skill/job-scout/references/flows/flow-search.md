@@ -45,7 +45,8 @@ routed URL for every named location.
   (2) every readable store dossier whose url host is this ATS family.
   Slug = first path segment, except a Greenhouse embed URL
   (`/embed/job_app`) whose slug is the `for` query value; no `for` →
-  skip that URL. New = (1) not in (2).
+  skip that URL. A `jobs.eu.lever.co` or `api.eu.lever.co` host is a
+  separate Lever instance: skip it, do not GET `api.lever.co`. New = (1) not in (2).
   GET new first, then remaining (2) oldest min `last_seen` first.
   One GET per slug, `{slug}` percent-encoded, serial. Stop at the
   40-candidate keep cap. Empty (1)+(2) → `defect: no_boards`, scan
@@ -99,7 +100,7 @@ is unsubmitted, and the verdict is `defect: surface_interrupted`. A
 GETs still run. A query that
 never kept cards in the run and is contradicted by no re-test stays a zero.
 
-Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep; no kit-true flag → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep unless the card already prints a hire-from country (printed location or a title country tag — never the company name) that matches no Yes-authorization (a `legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: Yes`, or when no jurisdictions list exists, a legacy `legally_allowed_to_work_in_us` / `_eu` / `_canada` / `_uk` Yes for that country per `job-apply/references/contracts/contract-screening.md`); onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack: the cap counts kept candidates at search time, and a row extract later marks `dead` is not refilled. Under `listed` only, when `locations` is nonempty and every named entry matches no such Yes, record `defect: locations_unauthorized` and scan nothing — not on `worldwide`, a `location: keep-only` pack, empty `locations`, or empty authorization. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
+Drop a card whose company slug (schema-dossier "Filename" rule) is in `exclude_companies`. Keep a card whose work_model intersects kit-true flags (unknown → keep; no kit-true flag → keep) and that matches Constraints `job_types` and `date_posted`. Location keep (first match): remote or hybrid-with-remote that already prints a hire-from country (printed location or a title country tag — never the company name) that matches no Yes-authorization (a `legal_authorization.jurisdictions[]` row with `legally_allowed_to_work: Yes`, or when no jurisdictions list exists, a legacy `legally_allowed_to_work_in_us` / `_eu` / `_canada` / `_uk` Yes for that country per `job-apply/references/contracts/contract-screening.md`) → drop; `worldwide` → keep; `locations` contains `Anywhere` → keep; remote or hybrid-with-remote → keep; onsite or location-restricted → keep only if it matches named `locations` (synonym OK); location unknown → keep (gate re-applies after extract). Cap 40 per pack: the cap counts kept candidates at search time, and a row extract later marks `dead` is not refilled. Under `listed` only, when `locations` is nonempty and every named entry that names a country comparable to a jurisdiction matches no such Yes, record `defect: locations_unauthorized` and scan nothing — not on `worldwide`, a `location: keep-only` pack, empty `locations`, empty authorization, or a list of city tokens that name no country. Normalize URL per `job-store/references/schemas/schema-dossier.md`.
 
 `channel` ∈ `direct_email` | `dm_request` | `founder` | `ats`. Unknown = `—`.
 
