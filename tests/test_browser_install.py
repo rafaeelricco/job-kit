@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 
 from test_packaging import _powershell_list, _shell_list
-from test_release import native_shells, shell_path
+from test_release import _marker_skill_tail, native_shells, shell_path
 
 REPO = Path(__file__).resolve().parents[1]
 SOLVER = "captcha-solver"
@@ -236,6 +236,85 @@ class BrowserChannelTests(unittest.TestCase):
             self.assertEqual(f.names(), {SOLVER})
         self.each_shell(scenario)
 
+    def test_aside_copies_block_cache_purge(self):
+        def scenario(f):
+            self.success(f.run("aside/install"))
+            self.assertIn("job-match", {path.name for path in f.aside.iterdir()})
+            result = f.run("uninstall", "cache", "--dry-run")
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("job-match", result.stdout + result.stderr)
+            self.assertIn("installed skills point at", result.stdout + result.stderr)
+            self.assertTrue(f.kit.is_dir())
+            self.assertIn("job-match", {path.name for path in f.aside.iterdir()})
+        self.each_shell(scenario)
+
+    def test_aside_dry_run_copies_nothing(self):
+        def scenario(f):
+            if f.kind != "bash":
+                self.success(f.run(None))
+            before = sorted(str(path.relative_to(f.root)) for path in f.root.rglob("*"))
+            result = f.run("aside/install", "--dry-run")
+            self.success(result)
+            self.assertEqual({path.name for path in f.aside.iterdir()}, set())
+            self.assertEqual(before, sorted(str(path.relative_to(f.root)) for path in f.root.rglob("*")))
+        self.each_shell(scenario)
+
+    def test_aside_copies_with_marker(self):
+        def scenario(f):
+            self.success(f.run("aside/install"))
+            installed = f.aside / "job-match"
+            self.assertTrue((installed / "SKILL.md").is_file())
+            self.assertFalse(installed.is_symlink())
+            if hasattr(installed, "is_junction"):
+                self.assertFalse(installed.is_junction())
+            marker = installed / ".job-kit"
+            self.assertEqual(
+                _marker_skill_tail(marker.read_text(encoding="utf-8").strip()),
+                _marker_skill_tail(str(f.kit / "skill" / "job-match")),
+            )
+            self.assertFalse((f.aside / SOLVER).exists())
+            self.success(f.run("aside/install"))
+            self.assertEqual(
+                _marker_skill_tail(marker.read_text(encoding="utf-8").strip()),
+                _marker_skill_tail(str(f.kit / "skill" / "job-match")),
+            )
+            self.success(f.run("uninstall", "aside"))
+            self.assertEqual({path.name for path in f.aside.iterdir()}, set())
+        self.each_shell(scenario)
+
+    def test_aside_foreign_blocks(self):
+        def scenario(f):
+            dest = f.aside / "job-match"
+            dest.mkdir()
+            (dest / "SKILL.md").write_text("foreign", encoding="utf-8")
+            result = f.run("aside/install")
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("foreign", result.stdout + result.stderr)
+            self.assertEqual((dest / "SKILL.md").read_text(encoding="utf-8"), "foreign")
+        self.each_shell(scenario)
+
+    def test_install_router_aside(self):
+        def scenario(f):
+            self.success(f.run("install", "aside"))
+            installed = f.aside / "job-match"
+            self.assertTrue((installed / "SKILL.md").is_file())
+            self.assertFalse(installed.is_symlink())
+            self.assertEqual(
+                _marker_skill_tail((installed / ".job-kit").read_text(encoding="utf-8").strip()),
+                _marker_skill_tail(str(f.kit / "skill" / "job-match")),
+            )
+        self.each_shell(scenario)
+
+    def test_install_all_copies_aside(self):
+        def scenario(f):
+            self.success(f.run("install", "all"))
+            installed = f.aside / "job-match"
+            self.assertTrue((installed / "SKILL.md").is_file())
+            self.assertFalse(installed.is_symlink())
+            self.assertIn("job-profile", f.names())
+            self.assertIn("job-scout", f.names())
+        self.each_shell(scenario)
+
 
 class BrowserDependencyTests(unittest.TestCase):
     def test_shell_lists_agree_and_solver_is_browser_exclusive(self):
@@ -257,6 +336,12 @@ class BrowserDependencyTests(unittest.TestCase):
         aside = (REPO / "scripts/aside/lib.sh").read_text(encoding="utf-8")
         self.assertNotIn(SOLVER, _shell_list(aside, "SKILL_NAMES"))
         self.assertNotIn("captcha-solver", _shell_list(aside, "SKILL_NAMES"))
+        aside_ps = (REPO / "scripts/aside/lib.ps1").read_text(encoding="utf-8")
+        self.assertEqual(_shell_list(aside, "SKILL_NAMES"),
+                         _powershell_list(aside_ps, "AsideSkillNames"))
+        self.assertEqual(_shell_list(aside, "LEGACY_SKILL_NAMES"),
+                         _powershell_list(aside_ps, "AsideLegacySkillNames"))
+        self.assertNotIn(SOLVER, _powershell_list(aside_ps, "AsideSkillNames"))
 
 
 if __name__ == "__main__":

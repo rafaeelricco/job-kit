@@ -1,10 +1,11 @@
 # Single job-kit uninstaller for Windows: interactive menu or target args.
-# Agents + browser-use + profile + cache. Aside is not available on Windows 11.
+# Agents + Aside + browser-use + profile + cache.
 # Windows PowerShell 5.1 and PowerShell 7.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 . (Join-Path $PSScriptRoot 'agents\lib.ps1')
+. (Join-Path $PSScriptRoot 'aside\lib.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
 
 $script:RepoRoot = Get-FullPathNormalized (Join-Path $PSScriptRoot '..')
@@ -23,14 +24,14 @@ $script:KitOwnershipFiles = @(
 
 function Show-UninstallUsage {
   @'
-Uninstall job-kit (Windows: agents + browser-use + profile + cache).
-Aside is not available on Windows 11.
+Uninstall job-kit (Windows: aside + agents + browser-use + profile + cache).
 
 Usage: uninstall.ps1                 # interactive menu (console required)
        uninstall.ps1 <target>...       # non-interactive (one or more targets)
        uninstall.ps1 -h|--help
 
 Targets:
+  aside        Aside skills (job-scout, job-apply, job-prep, job-resume-refine, job-profile, job-list, job-match, job-stories, job-inbox, job-humanize, job-profile-root, job-store)
   agents       Coding-agent skills (job-profile, job-list,
                job-match, job-stories, job-inbox, job-humanize,
                job-profile-root, job-store, job-resume-refine)
@@ -39,7 +40,7 @@ Targets:
                Never a browser app
   profile      Delete profile root(s) + matching profile-root pointer
   cache        Remove kit checkout cache (JOB_KIT_HOME), kit-owned only
-  all          agents + browser-use + profile + cache
+  all          aside + agents + browser-use + profile + cache
 
 Options:
   --dry-run     Print the plan, run every guard, remove nothing
@@ -53,7 +54,8 @@ Profile path: $XDG_CONFIG_HOME\job-kit when set, otherwise %USERPROFILE%\.config
 
 Environment:
   JOB_KIT_HOME   Kit cache (default $XDG_DATA_HOME\job-kit or ~\.local\share\job-kit)
-  CLAUDE_SKILLS  Same override as the installer
+  ASIDE_SKILLS / ASIDE_ACCOUNT / CLAUDE_SKILLS
+                 Same overrides as the channel installers
 '@ | Write-Host
 }
 
@@ -177,25 +179,36 @@ function Get-ProfileProbeMissing {
   return ''
 }
 
+# Get-OwnedByRoot PATH NAME ROOTS [-LinkOnly]
+# Returns PATH when it is a skill link, or a marked copy, whose source is
+# ROOT\skill\NAME for any ROOT given — the two forms scripts/uninstall.sh:680-683
+# reads. -LinkOnly drops the copy form for callers whose apply step requires a
+# link (Unlink-Skill -> Test-ExactLink, scripts/agents/lib.ps1:277).
 function Get-OwnedByRoot {
-  param([string]$Path, [string]$Name, [string[]]$Roots)
-  $current = $null
+  param([string]$Path, [string]$Name, [string[]]$Roots, [switch]$LinkOnly)
   if (Test-ReparsePoint $Path) {
     $current = Get-LinkTarget $Path
-  } else {
+    if (-not $current) { return $null }
+    foreach ($root in $Roots) {
+      $expected = Get-SkillSource $root $Name
+      if (Test-PathsEqual $current $expected) { return $Path }
+    }
     return $null
   }
-  if (-not $current) { return $null }
+  if ($LinkOnly) { return $null }
+  # Test-KitSkillCopy owns the marker read (aside/lib.ps1:38) — one reader, so a
+  # copy is judged here exactly as the mutators judge it.
   foreach ($root in $Roots) {
-    $expected = Get-SkillSource $root $Name
-    if (Test-PathsEqual $current $expected) { return $Path }
+    if (Test-KitSkillCopy $Path $root $Name) { return $Path }
   }
   return $null
 }
 
 function New-UninstallSkillRow {
   param([string]$Dest, [string]$Name, [string]$Tag)
-  $hit = Get-OwnedByRoot $Dest $Name @($script:RepoRoot)
+  # -LinkOnly: agents and browser-use rows apply through Unlink-Skill, which
+  # requires a link, so a marked copy under those roots must not be promised.
+  $hit = Get-OwnedByRoot $Dest $Name @($script:RepoRoot) -LinkOnly
   if ($hit) {
     return (New-PlanRow 'I' "remove link ($Tag)" $Dest)
   }
@@ -206,6 +219,71 @@ function New-UninstallSkillRow {
     return (New-PlanRow 'N' 'not installed' $Dest)
   }
   return $null
+}
+
+function New-UninstallAsideSkillRow {
+  param([string]$Dest, [string]$Name, [string]$Tag)
+  if (Test-AsideKitOwned $Dest $script:RepoRoot $Name) {
+    return (New-PlanRow 'I' "remove copy ($Tag)" $Dest)
+  }
+  if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
+    return (New-PlanRow 'N' 'not kit-owned' $Dest)
+  }
+  if ($Tag -eq 'current') {
+    return (New-PlanRow 'N' 'not installed' $Dest)
+  }
+  return $null
+}
+
+function Get-PlanRowsAside {
+  $destRoot = Resolve-AsideSkillsRoot
+  $rows = New-Object System.Collections.Generic.List[object]
+  $rows.Add((New-PlanRow 'H' 'aside' $destRoot)) | Out-Null
+  foreach ($name in $script:AsideLegacySkillNames) {
+    $row = New-UninstallAsideSkillRow (Get-SkillDest $destRoot $name) $name 'legacy'
+    if ($row) { $rows.Add($row) | Out-Null }
+  }
+  foreach ($name in $script:AsideSkillNames) {
+    $row = New-UninstallAsideSkillRow (Get-SkillDest $destRoot $name) $name 'current'
+    if ($row) { $rows.Add($row) | Out-Null }
+  }
+  $account = '0'
+  if ($env:ASIDE_ACCOUNT) { $account = $env:ASIDE_ACCOUNT }
+  $userRoot = Join-Path $script:KitHome ".aside\u\$account\skills\user"
+  if (-not (Test-Path -LiteralPath $userRoot -PathType Container)) {
+    return $rows
+  }
+  $rows.Add((New-PlanRow 'H' 'aside (legacy user root)' $userRoot)) | Out-Null
+  foreach ($name in $script:AsideLegacySkillNames) {
+    $row = New-UninstallAsideSkillRow (Get-SkillDest $userRoot $name) $name 'legacy'
+    if ($row) { $rows.Add($row) | Out-Null }
+  }
+  # Same physical tree as dest (ASIDE_SKILLS override): legacy only, skip current.
+  $sameTree = $false
+  if (Test-Path -LiteralPath $destRoot -PathType Container) {
+    $userPhys = Resolve-PhysicalPath $userRoot
+    $destPhys = Resolve-PhysicalPath $destRoot
+    if (Test-PathsEqual $userPhys $destPhys) { $sameTree = $true }
+  } elseif (Test-PathsEqual $userRoot $destRoot) {
+    $sameTree = $true
+  }
+  if ($sameTree) { return $rows }
+  foreach ($name in $script:AsideSkillNames) {
+    $row = New-UninstallAsideSkillRow (Get-SkillDest $userRoot $name) $name 'current'
+    if ($row) { $rows.Add($row) | Out-Null }
+  }
+  return $rows
+}
+
+function Uninstall-Aside {
+  $destRoot = Resolve-AsideSkillsRoot
+  Write-Host "== job-kit Aside uninstall for $destRoot =="
+  Unlink-AsideLegacySkills $destRoot $script:RepoRoot
+  foreach ($name in $script:AsideSkillNames) {
+    Unlink-AsideSkill (Get-SkillDest $destRoot $name) $script:RepoRoot $name
+  }
+  Remove-AsideLegacyUserSkills $script:RepoRoot $destRoot $script:AsideSkillNames
+  Write-Host "Uninstall completed for $destRoot"
 }
 
 function Get-PlanRowsAgents {
@@ -396,6 +474,7 @@ function Get-BuildPlan {
   $rows = New-Object System.Collections.Generic.List[object]
   foreach ($t in $Targets) {
     switch ($t) {
+      'aside' { foreach ($r in (Get-PlanRowsAside)) { $rows.Add($r) | Out-Null } }
       'agents' { foreach ($r in (Get-PlanRowsAgents)) { $rows.Add($r) | Out-Null } }
       'browser-use' { foreach ($r in (Get-PlanRowsBrowserUse)) { $rows.Add($r) | Out-Null } }
       'profile' { foreach ($r in (Get-PlanRowsProfile)) { $rows.Add($r) | Out-Null } }
@@ -734,6 +813,15 @@ function Get-LinksOwnedBy {
     }
   }
 
+  function script:Add-AsideScanRoot {
+    param([string]$R)
+    foreach ($n in ($script:AsideSkillNames + $script:AsideLegacySkillNames)) {
+      $p = Get-SkillDest $R $n
+      $hit = Get-OwnedByRoot $p $n @($Dest, $phys)
+      if ($hit) { $found.Add($hit) | Out-Null }
+    }
+  }
+
   if ($override) { script:Add-ScanRoot $override }
 
   foreach ($target in $script:AgentTargets) {
@@ -747,6 +835,37 @@ function Get-LinksOwnedBy {
   $legacy = Join-Path $script:KitHome '.codex\skills'
   if ($Scope -ne 'survivors' -or $override) {
     script:Add-ScanRoot $legacy
+  }
+
+  # Aside copies point at the cache too (scripts/uninstall.sh:1224-1293). Read
+  # ASIDE_SKILLS raw rather than via Resolve-AsideSkillsRoot: that throws on a bad
+  # override (aside/lib.ps1:23,26) and a scan must not abort the uninstaller.
+  $asideOverride = ''
+  if ($env:ASIDE_SKILLS -and (Test-RootedPath $env:ASIDE_SKILLS)) {
+    $asideOverride = $env:ASIDE_SKILLS
+    script:Add-AsideScanRoot $asideOverride
+  }
+  $account = '0'
+  if ($env:ASIDE_ACCOUNT) { $account = $env:ASIDE_ACCOUNT }
+  $accountsRoot = Join-Path $script:KitHome '.aside\u'
+  if (Test-Path -LiteralPath $accountsRoot -PathType Container) {
+    # Every account is walked, not just ASIDE_ACCOUNT: skills installed under
+    # another account outlive a purge run without it. GetDirectories returns
+    # hidden entries, so a dot-prefixed account id is covered.
+    $accountDirs = @()
+    try { $accountDirs = [IO.Directory]::GetDirectories($accountsRoot) } catch { $accountDirs = @() }
+    foreach ($dir in $accountDirs) {
+      # scope=survivors: Uninstall-Aside reaches only ASIDE_ACCOUNT, so every
+      # other account survives it. An override sends the unlink phase to that
+      # root instead, so skills\builtin is not covered by the exemption;
+      # Remove-AsideLegacyUserSkills clears skills\user either way.
+      if ($Scope -eq 'survivors' -and (Split-Path $dir -Leaf) -eq $account) {
+        if ($asideOverride) { script:Add-AsideScanRoot (Join-Path $dir 'skills\builtin') }
+        continue
+      }
+      script:Add-AsideScanRoot (Join-Path $dir 'skills\builtin')
+      script:Add-AsideScanRoot (Join-Path $dir 'skills\user')
+    }
   }
   return $found.ToArray()
 }
@@ -792,7 +911,7 @@ function Remove-Cache {
   $outstanding = @(Get-LinksOwnedBy $raw)
   if ($outstanding.Count -gt 0) {
     $list = $outstanding -join "`n"
-    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first ('uninstall.ps1 agents browser-use', or 'all')"
+    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first ('uninstall.ps1 aside agents browser-use', or 'all')"
   }
   # No prompt here: Confirm-UninstallPlan already took the typed yes for the
   # whole plan, and it is the only gate.
@@ -839,11 +958,12 @@ function Invoke-PreflightTargets {
 function Invoke-RunTarget {
   param([string]$Target)
   switch ($Target) {
+    'aside' { Uninstall-Aside }
     'agents' { Uninstall-Agents }
     'browser-use' { Uninstall-BrowserUse }
     'profile' { Remove-Profile }
     'cache' { Remove-Cache }
-    default { Write-KitDie "unknown target: $Target (agents|browser-use|profile|cache|all)" }
+    default { Write-KitDie "unknown target: $Target (aside|agents|browser-use|profile|cache|all)" }
   }
 }
 
@@ -865,6 +985,7 @@ function Invoke-RunPlan {
   $ordered = @(Get-PlanOrder $Targets)
   if ($ordered.Count -eq 0) { Write-KitDie 'no targets selected' }
   $script:UninstallTargets = $ordered
+  $seenAside = $ordered -contains 'aside'
   $seenAgents = $ordered -contains 'agents'
   $seenBrowser = $ordered -contains 'browser-use'
   $hasCache = $ordered -contains 'cache'
@@ -880,7 +1001,10 @@ function Invoke-RunPlan {
   Invoke-PreflightTargets $ordered
   if ($hasCache) {
     $scope = 'all'
-    if ($seenAgents -and $seenBrowser) { $scope = 'survivors' }
+    # All three: the survivor scan enumerates both name unions, and only these
+    # targets unlink them. Without aside, an agents+browser+cache run would
+    # exempt an Aside root nothing has removed.
+    if ($seenAside -and $seenAgents -and $seenBrowser) { $scope = 'survivors' }
     Invoke-PurgePreflight $scope
   }
 
@@ -903,22 +1027,24 @@ function Invoke-RunPlan {
 }
 
 function Invoke-InteractiveMenu {
-  Write-Host '1. Coding-agent skills'
-  Write-Host '2. browser-use skills + driver'
-  Write-Host '3. Profile data (~/.config/job-kit)'
-  Write-Host '4. Kit cache (JOB_KIT_HOME)'
-  Write-Host '5. All of the above'
-  Write-Host '6. Quit'
+  Write-Host '1. Aside skills'
+  Write-Host '2. Coding-agent skills'
+  Write-Host '3. browser-use skills + driver'
+  Write-Host '4. Profile data (~/.config/job-kit)'
+  Write-Host '5. Kit cache (JOB_KIT_HOME)'
+  Write-Host '6. All of the above'
+  Write-Host '7. Quit'
   Write-Host -NoNewline 'Select component to uninstall (number): '
   $choice = [Console]::In.ReadLine()
   if ($null -eq $choice) { $choice = '' }
   switch ($choice.Trim()) {
-    '1' { Invoke-RunPlan 'agents' }
-    '2' { Invoke-RunPlan 'browser-use' }
-    '3' { Invoke-RunPlan 'profile' }
-    '4' { Invoke-RunPlan 'cache' }
-    '5' { Invoke-RunPlan 'agents' 'browser-use' 'profile' 'cache' }
-    '6' { Write-Host 'quit' }
+    '1' { Invoke-RunPlan 'aside' }
+    '2' { Invoke-RunPlan 'agents' }
+    '3' { Invoke-RunPlan 'browser-use' }
+    '4' { Invoke-RunPlan 'profile' }
+    '5' { Invoke-RunPlan 'cache' }
+    '6' { Invoke-RunPlan 'aside' 'agents' 'browser-use' 'profile' 'cache' }
+    '7' { Write-Host 'quit' }
     default {
       [Console]::Error.WriteLine('invalid choice')
       exit 1
@@ -932,6 +1058,8 @@ function Invoke-UninstallMain {
 
   if ($env:HOME -match "`r|`n") { Write-KitDie 'HOME must not contain a line break' }
   if ($env:CLAUDE_SKILLS -match "`r|`n") { Write-KitDie 'CLAUDE_SKILLS must not contain a line break' }
+  if ($env:ASIDE_SKILLS -match "`r|`n") { Write-KitDie 'ASIDE_SKILLS must not contain a line break' }
+  if ($env:ASIDE_ACCOUNT -match "`r|`n") { Write-KitDie 'ASIDE_ACCOUNT must not contain a line break' }
 
   $targets = New-Object System.Collections.Generic.List[string]
   $i = 0
@@ -940,7 +1068,7 @@ function Invoke-UninstallMain {
     switch -Regex ($a) {
       '^-h$|^--help$' { Show-UninstallUsage; exit 0 }
       '^--dry-run$' { $script:DryRun = 1 }
-      '^agents$|^browser-use$|^profile$|^cache$|^all$' { $targets.Add($a) | Out-Null }
+      '^aside$|^agents$|^browser-use$|^profile$|^cache$|^all$' { $targets.Add($a) | Out-Null }
       default { Write-KitDie "unknown option or target: $a (see --help)" }
     }
     $i++
@@ -951,7 +1079,7 @@ function Invoke-UninstallMain {
       Invoke-InteractiveMenu
       return
     }
-    Write-KitDie 'need a target (agents|browser-use|profile|cache|all) when stdin is not a console'
+    Write-KitDie 'need a target (aside|agents|browser-use|profile|cache|all) when stdin is not a console'
   }
 
   $hasAll = $false
@@ -960,7 +1088,7 @@ function Invoke-UninstallMain {
   }
   if ($hasAll) {
     if ($targets.Count -ne 1) { Write-KitDie "'all' cannot be combined with other targets" }
-    Invoke-RunPlan 'agents' 'browser-use' 'profile' 'cache'
+    Invoke-RunPlan 'aside' 'agents' 'browser-use' 'profile' 'cache'
     return
   }
   Invoke-RunPlan @($targets.ToArray())

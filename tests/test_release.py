@@ -27,6 +27,13 @@ import package_release  # noqa: E402
 from test_packaging import INSTALLERS, required_files  # noqa: E402
 
 
+def _marker_skill_tail(path):
+    """Compare .job-kit markers across Win32 and Git Bash spellings of the same path."""
+    text = path.replace("\\", "/").lower().replace("/c/", "c:/")
+    index = text.find("/skill/")
+    return text[index:] if index >= 0 else text
+
+
 @lru_cache(maxsize=2)
 def release_assets(version):
     with tempfile.TemporaryDirectory() as directory:
@@ -510,21 +517,25 @@ class ReleaseInstallerTests(unittest.TestCase):
         self.each_shell(scenario)
 
     def test_aside_copies_refresh_and_wget_downloads(self):
-        if os.name == "nt":
-            self.skipTest("Aside is not supported on Windows")
         def scenario(f):
             self.success(f.run("aside", extra={"RELEASE_TEST_WGET": "1"}))
             installed = f.aside / "job-match"
             self.assertFalse(installed.is_symlink())
             marker = installed / ".job-kit"
-            self.assertEqual(marker.read_text().strip(), str(f.physical / "skill/job-match"))
+            self.assertEqual(
+                _marker_skill_tail(marker.read_text().strip()),
+                _marker_skill_tail(str(f.physical / "skill/job-match")),
+            )
             self.success(f.run("aside", version="v1.0.1"))
-            self.assertEqual(marker.read_text().strip(), str(f.physical / "skill/job-match"))
+            self.assertEqual(
+                _marker_skill_tail(marker.read_text().strip()),
+                _marker_skill_tail(str(f.physical / "skill/job-match")),
+            )
         self.each_shell(scenario)
 
     def test_aside_refuses_off_macos_without_an_explicit_root(self):
         if os.name == "nt":
-            self.skipTest("Aside is not supported on Windows")
+            self.skipTest("Aside installs on Windows")
         if sys.platform == "darwin":
             self.skipTest("Aside installs on macOS")
         def scenario(f):
