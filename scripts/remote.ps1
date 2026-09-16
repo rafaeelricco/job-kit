@@ -1,5 +1,4 @@
 # Fetch a released job-kit bundle, then run the Windows channel installers.
-# Agents + browser-use only (Aside is not available on Windows 11).
 # Windows PowerShell 5.1 and PowerShell 7. Safe to download, then:
 #   powershell -ExecutionPolicy Bypass -File remote.ps1 all
 $ErrorActionPreference = 'Stop'
@@ -119,27 +118,30 @@ $script:WindowsRequiredFiles = @(
   'scripts\agents\lib.ps1',
   'scripts\agents\install.ps1',
   'scripts\common.ps1',
-  'scripts\browser-use\install.ps1'
+  'scripts\browser-use\install.ps1',
+  'scripts\aside\lib.ps1',
+  'scripts\aside\install.ps1'
 )
 
 function Show-RemoteUsage {
   @'
 Install or uninstall released job-kit skills (Windows 11; no Git required).
-Aside is not available on Windows; this installer covers agents + browser-use.
 
 Usage: remote.ps1 [channel] [options...]
        remote.ps1 uninstall [target] [options...]
 
 Install channels:
-  all          Coding agents + browser-use, skipping absent (default)
+  all          Aside + coding agents + browser-use, skipping absent (default)
   agents       Coding agents only (fails when no agent home exists)
+  aside        Aside skills (fails when Aside is not set up)
   browser-use  job-scout + job-apply + job-prep plus the browser-use driver
                skill into coding-agent homes (needs an agent home)
   fetch        Refresh the installed release bundle, install no skills
 
 Uninstall:
-  uninstall              Agent + browser-use skills (default: all)
+  uninstall              Aside + agent + browser-use skills (default: all)
   uninstall all          Same
+  uninstall aside        Aside only
   uninstall agents       Coding agents only
   uninstall browser-use  job-scout + job-apply + job-prep links, the
                          browser-use driver skill, the CLI, and its state
@@ -458,12 +460,12 @@ function Invoke-RemoteMain {
       'uninstall' {
         $mode = 'uninstall'
         $i = 1
-        if ($i -lt $Argv.Count -and @('all', 'agents', 'browser-use') -contains $Argv[$i]) {
+        if ($i -lt $Argv.Count -and @('all', 'aside', 'agents', 'browser-use') -contains $Argv[$i]) {
           $target = $Argv[$i]
           $i++
         }
       }
-      { @('all', 'agents', 'browser-use', 'fetch') -contains $_ } {
+      { @('all', 'aside', 'agents', 'browser-use', 'fetch') -contains $_ } {
         $channel = $Argv[0]
         $i = 1
       }
@@ -506,6 +508,9 @@ function Invoke-RemoteMain {
     Invoke-EnsureKitCache $script:JobKitHome
 
     switch ($target) {
+      'aside' {
+        Invoke-CachedScript 'scripts\uninstall.ps1' @('aside')
+      }
       'agents' {
         Invoke-CachedScript 'scripts\uninstall.ps1' @('agents')
       }
@@ -514,9 +519,9 @@ function Invoke-RemoteMain {
       }
       'all' {
         if ($purge) {
-          Invoke-CachedScript 'scripts\uninstall.ps1' @('agents', 'browser-use', 'cache')
+          Invoke-CachedScript 'scripts\uninstall.ps1' @('aside', 'agents', 'browser-use', 'cache')
         } else {
-          Invoke-CachedScript 'scripts\uninstall.ps1' @('agents', 'browser-use')
+          Invoke-CachedScript 'scripts\uninstall.ps1' @('aside', 'agents', 'browser-use')
         }
       }
     }
@@ -543,6 +548,9 @@ function Invoke-RemoteMain {
 
   switch ($channel) {
     'fetch' { }
+    'aside' {
+      Invoke-CachedScript 'scripts\aside\install.ps1' @($forward.ToArray())
+    }
     'agents' {
       Invoke-CachedScript 'scripts\agents\install.ps1' @($forward.ToArray())
     }

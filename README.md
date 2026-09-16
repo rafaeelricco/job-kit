@@ -26,8 +26,9 @@ Invoke-RestMethod https://r1cco.com/install.ps1 -OutFile install.ps1
 powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-The installer detects available targets. Windows supports coding agents and
-browser-use, as does Linux; macOS also supports Aside. To select a channel or
+The installer detects available targets. Windows and macOS support Aside,
+coding agents, and browser-use; Linux supports coding agents and browser-use.
+To select a channel or
 preview changes:
 
 ```bash
@@ -36,7 +37,8 @@ curl -fsSL https://r1cco.com/install.sh | bash -s -- all --dry-run
 ```
 
 Channels are `all` (default), `agents`, `browser-use`, and `aside`.
-The `aside` channel installs on macOS only; `all` skips it elsewhere.
+The `aside` channel installs on Windows and macOS; `all` skips it when Aside
+is not set up.
 The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
 `captcha-solver`, and their shared dependencies.
 Browser tasks in coding agents need the local `browser-use` CLI, its driver

@@ -218,3 +218,12 @@ function Test-AgentsReady {
   }
   return $false
 }
+
+# Test-AsideReady — true when Aside's skills parent exists (or ASIDE_SKILLS).
+function Test-AsideReady {
+  if ($env:ASIDE_SKILLS) { return $true }
+  $account = '0'
+  if ($env:ASIDE_ACCOUNT) { $account = $env:ASIDE_ACCOUNT }
+  $parent = Join-Path (Get-KitUserHome) ".aside\u\$account\skills"
+  return (Test-Path -LiteralPath $parent -PathType Container)
+}
