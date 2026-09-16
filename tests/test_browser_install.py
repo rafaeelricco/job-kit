@@ -236,6 +236,18 @@ class BrowserChannelTests(unittest.TestCase):
             self.assertEqual(f.names(), {SOLVER})
         self.each_shell(scenario)
 
+    def test_aside_copies_block_cache_purge(self):
+        def scenario(f):
+            self.success(f.run("aside/install"))
+            self.assertIn("job-match", {path.name for path in f.aside.iterdir()})
+            result = f.run("uninstall", "cache", "--dry-run")
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("job-match", result.stdout + result.stderr)
+            self.assertIn("installed skills point at", result.stdout + result.stderr)
+            self.assertTrue(f.kit.is_dir())
+            self.assertIn("job-match", {path.name for path in f.aside.iterdir()})
+        self.each_shell(scenario)
+
     def test_aside_dry_run_copies_nothing(self):
         def scenario(f):
             if f.kind != "bash":

@@ -179,25 +179,36 @@ function Get-ProfileProbeMissing {
   return ''
 }
 
+# Get-OwnedByRoot PATH NAME ROOTS [-LinkOnly]
+# Returns PATH when it is a skill link, or a marked copy, whose source is
+# ROOT\skill\NAME for any ROOT given — the two forms scripts/uninstall.sh:680-683
+# reads. -LinkOnly drops the copy form for callers whose apply step requires a
+# link (Unlink-Skill -> Test-ExactLink, scripts/agents/lib.ps1:277).
 function Get-OwnedByRoot {
-  param([string]$Path, [string]$Name, [string[]]$Roots)
-  $current = $null
+  param([string]$Path, [string]$Name, [string[]]$Roots, [switch]$LinkOnly)
   if (Test-ReparsePoint $Path) {
     $current = Get-LinkTarget $Path
-  } else {
+    if (-not $current) { return $null }
+    foreach ($root in $Roots) {
+      $expected = Get-SkillSource $root $Name
+      if (Test-PathsEqual $current $expected) { return $Path }
+    }
     return $null
   }
-  if (-not $current) { return $null }
+  if ($LinkOnly) { return $null }
+  # Test-KitSkillCopy owns the marker read (aside/lib.ps1:38) — one reader, so a
+  # copy is judged here exactly as the mutators judge it.
   foreach ($root in $Roots) {
-    $expected = Get-SkillSource $root $Name
-    if (Test-PathsEqual $current $expected) { return $Path }
+    if (Test-KitSkillCopy $Path $root $Name) { return $Path }
   }
   return $null
 }
 
 function New-UninstallSkillRow {
   param([string]$Dest, [string]$Name, [string]$Tag)
-  $hit = Get-OwnedByRoot $Dest $Name @($script:RepoRoot)
+  # -LinkOnly: agents and browser-use rows apply through Unlink-Skill, which
+  # requires a link, so a marked copy under those roots must not be promised.
+  $hit = Get-OwnedByRoot $Dest $Name @($script:RepoRoot) -LinkOnly
   if ($hit) {
     return (New-PlanRow 'I' "remove link ($Tag)" $Dest)
   }
@@ -802,6 +813,15 @@ function Get-LinksOwnedBy {
     }
   }
 
+  function script:Add-AsideScanRoot {
+    param([string]$R)
+    foreach ($n in ($script:AsideSkillNames + $script:AsideLegacySkillNames)) {
+      $p = Get-SkillDest $R $n
+      $hit = Get-OwnedByRoot $p $n @($Dest, $phys)
+      if ($hit) { $found.Add($hit) | Out-Null }
+    }
+  }
+
   if ($override) { script:Add-ScanRoot $override }
 
   foreach ($target in $script:AgentTargets) {
@@ -815,6 +835,37 @@ function Get-LinksOwnedBy {
   $legacy = Join-Path $script:KitHome '.codex\skills'
   if ($Scope -ne 'survivors' -or $override) {
     script:Add-ScanRoot $legacy
+  }
+
+  # Aside copies point at the cache too (scripts/uninstall.sh:1224-1293). Read
+  # ASIDE_SKILLS raw rather than via Resolve-AsideSkillsRoot: that throws on a bad
+  # override (aside/lib.ps1:23,26) and a scan must not abort the uninstaller.
+  $asideOverride = ''
+  if ($env:ASIDE_SKILLS -and (Test-RootedPath $env:ASIDE_SKILLS)) {
+    $asideOverride = $env:ASIDE_SKILLS
+    script:Add-AsideScanRoot $asideOverride
+  }
+  $account = '0'
+  if ($env:ASIDE_ACCOUNT) { $account = $env:ASIDE_ACCOUNT }
+  $accountsRoot = Join-Path $script:KitHome '.aside\u'
+  if (Test-Path -LiteralPath $accountsRoot -PathType Container) {
+    # Every account is walked, not just ASIDE_ACCOUNT: skills installed under
+    # another account outlive a purge run without it. GetDirectories returns
+    # hidden entries, so a dot-prefixed account id is covered.
+    $accountDirs = @()
+    try { $accountDirs = [IO.Directory]::GetDirectories($accountsRoot) } catch { $accountDirs = @() }
+    foreach ($dir in $accountDirs) {
+      # scope=survivors: Uninstall-Aside reaches only ASIDE_ACCOUNT, so every
+      # other account survives it. An override sends the unlink phase to that
+      # root instead, so skills\builtin is not covered by the exemption;
+      # Remove-AsideLegacyUserSkills clears skills\user either way.
+      if ($Scope -eq 'survivors' -and (Split-Path $dir -Leaf) -eq $account) {
+        if ($asideOverride) { script:Add-AsideScanRoot (Join-Path $dir 'skills\builtin') }
+        continue
+      }
+      script:Add-AsideScanRoot (Join-Path $dir 'skills\builtin')
+      script:Add-AsideScanRoot (Join-Path $dir 'skills\user')
+    }
   }
   return $found.ToArray()
 }
@@ -860,7 +911,7 @@ function Remove-Cache {
   $outstanding = @(Get-LinksOwnedBy $raw)
   if ($outstanding.Count -gt 0) {
     $list = $outstanding -join "`n"
-    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first ('uninstall.ps1 agents browser-use', or 'all')"
+    Write-KitDie "refusing to purge ${dest}: these still point at it, or could not be inspected:`n$list`nuninstall those skills first ('uninstall.ps1 aside agents browser-use', or 'all')"
   }
   # No prompt here: Confirm-UninstallPlan already took the typed yes for the
   # whole plan, and it is the only gate.
@@ -934,6 +985,7 @@ function Invoke-RunPlan {
   $ordered = @(Get-PlanOrder $Targets)
   if ($ordered.Count -eq 0) { Write-KitDie 'no targets selected' }
   $script:UninstallTargets = $ordered
+  $seenAside = $ordered -contains 'aside'
   $seenAgents = $ordered -contains 'agents'
   $seenBrowser = $ordered -contains 'browser-use'
   $hasCache = $ordered -contains 'cache'
@@ -949,7 +1001,10 @@ function Invoke-RunPlan {
   Invoke-PreflightTargets $ordered
   if ($hasCache) {
     $scope = 'all'
-    if ($seenAgents -and $seenBrowser) { $scope = 'survivors' }
+    # All three: the survivor scan enumerates both name unions, and only these
+    # targets unlink them. Without aside, an agents+browser+cache run would
+    # exempt an Aside root nothing has removed.
+    if ($seenAside -and $seenAgents -and $seenBrowser) { $scope = 'survivors' }
     Invoke-PurgePreflight $scope
   }
 
