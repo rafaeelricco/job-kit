@@ -32,11 +32,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { Blocker, DayRange, Filter, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+import type { DayRange, Filter, PostingKind, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
 import {
-  BLOCKERS,
-  BLOCKER_LABELS,
   EMPTY_DAYS,
+  POSTINGS,
+  POSTING_LABELS,
   SCORE_BANDS,
   SCORE_BAND_LABELS,
   SEGMENTS,
@@ -99,7 +99,7 @@ function FilterBar(props: FilterBarProps) {
 
   const setBuckets = (value: Bucket) => onFilter({ ...filter, buckets: toggled(filter.buckets, value) })
   const setChannels = (value: Channel) => onFilter({ ...filter, channels: toggled(filter.channels, value) })
-  const setBlockers = (value: Blocker) => onFilter({ ...filter, blockers: toggled(filter.blockers, value) })
+  const setPostings = (value: PostingKind) => onFilter({ ...filter, postings: toggled(filter.postings, value) })
   const setStatuses = (value: Lifecycle) => onFilter({ ...filter, statuses: toggled(filter.statuses, value) })
   const setBands = (value: ScoreBand) => onFilter({ ...filter, bands: toggled(filter.bands, value) })
   const setSource = (value: string) => onFilter(cycleSource(filter, value))
@@ -132,10 +132,10 @@ function FilterBar(props: FilterBarProps) {
       label: `Channel: ${value}`,
       remove: () => setChannels(value),
     })),
-    ...filter.blockers.map((value) => ({
-      key: `blocker:${value}`,
-      label: `Blocker: ${BLOCKER_LABELS[value]}`,
-      remove: () => setBlockers(value),
+    ...filter.postings.map((value) => ({
+      key: `posting:${value}`,
+      label: `Posting: ${POSTING_LABELS[value]}`,
+      remove: () => setPostings(value),
     })),
     ...filter.statuses.map((value) => ({
       key: `status:${value}`,
@@ -170,7 +170,7 @@ function FilterBar(props: FilterBarProps) {
       bands: [],
       buckets: [],
       channels: [],
-      blockers: [],
+      postings: [],
       statuses: [],
       sources: [],
       excluded: [],
@@ -228,15 +228,15 @@ function FilterBar(props: FilterBarProps) {
                   ))}
                 </CommandGroup>
                 <CommandSeparator />
-                <CommandGroup heading="Blocker">
-                  {BLOCKERS.map((value) => (
+                <CommandGroup heading="Posting">
+                  {POSTINGS.map((value) => (
                     <CommandItem
                       key={value}
-                      value={`blocker ${BLOCKER_LABELS[value]}`}
-                      data-checked={filter.blockers.includes(value)}
-                      onSelect={() => setBlockers(value)}
+                      value={`posting ${POSTING_LABELS[value]}`}
+                      data-checked={filter.postings.includes(value)}
+                      onSelect={() => setPostings(value)}
                     >
-                      {BLOCKER_LABELS[value]}
+                      {POSTING_LABELS[value]}
                     </CommandItem>
                   ))}
                 </CommandGroup>

@@ -2,8 +2,8 @@ export {
   EMPTY_DAYS,
   EMPTY_FILTER,
   PAGE_SIZES,
-  BLOCKERS,
-  BLOCKER_LABELS,
+  POSTINGS,
+  POSTING_LABELS,
   SCORE_BANDS,
   SCORE_BAND_LABELS,
   SEGMENTS,
@@ -22,7 +22,7 @@ export {
   todayIso,
   type DayRange,
   type Filter,
-  type Blocker,
+  type PostingKind,
   type ScoreBand,
   type Segment,
   type SourceRow,
@@ -30,20 +30,23 @@ export {
   type PageSize,
 }
 
-import type { Bucket, Channel, Dossier, FactValue, Lifecycle } from "@/module/scout/types"
+import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting } from "@/module/scout/types"
 import { LIFECYCLES } from "@/module/scout/types"
 import { assertNever } from "@/module/scout/result"
 
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
 const PAGE_SIZES = [25, 50, 100] as const
 type PageSize = (typeof PAGE_SIZES)[number]
-const BLOCKERS = ["yes", "no"] as const
 
-type Blocker = (typeof BLOCKERS)[number]
+// The facet value *is* the discriminant, so there is no `postingOf` to drift:
+// annotating the list pins a typo, and the exhaustive label record breaks the
+// build if a third posting kind is ever added to the union.
+type PostingKind = Posting["kind"]
+const POSTINGS: readonly PostingKind[] = ["live", "dead"]
 
-const BLOCKER_LABELS: Readonly<Record<Blocker, string>> = {
-  yes: "Has blocker",
-  no: "No blocker",
+const POSTING_LABELS: Readonly<Record<PostingKind, string>> = {
+  live: "Live",
+  dead: "Dead",
 }
 
 // The scale is 0–10 with the rubric's own cuts — scout keeps ≥ 7 and
@@ -66,8 +69,6 @@ const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
 // saying so; here they are one of the four things you can ask for.
 const bandOf = (d: Dossier): ScoreBand =>
   d.score.kind === "unscored" ? "unscored" : d.score.value >= 8 ? "strong" : d.score.value >= 7 ? "keep" : "low"
-
-const blockerOf = (d: Dossier): Blocker => (d.facts.blocker.kind === "known" ? "yes" : "no")
 
 /* -- days ----------------------------------------------------------------- */
 
@@ -101,7 +102,7 @@ type Filter = {
   readonly bands: readonly ScoreBand[]
   readonly buckets: readonly Bucket[]
   readonly channels: readonly Channel[]
-  readonly blockers: readonly Blocker[]
+  readonly postings: readonly PostingKind[]
   readonly statuses: readonly Lifecycle[]
   // Sources are operator-minted pack ids, not a closed vocabulary like the
   // facets above, so they carry no union type — the list comes from the store.
@@ -119,7 +120,7 @@ const EMPTY_FILTER: Filter = {
   bands: [],
   buckets: [],
   channels: [],
-  blockers: [],
+  postings: [],
   statuses: [],
   sources: [],
   excluded: [],
@@ -211,7 +212,7 @@ const matches =
     if (!facet(f.bands, bandOf(d))) return false
     if (!facet(f.buckets, d.bucket)) return false
     if (!facet(f.channels, d.channel)) return false
-    if (!facet(f.blockers, blockerOf(d))) return false
+    if (!facet(f.postings, d.posting.kind)) return false
     if (!facet(f.statuses, d.status)) return false
     if (!inDays(f.found, d.firstSeen)) return false
     const query = f.query.trim().toLowerCase()
