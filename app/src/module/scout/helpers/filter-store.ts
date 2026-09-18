@@ -1,6 +1,6 @@
 export { readFilter, writeFilter }
 
-import { EMPTY_DAYS, EMPTY_FILTER, POSTINGS, SCORE_BANDS, SEGMENTS } from "@/module/scout/helpers/select"
+import { EMPTY_DAYS, EMPTY_FILTER, POSTINGS, SCORE_BANDS, SEGMENTS, dateOf, isoOf } from "@/module/scout/helpers/select"
 import type { DayRange, Filter } from "@/module/scout/helpers/select"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
 
@@ -22,15 +22,24 @@ const oneOf = <T extends string>(raw: unknown, vocabulary: readonly T[], fallbac
   isString(raw) && (vocabulary as readonly string[]).includes(raw) ? (raw as T) : fallback
 
 // select.ts compares these lexically against `first_seen`, so a string that is
-// not a day would quietly empty the table instead of being ignored.
+// not a day would quietly empty the table instead of being ignored. Shape alone
+// is not enough: `2026-99-99` matches the pattern, and `dateOf` rolls it over to
+// a real date, so round-trip through select.ts's own pair and keep the value
+// only when it survives unchanged.
 const DAY = /^\d{4}-\d{2}-\d{2}$/
 
-const dayOf = (raw: unknown): string | null => (isString(raw) && DAY.test(raw) ? raw : null)
+const dayOf = (raw: unknown): string | null =>
+  isString(raw) && DAY.test(raw) && isoOf(dateOf(raw)) === raw ? raw : null
 
+// A `from` after its `to` is a window no dossier can fall in. It reads as a
+// filter rather than a broken one, so it empties the table just as quietly.
 const daysOf = (raw: unknown): DayRange => {
   if (raw === null || typeof raw !== "object") return EMPTY_DAYS
   const range = raw as { readonly from?: unknown; readonly to?: unknown }
-  return { from: dayOf(range.from), to: dayOf(range.to) }
+  const from = dayOf(range.from)
+  const to = dayOf(range.to)
+  if (from !== null && to !== null && from > to) return EMPTY_DAYS
+  return { from, to }
 }
 
 const filterOf = (raw: unknown): Filter => {
