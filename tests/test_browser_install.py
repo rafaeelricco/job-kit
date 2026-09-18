@@ -4,10 +4,14 @@ Copies use the working tree, including new skills, without building an archive.
 Only browser discovery and the external driver/CLI operations are stubbed.
 """
 
+import http.server
 import os
+import re
 import shutil
+import socket
 import subprocess
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -16,6 +20,10 @@ from test_release import _marker_skill_tail, native_shells, shell_path
 
 REPO = Path(__file__).resolve().parents[1]
 SOLVER = "captcha-solver"
+# macOS app bundles the harness accepts, in probe order. Mirrors have_chromium
+# in scripts/browser-use/install.sh; AcceptSetTests keeps both in step.
+_ACCEPTED_APPS = ("Google Chrome", "Google Chrome Canary", "Chromium",
+                  "Brave Browser", "Microsoft Edge", "Arc", "Comet", "Dia")
 
 BASH_DRIVER = r'''#!/bin/sh
 if [ "$#" -eq 5 ] && [ "$1" = skill ] && [ "$2" = install ] &&
@@ -342,6 +350,112 @@ class BrowserDependencyTests(unittest.TestCase):
         self.assertEqual(_shell_list(aside, "LEGACY_SKILL_NAMES"),
                          _powershell_list(aside_ps, "AsideLegacySkillNames"))
         self.assertNotIn(SOLVER, _powershell_list(aside_ps, "AsideSkillNames"))
+
+
+class _VersionHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200 if self.path == "/json/version" else 404)
+        self.end_headers()
+        self.wfile.write(b'{"webSocketDebuggerUrl": "ws://fixture"}')
+
+    def log_message(self, *args):
+        pass
+
+
+def _app_names(path):
+    """App bundle names a script probes, in probe order; empty when it has none."""
+    text = (REPO / path).read_text(encoding="utf-8")
+    if "for app in" not in text:
+        return ()
+    body = text.split("for app in", 1)[1].split("; do", 1)[0]
+    return tuple(re.findall(r'"([^"]+)"', body))
+
+
+class AcceptSetTests(unittest.TestCase):
+    def test_launcher_accepts_every_browser_preflight_accepts(self):
+        """A browser that passes preflight must be one the helper can start.
+
+        The launcher probes the real /Applications, so no sandbox can prove the
+        selection end to end; pinning both lists against one another is what
+        keeps them from drifting.
+        """
+        self.assertEqual(_app_names("scripts/browser-use/install.sh"),
+                         _ACCEPTED_APPS)
+        self.assertEqual(_app_names("scripts/browser-use/chrome.sh"),
+                         _ACCEPTED_APPS)
+
+
+@unittest.skipIf(os.name == "nt", "chrome.sh is a POSIX helper")
+class DedicatedChromeTests(unittest.TestCase):
+    def test_reuses_a_listening_chrome_without_launching(self):
+        server = http.server.HTTPServer(("127.0.0.1", 0), _VersionHandler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        port = server.server_address[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            launches = root / "launches.log"
+            for name in ("open", "google-chrome", "chromium"):
+                stub = root / name
+                stub.write_text(f'#!/bin/sh\necho "$0 $*" >> "{launches}"\n',
+                                encoding="utf-8")
+                stub.chmod(0o755)
+            env = dict(os.environ, BU_CHROME_PORT=str(port),
+                       XDG_CONFIG_HOME=str(root / "config"),
+                       PATH=f"{root}{os.pathsep}{os.environ['PATH']}")
+            result = subprocess.run(
+                ["bash", str(REPO / "scripts/browser-use/chrome.sh")],
+                env=env, capture_output=True, text=True, check=True)
+            self.assertIn(f"export BU_CDP_URL=http://127.0.0.1:{port}", result.stdout)
+            self.assertFalse(launches.exists())
+
+    def test_launches_the_resolved_browser_with_the_debug_flags(self):
+        """Cover the launch branch: the Darwin path had no coverage at all.
+
+        The stub launcher starts nothing, so chrome.sh polls the dead port and
+        exits on its own timeout. That keeps the test free of a fixture server
+        racing for a preallocated port, and covers the timeout branch too.
+        `expected` re-derives the pick from the accept-set, so where no host
+        bundle exists — Linux CI — it is the fixture Brave and a launcher
+        hardcoded to Google Chrome fails here.
+        """
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            launches = root / "launches.log"
+            (root / "Applications/Brave Browser.app").mkdir(parents=True)
+            expected = "Brave Browser"
+            for app in _ACCEPTED_APPS:
+                if Path(f"/Applications/{app}.app").is_dir():
+                    expected = app
+                    break
+            (root / "uname").write_text("#!/bin/sh\necho Darwin\n", encoding="utf-8")
+            (root / "open").write_text(
+                f'#!/bin/sh\nfor arg in "$@"; do echo "$arg" >> "{launches}"; done\n',
+                encoding="utf-8")
+            for name in ("google-chrome", "chromium"):
+                (root / name).write_text(
+                    f'#!/bin/sh\necho "$0" >> "{launches}"\n', encoding="utf-8")
+            for name in ("uname", "open", "google-chrome", "chromium"):
+                (root / name).chmod(0o755)
+            env = dict(os.environ, BU_CHROME_PORT=str(port), HOME=str(root),
+                       XDG_CONFIG_HOME=str(root / "config"),
+                       PATH=f"{root}{os.pathsep}{os.environ['PATH']}")
+            result = subprocess.run(
+                ["bash", str(REPO / "scripts/browser-use/chrome.sh")],
+                env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertIn(f"did not answer on http://127.0.0.1:{port}",
+                          result.stderr)
+            self.assertTrue(launches.exists(), "no launcher was invoked")
+            argv = launches.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(argv[:3], ["-na", expected, "--args"])
+            self.assertEqual(sorted(argv[3:]), sorted([
+                f"--remote-debugging-port={port}",
+                f"--user-data-dir={root}/config/browser-harness/chrome-profile",
+                "--no-first-run", "--no-default-browser-check"]))
 
 
 if __name__ == "__main__":

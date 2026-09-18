@@ -42,9 +42,15 @@ is not set up.
 The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
 `captcha-solver`, and their shared dependencies.
 Browser tasks in coding agents need the local `browser-use` CLI, its driver
-skill, and a Chromium-family browser. Follow the installer's setup guidance,
-enable remote debugging at `chrome://inspect/#remote-debugging`, and sign in
-to the sites you use.
+skill, and a Chromium-family browser. Follow the installer's setup guidance.
+On macOS, agents running in a sandboxed app such as the Claude desktop app
+cannot read the debug port file of your everyday Chrome. Start a dedicated
+automation Chrome with
+`bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/browser-use/chrome.sh"`,
+sign in there to the sites you use, and set
+`BU_CDP_URL=http://127.0.0.1:9333` in your agent's environment. Otherwise,
+enable remote debugging at `chrome://inspect/#remote-debugging` in your
+everyday Chrome.
 
 Re-run the install command to install the latest published release. The installer
 prints the installed version and verifies the release archive's SHA-256 checksum

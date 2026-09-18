@@ -191,9 +191,22 @@ browser_use_preflight() {
 ${drivers}
 EOF
   fi
-  echo "  then, once in the browser: open chrome://inspect/#remote-debugging and"
-  echo "  tick 'Allow remote debugging', and sign in to the sites you scout."
   echo
+}
+
+# browser_use_connect_note — how an agent reaches Chrome. Printed after every
+# non-dry run: preflight returns early once requirements are met.
+# Args: none. Side effects: none.
+browser_use_connect_note() {
+  echo
+  echo "browser-use · connect to Chrome"
+  echo "  Recommended: a dedicated automation Chrome. Agents in sandboxed apps"
+  echo "  cannot read your everyday Chrome's debug port on macOS."
+  echo "    bash \"${REPO_ROOT}/scripts/browser-use/chrome.sh\""
+  echo "  Sign in there to the sites you use, and set in your agent's env:"
+  echo "    BU_CDP_URL=http://127.0.0.1:9333"
+  echo "  Or use your everyday Chrome: open chrome://inspect/#remote-debugging and"
+  echo "  tick 'Allow remote debugging'."
 }
 
 # install_driver_into ROOT — write ROOT/browser-use via the official CLI.
@@ -338,6 +351,7 @@ main() {
 
   rows="$(plan_rows_browser)"
   run_channel_plan "${rows}" "browser-use" install_browser_home
+  [ "${DRY_RUN}" -eq 1 ] || browser_use_connect_note
 }
 
 main "$@"
