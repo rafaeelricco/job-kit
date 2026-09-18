@@ -1,0 +1,11 @@
+{
+  "script": "skill/job-store/scripts/validate_dossier.py",
+  "argv": [],
+  "stdin": {
+    "paths": "not-a-list"
+  },
+  "exit": 1,
+  "stdout": {
+    "validate_error": "stdin must be an object with a paths array of strings"
+  }
+}

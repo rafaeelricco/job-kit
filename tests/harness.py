@@ -48,6 +48,7 @@ TARGETS: Tuple[Target, ...] = (
     Target(REFINE / "check_parse.py", REFINE),
     Target(STORE / "normalize_url.py", STORE),
     Target(STORE / "validate_extract.py", STORE),
+    Target(STORE / "validate_dossier.py", STORE),
     Target(STORE / "normalize_source.py", STORE),
 )
 

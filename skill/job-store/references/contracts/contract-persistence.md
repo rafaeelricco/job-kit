@@ -15,10 +15,17 @@ Dossier shape, ownership, and writer-specific mutations remain in
    reclaimed once. Permanent filesystem errors STOP.
 
 4. Re-check owner, then re-scan every dossier by normalized URL under the lock.
-   Multiple matches or parse failures STOP.
+   Multiple matches STOP, and so does a file whose `url` will not read or
+   normalize, because it could be this URL's twin. Any other parse failure is
+   named under Gaps and blocks no write. A file that still matches this URL is
+   its dossier, and step 5 refuses a render that stays malformed.
 
 5. Render the complete result into `.lock/place-{owner}.md`. Never open the
-   final dossier path for writing.
+   final dossier path for writing. Pipe `{"paths": ["<place file>"]}` to
+   `job-store/scripts/validate_dossier.py` (launcher per
+   `job-store/references/schemas/schema-dossier.md` "URL normalize"). Any
+   error, a `validate_error`, or an unreadable script → delete the place file,
+   release, and STOP naming each error. The dossier stays as it was.
 
 6. Re-check owner. Update uses atomic `mv`. Create uses hard-link then unlink;
    a taken name retries `-2`, `-3`. Never use `mv -n`.
