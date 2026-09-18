@@ -109,6 +109,14 @@ Aside needs filesystem access to that directory.
 Resume tailoring requires a base CV PDF and its matching `.tex` source under
 `cv/`. Use `/job-profile cvs` to select the base or disable per-vacancy tailoring.
 
+`/job-match --typesafe` fills fit scores with TypeSafe's Jev model instead of
+the LLM match worker; high or low-confidence rows are still re-checked by the
+validate worker. Set `TYPESAFE_API_KEY` (from
+https://console.typesafe.ai/settings/keys) first. It sends each job and your
+full match profile to `api.typesafe.ai`: roles, skills, domains, languages,
+work history, preferences, work authorization, and search constraints. Your
+name and contact details are not included.
+
 ## Documentation
 
 Each skill contains its usage and detailed workflow:

@@ -14,13 +14,14 @@ fetch or a write.
 
 ## Two different words spelled `status`
 
-| where                                | vocabulary                                                    | owner                            |
-| ------------------------------------ | ------------------------------------------------------------- | -------------------------------- |
-| frontmatter `status:`                | `new` `applied` `rejected` `interview` `offer` `dropped`      | operator / job-apply / job-inbox |
-| `## Posting facts` row `status`      | `live` `dead` `uncertain`                                     | job-scout                        |
-| `## Posting facts` row `eligibility` | `confirmed` `incompatible` `unknown` (absent row = `unknown`) | job-scout                        |
-| frontmatter `score:`                 | 0–10 skill share (`job-scout/references/flows/flow-rank.md`)  | job-scout                        |
-| `## Posting facts` row `match_score` | 0–100 `job-match` score; absent row = unscored                | job-scout                        |
+| where                                     | vocabulary                                                    | owner                            |
+| ----------------------------------------- | ------------------------------------------------------------- | -------------------------------- |
+| frontmatter `status:`                     | `new` `applied` `rejected` `interview` `offer` `dropped`      | operator / job-apply / job-inbox |
+| `## Posting facts` row `status`           | `live` `dead` `uncertain`                                     | job-scout                        |
+| `## Posting facts` row `eligibility`      | `confirmed` `incompatible` `unknown` (absent row = `unknown`) | job-scout                        |
+| frontmatter `score:`                      | 0–10 skill share (`job-scout/references/flows/flow-rank.md`)  | job-scout                        |
+| `## Posting facts` row `match_score`      | 0–100 `job-match` score; absent row = unscored                | job-scout                        |
+| `## Posting facts` row `match_confidence` | 0.00–1.00 rubric coverage; absent row = unscored              | job-scout                        |
 
 Never answer a lifecycle question from the Posting facts row, or a posting question
 from frontmatter. `score` and `match_score` are two scales, never one.

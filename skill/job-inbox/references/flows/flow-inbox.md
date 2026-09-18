@@ -24,7 +24,7 @@ Chained from `job-apply` flow-apply.md's queue-terminal step → print `Chained 
 ## Candidates
 
 Reader SSOT: `job-store/references/flows/flow-read.md`. Unparseable → Gap; keep going.
-Parse-failure STOP in `job-store/references/contracts/contract-persistence.md` still binds under the lock.
+The re-scan STOP in `job-store/references/contracts/contract-persistence.md` step 4 still binds under the lock.
 
 Tokens after `/job-inbox` bind the set.
 Default: `status:` ∈ `applied` | `interview` | `offer`.

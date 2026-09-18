@@ -1,0 +1,12 @@
+{
+  "script": "skill/job-match/scripts/typesafe_match.py",
+  "argv": [],
+  "stdin": {
+    "candidate": {},
+    "jobs": ["not an object"]
+  },
+  "exit": 1,
+  "stdout": {
+    "match_error": "every job must be an object"
+  }
+}

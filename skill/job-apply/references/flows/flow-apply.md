@@ -48,7 +48,8 @@ ignore the rest.
    `Skip:` heading is never queued. `<file>` is a `scout/jobs/` filename; none
    there by that name → stop and say which. `<url>` matches normalized
    frontmatter `url` per `job-store/references/schemas/schema-dossier.md`
-   "URL normalize"; a `<url>` beside a `<file>` on one line is that file's
+   "URL normalize"; one that matches none is dossier-less (below). A `<url>`
+   beside a `<file>` on one line is that file's
    posting, not a second one. Never resolve a selector by company+title: one
    company posts many roles; the duplicate guard below is the only
    company+title comparison.
@@ -76,6 +77,23 @@ do. Clause 4 (same-URL twin) stops the posting under every invocation form,
 `--yolo` included; repair the store before applying. Clause 6
 (`eligibility: incompatible`) has no exception: the gate already read the ad.
 `scout/` or `scout/jobs/` absent → say no dossiers have persisted yet and stop.
+
+A **dossier-less** `<url>` has no dossier for the guards, the apply-eligible
+predicate, or §5 step 8 to read; an absent `scout/` or `scout/jobs/` does not
+stop it either, since
+`job-store/references/contracts/contract-persistence.md` creates the store on
+the eventual write. §2 reads the live ad alone and prints the live page's
+company, title, and channel. Only `flow-record.md` creates its dossier, after a
+confirmed submit. Until then, write nothing to `scout/jobs/` for it: a dead ad
+(§2) or an ambiguous submit (§5 step 9) skips as that step says, but appends
+nothing. Never create a dossier to hold a log line.
+
+If the ad lands on another URL — a redirect, or the canonical the page prints —
+re-match that landed URL against `scout/jobs/` per
+`job-store/references/schemas/schema-dossier.md` "URL normalize" before §3: one
+that now matches a dossier is this posting, and the guards, the apply-eligible
+predicate, and §5 step 8 read that dossier in full; one that matches none, and
+an absent `scout/` or `scout/jobs/`, stays dossier-less.
 
 Print `Queue: {n}`. Zero → `No postings to apply.` and end.
 
@@ -111,7 +129,8 @@ ownership marker:
 `- {YYYY-MM-DD} · posting dead: {reason} — job-apply`, where `{reason}` is the
 quoted page line collapsed to one line and cut at 80 characters, or `http 404`
 / `redirect to board index` when no line printed. Touch nothing else — not
-`status:`, not the body. Then skip this posting.
+`status:`, not the body. A dossier-less posting appends nothing (§1). Then skip
+this posting.
 
 A **read-blocker** is anything that stops this run reading the ad itself: a
 sign-in on the posting page, an account wall in front of it, an SSO handoff.
@@ -322,7 +341,7 @@ tool name; none resolvable → skip the posting, reason `no mail transport`.
    line below the ownership marker,
    `- {YYYY-MM-DD} · submit unconfirmed: ambiguous result — job-apply`,
    touching nothing else — not `status:`, not the body — then skip with reason
-   `ambiguous result`.
+   `ambiguous result`. A dossier-less posting appends nothing (§1).
 
 A posting that does not submit never blocks the queue: everything filled stays
 in the tab, the reason goes under its terminal-state section, and the next

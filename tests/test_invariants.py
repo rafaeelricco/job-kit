@@ -25,6 +25,9 @@ validate_guidance = harness.load(harness.MATCH / "validate_guidance.py")
 check_parse = harness.load(harness.REFINE / "check_parse.py")
 normalize_url = harness.load(harness.STORE / "normalize_url.py")
 normalize_source = harness.load(harness.STORE / "normalize_source.py")
+validate_dossier = harness.load(harness.STORE / "validate_dossier.py")
+FLOW_READ: Path = harness.SKILL / "job-store" / "references" / "flows" / "flow-read.md"
+APP_TYPES: Path = harness.REPO / "app" / "src" / "module" / "scout" / "types.ts"
 
 DECK: Path = (
     harness.SKILL
@@ -574,6 +577,18 @@ class JobScoutStoreInstructionTests(unittest.TestCase):
             key.lower() for key in normalize_url.TRACKER_KEYS
         )
         self.assertEqual(prose, script)
+
+    def test_dossier_validator_matches_readers(self):
+        rule = FLOW_READ.read_text(encoding="utf-8").partition("Required keys:")[2].partition(".")[0]
+        self.assertEqual(tuple(re.findall(r"`([^`]+)`", rule)), validate_dossier.KEYS)
+        types = APP_TYPES.read_text(encoding="utf-8")
+        for name, script in (
+            ("LIFECYCLES", validate_dossier.STATUS),
+            ("BUCKETS", validate_dossier.BUCKET),
+            ("CHANNELS", validate_dossier.CHANNEL),
+        ):
+            array = re.search(r"const {0} = \[(.*?)\]".format(name), types).group(1)
+            self.assertEqual(frozenset(re.findall(r'"([^"]+)"', array)), frozenset(script))
 
 
 if __name__ == "__main__":

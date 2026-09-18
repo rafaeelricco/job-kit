@@ -282,12 +282,14 @@ FUZZ_PATTERN: str = "test_fuzz.py"
 #   scaffold_guidance.py    90.9%     90%
 #   validate_guidance.py    71.9%     70%
 #   check_parse.py          54.5%     50%
+#   typesafe_match.py      100.0%    100%
 FLOORS: Dict[str, float] = {
     "models": 0.70,
     "score": 0.75,
     "scaffold_guidance": 0.90,
     "validate_guidance": 0.70,
     "check_parse": 0.50,
+    "typesafe_match": 1.00,
 }
 
 

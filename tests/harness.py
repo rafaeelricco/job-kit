@@ -44,9 +44,11 @@ TARGETS: Tuple[Target, ...] = (
     Target(MATCH / "score.py", MATCH),
     Target(MATCH / "scaffold_guidance.py", MATCH),
     Target(MATCH / "validate_guidance.py", MATCH),
+    Target(MATCH / "typesafe_match.py", MATCH),
     Target(REFINE / "check_parse.py", REFINE),
     Target(STORE / "normalize_url.py", STORE),
     Target(STORE / "validate_extract.py", STORE),
+    Target(STORE / "validate_dossier.py", STORE),
     Target(STORE / "normalize_source.py", STORE),
 )
 
