@@ -4,10 +4,12 @@ Copies use the working tree, including new skills, without building an archive.
 Only browser discovery and the external driver/CLI operations are stubbed.
 """
 
+import http.server
 import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 
@@ -342,6 +344,41 @@ class BrowserDependencyTests(unittest.TestCase):
         self.assertEqual(_shell_list(aside, "LEGACY_SKILL_NAMES"),
                          _powershell_list(aside_ps, "AsideLegacySkillNames"))
         self.assertNotIn(SOLVER, _powershell_list(aside_ps, "AsideSkillNames"))
+
+
+class _VersionHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200 if self.path == "/json/version" else 404)
+        self.end_headers()
+        self.wfile.write(b'{"webSocketDebuggerUrl": "ws://fixture"}')
+
+    def log_message(self, *args):
+        pass
+
+
+@unittest.skipIf(os.name == "nt", "chrome.sh is a POSIX helper")
+class DedicatedChromeTests(unittest.TestCase):
+    def test_reuses_a_listening_chrome_without_launching(self):
+        server = http.server.HTTPServer(("127.0.0.1", 0), _VersionHandler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        port = server.server_address[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            launches = root / "launches.log"
+            for name in ("open", "google-chrome", "chromium"):
+                stub = root / name
+                stub.write_text(f'#!/bin/sh\necho "$0 $*" >> "{launches}"\n',
+                                encoding="utf-8")
+                stub.chmod(0o755)
+            env = dict(os.environ, BU_CHROME_PORT=str(port),
+                       XDG_CONFIG_HOME=str(root / "config"),
+                       PATH=f"{root}{os.pathsep}{os.environ['PATH']}")
+            result = subprocess.run(
+                ["bash", str(REPO / "scripts/browser-use/chrome.sh")],
+                env=env, capture_output=True, text=True, check=True)
+            self.assertIn(f"export BU_CDP_URL=http://127.0.0.1:{port}", result.stdout)
+            self.assertFalse(launches.exists())
 
 
 if __name__ == "__main__":
