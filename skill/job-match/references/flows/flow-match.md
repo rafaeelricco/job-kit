@@ -91,7 +91,7 @@ A row carrying `score_error` → `state.gaps` and drop that row; a row carrying
 ## validate
 
 Load `./references/workers/worker-validate.md`. Rows with `match_score >= 75` or `confidence < 0.7`
-after score are selected once. Parallelize dossiers.
+after score, or that carry a `match_uncertain` list, are selected once. Parallelize dossiers.
 Each worker pastes the MatchResult currently in `state.matches`. `APPROVED` leaves the row; `CORRECTION_REQUIRED` replaces it, and a replaced row goes back through **score** before order.
 Malformed or failed validate output → `state.gaps` and drop the row.
 Non-reviewed rows stay as match wrote them.
