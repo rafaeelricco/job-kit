@@ -42,6 +42,8 @@ def frontmatter(lines: List[str]) -> Tuple[Dict[str, str], List[str]]:
             errors.append("frontmatter: not `key: value`: {0}".format(line))
             continue
         quoted = len(value) >= 2 and value[0] == value[-1] == '"'
+        if key in fields:
+            errors.append("frontmatter: duplicate key {0}".format(key))
         fields[key] = value[1:-1] if quoted else value
     return fields, errors
 

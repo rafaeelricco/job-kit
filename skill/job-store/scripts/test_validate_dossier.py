@@ -76,6 +76,11 @@ def double_marker(text: str) -> str:
     return text.replace(MARKER, MARKER + "\n" + MARKER, 1)
 
 
+def double_status(text: str) -> str:
+    assert text.count("status: applied") == 1
+    return text.replace("status: applied", "status: applied\nstatus: new", 1)
+
+
 def no_opening_fence(text: str) -> str:
     assert text.startswith("---\n")
     return text[len("---\n"):]
@@ -97,6 +102,7 @@ CASES: Tuple[Tuple[Callable[[str], str], List[str]], ...] = (
     (swap('url: "https://', 'url: "ftp://'), ["url: not an http(s) url"]),
     (drop_marker, ["marker: expected once, found 0"]),
     (double_marker, ["marker: expected once, found 2"]),
+    (double_status, ["frontmatter: duplicate key status"]),
     (
         no_opening_fence,
         [
