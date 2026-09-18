@@ -66,6 +66,7 @@ const FACT_KEYS = [
   "ats",
   "match_score",
   "match_decision",
+  "match_confidence",
   "blocker",
 ] as const
 
@@ -111,6 +112,7 @@ const FACT_LABELS: Readonly<Record<FactKey, string>> = {
   ats: "ATS",
   match_score: "Match score",
   match_decision: "Match decision",
+  match_confidence: "Match confidence",
   blocker: "Blocker",
 }
 

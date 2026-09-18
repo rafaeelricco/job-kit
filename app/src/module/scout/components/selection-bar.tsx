@@ -1,6 +1,7 @@
 export { SelectionBar, type SelectionBarProps }
 
-import { DownloadIcon, Trash2Icon, XIcon } from "lucide-react"
+import { Cancel01Icon, Delete02Icon, Download01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -51,7 +52,7 @@ function SelectionBar(props: SelectionBarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
-          <DownloadIcon />
+          <HugeiconsIcon icon={Download01Icon} />
           Export
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="top" className="w-44">
@@ -69,12 +70,12 @@ function SelectionBar(props: SelectionBarProps) {
       </DropdownMenu>
 
       <HoldButton variant="destructive" size="sm" onHold={onDelete} title={DELETE_HINT} aria-label={DELETE_HINT}>
-        <Trash2Icon />
+        <HugeiconsIcon icon={Delete02Icon} />
         Hold to delete
       </HoldButton>
 
       <Button variant="ghost" size="icon-sm" onClick={onClear} title="Clear selection" aria-label="Clear selection">
-        <XIcon />
+        <HugeiconsIcon icon={Cancel01Icon} />
       </Button>
     </div>
   )

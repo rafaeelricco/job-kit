@@ -1,5 +1,6 @@
 import * as React from "react"
-import { CheckIcon, CopyIcon } from "lucide-react"
+import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -52,7 +53,7 @@ function CopyButton({
       className={cn(className)}
       {...props}
     >
-      {copied ? <CheckIcon /> : <CopyIcon />}
+      {copied ? <HugeiconsIcon icon={Tick02Icon} /> : <HugeiconsIcon icon={Copy01Icon} />}
       {copied ? copiedLabel : label}
     </Button>
   )

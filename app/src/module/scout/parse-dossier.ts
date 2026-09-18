@@ -452,6 +452,7 @@ const factsFrom = (found: ReadonlyMap<FactKey, FactValue>): Readonly<Record<Fact
   ats: found.get("ats") ?? UNKNOWN,
   match_score: found.get("match_score") ?? UNKNOWN,
   match_decision: found.get("match_decision") ?? UNKNOWN,
+  match_confidence: found.get("match_confidence") ?? UNKNOWN,
   blocker: found.get("blocker") ?? UNKNOWN,
 })
 

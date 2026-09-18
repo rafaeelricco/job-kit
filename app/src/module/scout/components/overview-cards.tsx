@@ -1,7 +1,7 @@
 export { OverviewCards, type OverviewCardsProps }
 
-import type { LucideIcon } from "lucide-react"
-import { CircleCheckBig, Files, Radio, Star } from "lucide-react"
+import { CheckmarkCircle01Icon, Files01Icon, RadioIcon, StarIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -17,7 +17,7 @@ type OverviewCardsProps = {
 type Tile = {
   readonly label: string
   readonly value: number
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
 }
 
 // Read-only display. No handlers, no links, nothing focusable — a tile that
@@ -25,10 +25,10 @@ type Tile = {
 function OverviewCards(props: OverviewCardsProps) {
   const { summary } = props
   const tiles: readonly Tile[] = [
-    { label: "Total dossiers", value: summary.total, Icon: Files },
-    { label: "Score 8+", value: summary.highScore, Icon: Star },
-    { label: "Applied", value: summary.applied, Icon: CircleCheckBig },
-    { label: "Live postings", value: summary.live, Icon: Radio },
+    { label: "Total dossiers", value: summary.total, Icon: Files01Icon },
+    { label: "Score 8+", value: summary.highScore, Icon: StarIcon },
+    { label: "Applied", value: summary.applied, Icon: CheckmarkCircle01Icon },
+    { label: "Live postings", value: summary.live, Icon: RadioIcon },
   ]
 
   return (
@@ -37,7 +37,7 @@ function OverviewCards(props: OverviewCardsProps) {
         <Card key={tile.label}>
           <CardContent className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              <tile.Icon className="size-4" aria-hidden="true" />
+              <HugeiconsIcon icon={tile.Icon} className="size-4" aria-hidden="true" />
               <span>{tile.label}</span>
             </div>
             <span className="text-2xl font-semibold text-foreground tabular-nums">{tile.value.toLocaleString()}</span>
