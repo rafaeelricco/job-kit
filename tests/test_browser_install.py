@@ -381,12 +381,8 @@ http.server.HTTPServer(("127.0.0.1", int(sys.argv[1])), Handler).serve_forever()
 '''
 
 
-def _terminate(pidfile):
-    """Stop the fixture server a launcher stub spawned, if it started."""
-    try:
-        pid = int(Path(pidfile).read_text(encoding="utf-8").strip())
-    except (OSError, ValueError):
-        return
+def _terminate(pid):
+    """Stop the fixture server a launcher stub spawned."""
     try:
         os.kill(pid, signal.SIGTERM)
     except OSError:
@@ -443,8 +439,12 @@ class DedicatedChromeTests(unittest.TestCase):
     def test_launches_the_resolved_browser_with_the_debug_flags(self):
         """Cover the launch branch: the Darwin path had no coverage at all.
 
-        `expected` follows the host, since chrome.sh probes the real
-        /Applications; AcceptSetTests is what guards the accept-set itself.
+        `expected` re-derives the pick from the accept-set, so the assertion
+        follows the probe rather than restating it. Where no host bundle exists
+        — Linux CI, since the stubbed `uname` fakes Darwin but `/Applications`
+        stays empty — that is the fixture Brave, and this fails against a
+        launcher hardcoded to Google Chrome. On a Mac with Chrome installed the
+        host wins the probe and only the flag plumbing is under test.
         """
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
@@ -462,28 +462,32 @@ class DedicatedChromeTests(unittest.TestCase):
             (root / "server.py").write_text(_FIXTURE_SERVER, encoding="utf-8")
             (root / "uname").write_text("#!/bin/sh\necho Darwin\n", encoding="utf-8")
             (root / "open").write_text(
-                f'#!/bin/sh\necho "$0 $*" >> "{launches}"\n'
+                f'#!/bin/sh\nfor arg in "$@"; do echo "$arg" >> "{launches}"; done\n'
                 f'"{sys.executable}" "{root}/server.py" {port} '
                 f'>/dev/null 2>&1 &\n'
                 f'echo $! > "{pidfile}"\n', encoding="utf-8")
             for name in ("google-chrome", "chromium"):
                 (root / name).write_text(
-                    f'#!/bin/sh\necho "$0 $*" >> "{launches}"\n', encoding="utf-8")
+                    f'#!/bin/sh\necho "$0" >> "{launches}"\n', encoding="utf-8")
             for name in ("uname", "open", "google-chrome", "chromium"):
                 (root / name).chmod(0o755)
-            self.addCleanup(_terminate, pidfile)
             env = dict(os.environ, BU_CHROME_PORT=str(port), HOME=str(root),
                        XDG_CONFIG_HOME=str(root / "config"),
                        PATH=f"{root}{os.pathsep}{os.environ['PATH']}")
             result = subprocess.run(
                 ["bash", str(REPO / "scripts/browser-use/chrome.sh")],
                 env=env, capture_output=True, text=True, check=True)
+            # Register the kill while the pidfile still exists: cleanups run
+            # after this block, by which point the temp dir is gone.
+            self.addCleanup(_terminate,
+                            int(pidfile.read_text(encoding="utf-8").strip()))
             self.assertIn(f"export BU_CDP_URL=http://127.0.0.1:{port}", result.stdout)
-            launched = launches.read_text(encoding="utf-8")
-            self.assertIn(f"-na {expected} --args", launched)
-            self.assertIn(f"--remote-debugging-port={port}", launched)
-            self.assertNotIn("google-chrome", launched)
-            self.assertNotIn("chromium", launched)
+            argv = launches.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(argv[:3], ["-na", expected, "--args"])
+            self.assertEqual(sorted(argv[3:]), sorted([
+                f"--remote-debugging-port={port}",
+                f"--user-data-dir={root}/config/browser-harness/chrome-profile",
+                "--no-first-run", "--no-default-browser-check"]))
 
 
 if __name__ == "__main__":
