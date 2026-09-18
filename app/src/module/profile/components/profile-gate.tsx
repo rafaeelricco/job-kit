@@ -1,0 +1,51 @@
+export { ProfileGate }
+
+import type { IconSvgElement } from "@hugeicons/react"
+import type { ReactNode } from "react"
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AccessGate, LoadingRows } from "@/module/access/access-gate"
+import { useProfile } from "@/module/profile/helpers/use-profile"
+import type { Save } from "@/module/profile/helpers/use-profile"
+import type { Profile } from "@/module/profile/types"
+import { assertNever } from "@/module/scout/result"
+
+// All three profile sections open on the same ladder — access, load, fail,
+// resolve — and only diverge once a parsed profile exists.
+function ProfileGate({
+  title,
+  Icon,
+  children,
+}: {
+  readonly title: string
+  readonly Icon: IconSvgElement
+  readonly children: (profile: Profile, save: Save) => ReactNode
+}) {
+  return (
+    <AccessGate title={title} Icon={Icon}>
+      {() => <Loaded>{children}</Loaded>}
+    </AccessGate>
+  )
+}
+
+// useProfile must sit below AccessGate rather than beside it: it may only run
+// once access is granted, which is exactly what the gate has already proven.
+function Loaded({ children }: { readonly children: (profile: Profile, save: Save) => ReactNode }) {
+  const { state, save } = useProfile()
+
+  switch (state.kind) {
+    case "loading":
+      return <LoadingRows />
+    case "read-failed":
+      return (
+        <Alert variant="destructive">
+          <AlertTitle>Could not read the folder</AlertTitle>
+          <AlertDescription>{state.detail}</AlertDescription>
+        </Alert>
+      )
+    case "loaded":
+      return children(state.profile, save)
+    default:
+      return assertNever(state)
+  }
+}
