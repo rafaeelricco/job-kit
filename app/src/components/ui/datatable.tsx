@@ -1,4 +1,5 @@
-import { ArrowDownNarrowWide, ArrowDownWideNarrow, ArrowUpDown, ChevronDown } from "lucide-react"
+import { ArrowDown01Icon, ArrowUpDownIcon, SortingDownIcon, SortingUpIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import type { Key, KeyboardEvent, ReactNode } from "react"
 
 import * as React from "react"
@@ -116,11 +117,11 @@ function SortableHeader(props: {
       {props.label}
       <button type="button" aria-label="Toggle sort" className="inline-flex cursor-pointer" onClick={props.onSort}>
         {props.state === "increasing" ? (
-          <ArrowDownNarrowWide className="text-foreground" />
+          <HugeiconsIcon icon={SortingUpIcon} className="text-foreground" />
         ) : props.state === "decreasing" ? (
-          <ArrowDownWideNarrow className="text-foreground" />
+          <HugeiconsIcon icon={SortingDownIcon} className="text-foreground" />
         ) : (
-          <ArrowUpDown className="text-muted-foreground hover:text-foreground" />
+          <HugeiconsIcon icon={ArrowUpDownIcon} className="text-muted-foreground hover:text-foreground" />
         )}
       </button>
     </div>
@@ -251,7 +252,7 @@ function DataTablePagination<S extends number>(
               <DropdownMenu>
                 <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Page size">
                   {props.size}
-                  <ChevronDown />
+                  <HugeiconsIcon icon={ArrowDown01Icon} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44">
                   <DropdownMenuGroup>
