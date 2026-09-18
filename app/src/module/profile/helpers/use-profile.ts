@@ -8,19 +8,26 @@ import { readProfile } from "@/module/profile/helpers/read-profile"
 import { readDoc, writeDoc } from "@/module/profile/helpers/write-profile"
 import type { Edit, SaveError } from "@/module/profile/helpers/write-profile"
 import type { Profile } from "@/module/profile/types"
+import { snapshotProbe } from "@/module/scout/helpers/fsa"
+import { probe } from "@/module/scout/helpers/probe"
 import { err, ok } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
 
 type ProfileState =
   | { readonly kind: "loading" }
   | { readonly kind: "read-failed"; readonly detail: string }
+  | { readonly kind: "wrong-root"; readonly label: string; readonly missing: readonly string[] }
   | { readonly kind: "loaded"; readonly profile: Profile }
 
 type Save = (file: string, edits: readonly Edit[]) => Promise<Result<void, SaveError>>
 
 // No `enabled` argument, unlike useStore: ProfileGate only mounts this below a
 // granted AccessGate, so the handle is already proven reachable.
-function useProfile(): { readonly state: ProfileState; readonly save: Save } {
+function useProfile(): {
+  readonly state: ProfileState
+  readonly save: Save
+  readonly reload: () => void
+} {
   const [state, setState] = useState<ProfileState>({ kind: "loading" })
   const [nonce, setNonce] = useState(0)
   // The stamps the visible fields were read at. A ref, not state, so save()
@@ -40,6 +47,15 @@ function useProfile(): { readonly state: ProfileState; readonly save: Save } {
         }
         if (loaded.value === null) {
           setState({ kind: "read-failed", detail: "No folder handle stored" })
+          return
+        }
+        // Same required-file probe the store gate runs: without it an arbitrary
+        // folder reads as a profile with every section empty, and Settings
+        // offers fields whose saves can only fail as missing files.
+        const checked = probe(await snapshotProbe(loaded.value))
+        if (ignore) return
+        if (checked.kind === "failed") {
+          setState({ kind: "wrong-root", label: loaded.value.name, missing: checked.missing })
           return
         }
         const profile = await readProfile(loaded.value)
@@ -80,5 +96,7 @@ function useProfile(): { readonly state: ProfileState; readonly save: Save } {
     return ok(undefined)
   }, [])
 
-  return { state, save }
+  const reload = useCallback((): void => setNonce((n) => n + 1), [])
+
+  return { state, save, reload }
 }

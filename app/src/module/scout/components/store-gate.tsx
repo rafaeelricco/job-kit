@@ -1,4 +1,4 @@
-export { StoreGate }
+export { StoreGate, WrongRoot }
 export type { Ready }
 
 import type { IconSvgElement } from "@hugeicons/react"
