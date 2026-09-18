@@ -28,7 +28,8 @@ the match worker; unset, use the worker as before. A row carrying
 Then invoke the resolved scorer with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
 on stdin. A row carrying `score_error` → Gaps; continue with the remaining rows.
-A row whose scorer `confidence` is below `0.9` was scored on collapsed cells:
+A row whose scorer `confidence` is below `0.9`, or that carries a
+`match_uncertain` list, was scored on collapsed cells:
 load `job-match/references/workers/worker-validate.md`, re-review that row
 alone, and re-score it before the bar below. Never drop a row on an uncertain
 answer — uncertainty is a reason to look again, never a reason to discard.

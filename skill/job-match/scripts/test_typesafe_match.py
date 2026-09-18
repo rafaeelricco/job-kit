@@ -193,6 +193,26 @@ class MatchTests(unittest.TestCase):
         self.assertGreaterEqual(rows["sure"]["confidence"], 0.7)
         self.assertLess(rows["unsure"]["confidence"], 0.7)
 
+    def test_a_collapsed_cell_is_named_on_the_row(self):
+        """What makes `flow-match-gate.md`'s re-review fire when `0.9` cannot."""
+        unsure = dict(
+            ANSWERS,
+            domain={"type": "choice", "choice": "held", "confidence": 0.59},
+        )
+        _, post = replying(unsure)
+        [row] = run([JOB], post)
+        self.assertEqual(row["match_uncertain"], ["domain"])
+        [scored] = score_all(
+            {"candidate": CANDIDATE, "jobs": [JOB], "matches": [row]}
+        )
+        # A lone 5-point collapse leaves `confidence` at or above 0.9, so the
+        # list is the only signal the gate has.
+        self.assertEqual(scored["match_uncertain"], ["domain"])
+        self.assertGreaterEqual(scored["confidence"], 0.9)
+        _, confident = replying(ANSWERS)
+        [sure] = run([JOB], confident)
+        self.assertNotIn("match_uncertain", sure)
+
 
 class FailureTests(unittest.TestCase):
     def test_unexpected_choice(self):

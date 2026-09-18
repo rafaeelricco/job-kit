@@ -11,7 +11,8 @@ question and the points its options carry live in ``QUESTIONS``.
 A choice Jev is less than ``FLOOR`` sure of scores as the contract's ``—``
 rather than as its points: an answer we do not believe is evidence we do not
 have. Collapsing the cell lowers the row's ``confidence`` in ``score.py``,
-which is what tells a caller to re-check the row.
+and the cells it collapsed are named on the row's ``match_uncertain``, which
+is what tells a caller to re-check the row.
 """
 
 import http.client
@@ -389,8 +390,16 @@ def to_match(
         if candidate.skills and job.required_skills
         else None
     )
+    source: Dict[str, object] = {"url": job.url}
+    collapsed = [
+        cell
+        for cell in get_args(Cell)
+        if cast(Answer, getattr(choices, cell)).confidence < FLOOR
+    ]
+    if collapsed:
+        source["match_uncertain"] = collapsed
     return MatchResult(
-        source={"url": job.url},
+        source=source,
         score_breakdown=ScoreBreakdown(
             primary_stack=stack,
             seniority=choices.seniority.points,
