@@ -2,6 +2,7 @@ export { useAccess, type Access }
 
 import { useCallback, useEffect, useState } from "react"
 
+import { notifyAccessChanged } from "@/module/access/access-events"
 import {
   hasDirectoryPicker,
   loadHandle,
@@ -44,6 +45,14 @@ function useAccess(): {
 } {
   const [state, setState] = useState<Access>({ kind: "hydrating" })
 
+  // Surfaces above the gate hold their own useAccess instance and cannot see
+  // this one's state, so a grant is announced rather than propagated. Hydration
+  // keeps the plain setter: a mount-time read already has the folder.
+  const settle = useCallback((next: Access): void => {
+    setState(next)
+    if (next.kind === "granted") notifyAccessChanged()
+  }, [])
+
   useEffect(() => {
     let ignore = false
 
@@ -85,13 +94,13 @@ function useAccess(): {
     const saved = await persistHandle(picked.value)
     if (saved.kind === "err") {
       // Session still proceeds with the live handle this visit.
-      setState({ kind: "granted" })
+      settle({ kind: "granted" })
       return ok(undefined)
     }
     const permission = await queryWrite(picked.value)
-    setState(fromPermission(permission))
+    settle(fromPermission(permission))
     return ok(undefined)
-  }, [])
+  }, [settle])
 
   const request = useCallback(async (): Promise<Result<void, Permission>> => {
     const loaded = await loadHandle()
@@ -100,9 +109,9 @@ function useAccess(): {
       return err({ kind: "stale" })
     }
     const permission = await requestWrite(loaded.value)
-    setState(fromPermission(permission))
+    settle(fromPermission(permission))
     return permission.kind === "granted" ? ok(undefined) : err(permission)
-  }, [])
+  }, [settle])
 
   const changeFolder = useCallback(async (): Promise<Result<void, PickError>> => pick(), [pick])
 

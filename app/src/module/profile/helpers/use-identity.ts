@@ -3,6 +3,7 @@ export type { Identity }
 
 import { useEffect, useState } from "react"
 
+import { subscribeAccessChanged } from "@/module/access/access-events"
 import { loadHandle } from "@/module/access/handle"
 import { parseBasics } from "@/module/profile/helpers/parse-profile"
 import { subscribeProfileChanged } from "@/module/profile/helpers/profile-events"
@@ -26,12 +27,15 @@ function useIdentity(): Identity | null {
 
     void read()
     // The name shown here is the one the settings page edits, so a save
-    // refreshes it rather than leaving a stale name until the next reload.
-    const unsubscribe = subscribeProfileChanged(() => void read())
+    // refreshes it rather than leaving a stale name until the next reload. The
+    // first read runs before any folder is chosen, so a grant refreshes it too.
+    const unsubscribeProfile = subscribeProfileChanged(() => void read())
+    const unsubscribeAccess = subscribeAccessChanged(() => void read())
 
     return () => {
       ignore = true
-      unsubscribe()
+      unsubscribeProfile()
+      unsubscribeAccess()
     }
   }, [])
 
