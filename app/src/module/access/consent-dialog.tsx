@@ -1,6 +1,7 @@
 export { ConsentDialog, type ConsentDialogProps }
 
-import { FilesIcon, HardDriveIcon, XIcon } from "lucide-react"
+import { Cancel01Icon, Files01Icon, HardDriveIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,7 +22,7 @@ type ConsentDialogProps = {
 const NOTES = [
   {
     lead: "You're in control",
-    body: "This tab reads your folder in the browser and sends nothing to a server. The one write is a dossier you delete by hand — it moves to scout/jobs/.trash rather than being erased.",
+    body: "This tab reads your folder in the browser and sends nothing to a server. It writes the data/ files you edit here, and a dossier you delete by hand — that one moves to scout/jobs/.trash rather than being erased.",
   },
   {
     lead: "What gets read",
@@ -45,7 +46,7 @@ function ConsentDialog(props: ConsentDialogProps) {
         <div>
           <div className="flex justify-end">
             <DialogClose render={<Button variant="ghost" size="icon-sm" />}>
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} />
               <span className="sr-only">Close</span>
             </DialogClose>
           </div>
@@ -53,7 +54,7 @@ function ConsentDialog(props: ConsentDialogProps) {
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2.5">
               <span className="grid size-12 place-items-center rounded-xl border bg-background shadow-sm">
-                <HardDriveIcon className="size-6" />
+                <HugeiconsIcon icon={HardDriveIcon} className="size-6" />
               </span>
               <span className="flex gap-1" aria-hidden="true">
                 <span className="size-1.5 rounded-full bg-border" />
@@ -61,13 +62,15 @@ function ConsentDialog(props: ConsentDialogProps) {
                 <span className="size-1.5 rounded-full bg-border" />
               </span>
               <span className="grid size-12 place-items-center rounded-xl border bg-background shadow-sm">
-                <FilesIcon className="size-6" />
+                <HugeiconsIcon icon={Files01Icon} className="size-6" />
               </span>
             </div>
 
             <DialogHeader className="items-center gap-0">
               <DialogTitle className="pt-3 text-center text-xl font-semibold">Read your job-kit profile</DialogTitle>
-              <DialogDescription className="pt-1 text-center">Nothing is read until you allow it.</DialogDescription>
+              <DialogDescription className="pt-1 text-center">
+                Nothing is read or changed until you allow it.
+              </DialogDescription>
             </DialogHeader>
           </div>
         </div>

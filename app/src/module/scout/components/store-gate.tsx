@@ -1,16 +1,13 @@
-export { StoreGate }
+export { StoreGate, WrongRoot }
 export type { Ready }
 
-import { useState } from "react"
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
+import type { IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ConsentDialog } from "@/module/scout/components/consent-dialog"
-import { PermissionEmpty } from "@/module/scout/components/permission-empty"
-import { useAccess } from "@/module/scout/helpers/use-access"
+import { AccessGate, LoadingRows } from "@/module/access/access-gate"
+import { useAccess } from "@/module/access/use-access"
 import { useStore } from "@/module/scout/helpers/use-store"
 import type { StoreState } from "@/module/scout/helpers/use-store"
 import { assertNever } from "@/module/scout/result"
@@ -35,86 +32,32 @@ function StoreGate({
   readonly Icon: IconSvgElement
   readonly children: (store: Ready, actions: StoreActions) => ReactNode
 }) {
-  const { state: access, pick, request, changeFolder } = useAccess()
-  // Dismissing the dialog is not a dead end — the empty state reopens it.
-  const [asking, setAsking] = useState(true)
-  const { state, reload, trash } = useStore(access.kind === "granted")
-
-  if (access.kind === "hydrating") {
-    return (
-      <Shell title={title} Icon={Icon}>
-        <LoadingRows />
-      </Shell>
-    )
-  }
-
-  if (access.kind !== "granted") {
-    return (
-      <>
-        <PermissionEmpty
-          kind={access.kind}
-          onPrimary={() => {
-            if (access.kind === "prompt") void request()
-            else void pick()
-          }}
-          {...(access.kind === "no-handle" ? { onReview: () => setAsking(true) } : {})}
-        />
-        <ConsentDialog
-          open={access.kind === "no-handle" && asking}
-          onOpenChange={setAsking}
-          onAllow={() => {
-            void pick()
-          }}
-        />
-      </>
-    )
-  }
-
   return (
-    <Shell title={title} Icon={Icon}>
-      <Resolved
-        state={state}
-        reload={reload}
-        trash={trash}
-        onRepick={() => {
-          void changeFolder().then((result) => {
-            if (result.kind === "ok") reload()
-          })
-        }}
-      >
-        {children}
-      </Resolved>
-    </Shell>
+    <AccessGate title={title} Icon={Icon}>
+      {() => <Loaded>{children}</Loaded>}
+    </AccessGate>
   )
 }
 
-function Shell({
-  title,
-  Icon,
-  children,
-}: {
-  readonly title: string
-  readonly Icon: IconSvgElement
-  readonly children: ReactNode
-}) {
+// useStore must sit below AccessGate rather than beside it: it may only run
+// once access is granted, which is exactly what the gate has already proven.
+function Loaded({ children }: { readonly children: (store: Ready, actions: StoreActions) => ReactNode }) {
+  const { state, reload, trash } = useStore(true)
+  const { changeFolder } = useAccess()
+
   return (
-    <div className="flex flex-1 flex-col gap-6 px-6 py-6">
-      <h1 className="flex items-center gap-2 text-xl font-medium">
-        <HugeiconsIcon icon={Icon} className="size-5" aria-hidden="true" />
-        {title}
-      </h1>
+    <Resolved
+      state={state}
+      reload={reload}
+      trash={trash}
+      onRepick={() => {
+        void changeFolder().then((result) => {
+          if (result.kind === "ok") reload()
+        })
+      }}
+    >
       {children}
-    </div>
-  )
-}
-
-function LoadingRows() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 8 }, (_, row) => (
-        <Skeleton key={row} className="h-14 w-full" />
-      ))}
-    </div>
+    </Resolved>
   )
 }
 
