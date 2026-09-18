@@ -1,6 +1,6 @@
 ---
 name: job-apply
-description: "Apply to postings from the scout store with no operator in the loop: read the dossier and the live ad, resolve or tailor the CV, fill the form from profile Facts, derived and default answers, author any prose field, clear captchas, sign-ins, and mail codes, then submit and record. Use when the user runs /job-apply, says apply to this posting, or confirms sent/submitted/applied. Not for deciding whether to apply or scoring a posting (job-match), searching (job-scout), tailoring a CV alone (job-resume-refine), or reply tracking (job-inbox)."
+description: "Apply to scout-store postings with no operator in the loop: tailor the CV, fill the form from profile Facts, clear captchas and mail codes, submit and record. Use for /job-apply, apply to this posting, or confirming sent/submitted/applied. Not for scoring (job-match) or searching (job-scout)."
 argument-hint: "[<file> | <url> | --new | --yolo | --cv-sha256 <hex> | --prepared-at <iso-Z> | <auto-detect>]"
 ---
 
