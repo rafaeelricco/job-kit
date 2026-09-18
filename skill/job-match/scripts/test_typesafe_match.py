@@ -213,6 +213,31 @@ class MatchTests(unittest.TestCase):
         [sure] = run([JOB], confident)
         self.assertNotIn("match_uncertain", sure)
 
+    def test_an_off_ladder_seniority_can_be_unknown(self):
+        """The contract makes a posting token off the ladder `—`, whatever the
+        candidate prints."""
+        unknown = next(
+            option for option in SENIORITY.options if option.name == "unknown"
+        )
+        self.assertNotIn("candidate", unknown.criterion)
+        answers = dict(
+            ANSWERS,
+            seniority={"type": "choice", "choice": "unknown", "confidence": 0.93},
+        )
+        _, post = replying(answers)
+        [row] = run([dict(JOB, seniority="Lead")], post)
+        self.assertIsNone(row["score_breakdown"]["seniority"])
+
+    def test_preferences_are_unknown_when_the_job_prints_neither_field(self):
+        """No evidence is `—`: `blank` covers only the candidate's own side."""
+        answers = dict(
+            ANSWERS,
+            preferences={"type": "choice", "choice": "unknown", "confidence": 0.9},
+        )
+        _, post = replying(answers)
+        [row] = run([dict(JOB, work_model=None, location=None)], post)
+        self.assertIsNone(row["score_breakdown"]["preferences"])
+
 
 class FailureTests(unittest.TestCase):
     def test_unexpected_choice(self):

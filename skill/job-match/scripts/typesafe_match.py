@@ -139,8 +139,7 @@ SENIORITY = Question(
         ),
         Option(
             "unknown",
-            "job.seniority is null, or it is off the ladder and no candidate"
-            " position prints it.",
+            "job.seniority is null, or it is off the ladder.",
             None,
         ),
     ),
@@ -209,6 +208,11 @@ PREFERENCES = Question(
         ),
         Option("conflict", "The candidate's preferences conflict with them.", 0),
         Option("blank", "The candidate's preferences are all blank.", None),
+        Option(
+            "unknown",
+            "Both the job's work model and location are unknown.",
+            None,
+        ),
     ),
 )
 QUESTIONS: Tuple[Question, ...] = catalog(
