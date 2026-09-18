@@ -22,7 +22,7 @@ type ConsentDialogProps = {
 const NOTES = [
   {
     lead: "You're in control",
-    body: "This tab reads your folder in the browser and sends nothing to a server. The one write is a dossier you delete by hand — it moves to scout/jobs/.trash rather than being erased.",
+    body: "This tab reads your folder in the browser and sends nothing to a server. It writes the data/ files you edit here, and a dossier you delete by hand — that one moves to scout/jobs/.trash rather than being erased.",
   },
   {
     lead: "What gets read",
