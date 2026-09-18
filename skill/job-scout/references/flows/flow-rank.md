@@ -19,4 +19,4 @@ Then each persist-set row:
 
 Then `{n} dossiers → {abs Profile root}/scout/jobs/`
 
-`### Gaps` — skipped, tool defects, uncertain, extract invalid, kit drop, unscorable, score≤7, match below bar, match blocked. Omit if empty.
+`### Gaps` — skipped, tool defects, uncertain, extract invalid, kit drop, unscorable, score≤7, match below bar, match blocked, match unavailable. Omit if empty.

@@ -20,14 +20,23 @@ Fan-out batch ~10. Per row, paste that row's Verified extract as the posting bod
 
 extract → JobProfile. Malformed → Gaps, drop.
 HF8 (`contract-match.md` hard filter 8, language) → Gaps `match blocked`, drop. Do not re-run Gate 1–7.
-match → MatchResult, then invoke the resolved scorer with
+match → MatchResult. With `TYPESAFE_API_KEY` set, run
+`job-match/scripts/typesafe_match.py` (same launcher) with
+`{"candidate": <CandidateProfile>, "jobs": <JobProfiles>}` on stdin instead of
+the match worker; unset, use the worker as before. A row carrying
+`match_error` → Gaps `match unavailable`, drop.
+Then invoke the resolved scorer with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
 on stdin. A row carrying `score_error` → Gaps; continue with the remaining rows.
-`decision` below `possible_match` (`weak_match` or `skip`) → Gaps
-`match below bar`, drop.
+A row whose scorer `confidence` is below `0.9` was scored on collapsed cells:
+load `job-match/references/workers/worker-validate.md`, re-review that row
+alone, and re-score it before the bar below. Never drop a row on an uncertain
+answer — uncertainty is a reason to look again, never a reason to discard.
+`decision` below `possible_match` (`weak_match` or `skip`) after that review →
+Gaps `match below bar`, drop.
 
-Carry the scorer's `match_score` and `decision` on each kept row as Posting-facts `match_score` and `match_decision` (`job-store/references/schemas/schema-dossier.md`). Scout `score` stays the 0–10 skill share. Do not print the job-match report.
+Carry the scorer's `match_score`, `decision`, and `confidence` on each kept row as Posting-facts `match_score`, `match_decision`, and `match_confidence` (`job-store/references/schemas/schema-dossier.md`). Scout `score` stays the 0–10 skill share. Do not print the job-match report.
 
-Output: persist-set rows (url + score + `match_score` + `match_decision` + extract fields unchanged). Unreadable
+Output: persist-set rows (url + score + `match_score` + `match_decision` + `match_confidence` + extract fields unchanged). Unreadable
 job-match reference or scorer, or no Python 3 launcher → name it and end; write
 nothing this run.
