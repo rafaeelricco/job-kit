@@ -1,5 +1,5 @@
 {
-  "include": ["scripts/auto_release.py"],
+  "include": ["scripts/auto_release.py", "skill/job-match/scripts/typesafe_match.py"],
   "pythonVersion": "3.9",
   "typeCheckingMode": "strict"
 }

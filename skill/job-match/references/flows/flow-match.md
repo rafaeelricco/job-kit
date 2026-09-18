@@ -28,9 +28,11 @@ Derive `state.candidate` per schema-state CandidateProfile. Unreadable required 
 Parse tokens. At most one selector: `--new` | `--all` | `--posting` | one
 `scout/jobs/` filename. `--exclude <status>[,<status>…]` is a modifier; it
 consumes the next token. `--top <n>` consumes one positive integer and is legal
-with every selector; absent means no cap. Status vocabulary =
+with every selector; absent means no cap. `--typesafe` takes no value, is legal
+with every selector, and switches **match** to TypeSafe; with `TYPESAFE_API_KEY`
+unset or empty, stop and name it. Status vocabulary =
 `job-store/references/flows/flow-read.md` frontmatter `status:`. Missing, non-integer,
-non-positive, or repeated `--top` values → stop. Unknown status, `--exclude`
+non-positive, or repeated `--top` values, or a repeated `--typesafe` → stop. Unknown status, `--exclude`
 with `--posting` or a dossier, an unmatched `.md` filename, unknown flags,
 leftover tokens, or two selectors → stop.
 
@@ -57,7 +59,18 @@ Main. Contract HF8 on JobProfile + `state.candidate`. Hit → move to `state.blo
 
 ## match
 
-Load `./references/workers/worker-match.md`. Input per worker: the same CandidateProfile JSON + the same contract body + its JobProfile batch + the MatchResult JSON block from that file. No dossier prose.
+`--typesafe` → run `./scripts/typesafe_match.py` (same launcher as **score**)
+instead of the worker, with `{"candidate": state.candidate, "jobs": state.jobs}`
+on stdin. It sends that CandidateProfile and each JobProfile to
+`api.typesafe.ai` and needs `TYPESAFE_API_KEY`. Non-zero exit → print its
+`match_error`, or its stderr when stdout is not JSON, and end. Every row
+carrying `match_error` → print the first one and end. Otherwise a row carrying
+`match_error` → `state.gaps` and drop it; write the rest to `state.matches[]`.
+A cell Jev answered below its confidence floor arrives as `null` — the
+contract's `—` — so **score** lowers that row's `confidence` and **validate**
+re-checks it. An uncertain answer is never scored `0`.
+
+Otherwise, load `./references/workers/worker-match.md`. Input per worker: the same CandidateProfile JSON + the same contract body + its JobProfile batch + the MatchResult JSON block from that file. No dossier prose.
 Write `state.matches[]`. Malformed → `state.gaps`.
 
 ## score
