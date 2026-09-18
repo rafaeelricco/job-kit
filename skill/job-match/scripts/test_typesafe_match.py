@@ -215,9 +215,15 @@ class MatchTests(unittest.TestCase):
 
     def test_an_off_ladder_seniority_can_be_unknown(self):
         """The contract makes a posting token off the ladder `—`, whatever the
-        candidate prints."""
+        candidate prints, so no scoring option may be true for one."""
+        scoring = [
+            option for option in SENIORITY.options if option.points is not None
+        ]
+        self.assertEqual(len(scoring), 3)
+        for option in scoring:
+            self.assertIn("on the ladder", option.criterion)
         unknown = next(
-            option for option in SENIORITY.options if option.name == "unknown"
+            option for option in SENIORITY.options if option.points is None
         )
         self.assertNotIn("candidate", unknown.criterion)
         answers = dict(

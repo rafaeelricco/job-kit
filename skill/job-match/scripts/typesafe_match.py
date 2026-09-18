@@ -122,13 +122,14 @@ SENIORITY = Question(
     (
         Option(
             "same",
-            "A candidate position prints the same seniority token as job.seniority.",
+            "job.seniority is on the ladder, and a candidate position prints the"
+            " same seniority token.",
             15,
         ),
         Option(
             "one_step",
-            "No position prints that token, but the nearest candidate position is"
-            " one ladder step from job.seniority.",
+            "job.seniority is on the ladder, no position prints that token, and the"
+            " nearest candidate position is one ladder step from it.",
             8,
         ),
         Option(
