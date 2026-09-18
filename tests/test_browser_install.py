@@ -8,10 +8,8 @@ import http.server
 import os
 import re
 import shutil
-import signal
 import socket
 import subprocess
-import sys
 import tempfile
 import threading
 import unittest
@@ -364,31 +362,6 @@ class _VersionHandler(http.server.BaseHTTPRequestHandler):
         pass
 
 
-# Stands in for the browser a stubbed launcher starts: answers /json/version on
-# the requested port, so chrome.sh's poll loop sees the endpoint come up.
-_FIXTURE_SERVER = '''import http.server, sys
-
-class Handler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200 if self.path == "/json/version" else 404)
-        self.end_headers()
-        self.wfile.write(b'{"webSocketDebuggerUrl": "ws://fixture"}')
-
-    def log_message(self, *args):
-        pass
-
-http.server.HTTPServer(("127.0.0.1", int(sys.argv[1])), Handler).serve_forever()
-'''
-
-
-def _terminate(pid):
-    """Stop the fixture server a launcher stub spawned."""
-    try:
-        os.kill(pid, signal.SIGTERM)
-    except OSError:
-        pass
-
-
 def _app_names(path):
     """App bundle names a script probes, in probe order; empty when it has none."""
     text = (REPO / path).read_text(encoding="utf-8")
@@ -439,12 +412,12 @@ class DedicatedChromeTests(unittest.TestCase):
     def test_launches_the_resolved_browser_with_the_debug_flags(self):
         """Cover the launch branch: the Darwin path had no coverage at all.
 
-        `expected` re-derives the pick from the accept-set, so the assertion
-        follows the probe rather than restating it. Where no host bundle exists
-        — Linux CI, since the stubbed `uname` fakes Darwin but `/Applications`
-        stays empty — that is the fixture Brave, and this fails against a
-        launcher hardcoded to Google Chrome. On a Mac with Chrome installed the
-        host wins the probe and only the flag plumbing is under test.
+        The stub launcher starts nothing, so chrome.sh polls the dead port and
+        exits on its own timeout. That keeps the test free of a fixture server
+        racing for a preallocated port, and covers the timeout branch too.
+        `expected` re-derives the pick from the accept-set, so where no host
+        bundle exists — Linux CI — it is the fixture Brave and a launcher
+        hardcoded to Google Chrome fails here.
         """
         with socket.socket() as probe:
             probe.bind(("127.0.0.1", 0))
@@ -452,20 +425,16 @@ class DedicatedChromeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             launches = root / "launches.log"
-            pidfile = root / "server.pid"
             (root / "Applications/Brave Browser.app").mkdir(parents=True)
             expected = "Brave Browser"
             for app in _ACCEPTED_APPS:
                 if Path(f"/Applications/{app}.app").is_dir():
                     expected = app
                     break
-            (root / "server.py").write_text(_FIXTURE_SERVER, encoding="utf-8")
             (root / "uname").write_text("#!/bin/sh\necho Darwin\n", encoding="utf-8")
             (root / "open").write_text(
-                f'#!/bin/sh\nfor arg in "$@"; do echo "$arg" >> "{launches}"; done\n'
-                f'"{sys.executable}" "{root}/server.py" {port} '
-                f'>/dev/null 2>&1 &\n'
-                f'echo $! > "{pidfile}"\n', encoding="utf-8")
+                f'#!/bin/sh\nfor arg in "$@"; do echo "$arg" >> "{launches}"; done\n',
+                encoding="utf-8")
             for name in ("google-chrome", "chromium"):
                 (root / name).write_text(
                     f'#!/bin/sh\necho "$0" >> "{launches}"\n', encoding="utf-8")
@@ -476,12 +445,11 @@ class DedicatedChromeTests(unittest.TestCase):
                        PATH=f"{root}{os.pathsep}{os.environ['PATH']}")
             result = subprocess.run(
                 ["bash", str(REPO / "scripts/browser-use/chrome.sh")],
-                env=env, capture_output=True, text=True, check=True)
-            # Register the kill while the pidfile still exists: cleanups run
-            # after this block, by which point the temp dir is gone.
-            self.addCleanup(_terminate,
-                            int(pidfile.read_text(encoding="utf-8").strip()))
-            self.assertIn(f"export BU_CDP_URL=http://127.0.0.1:{port}", result.stdout)
+                env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertIn(f"did not answer on http://127.0.0.1:{port}",
+                          result.stderr)
+            self.assertTrue(launches.exists(), "no launcher was invoked")
             argv = launches.read_text(encoding="utf-8").splitlines()
             self.assertEqual(argv[:3], ["-na", expected, "--args"])
             self.assertEqual(sorted(argv[3:]), sorted([
