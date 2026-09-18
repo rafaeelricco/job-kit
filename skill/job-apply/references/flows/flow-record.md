@@ -76,7 +76,9 @@ For a new dossier, use the schema's nine frontmatter keys, set `first_seen` and
 {same-session record or later-session placeholder}
 ```
 
-Do not fabricate Verdict, Posting facts, The role, or Provenance.
+Do not fabricate Verdict, Posting facts, The role, or Provenance, and add no
+frontmatter key beyond the nine. Where the operator found the posting is not
+recorded.
 
 ## Later-session record
 
