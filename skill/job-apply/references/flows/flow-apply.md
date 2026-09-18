@@ -78,8 +78,11 @@ do. Clause 4 (same-URL twin) stops the posting under every invocation form,
 (`eligibility: incompatible`) has no exception: the gate already read the ad.
 `scout/` or `scout/jobs/` absent → say no dossiers have persisted yet and stop.
 
-A **dossier-less** `<url>` has no dossier for the guards or the apply-eligible
-predicate to read. §2 reads the live ad alone and prints the live page's
+A **dossier-less** `<url>` has no dossier for the guards, the apply-eligible
+predicate, or §5 step 8 to read; an absent `scout/` or `scout/jobs/` does not
+stop it either, since
+`job-store/references/contracts/contract-persistence.md` creates the store on
+the eventual write. §2 reads the live ad alone and prints the live page's
 company, title, and channel. Only `flow-record.md` creates its dossier, after a
 confirmed submit. Until then, write nothing to `scout/jobs/` for it: a dead ad
 (§2) or an ambiguous submit (§5 step 9) skips as that step says, but appends
