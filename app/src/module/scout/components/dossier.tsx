@@ -1,14 +1,15 @@
 export { DossierCards, DossierSheet, DossierTable }
 
 import {
-  ChevronDownIcon,
-  CopyIcon,
-  DownloadIcon,
-  ExternalLinkIcon,
-  MoreHorizontal,
-  Trash2Icon,
-  TriangleAlertIcon,
-} from "lucide-react"
+  Alert02Icon,
+  ArrowDown01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  Download01Icon,
+  LinkSquare02Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState, type KeyboardEvent, type ReactNode } from "react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -236,24 +237,24 @@ function RowActions(props: { readonly row: Dossier; readonly onDelete: (file: st
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
           <span className="sr-only">Open menu</span>
-          <MoreHorizontal />
+          <HugeiconsIcon icon={MoreHorizontalIcon} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuGroup>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             {href === null || row.posting.kind === "dead" ? null : (
               <DropdownMenuItem onClick={() => window.open(href, "_blank", "noopener,noreferrer")}>
-                <ExternalLinkIcon />
+                <HugeiconsIcon icon={LinkSquare02Icon} />
                 Open posting
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => copyText(toApplyPrompt([row]), "Apply prompt")}>
-              <CopyIcon />
+              <HugeiconsIcon icon={Copy01Icon} />
               Copy apply prompt
             </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
-                <DownloadIcon />
+                <HugeiconsIcon icon={Download01Icon} />
                 Export
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
@@ -285,7 +286,7 @@ function RowActions(props: { readonly row: Dossier; readonly onDelete: (file: st
               title={DELETE_HINT}
               aria-label={DELETE_HINT}
             >
-              <Trash2Icon />
+              <HugeiconsIcon icon={Delete02Icon} />
               Hold to delete
             </HoldButton>
           </div>
@@ -393,7 +394,7 @@ function Fold(props: { readonly title: string; readonly children: ReactNode }) {
     <details className="group border-b border-border last:border-b-0 open:bg-muted/40">
       <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-[0.7rem] font-medium tracking-[0.07em] text-muted-foreground uppercase">
         {props.title}
-        <ChevronDownIcon className="size-3 transition-transform group-open:rotate-180" />
+        <HugeiconsIcon icon={ArrowDown01Icon} className="size-3 transition-transform group-open:rotate-180" />
       </summary>
       <div className="px-4 pb-4">{props.children}</div>
     </details>
@@ -526,7 +527,7 @@ function DossierSheet(props: DossierSheetProps) {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 font-medium text-foreground underline-offset-4 hover:underline"
                   >
-                    <ExternalLinkIcon className="size-3.5" />
+                    <HugeiconsIcon icon={LinkSquare02Icon} className="size-3.5" />
                     Open posting
                   </a>
                 )}
@@ -552,7 +553,7 @@ function DossierSheet(props: DossierSheetProps) {
               {dossier.posting.kind === "dead" && (
                 <div className="px-4 pt-4">
                   <Alert variant="destructive">
-                    <TriangleAlertIcon />
+                    <HugeiconsIcon icon={Alert02Icon} />
                     <AlertTitle>Posting marked dead</AlertTitle>
                     <AlertDescription>This posting was marked dead since {dossier.posting.since}.</AlertDescription>
                   </Alert>

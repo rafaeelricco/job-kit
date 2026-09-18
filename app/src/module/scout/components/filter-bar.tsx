@@ -1,15 +1,16 @@
 export { FilterBar, type FilterBarProps }
 
 import {
-  BanIcon,
-  CalendarIcon,
-  ChevronDown,
-  LayoutGridIcon,
-  ListFilterIcon,
-  Rows3Icon,
-  SearchIcon,
-  XIcon,
-} from "lucide-react"
+  ArrowDown01Icon,
+  Calendar01Icon,
+  Cancel01Icon,
+  FilterIcon,
+  GridViewIcon,
+  RowsThreeIcon,
+  Search01Icon,
+  UnavailableIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import type { DateRange } from "react-day-picker"
 
 import { Badge } from "@/components/ui/badge"
@@ -180,7 +181,10 @@ function FilterBar(props: FilterBarProps) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2 py-4">
         <div className="relative w-full max-w-sm min-w-56">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <HugeiconsIcon
+            icon={Search01Icon}
+            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+          />
           <Input
             value={filter.query}
             onChange={(event) => onFilter({ ...filter, query: event.target.value })}
@@ -192,7 +196,7 @@ function FilterBar(props: FilterBarProps) {
 
         <Popover>
           <PopoverTrigger render={<Button variant="outline" />}>
-            <ListFilterIcon />
+            <HugeiconsIcon icon={FilterIcon} />
             Filter
           </PopoverTrigger>
           <PopoverContent align="start" className="w-64 p-0">
@@ -263,7 +267,7 @@ function FilterBar(props: FilterBarProps) {
                         data-checked={state === "only"}
                         onSelect={() => setSource(row.source)}
                       >
-                        {state === "not" ? <BanIcon className="text-destructive" /> : null}
+                        {state === "not" ? <HugeiconsIcon icon={UnavailableIcon} className="text-destructive" /> : null}
                         <span className={state === "not" ? "text-muted-foreground line-through" : undefined}>
                           {row.source}
                         </span>
@@ -294,7 +298,7 @@ function FilterBar(props: FilterBarProps) {
 
         <Popover>
           <PopoverTrigger render={<Button variant="outline" />}>
-            <CalendarIcon />
+            <HugeiconsIcon icon={Calendar01Icon} />
             Found
           </PopoverTrigger>
           <PopoverContent align="start" className="w-auto p-0">
@@ -321,7 +325,7 @@ function FilterBar(props: FilterBarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button variant="outline" className="ml-auto" />}>
             Columns
-            <ChevronDown />
+            <HugeiconsIcon icon={ArrowDown01Icon} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             {/* Base UI requires a label to sit inside a group. */}
@@ -355,7 +359,7 @@ function FilterBar(props: FilterBarProps) {
         >
           {VIEWS.map((id) => (
             <ToggleGroupItem key={id} value={id} aria-label={VIEW_LABELS[id]} title={VIEW_LABELS[id]}>
-              {id === "table" ? <Rows3Icon /> : <LayoutGridIcon />}
+              {id === "table" ? <HugeiconsIcon icon={RowsThreeIcon} /> : <HugeiconsIcon icon={GridViewIcon} />}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -387,7 +391,7 @@ function FilterBar(props: FilterBarProps) {
                 aria-label={`Remove ${chip.label}`}
                 className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                <XIcon className="size-3" />
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
               </button>
             </Badge>
           ))}

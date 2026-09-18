@@ -1,8 +1,8 @@
 export default DossiersPage
 
-import { Briefcase } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
+import { Briefcase01Icon } from "@hugeicons/core-free-icons"
 
 import { DataTablePagination, comparator } from "@/components/ui/datatable"
 import type { SortState } from "@/components/ui/datatable"
@@ -25,7 +25,7 @@ type TrashFn = (files: readonly string[]) => Promise<Result<Trashed, TrashOpErro
 
 function DossiersPage() {
   return (
-    <StoreGate title="Dossiers" Icon={Briefcase}>
+    <StoreGate title="Dossiers" Icon={Briefcase01Icon}>
       {(store, actions) => <Surface store={store} trash={actions.trash} />}
     </StoreGate>
   )

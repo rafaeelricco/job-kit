@@ -2,7 +2,7 @@ export { StoreGate }
 export type { Ready }
 
 import { useState } from "react"
-import type { LucideIcon } from "lucide-react"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -32,7 +32,7 @@ function StoreGate({
   children,
 }: {
   readonly title: string
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly children: (store: Ready, actions: StoreActions) => ReactNode
 }) {
   const { state: access, pick, request, changeFolder } = useAccess()
@@ -94,13 +94,13 @@ function Shell({
   children,
 }: {
   readonly title: string
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly children: ReactNode
 }) {
   return (
     <div className="flex flex-1 flex-col gap-6 px-6 py-6">
       <h1 className="flex items-center gap-2 text-xl font-medium">
-        <Icon className="size-5" aria-hidden="true" />
+        <HugeiconsIcon icon={Icon} className="size-5" aria-hidden="true" />
         {title}
       </h1>
       {children}

@@ -1,20 +1,20 @@
 export { Dashboard }
 
 import { useMemo, useState } from "react"
-import type { LucideIcon } from "lucide-react"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 import {
-  Activity,
-  CalendarDays,
-  ChevronsUpDown,
-  GitBranch,
-  Globe,
-  Layers,
-  Send,
-  Star,
-  Target,
-  TrendingUp,
-} from "lucide-react"
+  Activity01Icon,
+  AnalyticsUpIcon,
+  Calendar02Icon,
+  GitBranchIcon,
+  GlobeIcon,
+  Layers01Icon,
+  MailSend01Icon,
+  StarIcon,
+  Target01Icon,
+  UnfoldMoreIcon,
+} from "@hugeicons/core-free-icons"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -50,17 +50,17 @@ const CHANNEL_LABELS: Record<Channel, string> = {
 }
 
 const TILES = [
-  { key: "high", label: "Score 8+", Icon: Star, pick: isHighScore },
+  { key: "high", label: "Score 8+", Icon: StarIcon, pick: isHighScore },
   {
     key: "ready",
     label: "Ready to apply",
-    Icon: Target,
+    Icon: Target01Icon,
     pick: (d: Dossier) => d.status === "new" && isHighScore(d) && isLive(d),
   },
   {
     key: "play",
     label: "In play",
-    Icon: Activity,
+    Icon: Activity01Icon,
     pick: (d: Dossier) => d.status === "applied" || d.status === "interview" || d.status === "offer",
   },
 ] as const
@@ -119,13 +119,13 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
     <>
       <div className="flex flex-wrap items-center gap-2">
         <Pill
-          Icon={CalendarDays}
+          Icon={Calendar02Icon}
           value={range}
           onValue={(v) => setRange(v as RangeKey)}
           options={RANGES.map((r) => ({ value: r.key, label: r.label }))}
         />
         <Pill
-          Icon={CalendarDays}
+          Icon={Calendar02Icon}
           value={compare ? "on" : "off"}
           onValue={(v) => setCompare(v === "on")}
           options={[
@@ -134,7 +134,7 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
           ]}
         />
         <Pill
-          Icon={Layers}
+          Icon={Layers01Icon}
           value={channel}
           onValue={(v) => setChannel(v as Channel | typeof ALL_CHANNELS)}
           options={[
@@ -156,11 +156,17 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
         ))}
       </div>
 
-      <TrendCard title="Dossiers over time" Icon={TrendingUp} points={trend} current={current} baseline={baseline} />
+      <TrendCard
+        title="Dossiers over time"
+        Icon={AnalyticsUpIcon}
+        points={trend}
+        current={current}
+        baseline={baseline}
+      />
 
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <SectionTitle Icon={Globe}>Sources over time</SectionTitle>
+          <SectionTitle Icon={GlobeIcon}>Sources over time</SectionTitle>
 
           {sources.rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">No dossiers in this range.</p>
@@ -212,17 +218,17 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <TrendCard
           title="Applications over time"
-          Icon={Send}
+          Icon={MailSend01Icon}
           points={applications}
           current={current}
           baseline={baseline}
         />
-        <BarList title="Pipeline" Icon={GitBranch} rows={pipeline} total={total} />
+        <BarList title="Pipeline" Icon={GitBranchIcon} rows={pipeline} total={total} />
       </div>
 
       <BarList
         title="Applications by source"
-        Icon={Globe}
+        Icon={GlobeIcon}
         rows={appliedBySource}
         total={appliedTotal}
         empty="No applications in this range."
@@ -233,10 +239,10 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
 
 // The reference underlines every section heading with a dotted rule that spans
 // the icon and the text, and never shouts it in uppercase.
-function SectionTitle({ Icon, children }: { readonly Icon: LucideIcon; readonly children: ReactNode }) {
+function SectionTitle({ Icon, children }: { readonly Icon: IconSvgElement; readonly children: ReactNode }) {
   return (
     <div className="flex w-fit items-center gap-2 text-[15px] text-muted-foreground">
-      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <HugeiconsIcon icon={Icon} className="size-4 shrink-0" aria-hidden="true" />
       <span>{children}</span>
     </div>
   )
@@ -262,7 +268,7 @@ function TrendCard({
   baseline,
 }: {
   readonly title: string
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly points: readonly PairedPoint[]
   readonly current: Window
   readonly baseline: Window | null
@@ -355,7 +361,7 @@ function Pill({
   onValue,
   options,
 }: {
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly value: string
   readonly onValue: (value: string) => void
   readonly options: readonly { value: string; label: string }[]
@@ -367,9 +373,9 @@ function Pill({
     <Select items={items} value={value} onValueChange={(v) => onValue(String(v))}>
       <SelectTrigger
         className="h-9 w-auto gap-2 rounded-full border-border bg-card px-3.5 text-[13px]"
-        icon={<ChevronsUpDown className="pointer-events-none size-3.5 text-muted-foreground" />}
+        icon={<HugeiconsIcon icon={UnfoldMoreIcon} className="pointer-events-none size-3.5 text-muted-foreground" />}
       >
-        <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+        <HugeiconsIcon icon={Icon} className="size-4 text-muted-foreground" aria-hidden="true" />
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -390,7 +396,7 @@ function Tile({
   delta,
 }: {
   readonly label: string
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly points: readonly { date: string; count: number }[]
   readonly delta: number | null
 }) {
@@ -463,7 +469,7 @@ function BarList({
   empty = "No dossiers in this range.",
 }: {
   readonly title: string
-  readonly Icon: LucideIcon
+  readonly Icon: IconSvgElement
   readonly rows: readonly TallyRow[]
   readonly total: number
   readonly empty?: string
