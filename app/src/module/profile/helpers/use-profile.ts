@@ -1,6 +1,6 @@
 export { useProfile, type ProfileState, type Save }
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { loadHandle } from "@/module/access/handle"
 import { notifyProfileChanged } from "@/module/profile/helpers/profile-events"
@@ -23,6 +23,9 @@ type Save = (file: string, edits: readonly Edit[]) => Promise<Result<void, SaveE
 function useProfile(): { readonly state: ProfileState; readonly save: Save } {
   const [state, setState] = useState<ProfileState>({ kind: "loading" })
   const [nonce, setNonce] = useState(0)
+  // The stamps the visible fields were read at. A ref, not state, so save()
+  // keeps its empty dependency list and never holds a stale copy.
+  const stamps = useRef<Readonly<Record<string, number>>>({})
 
   useEffect(() => {
     let ignore = false
@@ -41,6 +44,7 @@ function useProfile(): { readonly state: ProfileState; readonly save: Save } {
         }
         const profile = await readProfile(loaded.value)
         if (ignore) return
+        stamps.current = profile.stamps
         setState({ kind: "loaded", profile })
       } catch (error) {
         if (ignore) return
@@ -55,16 +59,20 @@ function useProfile(): { readonly state: ProfileState; readonly save: Save } {
     }
   }, [nonce])
 
-  // The document is re-read at save time rather than held across renders: the
-  // mtime the write is checked against must be the one on disk now, not the one
-  // from page load.
+  // The document is re-read at save time to apply the edits onto whatever is on
+  // disk, but the staleness check compares the page-load stamp: the edits were
+  // computed from the fields rendered then, so anything written since would be
+  // overwritten silently. The post-write stamp is adopted so a second save on
+  // the same card does not refuse itself while the reload is still in flight.
   const save = useCallback(async (file: string, edits: readonly Edit[]): Promise<Result<void, SaveError>> => {
     const handle = await loadHandle()
     if (handle.kind === "err" || handle.value === null) return err({ kind: "stale", file })
     const loaded = await readDoc(handle.value, file)
     if (loaded.kind === "err") return loaded
-    const written = await writeDoc(handle.value, file, loaded.value, edits)
+    const expected = { doc: loaded.value.doc, modified: stamps.current[file] ?? loaded.value.modified }
+    const written = await writeDoc(handle.value, file, expected, edits)
     if (written.kind === "err") return written
+    stamps.current = { ...stamps.current, [file]: written.value }
     setNonce((n) => n + 1)
     // basics.yaml also feeds the sidebar's identity, which lives above this
     // hook's tree and cannot see the nonce.

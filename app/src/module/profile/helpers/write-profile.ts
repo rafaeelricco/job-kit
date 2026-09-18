@@ -43,9 +43,9 @@ async function readDoc(root: FileSystemDirectoryHandle, file: string): Promise<R
 }
 
 // A skill run rewrites these same files between page load and save. Comparing
-// mtime against the one the document was read at turns that race into a
-// refusal: the cost is reloading the page, where overwriting costs the skill's
-// work. Returns the post-write mtime so the caller can keep editing.
+// mtime against the stamp the caller rendered its fields at turns that race
+// into a refusal: the cost is reloading the page, where overwriting costs the
+// skill's work. Returns the post-write mtime so the caller can keep editing.
 async function writeDoc(
   root: FileSystemDirectoryHandle,
   file: string,
