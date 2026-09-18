@@ -2,8 +2,9 @@ export { useStore, type StoreState }
 
 import { useCallback, useEffect, useState } from "react"
 
+import { loadHandle } from "@/module/access/handle"
 import { toStore } from "@/module/scout/helpers/assemble-store"
-import { loadHandle, readJobs, readSkills, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
+import { readJobs, readSkills, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
 import { parseDossier } from "@/module/scout/parse-dossier"
 import { err } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"

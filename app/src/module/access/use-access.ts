@@ -9,8 +9,8 @@ import {
   pickDirectory,
   queryWrite,
   requestWrite,
-} from "@/module/scout/helpers/fsa"
-import type { Permission, PickError } from "@/module/scout/helpers/fsa"
+} from "@/module/access/handle"
+import type { Permission, PickError } from "@/module/access/handle"
 import { err, ok } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
 
