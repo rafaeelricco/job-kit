@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AccessGate, LoadingRows } from "@/module/access/access-gate"
+import { ProfileGaps } from "@/module/profile/components/gaps"
 import { useProfile } from "@/module/profile/helpers/use-profile"
 import type { Save } from "@/module/profile/helpers/use-profile"
 import type { Profile } from "@/module/profile/types"
@@ -44,7 +45,12 @@ function Loaded({ children }: { readonly children: (profile: Profile, save: Save
         </Alert>
       )
     case "loaded":
-      return children(state.profile, save)
+      return (
+        <>
+          <ProfileGaps gaps={state.profile.gaps} />
+          {children(state.profile, save)}
+        </>
+      )
     default:
       return assertNever(state)
   }
