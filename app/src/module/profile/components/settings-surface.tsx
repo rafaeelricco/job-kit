@@ -319,11 +319,23 @@ function LanguagesCard({ languages, save }: { readonly languages: readonly Langu
 
 type ToggleGroupName = "workModel" | "jobTypes" | "datePosted"
 
-const TOGGLE_GROUPS: readonly { readonly field: ToggleGroupName; readonly label: string; readonly key: string }[] = [
+const TOGGLE_GROUPS: readonly {
+  readonly field: ToggleGroupName
+  readonly label: string
+  readonly key: string
+  // date_posted carries exactly one window: leaving a previous one on means
+  // scout reads the widest of the two and the narrower one has no effect.
+  readonly single?: boolean
+  readonly hint?: string
+}[] = [
   { field: "workModel", label: "Work model", key: "work_model" },
   { field: "jobTypes", label: "Job types", key: "job_types" },
-  { field: "datePosted", label: "Date posted", key: "date_posted" },
+  { field: "datePosted", label: "Date posted", key: "date_posted", single: true, hint: "One window." },
 ]
+
+const SINGLE_GROUPS: ReadonlySet<ToggleGroupName> = new Set(
+  TOGGLE_GROUPS.filter((group) => group.single === true).map((group) => group.field)
+)
 
 type ListName =
   "positions" | "locations" | "excludeLocations" | "excludeCompanies" | "directRegions" | "marketCurrencies"
@@ -383,10 +395,15 @@ function JobSearchCard({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
   const prune = Number(pruneText)
   const pruneValid = pruneText.trim() !== "" && Number.isFinite(prune)
 
+  // Turning one row on in a single-select group turns the rest off, so the file
+  // never carries two windows at once.
   const setToggle = (field: ToggleGroupName, key: string, on: boolean): void =>
     setToggles((current) => ({
       ...current,
-      [field]: current[field].map((row): Toggle => (row.key === key ? { key, on } : row)),
+      [field]: current[field].map((row): Toggle => {
+        if (row.key === key) return { key, on }
+        return on && SINGLE_GROUPS.has(field) ? { key: row.key, on: false } : row
+      }),
     }))
 
   const setList = (field: ListName, value: string): void =>
@@ -426,6 +443,7 @@ function JobSearchCard({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
           {TOGGLE_GROUPS.map((group) => (
             <FieldSet key={group.field}>
               <FieldLegend variant="label">{group.label}</FieldLegend>
+              {group.hint !== undefined && <FieldDescription>{group.hint}</FieldDescription>}
               {toggles[group.field].map((row) => (
                 <ToggleField
                   key={row.key}
