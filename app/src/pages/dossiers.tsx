@@ -15,8 +15,9 @@ import { StoreGate } from "@/module/scout/components/store-gate"
 import type { Ready } from "@/module/scout/components/store-gate"
 import { DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import type { ColumnId, View } from "@/module/scout/helpers/columns"
-import { EMPTY_FILTER, PAGE_SIZES, matches, paginate, summarize, tallySources } from "@/module/scout/helpers/select"
+import { PAGE_SIZES, matches, paginate, summarize, tallySources } from "@/module/scout/helpers/select"
 import type { Filter, PageSize } from "@/module/scout/helpers/select"
+import { readFilter, writeFilter } from "@/module/scout/helpers/filter-store"
 import { assertNever } from "@/module/scout/result"
 import type { Result } from "@/module/scout/result"
 import type { TrashOpError, Trashed } from "@/module/scout/types"
@@ -32,7 +33,7 @@ function DossiersPage() {
 }
 
 function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly trash: TrashFn }) {
-  const [filter, setFilter] = useState<Filter>(EMPTY_FILTER)
+  const [filter, setFilter] = useState<Filter>(readFilter)
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<PageSize>(PAGE_SIZES[0])
@@ -53,6 +54,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
 
   const onFilter = (next: Filter) => {
     setFilter(next)
+    writeFilter(next)
     setPage(1)
   }
 
