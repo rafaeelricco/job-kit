@@ -340,6 +340,10 @@ const SINGLE_GROUPS: ReadonlySet<ToggleGroupName> = new Set(
 type ListName =
   "positions" | "locations" | "excludeLocations" | "excludeCompanies" | "directRegions" | "marketCurrencies"
 
+// location_scope's vocabulary, empty included: an incomplete profile is a gap
+// scout names, where an unknown value silently matches no search branch.
+const SCOPES: readonly string[] = ["", "worldwide", "listed"]
+
 const LIST_ROWS: readonly {
   readonly field: ListName
   readonly label: string
@@ -394,6 +398,9 @@ function JobSearchCard({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
 
   const prune = Number(pruneText)
   const pruneValid = pruneText.trim() !== "" && Number.isFinite(prune)
+  // Empty is a profile gap scout reports for itself; a typo is not, and reaches
+  // scout as a scope that matches neither branch.
+  const scopeValid = SCOPES.includes(scope)
 
   // Turning one row on in a single-select group turns the rest off, so the file
   // never carries two windows at once.
@@ -425,7 +432,7 @@ function JobSearchCard({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
   const edits: readonly Edit[] = [
     ...toggleEdits,
     ...listEdits,
-    ...changed(["location_scope"], scope, jobSearch.locationScope),
+    ...(scopeValid ? changed(["location_scope"], scope, jobSearch.locationScope) : []),
     // prune_score_max is a number in the file; a string here would retype the key.
     ...(pruneValid && prune !== jobSearch.pruneScoreMax
       ? [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
@@ -467,13 +474,20 @@ function JobSearchCard({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
             />
           ))}
 
-          <TextField
-            id="job-search-location-scope"
-            label="Location scope"
-            value={scope}
-            hint="worldwide, or listed to use the locations above."
-            onValueChange={setScope}
-          />
+          <Field>
+            <FieldLabel htmlFor="job-search-location-scope">Location scope</FieldLabel>
+            <Input
+              id="job-search-location-scope"
+              value={scope}
+              aria-invalid={!scopeValid}
+              onChange={(event) => setScope(event.target.value)}
+            />
+            {scopeValid ? (
+              <FieldDescription>worldwide, or listed to use the locations above.</FieldDescription>
+            ) : (
+              <FieldError>Use worldwide or listed, or leave it empty.</FieldError>
+            )}
+          </Field>
 
           <Field>
             <FieldLabel htmlFor="job-search-prune-score-max">Prune score max</FieldLabel>
