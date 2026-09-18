@@ -88,6 +88,13 @@ confirmed submit. Until then, write nothing to `scout/jobs/` for it: a dead ad
 (§2) or an ambiguous submit (§5 step 9) skips as that step says, but appends
 nothing. Never create a dossier to hold a log line.
 
+If the ad lands on another URL — a redirect, or the canonical the page prints —
+re-match that landed URL against `scout/jobs/` per
+`job-store/references/schemas/schema-dossier.md` "URL normalize" before §3: one
+that now matches a dossier is this posting, and the guards, the apply-eligible
+predicate, and §5 step 8 read that dossier in full; one that matches none, and
+an absent `scout/` or `scout/jobs/`, stays dossier-less.
+
 Print `Queue: {n}`. Zero → `No postings to apply.` and end.
 
 One posting at a time, in queue order. A posting that stops does not stop the
