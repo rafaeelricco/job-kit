@@ -46,7 +46,7 @@ skill, and a Chromium-family browser. Follow the installer's setup guidance.
 On macOS, agents running in a sandboxed app such as the Claude desktop app
 cannot read the debug port file of your everyday Chrome. Start a dedicated
 automation Chrome with
-`bash "${XDG_DATA_HOME:-$HOME/.local/share}/job-kit/scripts/browser-use/chrome.sh"`,
+`bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/browser-use/chrome.sh"`,
 sign in there to the sites you use, and set
 `BU_CDP_URL=http://127.0.0.1:9333` in your agent's environment. Otherwise,
 enable remote debugging at `chrome://inspect/#remote-debugging` in your
