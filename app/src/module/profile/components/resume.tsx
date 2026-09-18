@@ -29,17 +29,24 @@ function ResumeList({
   readonly save: Save
 }) {
   const opened = useRef<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [pending, setPending] = useState<boolean | null>(null)
+  // The switch shows the value being written until the profile re-read lands.
+  // `save` resolves a commit before that read, so releasing the control there
+  // would re-enable it over the pre-save value; the pending value clears itself
+  // once the re-read reports it.
+  const adapt = pending ?? adaptPerVacancy
+  const saving = pending !== null && pending !== adaptPerVacancy
 
   // cvs.yaml is the profile's, so the toggle commits on change rather than
   // collecting a draft: one switch has nothing to batch with. A successful save
   // re-reads the file, so adaptPerVacancy stays the source of truth.
   const setAdapt = (next: boolean) => {
-    setBusy(true)
+    setPending(next)
     void save("cvs.yaml", [{ op: "set", path: ["adapt_per_vacancy"], value: next }]).then((result) => {
-      setBusy(false)
-      if (result.kind === "err") toast.error(describeSaveError(result.error))
-      else toast.success(`Per-vacancy tailoring ${next ? "on" : "off"}`)
+      if (result.kind === "err") {
+        setPending(null)
+        toast.error(describeSaveError(result.error))
+      } else toast.success(`Per-vacancy tailoring ${next ? "on" : "off"}`)
     })
   }
 
@@ -71,12 +78,12 @@ function ResumeList({
         <FieldContent>
           <FieldLabel htmlFor="adapt-per-vacancy">Per-vacancy tailoring</FieldLabel>
           <FieldDescription>
-            {adaptPerVacancy
+            {adapt
               ? "job-apply refines the base resume for each dossier."
               : "job-apply attaches the base resume unchanged."}
           </FieldDescription>
         </FieldContent>
-        <Switch id="adapt-per-vacancy" checked={adaptPerVacancy} disabled={busy} onCheckedChange={setAdapt} />
+        <Switch id="adapt-per-vacancy" checked={adapt} disabled={saving} onCheckedChange={setAdapt} />
       </Field>
 
       {resumes.length === 0 ? (
