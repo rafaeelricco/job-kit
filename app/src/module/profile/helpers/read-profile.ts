@@ -15,6 +15,10 @@ import type { Result } from "@/module/scout/result"
 
 type Gap = { readonly file: string; readonly detail: string }
 
+// job-apply's CV ladder: `base` under cv/, and this file when base is absent,
+// unreadable, or empty.
+const FALLBACK_RESUME = "en-us-resume.pdf"
+
 const emptyBasics: Basics = {
   name: "",
   email: "",
@@ -127,6 +131,12 @@ async function listResumes(root: FileSystemDirectoryHandle, base: string): Promi
     return []
   }
 
+  // job-apply's CV ladder falls back to cv/en-us-resume.pdf when `base` is
+  // absent, unreadable, or empty — the state the shipped cvs.yaml template
+  // ships in. Resolving it here is what makes the badge name the file that
+  // would actually be attached.
+  const activeFile = base === "" ? FALLBACK_RESUME : base
+
   const pdfs: string[] = []
   const tex = new Set<string>()
   try {
@@ -159,7 +169,7 @@ async function listResumes(root: FileSystemDirectoryHandle, base: string): Promi
         file,
         bytes,
         modified,
-        active: file === base,
+        active: file === activeFile,
         source: tex.has(sibling) ? sibling : null,
       }
     })
