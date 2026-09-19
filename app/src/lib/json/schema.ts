@@ -5,7 +5,7 @@ import { Decoder, type DecoderDef, type DecoderOptional } from "./decoder"
 import { Encoder, type EncoderDef, type EncoderOptional } from "./encoder"
 import type { Json } from "./types"
 import type { Maybe, Nullable } from "../maybe"
-import { filterMap, mapValues } from "../helpers/object"
+import { filterMap, mapValues, isRecord } from "../helpers/object"
 
 /** Infer the type from a schema definition. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,13 +169,18 @@ const oneOf = <V>(f: (v: V) => Schema<V>, ss: Array<Schema<V>>): Schema<V> =>
     encoder.oneOf((v) => f(v).encoder)
   )
 
-const discriminatedUnion = <const Variants extends readonly Variant<any>[]>(
-  vars: Variants
-): Schema<Infer<Variants[number]["schema"]>> => {
-  type Ty = Infer<Variants[number]["schema"]>
-  const d: Decoder<Ty> = decoder.oneOf(vars.map((v) => v.schema.decoder))
+/**
+ * `A` is the tuple of variant payload types, inferred from the mapped tuple
+ * `vars`, so the result is `Schema<A[number]>` without erasing any variant.
+ */
+const discriminatedUnion = <const A extends readonly unknown[]>(vars: {
+  [K in keyof A]: Variant<A[K]>
+}): Schema<A[number]> => {
+  type Ty = A[number]
+  const variants: ReadonlyArray<Variant<A[number]>> = vars
+  const d: Decoder<Ty> = decoder.oneOf(variants.map((v) => v.schema.decoder))
   const e: Encoder<Ty> = encoder.oneOf<Ty>((v) => {
-    const found = vars.find((variant) => matches(variant.pattern, v))
+    const found = variants.find((variant) => matches(variant.pattern, v))
     if (found == undefined) {
       throw new Error(`Invalid discriminant in union type: '${v}'`)
     }
@@ -188,7 +193,7 @@ const discriminatedUnion = <const Variants extends readonly Variant<any>[]>(
 
 /** Check whether a value matches a pattern. */
 const matches = (pattern: Record<string, string>, val: unknown): boolean => {
-  if (typeof val !== "object" || val === null) {
+  if (!isRecord(val)) {
     return false
   }
 
@@ -196,7 +201,7 @@ const matches = (pattern: Record<string, string>, val: unknown): boolean => {
     if (!(key in val)) {
       return false
     }
-    if (pattern[key] != undefined && pattern[key] !== (val as any)[key]) {
+    if (pattern[key] != undefined && pattern[key] !== val[key]) {
       return false
     }
   }

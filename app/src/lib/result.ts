@@ -151,8 +151,8 @@ function traverse_<T, A, E>(xs: Array<A>, f: (v: A) => Result<E, T>): Result<E, 
   return traverse(List.from(xs), f).map((r) => r.toArray())
 }
 
-var CallableSuccess = Callable(Success) as typeof Success & typeof Success.new
+const CallableSuccess = Callable(Success) as typeof Success & typeof Success.new
 
-var CallableFailure = Callable(Failure) as typeof Failure & typeof Failure.new
+const CallableFailure = Callable(Failure) as typeof Failure & typeof Failure.new
 
 export { type Result, CallableSuccess as Success, CallableFailure as Failure, traverse, traverse_ }

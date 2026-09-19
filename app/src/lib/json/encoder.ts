@@ -67,10 +67,10 @@ const object = <A>(encoders: EncoderDef<A>): Encoder<A> =>
           }
           break
         }
-        case encoder instanceof Encoder:
-          const encoded = encoder.run(input[field])
-          result[field] = encoded
+        case encoder instanceof Encoder: {
+          result[field] = encoder.run(input[field])
           break
+        }
         default:
           encoder satisfies never
       }

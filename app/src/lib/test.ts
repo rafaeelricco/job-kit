@@ -475,8 +475,10 @@ async function execute(test: Test): Promise<string | null> {
 
     return null
   } catch (e) {
-    const err = e as Error
-    return err.stack ? err.stack : err.message
+    if (e instanceof Error) {
+      return e.stack ? e.stack : e.message
+    }
+    return String(e)
   }
 }
 
@@ -552,12 +554,10 @@ const expect = {
   },
 }
 
-function stringify(v: any) {
+function stringify<T>(v: T): string {
   const str = JSON.stringify(v)
-  if (str.startsWith("Object") || str.startsWith("[Function")) {
-    throw new Error("Value is not meaningfully stringifiable")
-  }
-  return str
+  // `JSON.stringify` yields `undefined` for `undefined`, functions and symbols.
+  return str === undefined ? "undefined" : str
 }
 
 function extractPattern(input: string): { pattern: string; flags: string } {
@@ -579,7 +579,9 @@ const regex: ValueParser<"sync", RegExp> = {
   parse(input: string): ValueParserResult<RegExp> {
     try {
       const { pattern, flags } = extractPattern(input)
-      return { success: true, value: new RegExp(pattern, flags) }
+      // `g` and `y` make `RegExp.test` stateful via `lastIndex`, which would
+      // skip alternate matches; a filter only needs a stateless match.
+      return { success: true, value: new RegExp(pattern, flags.replace(/[gy]/g, "")) }
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err)
       return {

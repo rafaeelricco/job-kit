@@ -59,10 +59,11 @@ class POSIX {
     return Duration.milliseconds(this.value - other.value)
   }
 
-  static fromLocalDateAndTime(date: DateOnly, time: TimeOfDay, timezone: Timezone): POSIX {
+  /** `Nothing` when the zone is unknown or the civil date/time does not exist. */
+  static fromLocalDateAndTime(date: DateOnly, time: TimeOfDay, timezone: Timezone): Maybe<POSIX> {
     const s = `${date.pretty()}T${time.pretty()}`
     const luxonDate = DateTime.fromISO(s, { zone: timezone })
-    return new POSIX(luxonDate.toMillis())
+    return luxonDate.isValid ? Just(new POSIX(luxonDate.toMillis())) : Nothing()
   }
 
   toUTCDateAndTime(): { date: DateOnly; time: TimeOfDay } {
@@ -71,7 +72,7 @@ class POSIX {
     const time = TimeOfDay.fromParts({
       hours: dt.hour,
       minutes: dt.minute,
-      seconds: dt.second,
+      seconds: dt.second + dt.millisecond / 1000,
     })
     return { date, time }
   }
@@ -82,7 +83,7 @@ class POSIX {
     const time = TimeOfDay.fromParts({
       hours: dt.hour,
       minutes: dt.minute,
-      seconds: dt.second,
+      seconds: dt.second + dt.millisecond / 1000,
     })
     return { date, time }
   }
@@ -93,9 +94,9 @@ class POSIX {
     return date.isValid ? new POSIX(date.toMillis()) : null
   }
 
-  /** Convert to PostgreSQL TIMESTAMPTZ string. */
-  toSQLTimestamp(): string {
-    return DateTime.fromMillis(this.value, { zone: "UTC" }).toSQL() as string
+  /** Convert to PostgreSQL TIMESTAMPTZ string; `null` when the value is not a finite instant. */
+  toSQLTimestamp(): string | null {
+    return DateTime.fromMillis(this.value, { zone: "UTC" }).toSQL()
   }
 
   static schema: s.Schema<POSIX> = s.number.dimap(
@@ -137,15 +138,16 @@ class DateOnly {
 
   static schema: s.Schema<DateOnly> = s.string.chain(
     (str) => {
-      const parts = str.split("-")
-      if (parts.length !== 3) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str)
+      if (!match) {
         return fail("Invalid Date")
       }
-      const year = parseInt(parts[0] as string, 10)
-      const month = parseInt(parts[1] as string, 10)
-      const day = parseInt(parts[2] as string, 10)
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
 
-      if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      // Luxon rejects out-of-range months and days that do not exist in that month.
+      if (!DateTime.fromObject({ year, month, day }, { zone: "UTC" }).isValid) {
         return fail("Invalid Date")
       }
 
@@ -196,11 +198,18 @@ class TimeOfDay {
     return new TimeOfDay(hours * 60 * 60 + minutes * 60 + seconds)
   }
 
+  /** `HH:mm:ss`, with a `.SSS` millisecond suffix only when the time carries a fraction. */
   pretty() {
-    const hours = padded(Math.floor(this.seconds / (60 * 60)))
-    const minutes = padded(Math.floor(this.seconds / 60) % 60)
-    const wholeSeconds = padded(Math.floor(this.seconds) % 60)
-    return `${hours}:${minutes}:${wholeSeconds}`
+    // Round to whole milliseconds first so a fraction that rounds up carries
+    // into the seconds instead of printing `.1000`.
+    const totalMillis = Math.round(this.seconds * 1000)
+    const millis = totalMillis % 1000
+    const totalSeconds = Math.floor(totalMillis / 1000)
+    const hours = padded(Math.floor(totalSeconds / (60 * 60)))
+    const minutes = padded(Math.floor(totalSeconds / 60) % 60)
+    const seconds = padded(totalSeconds % 60)
+    const fraction = millis > 0 ? `.${String(millis).padStart(3, "0")}` : ""
+    return `${hours}:${minutes}:${seconds}${fraction}`
   }
 
   getSubSecondPrecision(): number {
@@ -364,6 +373,12 @@ class Duration {
 
     // If T is present, must have at least one time component
     if (hasT && !hasTimeComponents) {
+      return Nothing()
+    }
+
+    // Time components require the T designator: without it, `M` means months
+    // (which this parser does not support) and `H`/`S` are not valid at all.
+    if (hasTimeComponents && !hasT) {
       return Nothing()
     }
 
