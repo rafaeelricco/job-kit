@@ -303,7 +303,7 @@ link_skill() {
   fi
 
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    if [ "${force}" -eq 1 ]; then
+    if [ "${force}" -eq 1 ] || is_stale_kit_path "${dest}" "${name}"; then
       if [ -d "${dest}" ] && [ ! -L "${dest}" ]; then
         rm -rf "${dest}" || {
           echo "error: failed to remove foreign path: ${dest}" >&2
@@ -318,7 +318,7 @@ link_skill() {
       echo "forced remove: ${dest}"
     else
       echo "error: foreign path blocks install: ${dest}" >&2
-      echo "  use --force to replace, or remove it manually" >&2
+      echo "  remove it manually, then re-run" >&2
       return 1
     fi
   fi

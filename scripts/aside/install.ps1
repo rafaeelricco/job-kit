@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 
 $script:RepoRoot = Get-FullPathNormalized (Join-Path $PSScriptRoot '..\..')
 $script:DryRun = 0
+$script:Force = 0
 
 function Show-AsideUsage {
   @'
@@ -37,7 +38,7 @@ function New-PlanRowAside {
     return (New-PlanRow 'N' 'source missing' $Dest)
   }
   if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
-    if ((Test-AsideKitOwned $Dest $script:RepoRoot $Name) -or (Test-ExactLink $Dest $Source)) {
+    if ((Test-AsideKitOwned $Dest $script:RepoRoot $Name) -or (Test-ExactLink $Dest $Source) -or (Test-StaleKitPath $Dest $Name)) {
       return (New-PlanRow 'I' 'copy (refresh)' $Dest)
     }
     return (New-PlanRow 'N' 'foreign' $Dest)
@@ -68,7 +69,7 @@ function Install-Aside {
   if (-not (Test-Path -LiteralPath $destRoot -PathType Container) -and -not (Test-Path -LiteralPath $parent -PathType Container)) {
     Write-KitDie "Aside skills parent missing: $parent`n  Install Aside Browser and sign in first (expected under ~/.aside)."
   }
-  Install-AsideSkillsInto $destRoot $script:RepoRoot 0
+  Install-AsideSkillsInto $destRoot $script:RepoRoot $script:Force
   Remove-AsideLegacyUserSkills $script:RepoRoot $destRoot $script:AsideSkillNames
 }
 
@@ -83,9 +84,7 @@ function Invoke-AsidePlan {
   Write-Host "$installs installs"
   Write-Host ''
 
-  if (Test-PlanHasBlockers $rows) {
-    Write-KitDie 'plan has blocked paths (source missing, or a foreign path at the destination); remove the named path and re-run'
-  }
+  $installs += Resolve-PlanBlockers $rows
 
   if ($script:DryRun -eq 1) {
     Write-Host '--dry-run: nothing has been touched.'

@@ -99,7 +99,7 @@ function Copy-AsideSkill {
   $sourceFull = Get-FullPathNormalized $Source
 
   if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
-    if (-not (Test-AsideKitOwned $Dest $Repo $name) -and -not (Test-ExactLink $Dest $sourceFull)) {
+    if (-not (Test-AsideKitOwned $Dest $Repo $name) -and -not (Test-ExactLink $Dest $sourceFull) -and -not (Test-StaleKitPath $Dest $name)) {
       if ($Force -eq 1) {
         Write-Host "forced remove: $Dest"
       } else {
@@ -124,7 +124,7 @@ function Copy-AsideSkill {
       if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Recurse -Force }
       throw "failed to replace $Dest"
     }
-    Remove-Item -LiteralPath $bak -Recurse -Force
+    Remove-KitLinkOrItem $bak
   } else {
     Rename-Item -LiteralPath $tmp -NewName $name
   }

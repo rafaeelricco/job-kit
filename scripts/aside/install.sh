@@ -41,7 +41,8 @@ plan_row_aside() {
     return 0
   fi
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}"; then
+    if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}" \
+      || is_stale_kit_path "${dest}" "${name}"; then
       printf 'I%scopy (refresh)%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     else
       printf 'N%sforeign%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
@@ -85,7 +86,7 @@ install_aside() {
       echo "  Install Aside Browser and sign in first (expected under ~/.aside)." >&2
       exit 1
     fi
-    install_skills_into "${dest_root}" "${repo}" 0 || exit 1
+    install_skills_into "${dest_root}" "${repo}" "${FORCE}" || exit 1
     remove_legacy_user_skills "${repo}" "${dest_root}" "${SKILL_NAMES}" || exit 1
   )
 }

@@ -46,6 +46,10 @@ plan_row_agent() {
     printf 'N%sup to date%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     return 0
   fi
+  if is_stale_kit_path "${dest}" "${name}"; then
+    printf 'I%srelink%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+    return 0
+  fi
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     printf 'N%sforeign%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     return 0
@@ -98,7 +102,7 @@ install_agent_home() {
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
-      install_skills_into "${override}" "${repo}" 0 "${SKILL_NAMES}" || exit 1
+      install_skills_into "${override}" "${repo}" "${FORCE}" "${SKILL_NAMES}" || exit 1
       echo "Install completed -> ${override}"
       exit 0
     fi
@@ -112,7 +116,7 @@ install_agent_home() {
       fi
       attempted=$((attempted + 1))
       echo "== ${agent_label_s} (${dest_root}) =="
-      if install_skills_into "${dest_root}" "${repo}" 0 "${SKILL_NAMES}"; then
+      if install_skills_into "${dest_root}" "${repo}" "${FORCE}" "${SKILL_NAMES}"; then
         linked=$((linked + 1))
       else
         exit 1

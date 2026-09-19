@@ -298,7 +298,37 @@ class BrowserChannelTests(unittest.TestCase):
             result = f.run("aside/install")
             self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("foreign", result.stdout + result.stderr)
+            self.assertIn("rm -rf" if f.kind == "bash" else "Remove-Item", result.stdout)
             self.assertEqual((dest / "SKILL.md").read_text(encoding="utf-8"), "foreign")
+        self.each_shell(scenario)
+
+    def test_aside_stale_copy_refreshes(self):
+        def scenario(f):
+            dest = f.aside / "job-match"
+            dest.mkdir()
+            (dest / "SKILL.md").write_text("old", encoding="utf-8")
+            (dest / ".job-kit").write_text(str(f.root / "moved" / "skill" / "job-match") + "\n", encoding="utf-8")
+            self.success(f.run("aside/install"))
+            self.assertEqual(
+                _marker_skill_tail((dest / ".job-kit").read_text(encoding="utf-8").strip()),
+                _marker_skill_tail(str(f.kit / "skill" / "job-match")),
+            )
+        self.each_shell(scenario)
+
+    def test_agents_stale_link_relinks(self):
+        def scenario(f):
+            gone = f.root / "moved" / "skill" / "job-profile"
+            gone.mkdir(parents=True)
+            f.skills.mkdir(exist_ok=True)
+            dest = f.skills / "job-profile"
+            if os.name == "nt":
+                subprocess.run(["cmd", "/c", "mklink", "/J", str(dest), str(gone)],
+                               check=True, capture_output=True)
+            else:
+                dest.symlink_to(gone, target_is_directory=True)
+            shutil.rmtree(f.root / "moved")
+            self.success(f.run("agents/install"))
+            self.assertTrue((dest / "SKILL.md").is_file())
         self.each_shell(scenario)
 
     def test_install_router_aside(self):

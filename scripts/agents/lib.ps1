@@ -361,7 +361,11 @@ function Link-Skill {
   }
 
   if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
-    throw "foreign path blocks install: $Dest`n  remove it manually, then re-run"
+    if ($script:Force -ne 1 -and -not (Test-StaleKitPath $Dest $name)) {
+      throw "foreign path blocks install: $Dest`n  remove it manually, then re-run"
+    }
+    Remove-KitLinkOrItem $Dest
+    Write-Host "replaced: $Dest"
   }
 
   try {

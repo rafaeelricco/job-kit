@@ -61,6 +61,10 @@ plan_row_agent() {
     printf 'N%sup to date%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     return 0
   fi
+  if is_stale_kit_path "${dest}" "${name}"; then
+    printf 'I%srelink%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
+    return 0
+  fi
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
     printf 'N%sforeign%s%s\n' "${ROW_FS}" "${ROW_FS}" "${dest}"
     return 0
@@ -205,9 +209,6 @@ browser_use_connect_note() {
   echo "    bash \"${REPO_ROOT}/scripts/browser-use/chrome.sh\""
   echo "  Sign in there to the sites you use, and set in your agent's env:"
   echo "    BU_CDP_URL=http://127.0.0.1:9333"
-  echo "  Hermes desktop reads no shell env; set this in ~/.hermes/config.yaml:"
-  echo "    browser:"
-  echo "      cdp_url: http://127.0.0.1:9333"
   echo "  Or use your everyday Chrome: open chrome://inspect/#remote-debugging and"
   echo "  tick 'Allow remote debugging'."
   echo "  If that Chrome fails with 'Operation not permitted' on"
@@ -298,7 +299,7 @@ install_browser_home() {
     override="$(resolve_override_skills)" || exit 1
     if [ -n "${override}" ]; then
       echo "== override (${override}) =="
-      install_skills_into "${override}" "${repo}" 0 "${names}" || exit 1
+      install_skills_into "${override}" "${repo}" "${FORCE}" "${names}" || exit 1
       install_driver_into "${override}" || exit 1
       echo "Install completed -> ${override}"
       exit 0
@@ -313,7 +314,7 @@ install_browser_home() {
       fi
       attempted=$((attempted + 1))
       echo "== ${agent_label_s} (${dest_root}) =="
-      if install_skills_into "${dest_root}" "${repo}" 0 "${names}"; then
+      if install_skills_into "${dest_root}" "${repo}" "${FORCE}" "${names}"; then
         linked=$((linked + 1))
         install_driver_into "${dest_root}" || exit 1
       else
