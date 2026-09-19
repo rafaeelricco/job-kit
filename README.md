@@ -5,21 +5,25 @@
   </picture>
 </h1>
 
-Agent skills to find jobs, rank them against your profile, tailor your resume,
-submit applications, and track replies in Gmail. Runs in Claude Code, Codex,
-Grok, Hermes Agent, and [Aside Browser](https://aside.com).
+Job Kit AI helps you find your next opportunity with less friction. It runs
+inside your AI agent to find jobs, rank them against your profile, tailor
+your resume, submit applications, and track replies in Gmail.
 
-Your profile and application records live in a directory you control, separate
-from this repository. The [dashboard](https://r1cco.com/jobs/) opens the same
-job records in your browser.
+Runs in Claude Code, Codex, Grok, Hermes Agent, and
+[Aside Browser](https://aside.com).
+
+The [web platform](https://r1cco.com/jobs/) is only useful today to consume
+the created profile derived from `/job-profile-init`. When you open it,
+select the folder you chose to be the source of truth. You can then manage
+everything from the web app.
 
 ## Install
 
-Open your coding agent or Aside at least once so its home directory exists.
-Then run as your normal user:
+Open your terminal in any location. Then run this as your normal user
+to install for macOS, Linux or Git Bash:
 
 ```bash
-curl -fsSL https://r1cco.com/install.sh | bash   # macOS / Linux / Git Bash
+curl -fsSL https://r1cco.com/install.sh | bash
 ```
 
 On Windows PowerShell:
