@@ -166,8 +166,7 @@ const objectMap = <A>(decoder: Decoder<A>): Decoder<ObjectMap<A>> =>
     // object without a prototype or built-in functions.
     const result = Object.create(null) as ObjectMap<A>
     for (const field in input) {
-      // @ts-ignore
-      const decoded = decoder.run(input[field])
+      const decoded = decoder.run((input as Record<string, unknown>)[field])
       switch (true) {
         case decoded instanceof Success:
           result[field] = decoded.value
@@ -210,15 +209,14 @@ const triple = <A, B, C>(pA: Decoder<A>, pB: Decoder<B>, pC: Decoder<C>): Decode
     return pA.run(ia).chain((a) => pB.run(ib).chain((b) => pC.run(ic).chain((c) => Success([a, b, c]))))
   })
 
-const oneOf = <T extends Decoder<any>[]>(decoders: T): T[number] =>
+const oneOf = <T extends Decoder<unknown>[]>(decoders: T): T[number] =>
   new Decoder((input) => {
     type V = Infer<T[number]>
-    let decoded: DecodeResult<V> = failure("no decoders")
 
     const errors: Array<[Path, string]> = []
 
     for (const decoder of decoders) {
-      decoded = decoder.run(input)
+      const decoded = decoder.run(input) as DecodeResult<V>
       if (decoded instanceof Success) {
         return decoded
       }

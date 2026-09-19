@@ -552,7 +552,7 @@ const expect = {
   },
 }
 
-function stringify(v: any) {
+function stringify(v: unknown) {
   const str = JSON.stringify(v)
   if (str.startsWith("Object") || str.startsWith("[Function")) {
     throw new Error("Value is not meaningfully stringifiable")

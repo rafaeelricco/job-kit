@@ -1,6 +1,7 @@
 // Handle sorted-btree's inconsistent default export across ESM/CJS
 import sortedBtreeModule, { type default as BTreeType } from "sorted-btree"
-const BTree: typeof sortedBtreeModule = (sortedBtreeModule as any).default || sortedBtreeModule
+const BTree: typeof sortedBtreeModule =
+  (sortedBtreeModule as unknown as { default?: typeof sortedBtreeModule }).default || sortedBtreeModule
 
 import { type Maybe, Just, Nothing } from "./maybe"
 

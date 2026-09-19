@@ -175,13 +175,13 @@ class Ready<E, T> implements IRemoteData<E, T> {
   readonly isFailed = false
 }
 
-var CallableNotAsked = Callable(NotAsked) as typeof NotAsked & typeof NotAsked.new
+const CallableNotAsked = Callable(NotAsked) as typeof NotAsked & typeof NotAsked.new
 
-var CallableLoading = Callable(Loading) as typeof Loading & typeof Loading.new
+const CallableLoading = Callable(Loading) as typeof Loading & typeof Loading.new
 
-var CallableFailure = Callable(Failed) as typeof Failed & typeof Failed.new
+const CallableFailure = Callable(Failed) as typeof Failed & typeof Failed.new
 
-var CallableSuccess = Callable(Ready) as typeof Ready & typeof Ready.new
+const CallableSuccess = Callable(Ready) as typeof Ready & typeof Ready.new
 
 export {
   type RemoteData,

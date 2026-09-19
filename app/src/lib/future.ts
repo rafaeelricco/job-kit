@@ -89,7 +89,7 @@ class Future<E, T> {
    *   .fork(handleError, ({ user, posts }) => render(user, posts));
    * ```
    */
-  static concurrently<E, C extends { [k: string]: any }>(obj: Fut<E, C>): Future<E, C> {
+  static concurrently<E, C extends { [k: string]: unknown }>(obj: Fut<E, C>): Future<E, C> {
     const futures: Future<E, Record<string, unknown>>[] = []
 
     Object.keys(obj).forEach(<K extends string & keyof C>(key: K) => {

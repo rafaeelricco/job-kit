@@ -169,6 +169,7 @@ const oneOf = <V>(f: (v: V) => Schema<V>, ss: Array<Schema<V>>): Schema<V> =>
     encoder.oneOf((v) => f(v).encoder)
   )
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- `Variant<unknown>` rejects every concrete variant because `Encoder` is contravariant in its type parameter
 const discriminatedUnion = <const Variants extends readonly Variant<any>[]>(
   vars: Variants
 ): Schema<Infer<Variants[number]["schema"]>> => {
@@ -196,7 +197,7 @@ const matches = (pattern: Record<string, string>, val: unknown): boolean => {
     if (!(key in val)) {
       return false
     }
-    if (pattern[key] != undefined && pattern[key] !== (val as any)[key]) {
+    if (pattern[key] != undefined && pattern[key] !== (val as Record<string, unknown>)[key]) {
       return false
     }
   }
