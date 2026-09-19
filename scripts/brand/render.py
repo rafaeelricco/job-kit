@@ -6,7 +6,8 @@ the SVG and re-run this, never hand-edit a PNG.
 
 This machine has no rsvg-convert, inkscape or imagemagick, so the rasterizer is
 headless Chrome: it is the one SVG renderer present on macOS that honours the
-gradient in the mascot's face and preserves alpha.
+gradient in the mascot's face and preserves alpha. Chrome also does the
+supersampled downscale for the small icons, so nothing else is required.
 
     python3 scripts/brand/render.py            # write the PNGs
     python3 scripts/brand/render.py --check    # verify sizes/alpha, write nothing
@@ -78,23 +79,45 @@ def render(
     maskable icon can sit inside the launcher safe zone.
 
     Small icons are supersampled: Chrome's direct 16px raster turns the mascot
-    into a blob, while rendering at 8x and letting sips box-filter down keeps
-    the hair mass, glasses and mouth readable.
+    into a blob, so the page draws the SVG at 8x on a canvas and halves it down
+    step by step, which keeps the hair mass, glasses and mouth readable. The
+    downsample happens inside Chrome, so no platform resize tool is needed.
     """
     scale = 8 if max(width, height) <= 64 else 1
     bg = background or "transparent"
     art_w = round(width * scale * artwork)
     art_h = round(height * scale * artwork)
+    downsample = ""
+    if scale != 1:
+        # Draw the 8x image on a canvas and halve it until it fits; each halving
+        # averages 2x2 pixels, which is what keeps small sizes legible.
+        downsample = (
+            "<script>"
+            "const img=document.querySelector('img');"
+            "img.decode().then(()=>{"
+            f"let w={width * scale},h={height * scale};"
+            "let src=document.createElement('canvas');src.width=w;src.height=h;"
+            "src.getContext('2d').drawImage("
+            f"img,{(width * scale - art_w) // 2},{(height * scale - art_h) // 2},{art_w},{art_h});"
+            f"while(w>{width}){{"
+            "const half=document.createElement('canvas');half.width=w/2;half.height=h/2;"
+            "const ctx=half.getContext('2d');ctx.imageSmoothingQuality='high';"
+            "ctx.drawImage(src,0,0,w/2,h/2);src=half;w/=2;h/=2;}"
+            "img.replaceWith(src);"
+            "});"
+            "</script>"
+        )
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "page.html"
         page.write_text(
             "<html><head><style>"
             f"html,body{{margin:0;padding:0;background:{bg}}}"
             f"body{{display:flex;align-items:center;justify-content:center;"
-            f"width:{width * scale}px;height:{height * scale}px}}"
+            f"width:{width}px;height:{height}px}}"
+            f"canvas{{display:block;width:{width}px;height:{height}px}}"
             f"img{{display:block;width:{art_w}px;height:{art_h}px}}"
             "</style></head>"
-            f'<body><img src="{svg.as_uri()}"></body></html>'
+            f'<body><img src="{svg.as_uri()}"></body>{downsample}</html>'
         )
         subprocess.run(
             [
@@ -104,18 +127,11 @@ def render(
                 "--hide-scrollbars",
                 "--default-background-color=00000000",
                 "--force-device-scale-factor=1",
+                "--virtual-time-budget=5000",
                 f"--screenshot={out}",
-                f"--window-size={width * scale},{height * scale}",
+                f"--window-size={width},{height}",
                 page.as_uri(),
             ],
-            check=True,
-            capture_output=True,
-        )
-
-    if scale != 1:
-        # sips box-filters on the way down, which is what keeps small sizes legible.
-        subprocess.run(
-            ["sips", "-z", str(height), str(width), str(out), "--out", str(out)],
             check=True,
             capture_output=True,
         )
