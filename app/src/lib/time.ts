@@ -63,7 +63,13 @@ class POSIX {
   static fromLocalDateAndTime(date: DateOnly, time: TimeOfDay, timezone: Timezone): Maybe<POSIX> {
     const s = `${date.pretty()}T${time.pretty()}`
     const luxonDate = DateTime.fromISO(s, { zone: timezone })
-    return luxonDate.isValid ? Just(new POSIX(luxonDate.toMillis())) : Nothing()
+    // Luxon shifts a time inside a DST gap forward and stays valid, so compare
+    // the civil components against the same string parsed in gap-free UTC.
+    const civil = "yyyy-MM-dd HH:mm:ss.SSS"
+    const requested = DateTime.fromISO(s, { zone: "UTC" })
+    return luxonDate.isValid && luxonDate.toFormat(civil) === requested.toFormat(civil)
+      ? Just(new POSIX(luxonDate.toMillis()))
+      : Nothing()
   }
 
   toUTCDateAndTime(): { date: DateOnly; time: TimeOfDay } {
