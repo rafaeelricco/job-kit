@@ -82,22 +82,13 @@ other surface reads from there.
   invoiceGroup: { id: string; name: string } | null;
   // schema form: s.optionalDefault(null, s.nullable(s.object({ id: s.string, name: s.string })))
   ```
-- Use **exhaustive `switch`** with a `never` default on discriminated unions, or **`match` from [ts-pattern](https://github.com/gvergnaud/ts-pattern)**. Both force handling new variants at compile time.
+- Use **exhaustive `switch`** with a `never` default on discriminated unions. It forces handling new variants at compile time.
 
   ```ts
-  // switch with never default
   default: {
     const _exhaustiveCheck: never = config;
     throw new Error(`Unknown: ${JSON.stringify(_exhaustiveCheck)}`);
   }
-
-  // ts-pattern
-  import { match } from "ts-pattern";
-  const result = match(state)
-    .with({ status: "loading" }, () => "Loading...")
-    .with({ status: "error" }, ({ error }) => error.message)
-    .with({ status: "success" }, ({ data }) => data.id)
-    .exhaustive();
   ```
 
 - Don't use **empty objects** (e.g. `ConversationId.empty()`) to represent absence. Use `Maybe<T>` with `Nothing()` instead.
@@ -154,9 +145,9 @@ other surface reads from there.
 
 - Model rich content (LLM outputs, conversation events) with `s.discriminatedUnion` + `s.variant`. Don't use giant bags of optional properties.
   ```ts
-  const schema_AgentExecutionTrace = s.discriminatedUnion([
+  const AgentExecutionTrace = s.discriminatedUnion([
     s.variant({ type: "text", text: s.string }),
-    s.variant({ type: "tool_call", name: s.string, input: s.json, result: schema_Result(schema_Error, s.json) }),
+    s.variant({ type: "tool_call", name: s.string, input: s.json, result: s.result(s.string, s.json) }),
     s.variant({ type: "error", message: s.string, code: s.optional(s.string) }),
   ])
   ```
@@ -232,7 +223,7 @@ Use `Result<E, T>` for fallible operations. Return `Failure(error)` instead of t
   parseJson(input).chain(validate).chain(transform)
   ```
 - Use `.map(fn)` for pure transforms on `Success`, `.mapFailure(fn)` to transform error types.
-- Don't mix `Result` with `try/catch`. Don't use `.unwrap()` outside boundaries — it throws on `Failure`.
+- Don't wrap `Result`-returning code in `try/catch` — it doesn't throw; fold it with `.either`. `try/catch` belongs only at the platform boundaries named above, where it produces the `Result`. Don't use `.unwrap(toMessage)` outside boundaries — it throws on `Failure`.
 - `traverse` works with `List`, `traverse_` works with `Array`. Both short-circuit on first `Failure`.
 
 ---
@@ -319,7 +310,7 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
   ```
 - **`TreeMap.new()` and `TreeSet.new()` return the mutable variants.** `.set()`, `.remove()`, `.setEntries()`, `.insert()` modify the receiver. Don't share one across state snapshots — an update mutates every snapshot holding it. For persistent, structurally shared values use `ImmutableTreeMap` / `ImmutableTreeSet`: every update returns a new collection and the receiver is untouched.
 - `.get(key)` returns `Maybe<T>` — always handle `Nothing`.
-- **`.union()`, `.unionWith(other, mergeFn)`, `.difference(other)` and `.intersectionWith(other, fn)` never mutate the receiver**, on either variant — they clone and return the merged collection. `set.union(other)` as a statement discards the result; always assign it.
+- **Set operations never mutate the receiver**, on either variant — they clone and return the merged collection. `TreeMap` has `.unionWith(other, mergeFn)`, `.difference(other)` and `.intersectionWith(other, fn)`; `TreeSet` has `.union(other)`, `.difference(other)` and `.intersection(other)`. `set.union(other)` as a statement discards the result; always assign it.
 - Comparator must return `-1 | 0 | 1`. Boolean won't work.
 - `TreeMap` is sorted by comparator, not insertion order.
 - Use `TreeSet.from(set)` to clone a mutable set before mutating it.
@@ -396,21 +387,22 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 Numbers in a table are read by scanning down a column and comparing them. Ragged decimals and left edges defeat that: a column where `8` sits above `12.5` above `4` forces the reader to align the digits themselves, and two columns that round differently are read as a discrepancy rather than as a formatting choice. Format and align every figure the same way so the column does that work.
 
-- **Format every count the same way.** Counts render with `toLocaleString()` and nothing else — no `toFixed`, no template literals, no local `Intl.NumberFormat`. A second formatter is a second rounding rule. The dossier score is an integer from scout and renders as `String(score.value)`; don't add decimals it never had.
+- **Format every count the same way.** Counts render with `toLocaleString()` and nothing else — no `toFixed`, no template literals, no local `Intl.NumberFormat`. A second formatter is a second rounding rule. The dossier score is an integer from scout and renders as-is (`{score.value}`); don't add decimals it never had.
 
-- **Right-align numeric quantities** with `align: "right"` on the `ColumnDef` (`src/components/ui/datatable.tsx`), and pair it with `tabular-nums` on the cell so digits sit in fixed-width columns.
+- **Right-align numeric quantities** with `align: "right"` on the `ColumnDef` (`src/components/ui/datatable.tsx`), and pair it with `tabular-nums` on the cell so digits sit in fixed-width columns. No dossier column is a plain figure today — the score renders as a badge, so it falls under the exemption below — and the live example is the factor-points cell in `src/module/scout/components/dossier.tsx` (`text-right tabular-nums`). A new figure column takes this shape:
 
   ```tsx
-  score: new ColumnDef({ label: LABELS.score, sortFun: byScore, align: "right" }),
+  // illustrative — `applications` is not a column yet
+  applications: new ColumnDef({ label: LABELS.applications, sortFun: byApplications, align: "right" }),
   // contents:
-  score: <span className="tabular-nums">{String(dossier.score.value)}</span>,
+  applications: <span className="tabular-nums">{dossier.applications.toLocaleString()}</span>,
   ```
 
 - **Identifiers that happen to be digits stay left-aligned** — posting ids, ZIPs, phone numbers. They are labels, not measures; nobody sums them, and right-aligning them makes a column of unrelated strings look like a total. Right-align only what could sensibly be added up: scores, counts, sizes, durations.
 
 - **Sort on the underlying value, never the formatted string.** `sortFun` reads the typed row value (`byScore` compares `score.value`, not the rendered text), so `"10"` doesn't sort before `"9"`.
 
-- **Distinguish "no value" from a real zero.** A factor scout scored `unknown` renders as `no signal` (see `factText` in `src/module/scout/components/dossier.tsx`), and an absent figure elsewhere renders as an em dash (`—`), never `0` — a posting with no salary reads differently from one that pays nothing.
+- **Distinguish "no value" from a real zero.** A factor scout scored `unknown` renders as `no signal` (the factor-points cell in `src/module/scout/components/dossier.tsx`), and an absent figure elsewhere renders as an em dash (`—`) through `factText` in `src/module/scout/types.ts`, never `0` — a posting with no salary reads differently from one that pays nothing.
 
 - **Drop unit suffixes that the header already carries.** A count column titled "Applications" renders `12`, not `12 applications` — and a suffix whose length varies with the value (`1 application` / `12 applications`) puts the digits back out of line, defeating the alignment it sits in.
 

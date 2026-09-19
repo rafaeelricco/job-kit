@@ -1,5 +1,8 @@
 <h1 align="center">
-  <img src="https://r1cco.com/jobs/job-kit-logo.png" alt="Job Kit" width="480">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="app/public/brand/lockup-horizontal-dark.svg">
+    <img src="app/public/brand/lockup-horizontal.svg" alt="Job Kit AI — your job search, made simpler" width="700">
+  </picture>
 </h1>
 
 Agent skills to find jobs, rank them against your profile, tailor your resume,
@@ -28,8 +31,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1
 
 The installer detects available targets. Windows and macOS support Aside,
 coding agents, and browser-use; Linux supports coding agents and browser-use.
-To select a channel or
-preview changes:
+To select a channel or preview changes:
 
 ```bash
 curl -fsSL https://r1cco.com/install.sh | bash -s -- agents
@@ -37,63 +39,12 @@ curl -fsSL https://r1cco.com/install.sh | bash -s -- all --dry-run
 ```
 
 Channels are `all` (default), `agents`, `browser-use`, and `aside`.
-The `aside` channel installs on Windows and macOS; `all` skips it when Aside
-is not set up.
-The `browser-use` channel links `job-scout`, `job-apply`, `job-prep`,
-`captcha-solver`, and their shared dependencies.
-Browser tasks in coding agents need the local `browser-use` CLI, its driver
-skill, and a Chromium-family browser. Follow the installer's setup guidance.
-On macOS, agents running in a sandboxed app such as the Claude desktop app
-cannot read the debug port file of your everyday Chrome. Start a dedicated
-automation Chrome with
-`bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/browser-use/chrome.sh"`,
-sign in there to the sites you use, and set
-`BU_CDP_URL=http://127.0.0.1:9333` in your agent's environment — or, for the
-Hermes desktop app, which reads no shell environment, add this to
-`~/.hermes/config.yaml`:
 
-```yaml
-browser:
-  cdp_url: http://127.0.0.1:9333
-```
-
-Otherwise, enable remote debugging at `chrome://inspect/#remote-debugging` in
-your everyday Chrome. If that Chrome instead fails with `Operation not
-permitted` on `DevToolsActivePort`, macOS TCC is blocking the profile
-directory; `mac-approve` cannot clear it, so use the dedicated Chrome.
-
-Re-run the install command to install the latest published release. The installer
-prints the installed version and verifies the release archive's SHA-256 checksum
-before replacing the installed package. Installation downloads skills, templates,
-and helper scripts without cloning the repository. The package lives at
+Re-run the install command to update. The package lives at
 `${XDG_DATA_HOME:-$HOME/.local/share}/job-kit` by default
-(`%USERPROFILE%\.local\share\job-kit` on Windows). Keep this directory: installed
-skills depend on it. Installation and updates leave your profile untouched.
-`--dry-run` previews skill changes but still refreshes the package.
-
-To install a specific published version:
-
-```bash
-curl -fsSL https://r1cco.com/install.sh | JOB_KIT_VERSION=v1.0.0 bash
-```
-
-```powershell
-$env:JOB_KIT_VERSION = 'v1.0.0'
-powershell -ExecutionPolicy Bypass -File install.ps1
-Remove-Item Env:JOB_KIT_VERSION
-```
-
-`JOB_KIT_VERSION` defaults to `latest`. `JOB_KIT_HOME` overrides the installed
-directory and `JOB_KIT_SLUG` selects a GitHub repository with compatible release
-assets. The old `JOB_KIT_REF` selector is rejected when downloading; use a local
-development checkout for unreleased changes.
-
-When migrating an existing checkout or source archive, the installer keeps the
-old directory, including local edits and untracked files, in a sibling
-`job-kit.backup-*` directory and prints its path. Review and remove that backup
-when you no longer need it; uninstall leaves it in place. Git worktrees and
-submodules require manual relocation before migration. Existing cache symlinks
-and junctions continue pointing at the same installed directory.
+(`%USERPROFILE%\.local\share\job-kit` on Windows). Keep this directory:
+installed skills depend on it. Installation and updates leave your profile
+untouched.
 
 ## Getting started
 
@@ -180,50 +131,17 @@ On Windows, use `powershell -ExecutionPolicy Bypass -File scripts\install.ps1`.
 Coding-agent installs link to the checkout, so edits take effect there.
 Re-run the installer to refresh Aside copies.
 
-| Path                   | Contents                                            |
-| ---------------------- | --------------------------------------------------- |
-| [`skill/`](skill/)     | Skills, workflow references, and profile templates. |
-| [`scripts/`](scripts/) | Installers, uninstallers, and test runner.          |
-| [`tests/`](tests/)     | Repository checks.                                  |
-| [`app/`](app/)         | Job dashboard.                                      |
-
-## Releases
-
-Merge a PR into `main` to start a release. Every merged PR, including documentation
-changes, runs the full test suite and native installer checks on Linux, macOS,
-and Windows before publication. Direct pushes and tag pushes do not publish
-releases.
-
-Versions increment automatically: patch by default, `release:minor` for a minor
-bump, and `release:major` for a major bump. Major wins when both labels are present.
-Create these optional repository labels before using them. When no stable tags
-exist, the first automatic release is `v1.0.0`.
-
-After verification, CI tags the tested commit, creates a draft GitHub Release,
-uploads the runtime TAR and ZIP archives, `VERSION`, and `SHA256SUMS`, then
-publishes it with generated release notes. Published assets are never overwritten.
-A failed upload leaves a draft that can be recovered by rerunning the workflow.
-
-A failed release blocks later release runs. Rerun the failed workflow after
-repairing the problem, then rerun blocked workflows in ascending run-number order.
-Reruns retain their original commit and reuse any reserved release version.
-
-If an old commit cannot be released, explicitly abandon it by setting the
-repository Actions variable `RELEASE_SKIP_THROUGH_RUN` to its Release workflow run
-number, not its run ID. This skips that run and all earlier runs; it does not
-publish them or bypass tests for subsequent releases. Existing tags and drafts
-are not deleted.
-
-To inspect a package locally:
+To develop the dashboard, install Node.js and pnpm, then run from the repository root:
 
 ```bash
-python3 scripts/package_release.py --version v1.0.0 --output /tmp/job-kit-release
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Both archives contain the same `job-kit/` tree. Packaging requires Python 3 and
-Git; downloading and installing a release does not. Skill helpers keep their
-existing runtime requirements.
+Check dashboard changes with:
 
-## License
-
-MIT
+```bash
+pnpm --dir app typecheck
+pnpm --dir app lint
+pnpm --dir app build
+```
