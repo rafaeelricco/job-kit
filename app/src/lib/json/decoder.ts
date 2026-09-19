@@ -98,9 +98,11 @@ const number: Decoder<number> = new Decoder((v) =>
   typeof v === "number" ? Success(v) : failure("expected number but found " + typeof v)
 )
 
+/** A number serialized as a string, e.g. `"12.5"`. The whole string must be numeric. */
 const stringNumber: Decoder<number> = string.chain((s) => {
-  const v = parseInt(s, 10)
-  return isNaN(v) ? fail("not a valid number: " + s) : succeed(v)
+  // `Number("")` is 0, so guard blank input explicitly.
+  const v = s.trim() === "" ? NaN : Number(s)
+  return Number.isFinite(v) ? succeed(v) : fail("not a valid number: " + s)
 })
 
 const boolean: Decoder<boolean> = new Decoder((v) =>
