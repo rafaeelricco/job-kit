@@ -78,9 +78,20 @@ function AppSidebar() {
       {/* Icon mode leaves a 3rem rail; 12px of padding would squash the mark. */}
       <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <img src={`${import.meta.env.BASE_URL}job-kit-mark.png`} alt="" className="size-7 shrink-0 object-contain" />
+          <img
+            src={`${import.meta.env.BASE_URL}brand/mascot-mark.svg`}
+            alt=""
+            className="size-7 shrink-0 object-contain dark:hidden"
+          />
+          {/* Ink #1d1d1d is 1.00:1 on the dark card; the dark mark carries a
+              light keyline so the hair silhouette survives on black. */}
+          <img
+            src={`${import.meta.env.BASE_URL}brand/mascot-mark-dark.svg`}
+            alt=""
+            className="hidden size-7 shrink-0 object-contain dark:block"
+          />
           <span className="truncate font-logo text-sm font-bold tracking-wide uppercase group-data-[collapsible=icon]:hidden">
-            Job Kit
+            Job Kit AI
           </span>
           <SidebarTrigger className="ml-auto group-data-[collapsible=icon]:hidden" />
         </div>
