@@ -552,12 +552,10 @@ const expect = {
   },
 }
 
-function stringify(v: unknown) {
+function stringify(v: unknown): string {
   const str = JSON.stringify(v)
-  if (str.startsWith("Object") || str.startsWith("[Function")) {
-    throw new Error("Value is not meaningfully stringifiable")
-  }
-  return str
+  // `JSON.stringify` yields `undefined` for `undefined`, functions and symbols.
+  return str === undefined ? "undefined" : str
 }
 
 function extractPattern(input: string): { pattern: string; flags: string } {
