@@ -71,7 +71,7 @@ class POSIX {
     const time = TimeOfDay.fromParts({
       hours: dt.hour,
       minutes: dt.minute,
-      seconds: dt.second,
+      seconds: dt.second + dt.millisecond / 1000,
     })
     return { date, time }
   }
@@ -82,7 +82,7 @@ class POSIX {
     const time = TimeOfDay.fromParts({
       hours: dt.hour,
       minutes: dt.minute,
-      seconds: dt.second,
+      seconds: dt.second + dt.millisecond / 1000,
     })
     return { date, time }
   }
@@ -196,11 +196,14 @@ class TimeOfDay {
     return new TimeOfDay(hours * 60 * 60 + minutes * 60 + seconds)
   }
 
+  /** `HH:mm:ss`, with a `.SSS` millisecond suffix only when the time carries a fraction. */
   pretty() {
     const hours = padded(Math.floor(this.seconds / (60 * 60)))
     const minutes = padded(Math.floor(this.seconds / 60) % 60)
     const wholeSeconds = padded(Math.floor(this.seconds) % 60)
-    return `${hours}:${minutes}:${wholeSeconds}`
+    const millis = Math.round(this.getSubSecondPrecision() * 1000)
+    const fraction = millis > 0 ? `.${String(millis).padStart(3, "0")}` : ""
+    return `${hours}:${minutes}:${wholeSeconds}${fraction}`
   }
 
   getSubSecondPrecision(): number {
