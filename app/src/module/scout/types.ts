@@ -38,7 +38,7 @@ export {
   type Writer,
 }
 
-import type { Result } from "./result"
+import type { Result } from "@module/scout/result"
 
 /* -- closed vocabularies, each with a total guard ------------------------- */
 
