@@ -83,11 +83,11 @@ class Loading<E, T> implements IRemoteData<E, T> {
 
   /** Transform only if `Ready`; `Loading`/`Failed`/`NotAsked` pass through unchanged. */
   map<W>(_: (t: T) => W): RemoteData<E, W> {
-    return new Loading()
+    return new Loading<E, W>(this)
   }
   /** Chain a `RemoteData`-returning fn without double-wrapping. */
   chain<W>(_: (t: T) => RemoteData<E, W>) {
-    return new Loading<E, W>()
+    return new Loading<E, W>(this)
   }
   /** Return `f(error)` on `Failed`, otherwise return `def`. */
   unwrapFailure<W>(def: W, _: (e: E) => W): W {
