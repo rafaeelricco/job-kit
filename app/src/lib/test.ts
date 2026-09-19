@@ -577,7 +577,9 @@ const regex: ValueParser<"sync", RegExp> = {
   parse(input: string): ValueParserResult<RegExp> {
     try {
       const { pattern, flags } = extractPattern(input)
-      return { success: true, value: new RegExp(pattern, flags) }
+      // `g` and `y` make `RegExp.test` stateful via `lastIndex`, which would
+      // skip alternate matches; a filter only needs a stateless match.
+      return { success: true, value: new RegExp(pattern, flags.replace(/[gy]/g, "")) }
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err)
       return {
