@@ -131,8 +131,8 @@ type DecoderDef<A> = {
 /** Ignores extra properties. */
 const object = <A>(decoders: DecoderDef<A>): Decoder<A> =>
   new Decoder((input) => {
-    if (typeof input !== "object" || input === null) {
-      return failure("expected object but found " + typeof input)
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      return failure("expected object but found " + (Array.isArray(input) ? "array" : typeof input))
     }
     const obj = input as { [P in keyof A]: unknown }
 
@@ -167,8 +167,8 @@ type ObjectMap<A> = { [x: string]: A }
 
 const objectMap = <A>(decoder: Decoder<A>): Decoder<ObjectMap<A>> =>
   new Decoder((input) => {
-    if (typeof input !== "object" || input === null) {
-      return failure("expected object but found " + typeof input)
+    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+      return failure("expected object but found " + (Array.isArray(input) ? "array" : typeof input))
     }
 
     // object without a prototype or built-in functions.
