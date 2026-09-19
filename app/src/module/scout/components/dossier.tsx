@@ -35,6 +35,7 @@ import {
 } from "@ui/dropdown-menu"
 import { HoldButton } from "@ui/hold-button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@ui/sheet"
+import { ScrollArea } from "@ui/scroll-area"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@ui/table"
 import { toApplyPrompt } from "@module/scout/helpers/apply-prompt"
 import { type ColumnId } from "@module/scout/helpers/columns"
@@ -526,7 +527,7 @@ function DossierSheet(props: DossierSheetProps) {
       <SheetContent className="gap-0 p-0 data-[side=right]:sm:max-w-xl">
         {dossier !== null && (
           <>
-            <SheetHeader className="gap-1 border-b border-border px-4 py-4 pr-12">
+            <SheetHeader className="shrink-0 gap-1 border-b border-border px-4 py-4 pr-12">
               <SheetTitle>{dossier.company}</SheetTitle>
               <SheetDescription>{dossier.title}</SheetDescription>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 pt-1.5 text-xs text-muted-foreground">
@@ -561,7 +562,7 @@ function DossierSheet(props: DossierSheetProps) {
               <HeaderChips dossier={dossier} />
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto">
+            <ScrollArea className="min-h-0 min-w-0 flex-1">
               {dossier.posting.kind === "dead" && (
                 <div className="px-4 pt-4">
                   <Alert variant="destructive">
@@ -725,7 +726,7 @@ function DossierSheet(props: DossierSheetProps) {
                   </p>
                 )}
               </Fold>
-            </div>
+            </ScrollArea>
           </>
         )}
       </SheetContent>

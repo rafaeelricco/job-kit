@@ -4,6 +4,7 @@ import { type CSSProperties } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { AppSidebar } from "@components/ui/app-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@ui/sidebar"
+import { ScrollArea } from "@ui/scroll-area"
 import { SettingsDialog } from "@module/profile/components/settings-dialog"
 
 function AppLayout() {
@@ -44,15 +45,17 @@ function AppLayout() {
   }
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": "16rem" } as CSSProperties}>
+    <SidebarProvider className="h-dvh min-h-0 overflow-hidden" style={{ "--sidebar-width": "16rem" } as CSSProperties}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-h-0 min-w-0">
         {/* Below md the sidebar is a sheet, so its own trigger goes with it.
             Without this bar there is no way back to navigation on a phone. */}
-        <header className="flex h-12 shrink-0 items-center px-3 md:hidden">
-          <SidebarTrigger />
-        </header>
-        <Outlet />
+        <ScrollArea className="min-h-0 min-w-0 flex-1" contentProps={{ className: "flex min-h-full flex-col" }}>
+          <header className="flex h-12 shrink-0 items-center px-3 md:hidden">
+            <SidebarTrigger />
+          </header>
+          <Outlet />
+        </ScrollArea>
       </SidebarInset>
       <SettingsDialog open={settingsOpen} panel={panel} onPanelChange={selectPanel} onOpenChange={closeSettings} />
     </SidebarProvider>

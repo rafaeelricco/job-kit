@@ -39,6 +39,7 @@ import { Input } from "@ui/input"
 import { Separator } from "@ui/separator"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@ui/sheet"
 import { Skeleton } from "@ui/skeleton"
+import { ScrollArea } from "@ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
@@ -371,13 +372,12 @@ function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof S
 
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <ScrollArea
       data-slot="sidebar-content"
       data-sidebar="content"
-      className={cn(
-        "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        className
-      )}
+      className="min-h-0 min-w-0 flex-1 group-data-[collapsible=icon]:[&>[data-slot=scroll-area-scrollbar]]:hidden"
+      viewportProps={{ className: "group-data-[collapsible=icon]:overflow-hidden!" }}
+      contentProps={{ className: cn("flex flex-col gap-0", className) }}
       {...props}
     />
   )

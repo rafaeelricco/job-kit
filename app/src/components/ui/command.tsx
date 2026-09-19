@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@ui/dialog"
 import { InputGroup, InputGroupAddon } from "@ui/input-group"
+import { ScrollArea } from "@ui/scroll-area"
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {
   return (
@@ -79,13 +80,21 @@ function CommandInput({ className, ...props }: React.ComponentProps<typeof Comma
   )
 }
 
-function CommandList({ className, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
+function CommandList({ className, children, ...props }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
-    <CommandPrimitive.List
-      data-slot="command-list"
-      className={cn("no-scrollbar max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none", className)}
-      {...props}
-    />
+    <ScrollArea
+      className="min-h-0"
+      viewportProps={{
+        tabIndex: -1,
+        className: cn(
+          "h-auto max-h-[min(18rem,calc(var(--available-height,100dvh)-0.5rem))] scroll-py-1 outline-none",
+          className
+        ),
+      }}
+      contentProps={{ render: <CommandPrimitive.List data-slot="command-list" {...props} /> }}
+    >
+      {children}
+    </ScrollArea>
   )
 }
 
