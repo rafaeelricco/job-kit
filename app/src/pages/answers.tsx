@@ -3,15 +3,14 @@ export default AnswersPage
 import { LibraryIcon, Search01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMemo, useState } from "react"
-
 import { comparator } from "@ui/datatable"
-import type { SortState } from "@ui/datatable"
+import { type SortState } from "@ui/datatable"
 import { Input } from "@ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@ui/tabs"
 import { AnswerTable } from "@module/profile/components/answer"
 import { ProfileGate } from "@module/profile/components/profile-gate"
 import { ANSWER_COLUMNS, DEFAULT_ANSWER_SORT } from "@module/profile/helpers/columns"
-import type { Answer } from "@module/profile/types"
+import { type Answer } from "@module/profile/types"
 import { assertNever } from "@module/scout/result"
 
 const SEGMENTS = ["all", "answered", "unanswered"] as const
