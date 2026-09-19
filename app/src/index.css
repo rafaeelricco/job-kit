@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
 @import "shadcn/tailwind.css";
+
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/space-grotesk";
 @import "@fontsource/space-mono/400.css";
@@ -9,7 +11,6 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Type. Inter carries the UI, Space Mono every identifier, Space Grotesk the wordmark. */
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-sans);
   --font-display: var(--font-sans);
@@ -17,8 +18,6 @@
   --font-mono: "Space Mono", ui-monospace, "SFMono-Regular", monospace;
   --font-logo: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
 
-  /* Square by default. --radius is the one knob; --radius-xs is named so
-     `rounded-xs` stops falling back to Tailwind's built-in 0.125rem. */
   --radius-xs: var(--radius);
   --radius-sm: var(--radius);
   --radius-md: var(--radius);
@@ -90,26 +89,15 @@
   --color-primary-hover: var(--primary-hover);
   --color-secondary-hover: var(--secondary-hover);
   --color-destructive-hover: var(--destructive-hover);
-
-  /* The console's selected-segment pair. Declared in :root since the retheme
-     but never exposed here, so every `*-accent-blue-*` class compiled to
-     nothing — the active Appearance button had no highlight. */
   --color-accent-blue: var(--accent-blue);
   --color-accent-blue-soft: var(--accent-blue-soft);
   --color-accent-blue-strong: var(--accent-blue-strong);
-
-  /* Ink for text on --success-surface. --success itself is 2.6:1 there in
-     light, under the 4.5:1 floor, so the ink inverts per theme the way
-     --accent-blue-strong does. */
   --color-success-strong: var(--success-strong);
-
-  /* Kept so existing call sites keep compiling; both now resolve to system hues. */
   --color-brand: var(--brand);
   --color-ok: var(--ok);
 }
 
 :root {
-  /* --- Primitive palette (identical in both themes) --- */
   --black-700: #1d1d1d;
   --black-800: #141414;
   --black-900: #171717;
@@ -155,8 +143,6 @@
   --yellow-300: #f5e38e;
   --yellow-500: #e4c64c;
   --yellow-700: #9a8930;
-
-  /* --- Semantic, theme-independent --- */
   --accent-blue: #7aa2f7;
   --chart-1: #7aa2f7;
   --chart-2: #9ece6a;
@@ -183,8 +169,6 @@
   --warning: #e4c64c;
   --warning-outline: color-mix(in srgb, #e3a241 33%, transparent);
   --warning-surface: color-mix(in srgb, #e3a241 10%, #f9f7dd);
-
-  /* --- Semantic, light --- */
   --accent: #fafafa;
   --accent-blue-soft: color-mix(in srgb, #7aa2f7 14%, transparent);
   --accent-blue-strong: #394a66;
@@ -252,11 +236,7 @@
   --success-text-on-accent: #fff;
   --surface: #fff;
   --tip-surface: #fffbeb;
-
-  /* Square corners everywhere; `rounded-full` is untouched and stays round. */
   --radius: 0px;
-
-  /* Legacy aliases. --brand was #0077e7, --ok a green; both now point at the system palette. */
   --brand: var(--chart-1);
   --ok: var(--success);
 }
@@ -343,15 +323,12 @@
   html {
     @apply font-sans;
   }
-  /* An identifier chip, as on the console: the one 4px radius in the system,
-     small enough to read as a token rather than a rounded box. */
   code {
     @apply bg-inset px-1.5 py-0.5 font-mono text-[11px] text-ink-body;
     border-radius: 4px;
   }
 }
 
-/* Used by ui/command.tsx and ui/sidebar.tsx to hide overflow scrollbars. */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
