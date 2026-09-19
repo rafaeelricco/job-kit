@@ -554,7 +554,7 @@ const expect = {
   },
 }
 
-function stringify(v: unknown): string {
+function stringify<T>(v: T): string {
   const str = JSON.stringify(v)
   // `JSON.stringify` yields `undefined` for `undefined`, functions and symbols.
   return str === undefined ? "undefined" : str

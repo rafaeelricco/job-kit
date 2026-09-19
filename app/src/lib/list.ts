@@ -140,11 +140,8 @@ class List<T> {
   }
 
   *[Symbol.iterator](): IterableIterator<T> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias -- the walk rebinds `list` to each tail; `this` stays the head
-    let list: List<T> = this
-    while ("head" in list.value) {
-      yield list.value.head
-      list = list.value.tail
+    for (let node = this.value; "head" in node; node = node.tail.value) {
+      yield node.head
     }
   }
 }

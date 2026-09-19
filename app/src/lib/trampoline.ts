@@ -9,25 +9,22 @@ export { type Trampoline, tailRecursive, end, fix }
 type Trampoline<A> = End<A> | Rec<A> | Bind<A>
 
 /**
- * Evaluate a trampoline iteratively. Pending `Bind` continuations live on an
- * explicit stack rather than the JS call stack, so mapping over a deeply
- * recursive result stays stack-safe.
+ * Evaluate a trampoline in constant stack space.
+ *
+ * Every iteration performs one step: force a `Rec`, apply a continuation to
+ * a finished `End`, or re-associate a left-nested `Bind` into a right-nested
+ * one. No step recurses into `run`, so depth never reaches the JS stack.
  */
 function run<A>(tramp: Trampoline<A>): A {
-  const continuations: Array<(v: unknown) => Trampoline<unknown>> = []
-  let current: Trampoline<unknown> = tramp
+  let current: Trampoline<A> = tramp
   for (;;) {
-    if (current instanceof Bind) {
-      continuations.push(current.continuation)
-      current = current.inner
-    } else if (current instanceof Rec) {
+    if (current instanceof End) {
+      return current.value
+    }
+    if (current instanceof Rec) {
       current = current.fun()
     } else {
-      const continuation = continuations.pop()
-      if (continuation === undefined) {
-        return current.value as A
-      }
-      current = continuation(current.value)
+      current = current.step()
     }
   }
 }
@@ -37,7 +34,7 @@ const rec = <A>(f: () => Trampoline<A>): Trampoline<A> => new Rec(f)
 const end = <A>(v: A): Trampoline<A> => new End(v)
 
 const bind = <A, B>(inner: Trampoline<A>, continuation: (v: A) => Trampoline<B>): Trampoline<B> =>
-  new Bind<B>(inner, continuation as (v: unknown) => Trampoline<B>)
+  new Bind((k) => k(inner, continuation))
 
 class End<A> {
   value: A
@@ -65,23 +62,37 @@ class Rec<A> {
   }
 }
 
+/** A `Bind` consumer, polymorphic in the hidden intermediate type `A`. */
+type BindFold<B, R> = <A>(inner: Trampoline<A>, continuation: (v: A) => Trampoline<B>) => R
+
 /**
- * A deferred transformation of another trampoline; `run` unwinds it without
- * recursion. The inner value type is erased so the union stays covariant;
- * `bind` is the only constructor and keeps the pairing type-safe.
+ * A deferred transformation of another trampoline. The intermediate value
+ * type is existential: it is only reachable through `fold`, which keeps the
+ * `inner`/`continuation` pairing type-safe without erasing either side.
  */
 class Bind<B> {
-  inner: Trampoline<unknown>
-  continuation: (v: unknown) => Trampoline<B>
-  constructor(inner: Trampoline<unknown>, continuation: (v: unknown) => Trampoline<B>) {
-    this.inner = inner
-    this.continuation = continuation
+  readonly fold: <R>(k: BindFold<B, R>) => R
+  constructor(fold: <R>(k: BindFold<B, R>) => R) {
+    this.fold = fold
   }
   run(): B {
     return run(this)
   }
   map<C>(f: (v: B) => C): Trampoline<C> {
     return bind(this, (v) => end(f(v)))
+  }
+  /** Advance one step toward a value without growing the stack. */
+  step(): Trampoline<B> {
+    return this.fold((inner, continuation) => {
+      if (inner instanceof End) {
+        return continuation(inner.value)
+      }
+      if (inner instanceof Rec) {
+        return bind(inner.fun(), continuation)
+      }
+      // Re-associate `(x >>= g) >>= f` into `x >>= (v => g(v) >>= f)`.
+      return inner.fold((innermost, first) => bind(innermost, (v) => bind(first(v), continuation)))
+    })
   }
 }
 

@@ -2,6 +2,7 @@ import { type Result, Success, Failure, traverse } from "../result"
 import { type Maybe, Just, Nothing, type Nullable } from "../maybe"
 import { List } from "../list"
 import type { Json } from "./types"
+import { isRecord } from "../helpers/object"
 
 /** Infer the type from a decoder definition. */
 type Infer<A extends Decoder<unknown>> = A extends Decoder<infer B> ? B : never
@@ -131,7 +132,7 @@ type DecoderDef<A> = {
 /** Ignores extra properties. */
 const object = <A>(decoders: DecoderDef<A>): Decoder<A> =>
   new Decoder((input) => {
-    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    if (!isRecord(input)) {
       return failure("expected object but found " + (Array.isArray(input) ? "array" : typeof input))
     }
     const obj = input as { [P in keyof A]: unknown }
@@ -167,14 +168,14 @@ type ObjectMap<A> = { [x: string]: A }
 
 const objectMap = <A>(decoder: Decoder<A>): Decoder<ObjectMap<A>> =>
   new Decoder((input) => {
-    if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    if (!isRecord(input)) {
       return failure("expected object but found " + (Array.isArray(input) ? "array" : typeof input))
     }
 
     // object without a prototype or built-in functions.
     const result = Object.create(null) as ObjectMap<A>
     for (const field in input) {
-      const decoded = decoder.run((input as Record<string, unknown>)[field])
+      const decoded = decoder.run(input[field])
       switch (true) {
         case decoded instanceof Success:
           result[field] = decoded.value
@@ -221,14 +222,12 @@ const triple = <A, B, C>(pA: Decoder<A>, pB: Decoder<B>, pC: Decoder<C>): Decode
     )
   })
 
-const oneOf = <T extends Decoder<unknown>[]>(decoders: T): T[number] =>
+const oneOf = <V>(decoders: ReadonlyArray<Decoder<V>>): Decoder<V> =>
   new Decoder((input) => {
-    type V = Infer<T[number]>
-
     const errors: Array<[Path, string]> = []
 
     for (const decoder of decoders) {
-      const decoded = decoder.run(input) as DecodeResult<V>
+      const decoded = decoder.run(input)
       if (decoded instanceof Success) {
         return decoded
       }
@@ -297,7 +296,9 @@ function recursive<A>(f: (p: Decoder<A>) => Decoder<A>): Decoder<A> {
   return top
 }
 
-const json: Decoder<Json> = recursive((json) => oneOf([nullP, string, number, boolean, array(json), objectMap(json)]))
+const json: Decoder<Json> = recursive((json) =>
+  oneOf<Json>([nullP, string, number, boolean, array(json), objectMap(json)])
+)
 
 const stringEnum = <const T extends string[]>(strs: T): Decoder<T[number]> => oneOf(strs.map(stringLiteral))
 

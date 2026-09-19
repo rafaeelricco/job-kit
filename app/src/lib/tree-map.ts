@@ -1,9 +1,22 @@
-// Handle sorted-btree's inconsistent default export across ESM/CJS
+// sorted-btree is CJS; under some ESM interop the class arrives nested as
+// `module.default`. Narrow structurally instead of casting through `unknown`.
 import sortedBtreeModule, { type default as BTreeType } from "sorted-btree"
-const BTree: typeof sortedBtreeModule =
-  (sortedBtreeModule as unknown as { default?: typeof sortedBtreeModule }).default || sortedBtreeModule
+const hasNestedDefault = (
+  m: typeof sortedBtreeModule
+): m is typeof sortedBtreeModule & { default: typeof sortedBtreeModule } =>
+  "default" in m && typeof m.default === "function"
+const BTree: typeof sortedBtreeModule = hasNestedDefault(sortedBtreeModule)
+  ? sortedBtreeModule.default
+  : sortedBtreeModule
 
 import { type Maybe, Just, Nothing } from "./maybe"
+
+/**
+ * Presence-based lookup. `BTree.get` types its result `V | undefined` and
+ * returns `undefined` for both a missing key and a stored `undefined`, so
+ * presence is decided by `has` and the value is then known to be a `V`.
+ */
+const lookup = <K, V>(tree: BTreeType<K, V>, k: K): Maybe<V> => (tree.has(k) ? Just(tree.get(k) as V) : Nothing())
 
 const stringMap = <T>(): TreeMap<string, T> => TreeMap.new((x: string, y: string) => (x > y ? 1 : x < y ? -1 : 0))
 
@@ -33,8 +46,7 @@ abstract class TreeMapCore<K, V> {
   protected abstract wrap<W>(tree: BTreeType<K, W>): TreeMapCore<K, W>
 
   get(k: K): Maybe<V> {
-    // Key presence, not `!== undefined`: `V` may itself admit `undefined`.
-    return this.tree.has(k) ? Just(this.tree.get(k) as V) : Nothing()
+    return lookup(this.tree, k)
   }
 
   has(k: K): boolean {
@@ -65,7 +77,10 @@ abstract class TreeMapCore<K, V> {
   unionWith(other: TreeMapCore<K, V>, f: (old: V, new_: V) => V): this {
     const t = this.tree.clone()
     for (const [k, v] of other.entries()) {
-      t.set(k, t.has(k) ? f(t.get(k) as V, v) : v)
+      t.set(
+        k,
+        lookup(t, k).maybe(v, (old) => f(old, v))
+      )
     }
     return this.wrap(t) as this
   }
@@ -84,7 +99,7 @@ abstract class TreeMapCore<K, V> {
   intersectionWith<W, X>(other: TreeMapCore<K, W>, f: (left: V, right: W) => X): TreeMapCore<K, X> {
     const result = new BTree<K, X>([], this.compare)
     for (const [k, v] of this.entries()) {
-      if (other.tree.has(k)) result.set(k, f(v, other.tree.get(k) as W))
+      lookup(other.tree, k).map((w) => result.set(k, f(v, w)))
     }
     return this.wrap(result)
   }
@@ -131,7 +146,10 @@ class TreeMap<K, V> extends TreeMapCore<K, V> {
   }
 
   setWith(k: K, v: V, f: (old: V, _new: V) => V): this {
-    this.tree.set(k, this.tree.has(k) ? f(this.tree.get(k) as V, v) : v)
+    this.tree.set(
+      k,
+      lookup(this.tree, k).maybe(v, (old) => f(old, v))
+    )
     return this
   }
 
@@ -182,7 +200,10 @@ class ImmutableTreeMap<K, V> extends TreeMapCore<K, V> {
 
   setWith(k: K, v: V, f: (old: V, _new: V) => V): ImmutableTreeMap<K, V> {
     const t = this.tree.clone()
-    t.set(k, t.has(k) ? f(t.get(k) as V, v) : v)
+    t.set(
+      k,
+      lookup(t, k).maybe(v, (old) => f(old, v))
+    )
     return new ImmutableTreeMap(t, this.compare)
   }
 
