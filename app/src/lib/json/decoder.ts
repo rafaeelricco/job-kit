@@ -70,6 +70,10 @@ const fail = <T>(msg: string): Decoder<T> => new Decoder((_) => Failure([List.em
 
 const always = <T>(v: T): Decoder<T> => new Decoder((_) => Success(v))
 
+/** Prefix a sequence index onto the path of a failed element decode. */
+const atIndex = <T>(index: number, result: DecodeResult<T>): DecodeResult<T> =>
+  result instanceof Failure ? Failure([List.cons(String(index), result.error[0]), result.error[1]]) : result
+
 const succeed = always
 
 const any: Decoder<unknown> = new Decoder((v) => Success(v))
@@ -115,7 +119,9 @@ const array = <V>(decodeValue: Decoder<V>): Decoder<Array<V>> =>
       return failure("expected array but found " + typeof input)
     }
 
-    return traverse(List.from(input), decodeValue.run).map((list) => Array.from(list))
+    return traverse(List.from(input.map((v, i) => [i, v] as const)), ([i, v]) => atIndex(i, decodeValue.run(v))).map(
+      (list) => Array.from(list)
+    )
   })
 
 type DecoderDef<A> = {
@@ -195,7 +201,9 @@ const pair = <L, R>(ldecode: Decoder<L>, rdecode: Decoder<R>): Decoder<[L, R]> =
     }
     const [l, r] = input
 
-    return ldecode.run(l).chain((left) => rdecode.run(r).chain((right) => Success([left, right])))
+    return atIndex(0, ldecode.run(l)).chain((left) =>
+      atIndex(1, rdecode.run(r)).chain((right) => Success([left, right]))
+    )
   })
 
 const triple = <A, B, C>(pA: Decoder<A>, pB: Decoder<B>, pC: Decoder<C>): Decoder<[A, B, C]> =>
@@ -208,7 +216,9 @@ const triple = <A, B, C>(pA: Decoder<A>, pB: Decoder<B>, pC: Decoder<C>): Decode
     }
     const [ia, ib, ic] = input
 
-    return pA.run(ia).chain((a) => pB.run(ib).chain((b) => pC.run(ic).chain((c) => Success([a, b, c]))))
+    return atIndex(0, pA.run(ia)).chain((a) =>
+      atIndex(1, pB.run(ib)).chain((b) => atIndex(2, pC.run(ic)).chain((c) => Success([a, b, c])))
+    )
   })
 
 const oneOf = <T extends Decoder<unknown>[]>(decoders: T): T[number] =>
