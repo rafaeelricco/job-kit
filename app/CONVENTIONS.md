@@ -41,22 +41,31 @@ other surface reads from there.
 
 ## Type Design
 
-- Use a **reusable `Id<Tag>` class** for entity IDs, tagged with a string literal. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors. Don't tag with the entity class itself (`Id<Foo>`): two classes with the same shape are structurally identical, so `Id<Foo>` would still assign to `Id<Bar>`. A literal tag is nominal; `declare` keeps the phantom field out of the emitted class; `readonly value` keeps an identity from changing after construction.
+- Use a **reusable `Id<Tag>` class** for entity IDs, tagged with a string literal. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors. Don't tag with the entity class itself (`Id<Foo>`): two classes with the same shape are structurally identical, so `Id<Foo>` would still assign to `Id<Bar>`. A literal tag is nominal; `declare` keeps the phantom field out of the emitted class; `readonly value` keeps an identity from changing after construction. Declare fields explicitly and assign them in the constructor — `tsconfig.app.json` sets `erasableSyntaxOnly`, so parameter properties (`constructor(readonly value: string)`) are a compile error here.
 
   ```ts
   // reusable ID class
   class Id<Tag extends string> {
     declare private readonly _tag: Tag // phantom, never assigned
-    constructor(readonly value: string) {}
+    readonly value: string
+    constructor(value: string) {
+      this.value = value
+    }
     // ...other useful methods
   }
 
   // Id<Tag> in use
   class Foo {
-    constructor(readonly id: Id<"Foo">) {}
+    readonly id: Id<"Foo">
+    constructor(id: Id<"Foo">) {
+      this.id = id
+    }
   }
   class Bar {
-    constructor(readonly id: Id<"Bar">) {}
+    readonly id: Id<"Bar">
+    constructor(id: Id<"Bar">) {
+      this.id = id
+    }
   }
   const barId: Id<"Bar"> = new Id<"Foo">("f") // ✗ error: "Foo" is not assignable to "Bar"
   ```
@@ -117,21 +126,29 @@ other surface reads from there.
 
 ## Domain Modeling
 
-- Co-locate a `static schema` factory on the generic `Id<T>` class for native serialization/deserialization, then expose a typed `schema` per domain class.
+- Co-locate a `static schema` factory on the generic `Id<Tag>` class for native serialization/deserialization, then expose a typed `schema` per domain class. Keep the string-literal tag here too — `Id.schema<Message>()` would hand back the structural `Id<Message>` the Type Design section rules out.
 
   ```ts
-  class Id<T> {
-    // @ts-expect-error the existence of _tag prevents structural comparison
-    private readonly _tag: T | null = null
-    constructor(public value: string) {}
-    static schema<T>() {
-      return idSchema<T>()
+  class Id<Tag extends string> {
+    declare private readonly _tag: Tag
+    readonly value: string
+    constructor(value: string) {
+      this.value = value
+    }
+    static schema<Tag extends string>(): s.Schema<Id<Tag>> {
+      return s.string.dimap(
+        (v) => new Id<Tag>(v),
+        (id) => id.value
+      )
     }
   }
 
   class Message {
-    static schema = Id.schema<Message>()
-    constructor(readonly id: Id<Message>) {}
+    static idSchema = Id.schema<"Message">()
+    readonly id: Id<"Message">
+    constructor(id: Id<"Message">) {
+      this.id = id
+    }
   }
   ```
 
@@ -346,24 +363,20 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 ### Schemas — Bidirectional Mapping
 
 - A `Schema` is a combined `Decoder` + `Encoder`. Build with `s.string.dimap(decode, encode)`.
-- Keep schemas as `static schema` on domain classes (and on the generic `Id<T>`) — co-location keeps the schema and the type it describes in sync as the class evolves.
+- Keep schemas as `static schema` on domain classes (and on the generic `Id<Tag>`) — co-location keeps the schema and the type it describes in sync as the class evolves. The `Id` factory is shown under Domain Modeling; a domain class composes it:
 
   ```ts
-  class Id<T> {
-    // @ts-expect-error the existence of _tag prevents structural comparison
-    private readonly _tag: T | null = null
-    constructor(public value: string) {}
-    static schema<T>() {
-      return s.string.dimap(
-        (v) => new Id<T>(v),
-        (id) => id.value
-      )
-    }
-  }
-
   class Message {
-    static schema = Id.schema<Message>()
-    constructor(readonly id: Id<Message>) {}
+    static schema: s.Schema<Message> = s.object({ id: Id.schema<"Message">(), text: s.string }).dimap(
+      ({ id, text }) => new Message(id, text),
+      (m) => ({ id: m.id, text: m.text })
+    )
+    readonly id: Id<"Message">
+    readonly text: string
+    constructor(id: Id<"Message">, text: string) {
+      this.id = id
+      this.text = text
+    }
   }
   ```
 
