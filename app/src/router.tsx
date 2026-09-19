@@ -10,7 +10,6 @@ const DossiersPage = lazy(() => import("@/pages/dossiers"))
 const HomePage = lazy(() => import("@/pages/home"))
 const RecommendationsPage = lazy(() => import("@/pages/recommendations"))
 const ResumesPage = lazy(() => import("@/pages/resumes"))
-const SettingsPage = lazy(() => import("@/pages/settings"))
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "")
 
@@ -56,14 +55,6 @@ const router = createBrowserRouter(
           element: (
             <Suspense>
               <AnswersPage />
-            </Suspense>
-          ),
-        },
-        {
-          path: "/settings",
-          element: (
-            <Suspense>
-              <SettingsPage />
             </Suspense>
           ),
         },

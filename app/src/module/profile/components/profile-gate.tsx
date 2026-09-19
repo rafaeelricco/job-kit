@@ -18,14 +18,16 @@ import { assertNever } from "@/module/scout/result"
 function ProfileGate({
   title,
   Icon,
+  chrome,
   children,
 }: {
   readonly title: string
   readonly Icon: IconSvgElement
+  readonly chrome?: "page" | "bare"
   readonly children: (profile: Profile, save: Save) => ReactNode
 }) {
   return (
-    <AccessGate title={title} Icon={Icon}>
+    <AccessGate title={title} Icon={Icon} {...(chrome === undefined ? {} : { chrome })}>
       {() => <Loaded>{children}</Loaded>}
     </AccessGate>
   )
