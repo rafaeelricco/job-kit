@@ -263,8 +263,9 @@ class DecoderOptional<A> {
 
 const optionalMaybe = <V>(decoder: Decoder<V>): DecoderOptional<Maybe<V>> => DecoderOptional.from(decoder)
 
+/** A field that may be absent or hold JSON `null`; both decode as `null`. */
 const optionalNullable = <V>(decoder: Decoder<NonNullable<V>>): DecoderOptional<Nullable<V>> =>
-  optionalMaybe(decoder).map((v) => v.asNullable())
+  optionalMaybe(nullable(decoder)).map((v) => v.asNullable())
 
 /** An object field that may be absent. */
 const optional = <V>(decoder: Decoder<V>): DecoderOptional<V | undefined> =>
