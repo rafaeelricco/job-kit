@@ -59,10 +59,11 @@ class POSIX {
     return Duration.milliseconds(this.value - other.value)
   }
 
-  static fromLocalDateAndTime(date: DateOnly, time: TimeOfDay, timezone: Timezone): POSIX {
+  /** `Nothing` when the zone is unknown or the civil date/time does not exist. */
+  static fromLocalDateAndTime(date: DateOnly, time: TimeOfDay, timezone: Timezone): Maybe<POSIX> {
     const s = `${date.pretty()}T${time.pretty()}`
     const luxonDate = DateTime.fromISO(s, { zone: timezone })
-    return new POSIX(luxonDate.toMillis())
+    return luxonDate.isValid ? Just(new POSIX(luxonDate.toMillis())) : Nothing()
   }
 
   toUTCDateAndTime(): { date: DateOnly; time: TimeOfDay } {
@@ -93,9 +94,9 @@ class POSIX {
     return date.isValid ? new POSIX(date.toMillis()) : null
   }
 
-  /** Convert to PostgreSQL TIMESTAMPTZ string. */
-  toSQLTimestamp(): string {
-    return DateTime.fromMillis(this.value, { zone: "UTC" }).toSQL() as string
+  /** Convert to PostgreSQL TIMESTAMPTZ string; `null` when the value is not a finite instant. */
+  toSQLTimestamp(): string | null {
+    return DateTime.fromMillis(this.value, { zone: "UTC" }).toSQL()
   }
 
   static schema: s.Schema<POSIX> = s.number.dimap(
