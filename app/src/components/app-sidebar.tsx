@@ -184,7 +184,7 @@ function AccountMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem
             data-active={settingsOpen}
-            render={<NavLink to={{ search: "?settings=profile" }} />}
+            render={<NavLink to={{ search: "?settings=profile" }} state={{ settingsPushed: true }} />}
             className="data-active:bg-accent"
           >
             <HugeiconsIcon icon={Settings02Icon} aria-hidden="true" />
