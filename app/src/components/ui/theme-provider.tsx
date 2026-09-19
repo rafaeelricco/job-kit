@@ -1,7 +1,8 @@
-/* eslint-disable react-refresh/only-export-components */
+export { ThemeProvider, useTheme, type Theme }
+
 import * as React from "react"
 
-export type Theme = "dark" | "light" | "system"
+type Theme = "dark" | "light" | "system"
 type ResolvedTheme = "dark" | "light"
 
 type ThemeProviderProps = {
@@ -71,7 +72,7 @@ function isEditableTarget(target: EventTarget | null) {
   return false
 }
 
-export function ThemeProvider({
+function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "theme",
@@ -210,7 +211,7 @@ export function ThemeProvider({
   )
 }
 
-export const useTheme = () => {
+const useTheme = () => {
   const context = React.useContext(ThemeProviderContext)
 
   if (context === undefined) {

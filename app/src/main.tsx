@@ -2,9 +2,9 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 
 import "./index.css"
-import { ThemeProvider } from "@components/theme-provider.tsx"
+import { ThemeProvider } from "@components/ui/theme-provider"
 import { Toaster } from "@ui/sonner"
-import { Router } from "./router"
+import { Router } from "@/router"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

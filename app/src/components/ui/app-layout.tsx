@@ -1,14 +1,14 @@
 export { AppLayout }
 
-import type { CSSProperties } from "react"
+import { type CSSProperties } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
-
-import { AppSidebar } from "@components/app-sidebar"
+import { AppSidebar } from "@components/ui/app-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@ui/sidebar"
 import { SettingsDialog } from "@module/profile/components/settings-dialog"
 
 function AppLayout() {
   const [params, setParams] = useSearchParams()
+
   const location = useLocation()
   const navigate = useNavigate()
 

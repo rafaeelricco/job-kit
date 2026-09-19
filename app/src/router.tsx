@@ -3,7 +3,7 @@ export { Router }
 import { lazy, Suspense } from "react"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
-import { AppLayout } from "@components/app-layout"
+import { AppLayout } from "@components/ui/app-layout"
 
 const AnswersPage = lazy(() => import("@pages/answers"))
 const DossiersPage = lazy(() => import("@pages/dossiers"))
