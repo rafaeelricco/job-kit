@@ -33,8 +33,8 @@ abstract class TreeMapCore<K, V> {
   protected abstract wrap<W>(tree: BTreeType<K, W>): TreeMapCore<K, W>
 
   get(k: K): Maybe<V> {
-    const found = this.tree.get(k)
-    return found !== undefined ? Just(found) : Nothing()
+    // Key presence, not `!== undefined`: `V` may itself admit `undefined`.
+    return this.tree.has(k) ? Just(this.tree.get(k) as V) : Nothing()
   }
 
   has(k: K): boolean {
@@ -65,8 +65,7 @@ abstract class TreeMapCore<K, V> {
   unionWith(other: TreeMapCore<K, V>, f: (old: V, new_: V) => V): this {
     const t = this.tree.clone()
     for (const [k, v] of other.entries()) {
-      const found = t.get(k)
-      t.set(k, found !== undefined ? f(found, v) : v)
+      t.set(k, t.has(k) ? f(t.get(k) as V, v) : v)
     }
     return this.wrap(t) as this
   }
@@ -85,8 +84,7 @@ abstract class TreeMapCore<K, V> {
   intersectionWith<W, X>(other: TreeMapCore<K, W>, f: (left: V, right: W) => X): TreeMapCore<K, X> {
     const result = new BTree<K, X>([], this.compare)
     for (const [k, v] of this.entries()) {
-      const found = other.tree.get(k)
-      if (found !== undefined) result.set(k, f(v, found))
+      if (other.tree.has(k)) result.set(k, f(v, other.tree.get(k) as W))
     }
     return this.wrap(result)
   }
@@ -133,8 +131,7 @@ class TreeMap<K, V> extends TreeMapCore<K, V> {
   }
 
   setWith(k: K, v: V, f: (old: V, _new: V) => V): this {
-    const found = this.tree.get(k)
-    this.tree.set(k, found !== undefined ? f(found, v) : v)
+    this.tree.set(k, this.tree.has(k) ? f(this.tree.get(k) as V, v) : v)
     return this
   }
 
@@ -185,8 +182,7 @@ class ImmutableTreeMap<K, V> extends TreeMapCore<K, V> {
 
   setWith(k: K, v: V, f: (old: V, _new: V) => V): ImmutableTreeMap<K, V> {
     const t = this.tree.clone()
-    const found = t.get(k)
-    t.set(k, found !== undefined ? f(found, v) : v)
+    t.set(k, t.has(k) ? f(t.get(k) as V, v) : v)
     return new ImmutableTreeMap(t, this.compare)
   }
 
