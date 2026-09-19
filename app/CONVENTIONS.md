@@ -208,7 +208,7 @@ in the surrounding prose and identifiers.
 
 ## Result — Typed Error Handling
 
-Use `Result<E, T>` for fallible operations. Return `Failure(error)` instead of throwing. Never `throw`.
+Use `Result<E, T>` for fallible operations. Return `Failure(error)` instead of throwing. Don't `throw` for recoverable domain failures — a missing record, invalid input, a rejected request — and don't make callers `try/catch` your code. `throw` is reserved for programmer errors that should never happen (the `never` default of an exhaustive `switch`, `Result.unwrap` / `Maybe.expect` on a value the code path already guarantees), and `try/catch` for the boundaries where a browser or platform API throws — `JSON.parse`, File System Access, `fetch` — converted to a `Result` at that boundary.
 
 - Construct with `Success<E, T>(value)` or `Failure<E, T>(error)` — callable without `new`.
 - Use `.either(onError, onSuccess)` for exhaustive fold.
@@ -346,9 +346,9 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 ### Decoders — Validating Incoming Data
 
-- Never cast `JSON.parse(x) as T`. Validate with a decoder returning `Result<string, T>`.
+- Never cast `JSON.parse(x) as T`. Validate with a decoder returning `Result<string, T>`. Don't call `JSON.parse` yourself either — it throws on malformed text before any decoder runs. `Decoder.stringified(inner)` parses the string and turns a syntax error into a `Failure`.
   ```ts
-  const result = Decoder.decode(JSON.parse(input), Decoder.string)
+  const result = Decoder.decode(input, Decoder.stringified(userDecoder)) // Result<string, User>
   ```
 - Build object decoders with `Decoder.object({ ... })`.
 - Use `Decoder.optional()` for fields that may not exist (`V | undefined`).
@@ -407,7 +407,7 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
   ])
   type Message = s.Infer<typeof Message>
   ```
-- Use `s.optional()` for missing keys. Use `s.nullable()` for present-but-null values. Don't combine into `s.optional(s.maybe(x))` — creates `Maybe<Maybe<T>>`.
+- Use `s.optional()` for missing keys. Use `s.nullable()` for present-but-null values. Don't combine into `s.optional(s.maybe(x))` — that's `SchemaOptional<Maybe<T> | undefined>`, so a missing key still surfaces as `undefined` next to `Nothing`. Use `s.optionalMaybe(x)` when a missing key should decode straight to `Maybe<T>`.
 
 ---
 
