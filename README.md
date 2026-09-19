@@ -1,7 +1,7 @@
 <h1 align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="app/public/brand/lockup-horizontal-dark.svg">
-    <img src="app/public/brand/lockup-horizontal.svg" alt="Job Kit AI — your job search, made simpler" width="500">
+    <img src="app/public/brand/lockup-horizontal.svg" alt="Job Kit AI — your job search, made simpler" width="600">
   </picture>
 </h1>
 
