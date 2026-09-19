@@ -50,21 +50,24 @@ in the surrounding prose and identifiers.
 
 ## Type Design
 
-- Use a **reusable `Id<T>` class** for entity IDs. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors.
+- Use a **reusable `Id<Tag>` class** for entity IDs, tagged with a string literal. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors. Don't tag with the entity class itself (`Id<Foo>`): two classes with the same shape are structurally identical, so `Id<Foo>` would still assign to `Id<Bar>`. A literal tag is nominal; `declare` keeps the phantom field out of the emitted class; `readonly value` keeps an identity from changing after construction.
 
   ```ts
   // reusable ID class
-  class Id<T> {
-    // @ts-expect-error the existence of _tag prevents structural comparison
-    private readonly _tag: T | null = null
-    constructor(public value: string) {}
+  class Id<Tag extends string> {
+    declare private readonly _tag: Tag // phantom, never assigned
+    constructor(readonly value: string) {}
     // ...other useful methods
   }
 
-  // Id<T> in use
+  // Id<Tag> in use
   class Foo {
-    constructor(readonly id: Id<Foo>) {}
+    constructor(readonly id: Id<"Foo">) {}
   }
+  class Bar {
+    constructor(readonly id: Id<"Bar">) {}
+  }
+  const barId: Id<"Bar"> = new Id<"Foo">("f") // ✗ error: "Foo" is not assignable to "Bar"
   ```
 
 - Use **discriminated unions** to make invalid states unrepresentable. Don't use bags of optional properties when combinations create impossible states.
