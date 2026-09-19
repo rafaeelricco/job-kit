@@ -32,18 +32,23 @@ CHROME_CANDIDATES = (
     "/usr/bin/chromium",
 )
 
-# (source svg, width, height, background or None for transparent, output png)
-TARGETS: tuple[tuple[str, int, int, str | None, str], ...] = (
-    ("mascot-mark.svg", 16, 16, None, "favicon-16.png"),
-    ("mascot-mark.svg", 32, 32, None, "favicon-32.png"),
+# (source svg, width, height, background or None for transparent, output png, artwork scale)
+# The artwork scale is the fraction of the canvas the SVG fills, centred; 1.0 is edge to edge.
+TARGETS: tuple[tuple[str, int, int, str | None, str, float], ...] = (
+    ("mascot-mark.svg", 16, 16, None, "favicon-16.png", 1.0),
+    ("mascot-mark.svg", 32, 32, None, "favicon-32.png", 1.0),
     # Apple composites onto black if the icon is transparent, so this one is plated.
-    ("mascot-mark.svg", 180, 180, "#ffffff", "apple-touch-icon.png"),
-    ("mascot-mark.svg", 192, 192, None, "icon-192.png"),
-    ("mascot-mark.svg", 512, 512, None, "icon-512.png"),
-    ("og-image.svg", 1200, 630, "#fafafa", "og-image.png"),
+    ("mascot-mark.svg", 180, 180, "#ffffff", "apple-touch-icon.png", 1.0),
+    ("mascot-mark.svg", 192, 192, None, "icon-192.png", 1.0),
+    ("mascot-mark.svg", 512, 512, None, "icon-512.png", 1.0),
+    # Maskable launchers may crop to a circle of 40% radius; the edge-to-edge
+    # icon-512 loses the mouth there. Plated and inset so the whole mark fits
+    # inside that circle (0.76 measured as the largest scale with no spill).
+    ("mascot-mark.svg", 512, 512, "#fafafa", "icon-512-maskable.png", 0.76),
+    ("og-image.svg", 1200, 630, "#fafafa", "og-image.png", 1.0),
     # Served as https://r1cco.com/jobs/job-kit-logo.png — the README hero, which
     # sets width=480; the 2.82:1 horizontal lockup keeps that ~160px tall.
-    ("lockup-horizontal.svg", 2870, 1016, None, "job-kit-logo.png"),
+    ("lockup-horizontal.svg", 2870, 1016, None, "job-kit-logo.png", 1.0),
 )
 
 
@@ -64,8 +69,13 @@ def png_meta(path: Path) -> tuple[int, int, bool]:
     return width, height, colour_type in (4, 6)
 
 
-def render(chrome: str, svg: Path, width: int, height: int, background: str | None, out: Path) -> None:
+def render(
+    chrome: str, svg: Path, width: int, height: int, background: str | None, out: Path, artwork: float = 1.0
+) -> None:
     """Rasterize one SVG at an exact pixel size, preserving alpha when asked.
+
+    ``artwork`` is the fraction of the canvas the SVG occupies, centred, so a
+    maskable icon can sit inside the launcher safe zone.
 
     Small icons are supersampled: Chrome's direct 16px raster turns the mascot
     into a blob, while rendering at 8x and letting sips box-filter down keeps
@@ -73,12 +83,16 @@ def render(chrome: str, svg: Path, width: int, height: int, background: str | No
     """
     scale = 8 if max(width, height) <= 64 else 1
     bg = background or "transparent"
+    art_w = round(width * scale * artwork)
+    art_h = round(height * scale * artwork)
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "page.html"
         page.write_text(
             "<html><head><style>"
             f"html,body{{margin:0;padding:0;background:{bg}}}"
-            f"img{{display:block;width:{width * scale}px;height:{height * scale}px}}"
+            f"body{{display:flex;align-items:center;justify-content:center;"
+            f"width:{width * scale}px;height:{height * scale}px}}"
+            f"img{{display:block;width:{art_w}px;height:{art_h}px}}"
             "</style></head>"
             f'<body><img src="{svg.as_uri()}"></body></html>'
         )
@@ -120,7 +134,7 @@ def main() -> int:
 
     if args.check:
         failures: list[str] = []
-        for source, width, height, background, out_name in TARGETS:
+        for source, width, height, background, out_name, _artwork in TARGETS:
             out = PUBLIC / out_name
             if not out.exists():
                 failures.append(f"{out_name}: missing")
@@ -137,12 +151,12 @@ def main() -> int:
         return 1 if failures else 0
 
     chrome = find_chrome()
-    for source, width, height, background, out_name in TARGETS:
+    for source, width, height, background, out_name, artwork in TARGETS:
         svg = BRAND / source
         if not svg.exists():
             raise SystemExit(f"missing brand source: {svg}")
         out = PUBLIC / out_name
-        render(chrome, svg, width, height, background, out)
+        render(chrome, svg, width, height, background, out, artwork)
         got_w, got_h, has_alpha = png_meta(out)
         print(f"  {out_name:24} {got_w}x{got_h}  alpha={has_alpha}  <- {source}")
     return 0
