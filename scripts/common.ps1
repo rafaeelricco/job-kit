@@ -57,8 +57,8 @@ function New-PlanRow {
 }
 
 # New-PlanRowAgent DEST NAME SOURCE
-# One skill row for a coding-agent home. A foreign destination is a blocker:
-# it is named in the plan and refused, with no force escape hatch.
+# One skill row for a coding-agent home. A stale kit link relinks; any other
+# existing path is foreign and goes through Resolve-PlanBlockers.
 function New-PlanRowAgent {
   param([string]$Dest, [string]$Name, [string]$Source)
   if (-not (Test-Path -LiteralPath $Source -PathType Container) -or -not (Test-Path -LiteralPath (Join-Path $Source 'SKILL.md') -PathType Leaf)) {
@@ -66,6 +66,9 @@ function New-PlanRowAgent {
   }
   if (Test-ExactLink $Dest $Source) {
     return (New-PlanRow 'N' 'up to date' $Dest)
+  }
+  if (Test-StaleKitPath $Dest $Name) {
+    return (New-PlanRow 'I' 'relink' $Dest)
   }
   if ((Test-Path -LiteralPath $Dest) -or (Test-ReparsePoint $Dest)) {
     return (New-PlanRow 'N' 'foreign' $Dest)
@@ -83,16 +86,48 @@ function Get-PlanCount {
   return $n
 }
 
-# Test-PlanHasBlockers ROWS — true when the plan cannot be applied as printed.
-function Test-PlanHasBlockers {
+# Test-StaleKitPath DEST NAME
+# True when DEST is a kit install whose checkout is gone: a junction/symlink,
+# or a copy's .job-kit marker, naming *\skill\NAME at a path that no longer exists.
+function Test-StaleKitPath {
+  param([string]$Dest, [string]$Name)
+  $target = $null
+  if (Test-ReparsePoint $Dest) {
+    $target = Get-LinkTarget $Dest
+  } elseif (Test-Path -LiteralPath (Join-Path $Dest '.job-kit') -PathType Leaf) {
+    try { $target = [IO.File]::ReadAllText((Join-Path $Dest '.job-kit')).TrimEnd([char]13, [char]10) } catch { return $false }
+  }
+  if (-not $target) { return $false }
+  if ($target -notmatch ('[\\/]skill[\\/]' + [regex]::Escape($Name) + '$')) { return $false }
+  return (-not (Test-Path -LiteralPath $target))
+}
+
+# Resolve-PlanBlockers ROWS — die on missing sources; for foreign rows print the
+# removal commands, and on a console offer to replace them (sets $script:Force).
+# Returns how many extra installs the replacement adds.
+function Resolve-PlanBlockers {
   param([object[]]$Rows)
-  foreach ($row in $Rows) {
-    if ($row.Kind -ne 'N') { continue }
-    if ($row.Label -eq 'foreign' -or $row.Label -eq 'source missing') {
-      return $true
+  if (@($Rows | Where-Object { $_.Kind -eq 'N' -and $_.Label -eq 'source missing' }).Count -gt 0) {
+    Write-KitDie 'plan has missing skill sources; this checkout is incomplete (see plan)'
+  }
+  $foreign = @($Rows | Where-Object { $_.Kind -eq 'N' -and $_.Label -eq 'foreign' })
+  if ($foreign.Count -eq 0) { return 0 }
+  Write-Host "$($foreign.Count) foreign paths block the install (not made by job-kit). To clear them:"
+  foreach ($row in $foreign) {
+    $quoted = "'" + ($row.Path -replace "'", "''") + "'"
+    if (Test-ReparsePoint $row.Path) {
+      Write-Host "  [IO.Directory]::Delete($quoted)"
+    } else {
+      Write-Host "  Remove-Item -LiteralPath $quoted -Recurse -Force"
     }
   }
-  return $false
+  Write-Host ''
+  if ($script:DryRun -eq 1 -or -not (Test-IsConsoleInput) -or
+      -not (Confirm-TypedYes 'Replace them with kit copies now? Type yes to confirm: ')) {
+    Write-KitDie 'foreign paths at the destination; remove them (commands above) and re-run'
+  }
+  $script:Force = 1
+  return $foreign.Count
 }
 
 # Write-Plan ROWS [-Irreversible]
@@ -160,7 +195,7 @@ function Write-Plan {
           Write-Host ("  {0,-16} {1} ({2})" -f $action, $leaf, $tag)
           continue
         }
-      } elseif (@('link', 'install driver') -contains $row.Label) {
+      } elseif (@('link', 'relink', 'install driver') -contains $row.Label) {
         Write-Host ("  {0,-16} {1}" -f $row.Label, $leaf)
         continue
       }

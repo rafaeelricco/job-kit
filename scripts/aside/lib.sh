@@ -230,13 +230,14 @@ copy_skill() {
   parent="$(dirname "${dest}")"
 
   if [ -L "${dest}" ] || [ -e "${dest}" ]; then
-    if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}"; then
+    if is_kit_owned "${dest}" "${repo}" "${name}" || is_exact_link "${dest}" "${source}" \
+      || is_stale_kit_path "${dest}" "${name}"; then
       :
     elif [ "${force}" -eq 1 ]; then
       echo "forced remove: ${dest}"
     else
       echo "error: foreign path blocks install: ${dest}" >&2
-      echo "  use --force to replace, or remove it manually" >&2
+      echo "  remove it manually, then re-run" >&2
       return 1
     fi
   fi

@@ -6,6 +6,8 @@
 # empty field and shifts the path left into the label.
 ROW_FS="$(printf '\037')"
 DRY_RUN=0
+# Set to 1 once the user agrees to replace foreign paths; apply fns pass it on.
+FORCE=0
 
 # die MSG…
 # Prints an error to stderr and exits 1.
@@ -62,19 +64,34 @@ EOF
   printf '%s\n' "${n}"
 }
 
-# plan_has_blockers ROWS — 0 when any foreign or missing-source row exists.
-plan_has_blockers() {
-  local rows="$1" kind label path
+# plan_paths ROWS LABEL — print the path of every N row carrying LABEL.
+plan_paths() {
+  local rows="$1" want="$2" kind label path
   while IFS="${ROW_FS}" read -r kind label path; do
-    [ -n "${kind}" ] || continue
-    [ "${kind}" = N ] || continue
-    case "${label}" in
-      foreign|"source missing") return 0 ;;
-    esac
+    [ "${kind}" = N ] && [ "${label}" = "${want}" ] && printf '%s\n' "${path}"
   done <<EOF
 ${rows}
 EOF
-  return 1
+  return 0
+}
+
+# is_stale_kit_path DEST NAME
+# Exit 0 when DEST is a kit install whose checkout is gone: a symlink, or a
+# copy's .job-kit marker, naming */skill/NAME at a path that no longer exists.
+# A renamed or moved repo leaves these behind; they refresh, never block.
+is_stale_kit_path() {
+  local dest="$1" name="$2" target
+  if [ -L "${dest}" ]; then
+    target="$(readlink "${dest}")"
+  elif [ -d "${dest}" ] && [ -f "${dest}/.job-kit" ]; then
+    target="$(cat "${dest}/.job-kit")"
+  else
+    return 1
+  fi
+  case "${target}" in
+    */skill/"${name}") [ ! -e "${target}" ] ;;
+    *) return 1 ;;
+  esac
 }
 
 # render_plan ROWS — print the manifest to stdout (install title).
@@ -109,9 +126,9 @@ render_plan() {
     flush_pend
 
     if [ "${k}" = I ] && [ -n "${leaf}" ]; then
-      # Labels: "link", "copy", "copy (refresh)", "install driver"
+      # Labels: "link", "relink", "copy", "copy (refresh)", "install driver"
       case "${lab}" in
-        "link"|"copy"|"copy (refresh)"|"install driver")
+        "link"|"relink"|"copy"|"copy (refresh)"|"install driver")
           printf '  %-16s %s\n' "${lab}" "${leaf}"
           return 0
           ;;
@@ -207,7 +224,7 @@ agents_ready() {
 # the channel's apply function, run only past the gate.
 # Side effects: none until APPLY_FN runs; --dry-run never reaches it.
 run_channel_plan() {
-  local rows="$1" label="$2" apply_fn="$3" installs
+  local rows="$1" label="$2" apply_fn="$3" installs foreign n
   local has_parent_missing=0 has_up_to_date=0 kind lab path
 
   [ -d "${REPO_ROOT}/skill" ] \
@@ -218,8 +235,25 @@ run_channel_plan() {
   printf '%s installs\n' "${installs}"
   echo
 
-  if plan_has_blockers "${rows}"; then
-    die "plan has blocked paths (source missing, or a foreign path at the destination); remove the named path and re-run"
+  if [ -n "$(plan_paths "${rows}" "source missing")" ]; then
+    die "plan has missing skill sources; this checkout is incomplete (see plan)"
+  fi
+
+  foreign="$(plan_paths "${rows}" foreign)"
+  if [ -n "${foreign}" ]; then
+    n="$(printf '%s\n' "${foreign}" | wc -l | tr -d ' ')"
+    echo "${n} foreign paths block the install (not made by job-kit). To clear them:"
+    printf '  rm -rf'
+    while IFS= read -r path; do printf ' %q' "${path}"; done <<EOF
+${foreign}
+EOF
+    printf '\n\n'
+    if [ "${DRY_RUN}" -eq 1 ] || [ ! -t 0 ] \
+      || ! confirm_yes "Replace them with kit copies now? Type yes to confirm: "; then
+      die "${label}: foreign paths at the destination; remove them (command above) and re-run"
+    fi
+    FORCE=1
+    installs=$((installs + n))
   fi
 
   if [ "${DRY_RUN}" -eq 1 ]; then

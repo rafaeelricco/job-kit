@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 
 $script:RepoRoot = Get-FullPathNormalized (Join-Path $PSScriptRoot '..\..')
 $script:DryRun = 0
+$script:Force = 0
 
 function Show-BrowserUseUsage {
   @'
@@ -316,9 +317,7 @@ function Invoke-BrowserUsePlan {
   Write-Host "$installs installs"
   Write-Host ''
 
-  if (Test-PlanHasBlockers $rows) {
-    Write-KitDie 'plan has blocked paths (source missing, or a foreign path at the destination); remove the named path and re-run'
-  }
+  $installs += Resolve-PlanBlockers $rows
 
   if ($script:DryRun -eq 1) {
     Write-Host '--dry-run: nothing has been touched.'
