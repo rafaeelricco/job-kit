@@ -1,4 +1,6 @@
 /// <reference types="node" />
+export { run, expect, group, test, parseArgs, type RunOptions }
+
 import { object } from "@optique/core/constructs"
 import { multiple } from "@optique/core/modifiers"
 import { option } from "@optique/core/primitives"
@@ -6,8 +8,6 @@ import { run as runCli } from "@optique/run"
 import { message } from "@optique/core/message"
 import type { ValueParser, ValueParserResult } from "@optique/core/valueparser"
 import { randomUUID } from "node:crypto"
-
-export { run, expect, group, test, parseArgs, type RunOptions }
 
 class Test {
   public readonly id: string
@@ -232,11 +232,11 @@ function startProgressDisplay(executionInfos: ReadonlyMap<string, TestInfo>): {
  *
  * A sane, simple testing framework. Instead of a complicated test setup which
  * finds and compiles files, we do the simplest obvious thing: a function that
- * takes a list of tests. To run the tests execute a Node.js program that calls
+ * takes a list of groups. To run the tests execute a Node.js program that calls
  * this `run` function.
  *
  * ```ts
- * import { run, test, group, expect, parseArgs } from "@ambarltd/core/test";
+ * import { run, test, group, expect, parseArgs } from "@lib/test";
  *
  * run(parseArgs(), [
  *   group("trivial tests", [
@@ -254,7 +254,7 @@ function startProgressDisplay(executionInfos: ReadonlyMap<string, TestInfo>): {
  * in a normal program.
  *
  * ```ts
- * import { run } from "@ambarltd/core/test";
+ * import { run } from "@lib/test";
  * import * as unit from "@test/unitTests";
  * import * as integration from "@test/integrationTests";
  *

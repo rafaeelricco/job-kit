@@ -1,12 +1,21 @@
-import * as s from "./json/schema"
-import { fail, always } from "./json/decoder"
-import { type Maybe, Just, Nothing } from "./maybe"
+export { type Timezone, DateOnly, TimeOfDay, POSIX, Duration }
 
+import * as s from "@lib/json/schema"
+
+import { fail, always } from "@lib/json/decoder"
+import { type Maybe, Just, Nothing } from "@lib/maybe"
 import { DateTime } from "luxon"
 
 type Timezone = string
 
-/** Date + time stored as milliseconds passed since 00:00:00 UTC on January 1, 1970. */
+/**
+ * Date + time stored as milliseconds passed since 00:00:00 UTC on January 1, 1970.
+ *
+ * ```ts
+ * const t = POSIX.fromSQLTimestamp("2026-03-17 10:30:00+00");
+ * t?.toSQLTimestamp(); // "2026-03-17 10:30:00.000+00"
+ * ```
+ */
 class POSIX {
   static fromDate(d: Date): POSIX {
     return new POSIX(d.valueOf())
@@ -416,5 +425,3 @@ class Duration {
     (d) => d.toISO8601()
   )
 }
-
-export { type Timezone, DateOnly, TimeOfDay, POSIX, Duration }

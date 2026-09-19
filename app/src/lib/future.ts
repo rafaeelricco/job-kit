@@ -1,6 +1,8 @@
+export { Future, type Cancel }
+
 import * as F from "fluture"
 
-import { type Result, Success, Failure } from "./result"
+import { type Result, Success, Failure } from "@lib/result"
 import type { FutureInstance } from "fluture"
 
 type Cancel = () => void
@@ -203,5 +205,3 @@ class Future<E, T> {
     return F.promise(f.inner)
   }
 }
-
-export { Future, type Cancel }

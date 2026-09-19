@@ -1,11 +1,17 @@
-import { type Maybe, Just, Nothing } from "./maybe"
+export { List }
+
+import { type Maybe, Just, Nothing } from "@lib/maybe"
 
 type Content<T> = { head: T; tail: List<T> } | { empty: null }
 
 /**
  * An immutable singly-linked list with cheap prepending (`cons`) and
- * iteration. Empty lists share a common representation; otherwise, each
- * node holds a `head` and a reference to the next list.
+ * iteration. Each node holds a `head` and a reference to the next list.
+ *
+ * ```ts
+ * const xs = List.from([1, 2, 3]);
+ * List.cons(0, xs).toArray(); // [0, 1, 2, 3]
+ * ```
  */
 class List<T> {
   readonly value: Content<T>
@@ -145,5 +151,3 @@ class List<T> {
     }
   }
 }
-
-export { List }

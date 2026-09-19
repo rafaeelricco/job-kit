@@ -1,5 +1,30 @@
+export {
+  type Infer,
+  Encoder,
+  type EncoderDef,
+  type EncoderOptional,
+  json,
+  boolean,
+  number,
+  string,
+  array,
+  object,
+  pair,
+  maybe,
+  nullable,
+  triple,
+  optional,
+  oneOf,
+  both,
+  stringEnum,
+  stringified,
+  optionalNullable,
+  optionalMaybe,
+  recursive,
+}
+
 import { type Maybe, Nothing, Just, type Nullable } from "@lib/maybe"
-import type { Json, JsonObject } from "./types"
+import { type Json, type JsonObject } from "@lib/json/types"
 
 /** Infer the type from an encoder definition. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,6 +35,17 @@ type Infer<A extends Encoder<any>> = A extends Encoder<infer B> ? B : never
  *
  * It takes a structured value and transforms it into
  * an object of type Json.
+ *
+ * ```ts
+ * import * as Encoder from "@lib/json/encoder";
+ *
+ * const user = Encoder.object({
+ *   name: Encoder.string,
+ *   age: Encoder.number,
+ * });
+ *
+ * user.run({ name: "Ada", age: 36 });
+ * ```
  */
 class Encoder<A> {
   readonly run: (v: A) => Json
@@ -152,29 +188,4 @@ function recursive<A>(f: (p: Encoder<A>) => Encoder<A>): Encoder<A> {
   // @ts-expect-error assigning to read-only prop
   base.run = top.run
   return top
-}
-
-export {
-  type Infer,
-  Encoder,
-  type EncoderDef,
-  type EncoderOptional,
-  json,
-  boolean,
-  number,
-  string,
-  array,
-  object,
-  pair,
-  maybe,
-  nullable,
-  triple,
-  optional,
-  oneOf,
-  both,
-  stringEnum,
-  stringified,
-  optionalNullable,
-  optionalMaybe,
-  recursive,
 }

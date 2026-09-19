@@ -5,6 +5,16 @@ export { type Trampoline, tailRecursive, end, fix }
  *
  * Use `tailRecursive` or `fix` to build trampolined functions that won't
  * blow the stack on deeply recursive calls. Call `.run()` to evaluate.
+ *
+ * ```ts
+ * import { end, tailRecursive } from "@lib/trampoline";
+ *
+ * const sum = tailRecursive((n: number, acc: number) =>
+ *   n === 0 ? end(acc) : sum(n - 1, acc + n)
+ * );
+ *
+ * sum(10_000, 0).run(); // 50005000
+ * ```
  */
 type Trampoline<A> = End<A> | Rec<A> | Bind<A>
 

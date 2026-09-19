@@ -1,11 +1,37 @@
-import { type Nullable, type Maybe, Nothing, Just } from "./maybe"
-import Callable from "./callable"
+export {
+  type RemoteData,
+  CallableSuccess as Ready,
+  CallableFailure as Failed,
+  CallableNotAsked as NotAsked,
+  CallableLoading as Loading,
+}
+
+import { type Nullable, type Maybe, Nothing, Just } from "@lib/maybe"
+
+import Callable from "@lib/callable"
 
 /**
  * Represents the state of data that is fetched from a remote source.
  *
  * A value is either not yet requested, loading, failed with an error, or
  * successfully loaded (`Ready`).
+ *
+ * ```ts
+ * const data: RemoteData<string, User> = Ready(user);
+ * switch (true) {
+ *   case data instanceof NotAsked:
+ *   case data instanceof Loading:
+ *     break;
+ *   case data instanceof Failed:
+ *     data.error;
+ *     break;
+ *   case data instanceof Ready:
+ *     data.value;
+ *     break;
+ *   default:
+ *     data satisfies never;
+ * }
+ * ```
  */
 type RemoteData<E, T> = NotAsked<E, T> | Loading<E, T> | Failed<E, T> | Ready<E, T>
 
@@ -64,7 +90,7 @@ type LoadingDetails = {
 
 /** In-flight state. Optionally carries upload/download progress via `details`. */
 class Loading<E, T> implements IRemoteData<E, T> {
-  // @ts-expect-errorUnused_tag's existence prevents structural comparison
+  // @ts-expect-error Unused _tag's existence prevents structural comparison
   private readonly _tag: null = null
   readonly uploaded: Bytes
   readonly uploadSize: Nullable<Bytes>
@@ -182,11 +208,3 @@ const CallableLoading = Callable(Loading) as typeof Loading & typeof Loading.new
 const CallableFailure = Callable(Failed) as typeof Failed & typeof Failed.new
 
 const CallableSuccess = Callable(Ready) as typeof Ready & typeof Ready.new
-
-export {
-  type RemoteData,
-  CallableSuccess as Ready,
-  CallableFailure as Failed,
-  CallableNotAsked as NotAsked,
-  CallableLoading as Loading,
-}

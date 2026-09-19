@@ -1,17 +1,33 @@
-import { type Trampoline, end, tailRecursive } from "./trampoline"
-import { List } from "./list"
+export { type Result, type IResult, CallableSuccess as Success, CallableFailure as Failure, traverse, traverse_ }
 
-import Callable from "./callable"
+import { type Trampoline, end, tailRecursive } from "@lib/trampoline"
+import { List } from "@lib/list"
+
+import Callable from "@lib/callable"
 
 /**
  * Represents the result of a computation that may fail.
  *
  * Either `Success<E, T>` wrapping a successful value, or `Failure<E, T>`
  * wrapping an error value.
+ *
+ * ```ts
+ * const r: Result<string, number> = Success(42);
+ * switch (true) {
+ *   case r instanceof Success:
+ *     r.value;
+ *     break;
+ *   case r instanceof Failure:
+ *     r.error;
+ *     break;
+ *   default:
+ *     r satisfies never;
+ * }
+ * ```
  */
 type Result<E, T> = Success<E, T> | Failure<E, T>
 
-export interface IResult<E, T> {
+interface IResult<E, T> {
   isSuccess(): boolean
   isFailure(): boolean
   map<W>(f: (t: T) => W): Result<E, W>
@@ -154,5 +170,3 @@ function traverse_<T, A, E>(xs: Array<A>, f: (v: A) => Result<E, T>): Result<E, 
 const CallableSuccess = Callable(Success) as typeof Success & typeof Success.new
 
 const CallableFailure = Callable(Failure) as typeof Failure & typeof Failure.new
-
-export { type Result, CallableSuccess as Success, CallableFailure as Failure, traverse, traverse_ }

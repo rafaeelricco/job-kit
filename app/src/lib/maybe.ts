@@ -1,4 +1,17 @@
-import Callable from "./callable"
+export {
+  type Maybe,
+  type Nullable,
+  type Infer,
+  type IMaybe,
+  CallableJust as Just,
+  CallableNothing as Nothing,
+  fromOptional,
+  fromNullable,
+  catMaybes,
+  mapMaybe,
+}
+
+import Callable from "@lib/callable"
 
 /**
  * A type which represents the existence or absence of a value in a
@@ -26,7 +39,7 @@ type Nullable<T> = T | null
 type Infer<A extends Maybe<unknown>> = A extends Maybe<infer B> ? B : never
 
 // prettier-ignore
-export interface IMaybe<T> {
+interface IMaybe<T> {
   isJust() : boolean;
   isNothing() : boolean;
   map<W>(f: (t: T) => W) : Maybe<W>
@@ -111,7 +124,15 @@ class Nothing<T> implements IMaybe<T> {
   asNullable() : Nullable<T> { return null }
 }
 
-/** Boundary helper: `undefined` becomes `Nothing`, any other value becomes `Just`. Don't mix with `fromNullable`. */
+/**
+ * Boundary helper: `undefined` becomes `Nothing`, any other value becomes `Just`.
+ * Don't mix with `fromNullable`.
+ *
+ * ```ts
+ * fromOptional(undefined); // Nothing
+ * fromOptional(0);         // Just(0)
+ * ```
+ */
 function fromOptional<T>(v: undefined | T): Maybe<T> {
   if (typeof v === "undefined") {
     return new Nothing()
@@ -120,7 +141,15 @@ function fromOptional<T>(v: undefined | T): Maybe<T> {
   }
 }
 
-/** Boundary helper: `null` becomes `Nothing`, any other value becomes `Just`. Don't mix with `fromOptional`. */
+/**
+ * Boundary helper: `null` becomes `Nothing`, any other value becomes `Just`.
+ * Don't mix with `fromOptional`.
+ *
+ * ```ts
+ * fromNullable(null); // Nothing
+ * fromNullable(0);    // Just(0)
+ * ```
+ */
 function fromNullable<T>(v: NonNullable<T> | null): Maybe<T> {
   if (v === null) {
     return new Nothing()
@@ -150,15 +179,3 @@ function mapMaybe<T, W>(xs: Array<T>, f: (v: T) => Maybe<W>): Array<W> {
 /* eslint-disable no-var */
 var CallableJust = Callable(Just) as typeof Just & typeof Just.new
 var CallableNothing = Callable(Nothing) as typeof Nothing & typeof Nothing.new
-
-export {
-  type Maybe,
-  type Nullable,
-  type Infer,
-  CallableJust as Just,
-  CallableNothing as Nothing,
-  fromOptional,
-  fromNullable,
-  catMaybes,
-  mapMaybe,
-}

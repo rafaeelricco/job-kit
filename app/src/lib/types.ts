@@ -9,10 +9,11 @@ type PopUnion<U> = UnionToOvlds<U> extends (a: infer A) => void ? A : never
 type IsUnion<T> = [T] extends [UnionToIntersection<T>] ? false : true
 
 /**
- * Convert a union to a tuple.
+ * Convert a union to a tuple of its members.
  *
  * ```ts
- * UnionToTuple<A | B> == [A, B]
+ * type T = UnionToTuple<"a" | "b">
+ * // ["a", "b"] or ["b", "a"] — order is PopUnion peel, not source spelling
  * ```
  */
 type UnionToTuple<T, A extends unknown[] = []> =
@@ -22,7 +23,8 @@ type UnionToTuple<T, A extends unknown[] = []> =
  * Pick an option from a union.
  *
  * ```ts
- * UnionPick<A | B | C, 0> == A
+ * type First = UnionPick<"a" | "b" | "c", 0>
+ * // one member of the union — index follows UnionToTuple order
  * ```
  */
 type UnionPick<T, N extends keyof UnionToTuple<T>> = UnionToTuple<T>[N]

@@ -1,3 +1,5 @@
+export { TreeMap, ImmutableTreeMap, TreeMapCore, stringMap }
+
 // sorted-btree is CJS; under some ESM interop the class arrives nested as
 // `module.default`. Narrow structurally instead of casting through `unknown`.
 import sortedBtreeModule, { type default as BTreeType } from "sorted-btree"
@@ -9,7 +11,7 @@ const BTree: typeof sortedBtreeModule = hasNestedDefault(sortedBtreeModule)
   ? sortedBtreeModule.default
   : sortedBtreeModule
 
-import { type Maybe, Just, Nothing } from "./maybe"
+import { type Maybe, Just, Nothing } from "@lib/maybe"
 
 /**
  * Presence-based lookup. `BTree.get` types its result `V | undefined` and
@@ -95,7 +97,7 @@ abstract class TreeMapCore<K, V> {
     return this.wrap(t) as this
   }
 
-  /** Create a new map from keys common to two other maps. */
+  /** Create a new map from keys common to `this` and `other`, merging values with `f`. */
   intersectionWith<W, X>(other: TreeMapCore<K, W>, f: (left: V, right: W) => X): TreeMapCore<K, X> {
     const result = new BTree<K, X>([], this.compare)
     for (const [k, v] of this.entries()) {
@@ -117,6 +119,12 @@ abstract class TreeMapCore<K, V> {
  * A mutable Map type that requires a comparison function.
  *
  * This is just a wrapper around BTree which requires the comparison function.
+ *
+ * ```ts
+ * const m = TreeMap.new<string, number>((a, b) => a.localeCompare(b));
+ * m.set("a", 1);
+ * m.get("a"); // Just(1)
+ * ```
  */
 class TreeMap<K, V> extends TreeMapCore<K, V> {
   static new<K, V>(compare: (l: K, r: K) => number): TreeMap<K, V> {
@@ -169,6 +177,13 @@ class TreeMap<K, V> extends TreeMapCore<K, V> {
  *
  * Every update returns a new ImmutableTreeMap; the receiver is untouched.
  * Each update clones the underlying BTree before mutating the copy.
+ *
+ * ```ts
+ * const m0 = ImmutableTreeMap.new<string, number>((a, b) => a.localeCompare(b));
+ * const m1 = m0.set("a", 1);
+ * m0.get("a"); // Nothing
+ * m1.get("a"); // Just(1)
+ * ```
  */
 class ImmutableTreeMap<K, V> extends TreeMapCore<K, V> {
   static new<K, V>(compare: (l: K, r: K) => number): ImmutableTreeMap<K, V> {
@@ -219,5 +234,3 @@ class ImmutableTreeMap<K, V> extends TreeMapCore<K, V> {
     return new ImmutableTreeMap(t, this.compare)
   }
 }
-
-export { TreeMap, ImmutableTreeMap, TreeMapCore, stringMap }

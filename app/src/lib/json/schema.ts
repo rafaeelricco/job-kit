@@ -1,10 +1,48 @@
-import * as decoder from "./decoder"
-import * as encoder from "./encoder"
+export {
+  Schema,
+  type Infer,
+  type SchemaDef,
+  type SchemaOptional,
+  type Variant,
+  object,
+  pair,
+  triple,
+  map,
+  boolean,
+  number,
+  string,
+  array,
+  json,
+  both,
+  maybe,
+  result,
+  nullable,
+  optional,
+  optionalNullable,
+  optionalMaybe,
+  optionalDefault,
+  stringLiteral,
+  stringEnum,
+  stringified,
+  oneOf,
+  discriminatedUnion,
+  variant,
+  from,
+  decode,
+  encode,
+  decoder,
+  encoder,
+  recursive,
+}
+
+import * as decoder from "@lib/json/decoder"
+import * as encoder from "@lib/json/encoder"
+
 import { type Result, Success, Failure } from "@lib/result"
-import { Decoder, type DecoderDef, type DecoderOptional } from "./decoder"
-import { Encoder, type EncoderDef, type EncoderOptional } from "./encoder"
-import type { Json } from "./types"
-import type { Maybe, Nullable } from "@lib/maybe"
+import { Decoder, type DecoderDef, type DecoderOptional } from "@lib/json/decoder"
+import { Encoder, type EncoderDef, type EncoderOptional } from "@lib/json/encoder"
+import { type Json } from "@lib/json/types"
+import { type Maybe, type Nullable } from "@lib/maybe"
 import { filterMap, mapValues, isRecord } from "@lib/helpers/object"
 
 /** Infer the type from a schema definition. */
@@ -15,6 +53,18 @@ type Infer<A extends Schema<any>> = A extends Schema<infer B> ? B : never
  * A `Schema<A>` contains information to encode and decode a value.
  *
  * This allows us to have safe conversion to and from JSON.
+ *
+ * ```ts
+ * import * as Schema from "@lib/json/schema";
+ *
+ * const user = Schema.object({
+ *   name: Schema.string,
+ *   age: Schema.number,
+ * });
+ *
+ * Schema.decode(user, { name: "Ada", age: 36 });
+ * Schema.encode(user, { name: "Ada", age: 36 });
+ * ```
  */
 class Schema<A> {
   decoder: Decoder<A>
@@ -262,41 +312,4 @@ const recursive = <T>(f: (s: Schema<T>) => Schema<T>): Schema<T> => {
   // @ts-expect-error assigning to read-only prop
   base.decoder.run = top.decoder.run
   return top
-}
-
-export {
-  Schema,
-  type Infer,
-  type SchemaDef,
-  type SchemaOptional,
-  type Variant,
-  object,
-  pair,
-  triple,
-  map,
-  boolean,
-  number,
-  string,
-  array,
-  json,
-  both,
-  maybe,
-  result,
-  nullable,
-  optional,
-  optionalNullable,
-  optionalMaybe,
-  optionalDefault,
-  stringLiteral,
-  stringEnum,
-  stringified,
-  oneOf,
-  discriminatedUnion,
-  variant,
-  from,
-  decode,
-  encode,
-  decoder,
-  encoder,
-  recursive,
 }

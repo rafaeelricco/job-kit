@@ -1,4 +1,6 @@
-import { TreeMap, ImmutableTreeMap, TreeMapCore } from "./tree-map"
+export { TreeSet, ImmutableTreeSet }
+
+import { TreeMap, ImmutableTreeMap, TreeMapCore } from "@lib/tree-map"
 
 interface Comparable<T> {
   compare(other: T): number
@@ -53,6 +55,12 @@ abstract class TreeSetCore<K> {
  * A mutable Set type that requires a comparison function.
  *
  * This is a wrapper around {@link TreeMap} keyed on the elements.
+ *
+ * ```ts
+ * const s = TreeSet.new<string>((a, b) => a.localeCompare(b));
+ * s.insert("a");
+ * s.has("a"); // true
+ * ```
  */
 class TreeSet<K> extends TreeSetCore<K> {
   declare protected tree: TreeMap<K, null>
@@ -103,8 +111,14 @@ class TreeSet<K> extends TreeSetCore<K> {
  * An immutable Set type that requires a comparison function.
  *
  * Every update returns a new ImmutableTreeSet; the receiver is untouched.
- * Single-element updates use ImmutableTreeMap's structural-sharing primitives,
- * so they don't copy the entire tree.
+ * Each update clones the underlying BTree before mutating the copy.
+ *
+ * ```ts
+ * const s0 = ImmutableTreeSet.new<string>((a, b) => a.localeCompare(b));
+ * const s1 = s0.insert("a");
+ * s0.has("a"); // false
+ * s1.has("a"); // true
+ * ```
  */
 class ImmutableTreeSet<K> extends TreeSetCore<K> {
   declare protected tree: ImmutableTreeMap<K, null>
@@ -157,5 +171,3 @@ class ImmutableTreeSet<K> extends TreeSetCore<K> {
     return new ImmutableTreeSet(this.tree.setEntries(xs.map((k) => [k, null] as [K, null])[Symbol.iterator]()))
   }
 }
-
-export { TreeSet, ImmutableTreeSet }

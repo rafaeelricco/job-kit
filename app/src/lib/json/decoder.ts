@@ -1,7 +1,46 @@
+export {
+  type FromJSON,
+  type Infer,
+  Decoder,
+  type DecoderOptional,
+  type DecoderDef,
+  type DecodeResult,
+  decode,
+  object,
+  objectMap,
+  pair,
+  array,
+  string,
+  number,
+  boolean,
+  any,
+  json,
+  nullP,
+  stringNumber,
+  undefinedP,
+  oneOf,
+  maybe,
+  nullable,
+  stringLiteral,
+  stringEnum,
+  triple,
+  always,
+  fail,
+  failure,
+  succeed,
+  both,
+  optional,
+  optionalNullable,
+  optionalMaybe,
+  optionalDefault,
+  stringified,
+  recursive,
+}
+
 import { type Result, Success, Failure, traverse } from "@lib/result"
 import { type Maybe, Just, Nothing, type Nullable } from "@lib/maybe"
 import { List } from "@lib/list"
-import type { Json } from "./types"
+import { type Json } from "@lib/json/types"
 import { isRecord } from "@lib/helpers/object"
 
 /** Infer the type from a decoder definition. */
@@ -18,22 +57,22 @@ interface FromJSON<T> {
  * Use like this:
  *
  * ```ts
- * import * as Decoder from "@ambarltd/core/json/decoder";
+ * import * as Decoder from "@lib/json/decoder";
  *
  * type Test = {
- *   one: number,
- *   two: boolean,
+ *   one: number;
+ *   two: boolean;
  *   three: {
- *     inner: string
- *   }
+ *     inner: string;
+ *   };
  * };
  *
- * const testDecoder: Decoder<Test> = object({
+ * const testDecoder: Decoder.Decoder<Test> = Decoder.object({
  *   one: Decoder.number,
  *   two: Decoder.boolean,
  *   three: Decoder.object({
- *     inner: Decoder.string
- *   })
+ *     inner: Decoder.string,
+ *   }),
  * });
  *
  * const decodeJSON = (s: string) => Decoder.decode(JSON.parse(s), testDecoder);
@@ -255,8 +294,9 @@ const stringLiteral = <T extends string>(str: T): Decoder<T> =>
   new Decoder((v) => (v === str ? Success(v as T) : failure(`expected '${str}' but found '${v}'`)))
 
 /**
- * Decoder for a field that may not be present.
- * If it is absent it will be decoded as `Nothing()`.
+ * Marks an object field as optional. Absent-field handling comes from
+ * the helper that built it: `optionalMaybe` → `Nothing`, `optional` →
+ * `undefined`, `optionalNullable` → `null`, `optionalDefault` → `def`.
  */
 class DecoderOptional<A> {
   readonly decoder: Decoder<A>
@@ -313,42 +353,3 @@ const stringified = <T>(inner: Decoder<T>): Decoder<T> =>
       }
     })
     .chain((json) => new Decoder((_) => inner.run(json)))
-
-export {
-  type FromJSON,
-  type Infer,
-  Decoder,
-  type DecoderOptional,
-  type DecoderDef,
-  type DecodeResult,
-  decode,
-  object,
-  objectMap,
-  pair,
-  array,
-  string,
-  number,
-  boolean,
-  any,
-  json,
-  nullP,
-  stringNumber,
-  undefinedP,
-  oneOf,
-  maybe,
-  nullable,
-  stringLiteral,
-  stringEnum,
-  triple,
-  always,
-  fail,
-  failure,
-  succeed,
-  both,
-  optional,
-  optionalNullable,
-  optionalMaybe,
-  optionalDefault,
-  stringified,
-  recursive,
-}
