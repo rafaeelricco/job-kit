@@ -41,7 +41,7 @@ other surface reads from there.
 
 ## Type Design
 
-- Use a **reusable `Id<Tag>` class** for entity IDs, tagged with a string literal. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors. Don't tag with the entity class itself (`Id<Foo>`): two classes with the same shape are structurally identical, so `Id<Foo>` would still assign to `Id<Bar>`. A literal tag is nominal; `declare` keeps the phantom field out of the emitted class; `readonly value` keeps an identity from changing after construction. Declare fields explicitly and assign them in the constructor — `tsconfig.app.json` sets `erasableSyntaxOnly`, so parameter properties (`constructor(readonly value: string)`) are a compile error here.
+- Use a **reusable `Id<Tag>` class** for entity IDs, tagged with a string literal. Don't use `string & { __brand }` intersections — they allow name collisions, leak `__brand` into intellisense, and accept raw strings without constructors. Don't tag with the entity class itself (`Id<Foo>`): two classes with the same shape are structurally identical, so `Id<Foo>` would still assign to `Id<Bar>`. A literal tag is nominal; `declare` keeps the phantom field out of the emitted class; `readonly value` keeps an identity from changing after construction. Declare fields explicitly and assign them in the constructor — `tsconfig.json` sets `erasableSyntaxOnly`, so parameter properties (`constructor(readonly value: string)`) are a compile error here.
 
   ```ts
   // reusable ID class
@@ -301,9 +301,9 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 ### List — Singly Linked List
 
-- Use `List<T>` for O(1) prepend and immutable functional sequences. Import from `@/lib/list`:
+- Use `List<T>` for O(1) prepend and immutable functional sequences. Import from `@lib/list`:
   ```ts
-  import { List } from "@/lib/list"
+  import { List } from "@lib/list"
   ```
 - Don't append onto linked lists — O(n²). Build with `List.cons(item, list)` + `.reverse()` at the end, or `List.from(arr)`.
 - `.head()` returns `Maybe<T>` — always handle `Nothing`.

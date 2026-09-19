@@ -17,10 +17,10 @@ import {
 } from "@hugeicons/core-free-icons"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import type { ChartConfig } from "@/components/ui/chart"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent } from "@ui/card"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@ui/chart"
+import type { ChartConfig } from "@ui/chart"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui/select"
 import {
   RANGES,
   anchorOf,
@@ -35,10 +35,10 @@ import {
   tallyAppliedBySource,
   tallyBy,
   windowOf,
-} from "@/module/scout/helpers/analytics"
-import type { PairedPoint, RangeKey, TallyRow, Window } from "@/module/scout/helpers/analytics"
-import { CHANNELS, LIFECYCLES } from "@/module/scout/types"
-import type { Channel, Dossier } from "@/module/scout/types"
+} from "@module/scout/helpers/analytics"
+import type { PairedPoint, RangeKey, TallyRow, Window } from "@module/scout/helpers/analytics"
+import { CHANNELS, LIFECYCLES } from "@module/scout/types"
+import type { Channel, Dossier } from "@module/scout/types"
 
 const ALL_CHANNELS = "all"
 

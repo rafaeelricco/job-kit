@@ -13,10 +13,10 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import type { DateRange } from "react-day-picker"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Command, CommandGroup, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
+import { Badge } from "@ui/badge"
+import { Button } from "@ui/button"
+import { Calendar } from "@ui/calendar"
+import { Command, CommandGroup, CommandItem, CommandList, CommandSeparator } from "@ui/command"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,14 +25,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { ColumnId, View } from "@/module/scout/helpers/columns"
-import { COLUMNS, VIEWS, columnLabel, isView } from "@/module/scout/helpers/columns"
-import type { DayRange, Filter, PostingKind, ScoreBand, Segment, SourceRow } from "@/module/scout/helpers/select"
+} from "@ui/dropdown-menu"
+import { Input } from "@ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@ui/popover"
+import { Tabs, TabsList, TabsTrigger } from "@ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@ui/toggle-group"
+import type { ColumnId, View } from "@module/scout/helpers/columns"
+import { COLUMNS, VIEWS, columnLabel, isView } from "@module/scout/helpers/columns"
+import type { DayRange, Filter, PostingKind, ScoreBand, Segment, SourceRow } from "@module/scout/helpers/select"
 import {
   EMPTY_DAYS,
   POSTINGS,
@@ -45,9 +45,9 @@ import {
   isoOf,
   sourceState,
   todayIso,
-} from "@/module/scout/helpers/select"
-import type { Bucket, Channel, Lifecycle } from "@/module/scout/types"
-import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
+} from "@module/scout/helpers/select"
+import type { Bucket, Channel, Lifecycle } from "@module/scout/types"
+import { BUCKETS, CHANNELS, LIFECYCLES } from "@module/scout/types"
 
 type FilterBarProps = {
   readonly filter: Filter

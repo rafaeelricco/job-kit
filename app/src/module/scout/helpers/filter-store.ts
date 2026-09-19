@@ -1,8 +1,8 @@
 export { readFilter, writeFilter }
 
-import { EMPTY_DAYS, EMPTY_FILTER, POSTINGS, SCORE_BANDS, SEGMENTS, dateOf, isoOf } from "@/module/scout/helpers/select"
-import type { DayRange, Filter } from "@/module/scout/helpers/select"
-import { BUCKETS, CHANNELS, LIFECYCLES } from "@/module/scout/types"
+import { EMPTY_DAYS, EMPTY_FILTER, POSTINGS, SCORE_BANDS, SEGMENTS, dateOf, isoOf } from "@module/scout/helpers/select"
+import type { DayRange, Filter } from "@module/scout/helpers/select"
+import { BUCKETS, CHANNELS, LIFECYCLES } from "@module/scout/types"
 
 // One key, named only here — the same way fsa.ts keeps its IndexedDB ids
 // private to the helper that uses them.

@@ -1,10 +1,10 @@
 export { AnswerTable }
 
-import { Badge } from "@/components/ui/badge"
-import { DataTable } from "@/components/ui/datatable"
-import type { SortState } from "@/components/ui/datatable"
-import { ANSWER_COLUMNS, ANSWER_ORDER } from "@/module/profile/helpers/columns"
-import type { Answer } from "@/module/profile/types"
+import { Badge } from "@ui/badge"
+import { DataTable } from "@ui/datatable"
+import type { SortState } from "@ui/datatable"
+import { ANSWER_COLUMNS, ANSWER_ORDER } from "@module/profile/helpers/columns"
+import type { Answer } from "@module/profile/types"
 
 // 136 of the 154 rows are empty by design — they are the backlog job-apply
 // seeds — so "Unanswered" is a first-class state, not a filtered-out edge case.

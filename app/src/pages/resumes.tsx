@@ -2,8 +2,8 @@ export default ResumesPage
 
 import { File01Icon } from "@hugeicons/core-free-icons"
 
-import { ProfileGate } from "@/module/profile/components/profile-gate"
-import { ResumeList } from "@/module/profile/components/resume"
+import { ProfileGate } from "@module/profile/components/profile-gate"
+import { ResumeList } from "@module/profile/components/resume"
 
 function ResumesPage() {
   return (

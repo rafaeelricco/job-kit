@@ -15,7 +15,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,9 +24,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAccess } from "@/module/access/use-access"
-import { useIdentity } from "@/module/profile/helpers/use-identity"
+} from "@ui/dropdown-menu"
+import { useAccess } from "@module/access/use-access"
+import { useIdentity } from "@module/profile/helpers/use-identity"
 import {
   Sidebar,
   SidebarContent,
@@ -40,7 +40,7 @@ import {
   SidebarRail,
   SidebarTrigger,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@ui/sidebar"
 
 // Rows are 32px tall with a 14px label at --ink-body; the active row sits at --ink-strong over an 8% fill.
 const ITEM = "h-8 gap-2 rounded-[6px] px-2 text-sm font-normal text-ink-body data-active:text-ink-strong"

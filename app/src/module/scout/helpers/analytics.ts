@@ -15,7 +15,7 @@ export {
 }
 export type { PairedPoint, RangeKey, SeriesPoint, TallyRow, Window }
 
-import type { Dossier } from "@/module/scout/types"
+import type { Dossier } from "@module/scout/types"
 
 const DAY_MS = 86_400_000
 

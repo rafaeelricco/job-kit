@@ -3,10 +3,10 @@ export { SettingsDialog }
 import { Cancel01Icon, UserIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
-import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import { ProfileGate } from "@/module/profile/components/profile-gate"
-import { PANELS, PANEL_ORDER, SettingsPanel, parsePanel } from "@/module/profile/components/settings-surface"
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@ui/dialog"
+import { cn } from "@lib/utils"
+import { ProfileGate } from "@module/profile/components/profile-gate"
+import { PANELS, PANEL_ORDER, SettingsPanel, parsePanel } from "@module/profile/components/settings-surface"
 
 // 896x720, square, no shadow: the frame measured off the reference console. The
 // rail and panel are flex children of the dialog itself, so the panel scrolls

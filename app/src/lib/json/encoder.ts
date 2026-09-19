@@ -1,4 +1,4 @@
-import { type Maybe, Nothing, Just, type Nullable } from "../maybe"
+import { type Maybe, Nothing, Just, type Nullable } from "@lib/maybe"
 import type { Json, JsonObject } from "./types"
 
 /** Infer the type from an encoder definition. */

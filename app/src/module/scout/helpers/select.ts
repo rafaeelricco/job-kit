@@ -31,9 +31,9 @@ export {
   type PageSize,
 }
 
-import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting, Score } from "@/module/scout/types"
-import { LIFECYCLES } from "@/module/scout/types"
-import { assertNever } from "@/module/scout/result"
+import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting, Score } from "@module/scout/types"
+import { LIFECYCLES } from "@module/scout/types"
+import { assertNever } from "@module/scout/result"
 
 const SEGMENTS = ["all", "new", "applied", "dead"] as const
 const PAGE_SIZES = [25, 50, 100] as const

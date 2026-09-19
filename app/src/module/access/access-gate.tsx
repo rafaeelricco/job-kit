@@ -4,10 +4,10 @@ import { useState } from "react"
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 
-import { Skeleton } from "@/components/ui/skeleton"
-import { ConsentDialog } from "@/module/access/consent-dialog"
-import { PermissionEmpty } from "@/module/access/permission-empty"
-import { useAccess } from "@/module/access/use-access"
+import { Skeleton } from "@ui/skeleton"
+import { ConsentDialog } from "@module/access/consent-dialog"
+import { PermissionEmpty } from "@module/access/permission-empty"
+import { useAccess } from "@module/access/use-access"
 
 // The ladder both gates open on: hydrating -> permission -> consent -> granted.
 // `chrome` is "page" for a route (Shell paints the h1 and page padding) and

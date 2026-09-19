@@ -1,8 +1,8 @@
 export { clearHandle, hasDirectoryPicker, loadHandle, persistHandle, pickDirectory, queryWrite, requestWrite }
 export type { Permission, PickError }
 
-import { err, ok } from "@/module/scout/result"
-import type { Result } from "@/module/scout/result"
+import { err, ok } from "@module/scout/result"
+import type { Result } from "@module/scout/result"
 
 const DB = "job-kit"
 const STORE = "directory-handles"

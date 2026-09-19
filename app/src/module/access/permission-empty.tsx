@@ -1,6 +1,6 @@
 export { PermissionEmpty }
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@ui/button"
 
 type PermissionEmptyKind = "no-handle" | "prompt" | "denied" | "stale" | "unsupported"
 
