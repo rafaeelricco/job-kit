@@ -1,9 +1,10 @@
-import { ArrowDown01Icon, ArrowUpDownIcon, SortingDownIcon, SortingUpIcon } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
-import type { Key, KeyboardEvent, ReactNode } from "react"
+export { ColumnDef, DataTable, DataTablePagination, comparator, type ColumnsConfig, type SortState }
 
 import * as React from "react"
 
+import { ArrowDown01Icon, ArrowUpDownIcon, SortingDownIcon, SortingUpIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { type Key, type KeyboardEvent, type ReactNode } from "react"
 import { Button } from "@ui/button"
 import {
   DropdownMenu,
@@ -312,6 +313,3 @@ function DataTablePagination<S extends number>(
     </div>
   )
 }
-
-export { ColumnDef, DataTable, DataTablePagination, comparator }
-export type { ColumnsConfig, SortState }

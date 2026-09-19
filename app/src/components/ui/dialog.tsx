@@ -1,3 +1,16 @@
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+}
+
 import * as React from "react"
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
@@ -117,17 +130,4 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
       {...props}
     />
   )
-}
-
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
 }

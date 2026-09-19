@@ -1,7 +1,17 @@
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  ChartStyle,
+  type ChartConfig,
+}
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
-import type { TooltipValueType } from "recharts"
 
+import { type TooltipValueType } from "recharts"
 import { cn } from "@lib/utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -10,7 +20,7 @@ const THEMES = { light: "", dark: ".dark" } as const
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
 type TooltipNameType = number | string
 
-export type ChartConfig = Record<
+type ChartConfig = Record<
   string,
   {
     label?: React.ReactNode
@@ -301,5 +311,3 @@ function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key:
 
   return configLabelKey in config ? config[configLabelKey] : config[key]
 }
-
-export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle }

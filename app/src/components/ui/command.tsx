@@ -1,6 +1,18 @@
-import * as React from "react"
-import { Command as CommandPrimitive } from "cmdk"
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+  CommandSeparator,
+}
 
+import * as React from "react"
+
+import { Command as CommandPrimitive } from "cmdk"
 import { Search01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@lib/utils"
@@ -140,16 +152,4 @@ function CommandShortcut({ className, ...props }: React.ComponentProps<"span">) 
       {...props}
     />
   )
-}
-
-export {
-  Command,
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandShortcut,
-  CommandSeparator,
 }

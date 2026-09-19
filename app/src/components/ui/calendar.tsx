@@ -1,6 +1,8 @@
-import * as React from "react"
-import { DayPicker, getDefaultClassNames, type DayButton, type Locale } from "react-day-picker"
+export { Calendar, CalendarDayButton }
 
+import * as React from "react"
+
+import { DayPicker, getDefaultClassNames, type DayButton, type Locale } from "react-day-picker"
 import { ArrowDown01Icon, ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@lib/utils"
@@ -166,5 +168,3 @@ function CalendarDayButton({
     />
   )
 }
-
-export { Calendar, CalendarDayButton }

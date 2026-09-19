@@ -1,6 +1,19 @@
-import * as React from "react"
-import { Select as SelectPrimitive } from "@base-ui/react/select"
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+}
 
+import * as React from "react"
+
+import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { ArrowDown01Icon, ArrowUp01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@lib/utils"
@@ -157,17 +170,4 @@ function SelectScrollDownButton({ className, ...props }: React.ComponentProps<ty
       <HugeiconsIcon icon={ArrowDown01Icon} />
     </SelectPrimitive.ScrollDownArrow>
   )
-}
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
 }

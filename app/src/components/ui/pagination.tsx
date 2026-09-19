@@ -1,7 +1,17 @@
+export {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+}
+
 import * as React from "react"
+
 import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-
 import { cn } from "@lib/utils"
 import { Button } from "@ui/button"
 
@@ -82,14 +92,4 @@ function PaginationEllipsis({ className, ...props }: React.ComponentProps<"span"
       <span className="sr-only">More pages</span>
     </span>
   )
-}
-
-export {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 }

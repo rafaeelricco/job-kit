@@ -1,6 +1,18 @@
+export {
+  Field,
+  FieldLabel,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldContent,
+  FieldTitle,
+}
+
 import { useMemo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@lib/utils"
 import { Label } from "@ui/label"
 import { Separator } from "@ui/separator"
@@ -200,17 +212,4 @@ function FieldError({
       {content}
     </div>
   )
-}
-
-export {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-  FieldContent,
-  FieldTitle,
 }
