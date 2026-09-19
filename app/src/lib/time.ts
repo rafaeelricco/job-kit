@@ -367,6 +367,12 @@ class Duration {
       return Nothing()
     }
 
+    // Time components require the T designator: without it, `M` means months
+    // (which this parser does not support) and `H`/`S` are not valid at all.
+    if (hasTimeComponents && !hasT) {
+      return Nothing()
+    }
+
     const negative = match[1] === "-"
     const days = match[2] ? parseFloat(match[2]) : 0
     const hours = match[4] ? parseFloat(match[4]) : 0
