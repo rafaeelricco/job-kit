@@ -48,9 +48,13 @@ cannot read the debug port file of your everyday Chrome. Start a dedicated
 automation Chrome with
 `bash "${JOB_KIT_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/job-kit}/scripts/browser-use/chrome.sh"`,
 sign in there to the sites you use, and set
-`BU_CDP_URL=http://127.0.0.1:9333` in your agent's environment. Otherwise,
-enable remote debugging at `chrome://inspect/#remote-debugging` in your
-everyday Chrome.
+`BU_CDP_URL=http://127.0.0.1:9333` in your agent's environment — or, for the
+Hermes desktop app, which reads no shell environment, set `browser.cdp_url:
+http://127.0.0.1:9333` in `~/.hermes/config.yaml`. Otherwise, enable remote
+debugging at `chrome://inspect/#remote-debugging` in your everyday Chrome. If
+that Chrome instead fails with `Operation not permitted` on
+`DevToolsActivePort`, macOS TCC is blocking the profile directory;
+`mac-approve` cannot clear it, so use the dedicated Chrome.
 
 Re-run the install command to install the latest published release. The installer
 prints the installed version and verifies the release archive's SHA-256 checksum

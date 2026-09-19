@@ -205,8 +205,14 @@ browser_use_connect_note() {
   echo "    bash \"${REPO_ROOT}/scripts/browser-use/chrome.sh\""
   echo "  Sign in there to the sites you use, and set in your agent's env:"
   echo "    BU_CDP_URL=http://127.0.0.1:9333"
+  echo "  Hermes desktop reads no shell env; set this in ~/.hermes/config.yaml:"
+  echo "    browser:"
+  echo "      cdp_url: http://127.0.0.1:9333"
   echo "  Or use your everyday Chrome: open chrome://inspect/#remote-debugging and"
   echo "  tick 'Allow remote debugging'."
+  echo "  If that Chrome fails with 'Operation not permitted' on"
+  echo "  DevToolsActivePort, macOS TCC is blocking it — use the dedicated"
+  echo "  Chrome above; mac-approve cannot fix it."
 }
 
 # install_driver_into ROOT — write ROOT/browser-use via the official CLI.
