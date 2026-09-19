@@ -200,12 +200,16 @@ class TimeOfDay {
 
   /** `HH:mm:ss`, with a `.SSS` millisecond suffix only when the time carries a fraction. */
   pretty() {
-    const hours = padded(Math.floor(this.seconds / (60 * 60)))
-    const minutes = padded(Math.floor(this.seconds / 60) % 60)
-    const wholeSeconds = padded(Math.floor(this.seconds) % 60)
-    const millis = Math.round(this.getSubSecondPrecision() * 1000)
+    // Round to whole milliseconds first so a fraction that rounds up carries
+    // into the seconds instead of printing `.1000`.
+    const totalMillis = Math.round(this.seconds * 1000)
+    const millis = totalMillis % 1000
+    const totalSeconds = Math.floor(totalMillis / 1000)
+    const hours = padded(Math.floor(totalSeconds / (60 * 60)))
+    const minutes = padded(Math.floor(totalSeconds / 60) % 60)
+    const seconds = padded(totalSeconds % 60)
     const fraction = millis > 0 ? `.${String(millis).padStart(3, "0")}` : ""
-    return `${hours}:${minutes}:${wholeSeconds}${fraction}`
+    return `${hours}:${minutes}:${seconds}${fraction}`
   }
 
   getSubSecondPrecision(): number {
