@@ -137,15 +137,16 @@ class DateOnly {
 
   static schema: s.Schema<DateOnly> = s.string.chain(
     (str) => {
-      const parts = str.split("-")
-      if (parts.length !== 3) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str)
+      if (!match) {
         return fail("Invalid Date")
       }
-      const year = parseInt(parts[0] as string, 10)
-      const month = parseInt(parts[1] as string, 10)
-      const day = parseInt(parts[2] as string, 10)
+      const year = Number(match[1])
+      const month = Number(match[2])
+      const day = Number(match[3])
 
-      if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      // Luxon rejects out-of-range months and days that do not exist in that month.
+      if (!DateTime.fromObject({ year, month, day }, { zone: "UTC" }).isValid) {
         return fail("Invalid Date")
       }
 
