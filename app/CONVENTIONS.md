@@ -1,5 +1,5 @@
 ---
-description: TypeScript conventions — required terminology, type-driven modeling, functional primitives, boundary-safe domain design, and numeric presentation in tables.
+description: TypeScript conventions — strings frozen by scout, type-driven modeling, functional primitives, boundary-safe domain design, and numeric presentation in tables.
 globs: "*.ts, *.tsx"
 alwaysApply: false
 ---
@@ -8,45 +8,36 @@ Favour static types, explicit data flow, immutability, pure functions, compositi
 
 ## Terminology
 
-### "Premises", never "premise"
+### Strings frozen outside the app
 
-**A _premise_ is the foundation of an argument. It has nothing to do with a building or a location.
-A _premises_ is a building or location. "Premise" is NOT the singular of "premises".**
+The app reads dossiers that the Python `scout` skill writes — markdown under `scout/jobs/` with
+YAML frontmatter, fixed section headings, and an ownership marker. Those strings are a contract
+with a writer the app does not control. Leave them verbatim and do not "fix" them:
 
-Legacy MyHEMS/HEMS data and older code use "premise" for the location sense throughout. That usage is
-**incorrect**. New code, new UI copy, new identifiers, and new docs use only:
+- Frontmatter keys — `FRONTMATTER_KEYS` in `src/module/scout/parse-dossier.ts` (`company`, `title`,
+  `url`, `status`, `first_seen`, `last_seen`, `score`, `bucket`, `channel`). Snake case stays snake
+  case even though app identifiers are camel case.
+- Section headings scout emits — `REQUIRED_SECTIONS` (`## Verdict`, `## Posting facts`) and the
+  optional ones the parser reads alongside them.
+- The ownership marker `<!-- scout never writes below this line -->` (`OWNERSHIP_MARKER`), which splits
+  the file into scout's half and the user's half.
+- Line grammars scout writes — `LABELED_PROVENANCE`, `VERDICT_LINE`, `LOG_LINE`. Their separators
+  (`·`, `—`) are part of the format.
 
-- **`premises`** — `On-Premises`, `Off-Premises`, `premisesType`, `ProfiledPremises`
-- **`prem`** — the accepted abbreviation, as in `On-Prem` / `Off-Prem`, `alcohol_on_prem`
+When new code must name one of those strings, keep the literal exact and keep the surrounding prose
+and identifiers in the app's own style:
 
 ```ts
-// ✗ never
-const ON_PREMISE_LABEL = "On-Premise"
-type PremiseType = "OnPremise" | "OffPremise"
-/** On-premise events carry a bar spend. */
+// ✗ never — "fixes" the key and stops matching the file
+const firstSeen = read("firstSeen")
 
-// ✓
-const ON_PREMISES_LABEL = "On-Premises"
-type PremisesType = "on_prem" | "off_prem"
-/** On-premises events carry a bar spend. */
+// ✓ the literal stays exact; the identifier follows app style
+const firstSeen = read("first_seen")
 ```
 
-This applies to display labels, CSV/export headers, enum members, type and variable names, test
-names, and comment prose alike.
-
-**The one exception is a string frozen outside our control**, where renaming would change meaning or
-break decoding. Leave these verbatim and do not "fix" them:
-
-- Literals persisted in the event store — the `"OnPremise"` / `"OffPremise"` values of the retired
-  `PremisesType` and of `ProfiledPremises`, which are frozen inside historical events.
-- Deterministic aggregate seeds — e.g. `venue_types_on_premise`, which derives an aggregate id.
-  Renaming one silently repoints the aggregate; **the test suite cannot catch this**, because tests
-  seed their own store.
-- Verbatim legacy data and quoted source text — MyHEMS table/row values, imported SQL dumps, meeting
-  transcripts under `docs/background/`.
-
-When new code must name one of those frozen literals, keep the literal exact and use correct spelling
-in the surrounding prose and identifiers.
+The same applies to display labels the user has already learned: the dossier column labels in
+`src/module/scout/helpers/columns.ts` (`LABELS`) are the one place a label is spelled, and every
+other surface reads from there.
 
 ## Type Design
 
@@ -293,9 +284,9 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 ### List — Singly Linked List
 
-- Use `List<T>` for O(1) prepend and immutable functional sequences. Import from `@ambarltd/core/list`:
+- Use `List<T>` for O(1) prepend and immutable functional sequences. Import from `@/lib/list`:
   ```ts
-  import { List } from "@ambarltd/core/list"
+  import { List } from "@/lib/list"
   ```
 - Don't append onto linked lists — O(n²). Build with `List.cons(item, list)` + `.reverse()` at the end, or `List.from(arr)`.
 - `.head()` returns `Maybe<T>` — always handle `Nothing`.
@@ -316,29 +307,6 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 - `TreeMap` is sorted by comparator, not insertion order.
 - Use `TreeSet.from(set)` to clone a mutable set before mutating it.
 - Use `.has()` for O(log n) membership. Don't use `.values().includes()` — that's O(n).
-
-### MVar & BoundedBuffer — Async Coordination
-
-- Use `MVar<T>` for async synchronization. `put(v)` blocks if full, `take()` blocks if empty. Resolves in FIFO order.
-- Use `BoundedBuffer<T>` for backpressure queues with max capacity. `enqueue(v)` blocks if full, `dequeue()` blocks if empty.
-
-  ```ts
-  const textBuffer = new BoundedBuffer<string>(100)
-  const endSignal = MVar.newEmpty<null>()
-
-  model.onToken((token) => {
-    textBuffer.enqueue(token)
-  })
-  model.onDone(() => {
-    endSignal.put(null)
-  })
-
-  for await (const text of iterable) {
-    await ttsService.synthesize(text)
-  }
-  ```
-
-- Don't use unbounded arrays for streaming — memory leak risk. Don't use boolean flags for "done" state — use `MVar` to block until populated.
 
 ---
 
@@ -411,110 +379,26 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 ---
 
-## API Response Compatibility
-
-**A shipped mobile build decodes every response against the schema it was compiled with.** The web app
-recompiles against the backend on every deploy, so it cannot skew; an installed app on someone's phone
-can be months behind. Changing a response schema is therefore a change to a contract you have already
-shipped and cannot recall.
-
-**Nothing checks this for you.** CI runs eslint plus a mobile typecheck, and that typecheck compiles
-_current_ mobile against _current_ backend — it proves the repo is self-consistent at HEAD and says
-nothing about the builds in the field. A backend-only PR skips the mobile jobs entirely. This section
-is the check.
-
-### What breaks an installed build
-
-Verified against the decoder, not assumed:
-
-| Change to a response schema                                 | Effect on an older build                                     |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| **Add** a field                                             | Safe — unknown keys are stripped during decode               |
-| **Remove** or **rename** a field                            | **Breaks** — the field it requires is now absent             |
-| **Add a member to an enum**                                 | **Breaks** — the value is not in the set it compiled against |
-| **Narrow** a type (`nullable` → required, widen → restrict) | **Breaks**                                                   |
-
-Array decoding is **all-or-nothing**: one row carrying an unknown enum member fails the _entire list_,
-not just that row. The offline layer then degrades the failed read into stale cache, so the user sees
-old data with nothing to act on rather than an error.
-
-**Adding an enum member is the trap.** It reads as purely additive, reviews as harmless, and is the
-single most likely way to break the fleet.
-
-```ts
-// ✗ breaks every installed build the moment one activity uses the new member
-const schema_activityChannel = s.stringEnum(["alcohol_on_prem", "alcohol_off_prem", "cannabis", "perfume"])
-
-// ✓ additive: old builds strip what they don't know, new builds read it
-const schema_activityView = s.object({
-  activityChannel: schema_activityChannel,
-  fragranceCategory: s.optionalNullable(s.string), // new field, not a new member
-})
-```
-
-### What to do when a change is breaking
-
-Three options, in order of preference:
-
-1. **Make it additive instead.** A new optional field beside the old one, rather than a change to the
-   old one. Costs a deprecated field; costs no upgrade.
-2. **Send a compatibility view.** Derive the retired shape per request so old builds still decode, and
-   document it as ignorable — `schema_activityVenueSnapshotView` and `toVenueSnapshotView` are the
-   worked example (IMP-1722). **Never write filler into an event to achieve this**: a response is
-   discarded the moment it decodes, but a permanent log poisons what history can later be asked.
-3. **Raise the version floor.** `MIN_MOBILE_VERSION_IOS` / `MIN_MOBILE_VERSION_ANDROID` in the three
-   ambar manifests, enforced by `backend/src/app/clientVersion.ts`, which turns older builds away with
-   `426 Upgrade Required`. This is a real cost to users — a forced store update before the app works
-   again — so it needs a shipped build to upgrade _to_, and `MOBILE_STORE_URL` set, before it is
-   raised.
-
-A request carrying **no** version headers is always allowed, deliberately: every build shipped before
-the headers existed sends none, and treating their absence as a failure would lock out the whole fleet
-at once. So the floor cannot protect you from a build older than the handshake itself — only options 1
-and 2 can.
-
-### Which endpoints this applies to
-
-Only what mobile actually consumes — check `mobile/src/api/endpoints.ts` before assuming. Web-only
-endpoints may change freely, because the web app recompiles with the backend. When in doubt, grep;
-"probably not used by mobile" is not a finding.
-
----
-
 ## Numeric Data in Tables
 
 Numbers in a table are read by scanning down a column and comparing them. Ragged decimals and left edges defeat that: a column where `8` sits above `12.5` above `4` forces the reader to align the digits themselves, and two columns that round differently are read as a discrepancy rather than as a formatting choice. Format and align every figure the same way so the column does that work.
 
-- **Format every quantity through `@fe/lib/format/numeric`.** `formatMoney(money)` → two decimals (`$1,250.00`); `formatHours(n)` → one decimal (`8` → `"8.0"`). Don't hand-roll with `toFixed`, template literals, or a local `Intl.NumberFormat` — a second formatter is a second rounding rule.
+- **Format every count the same way.** Counts render with `toLocaleString()` and nothing else — no `toFixed`, no template literals, no local `Intl.NumberFormat`. A second formatter is a second rounding rule. The dossier score is an integer from scout and renders as `String(score.value)`; don't add decimals it never had.
+
+- **Right-align numeric quantities** with `align: "right"` on the `ColumnDef` (`src/components/ui/datatable.tsx`), and pair it with `tabular-nums` on the cell so digits sit in fixed-width columns.
 
   ```tsx
-  import { formatMoney, formatHours } from "@fe/lib/format/numeric"
-  ```
-
-  One decimal for hours is deliberate: pay is scheduled in half- and quarter-hours, so a second decimal is false precision while a whole number hides the half-hour that got paid.
-
-- **Right-align numeric quantities** with `align: "right"` on the `ColumnDef`, and pair it with `tabular-nums` on the cell so digits sit in fixed-width columns.
-
-  ```tsx
-  regHours: new ColumnDef({
-    label: "Reg Hours",
-    sortFun: (a: PayrollSummaryRow, b: PayrollSummaryRow) => a.regHours - b.regHours,
-    align: "right",
-  }),
+  score: new ColumnDef({ label: LABELS.score, sortFun: byScore, align: "right" }),
   // contents:
-  regHours: <span className="tabular-nums">{formatHours(row.regHours)}</span>,
+  score: <span className="tabular-nums">{String(dossier.score.value)}</span>,
   ```
 
-- **Identifiers that happen to be digits stay left-aligned** — employee numbers, invoice numbers, ZIPs, job ids. They are labels, not measures; nobody sums them, and right-aligning them makes a column of unrelated strings look like a total. Right-align only what could sensibly be added up: money, hours, counts, sizes, durations.
+- **Identifiers that happen to be digits stay left-aligned** — posting ids, ZIPs, phone numbers. They are labels, not measures; nobody sums them, and right-aligning them makes a column of unrelated strings look like a total. Right-align only what could sensibly be added up: scores, counts, sizes, durations.
 
-- **Sort on the underlying number, never the formatted string.** `sortFun` reads the typed row value (`a.regHours - b.regHours`, `a.total.amountInMinorUnits - b.total.amountInMinorUnits`), so `"10.0"` doesn't sort before `"9.0"`.
+- **Sort on the underlying value, never the formatted string.** `sortFun` reads the typed row value (`byScore` compares `score.value`, not the rendered text), so `"10"` doesn't sort before `"9"`.
 
-- **Distinguish "no value" from a real zero.** Render absent figures as an em dash (`—`), not `$0.00` or `0.0` — a promoter who worked no shifts reads differently from one who worked and earned nothing.
+- **Distinguish "no value" from a real zero.** A factor scout scored `unknown` renders as `no signal` (see `factText` in `src/module/scout/components/dossier.tsx`), and an absent figure elsewhere renders as an em dash (`—`), never `0` — a posting with no salary reads differently from one that pays nothing.
 
-- **Composite durations keep their own format.** An event window renders as `2h 30m` via `formatDurationMinutes` — it is a span of time, not a decimal quantity of hours. Right-align it like any other measure, but don't push it through `formatHours`.
+- **Drop unit suffixes that the header already carries.** A count column titled "Applications" renders `12`, not `12 applications` — and a suffix whose length varies with the value (`1 application` / `12 applications`) puts the digits back out of line, defeating the alignment it sits in.
 
-- **Drop unit suffixes that the header already carries.** A count column titled "Activities" renders `12`, not `12 activities` — and a suffix whose length varies with the value (`1 activity` / `12 activities`) puts the digits back out of line, defeating the alignment it sits in.
-
-- **Composite and interactive cells are exempt.** A cell that is really a control (an editable rate with a pencil affordance) or a stack (an amount above an amendment note, beside a warning icon and a badge) has no single right edge to align on; forcing one drags icons, badges and prose to the wrong side. Keep the figure itself formatted and `tabular-nums`, but leave the column's default alignment. The rule is for columns of plain figures.
-
-- **Exports are not tables.** CSV columns are an interchange contract with the receiving system (ADP, accounting), so their precision is fixed by that contract, not by this rule. Don't "align" a CSV to match a screen.
+- **Composite and interactive cells are exempt.** A cell that is really a control (a status dropdown) or a stack (a score badge beside a band label) has no single right edge to align on; forcing one drags icons, badges and prose to the wrong side. Keep the figure itself `tabular-nums`, but leave the column's default alignment. The rule is for columns of plain figures.
