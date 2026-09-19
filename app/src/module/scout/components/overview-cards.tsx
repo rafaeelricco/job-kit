@@ -3,7 +3,7 @@ export { OverviewCards, type OverviewCardsProps }
 import { CheckmarkCircle01Icon, Files01Icon, RadioIcon, StarIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@ui/card"
 
 type OverviewCardsProps = {
   readonly summary: {

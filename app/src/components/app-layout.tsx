@@ -3,9 +3,9 @@ export { AppLayout }
 import type { CSSProperties } from "react"
 import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { SettingsDialog } from "@/module/profile/components/settings-dialog"
+import { AppSidebar } from "@components/app-sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@ui/sidebar"
+import { SettingsDialog } from "@module/profile/components/settings-dialog"
 
 function AppLayout() {
   const [params, setParams] = useSearchParams()

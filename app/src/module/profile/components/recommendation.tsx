@@ -1,8 +1,8 @@
 export { RecommendationList }
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Recommendation } from "@/module/profile/types"
+import { Badge } from "@ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ui/card"
+import type { Recommendation } from "@module/profile/types"
 
 const ROW_KEYS = ["author", "role", "company", "relationship", "date", "channel", "url", "text"] as const
 

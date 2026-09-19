@@ -3,8 +3,8 @@ import { Copy01Icon, Tick02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@lib/utils"
+import { Button } from "@ui/button"
 
 const RESET_MS = 1200
 

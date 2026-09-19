@@ -1,7 +1,7 @@
 export { describeSaveError }
 
-import type { SaveError } from "@/module/profile/helpers/write-profile"
-import { assertNever } from "@/module/scout/result"
+import type { SaveError } from "@module/profile/helpers/write-profile"
+import { assertNever } from "@module/scout/result"
 
 // Save-failure copy lives beside the save helpers rather than in one surface:
 // every component that calls save reports the same five failures the same way.

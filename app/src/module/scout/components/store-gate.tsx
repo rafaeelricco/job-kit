@@ -4,15 +4,15 @@ export type { Ready }
 import type { IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { AccessGate, LoadingRows } from "@/module/access/access-gate"
-import { useAccess } from "@/module/access/use-access"
-import { useStore } from "@/module/scout/helpers/use-store"
-import type { StoreState } from "@/module/scout/helpers/use-store"
-import { assertNever } from "@/module/scout/result"
-import type { Result } from "@/module/scout/result"
-import type { Store, TrashOpError, Trashed } from "@/module/scout/types"
+import { Alert, AlertDescription, AlertTitle } from "@ui/alert"
+import { Button } from "@ui/button"
+import { AccessGate, LoadingRows } from "@module/access/access-gate"
+import { useAccess } from "@module/access/use-access"
+import { useStore } from "@module/scout/helpers/use-store"
+import type { StoreState } from "@module/scout/helpers/use-store"
+import { assertNever } from "@module/scout/result"
+import type { Result } from "@module/scout/result"
+import type { Store, TrashOpError, Trashed } from "@module/scout/types"
 
 type Ready = Extract<Store, { kind: "ready" }>
 

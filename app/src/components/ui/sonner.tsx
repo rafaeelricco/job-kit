@@ -8,7 +8,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
-import { useTheme } from "@/components/theme-provider"
+import { useTheme } from "@components/theme-provider"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   // shadcn ships this wired to next-themes; this app has its own provider.

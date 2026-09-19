@@ -9,9 +9,9 @@ import {
   parsePacks,
   parseProfiles,
   parseRecommendations,
-} from "@/module/profile/helpers/parse-profile"
-import type { Basics, JobSearch, Profile, Resume } from "@/module/profile/types"
-import type { Result } from "@/module/scout/result"
+} from "@module/profile/helpers/parse-profile"
+import type { Basics, JobSearch, Profile, Resume } from "@module/profile/types"
+import type { Result } from "@module/scout/result"
 
 type Gap = { readonly file: string; readonly detail: string }
 

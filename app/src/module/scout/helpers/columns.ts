@@ -1,9 +1,9 @@
 export { COLUMNS, DEFAULT_COLUMNS, DEFAULT_SORT, DOSSIER_COLUMNS, VIEWS, columnLabel, isView, type ColumnId, type View }
 
-import { ColumnDef } from "@/components/ui/datatable"
-import type { ColumnsConfig, SortState } from "@/components/ui/datatable"
-import { byScore, byStatus, bySource } from "@/module/scout/helpers/select"
-import type { Dossier } from "@/module/scout/types"
+import { ColumnDef } from "@ui/datatable"
+import type { ColumnsConfig, SortState } from "@ui/datatable"
+import { byScore, byStatus, bySource } from "@module/scout/helpers/select"
+import type { Dossier } from "@module/scout/types"
 
 const COLUMNS = ["score", "company", "location", "salary", "source", "status"] as const
 

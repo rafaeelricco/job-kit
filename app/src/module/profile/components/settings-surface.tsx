@@ -22,28 +22,20 @@ import type { ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-import { useTheme } from "@/components/theme-provider"
-import type { Theme } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
-import { describeSaveError } from "@/module/profile/helpers/describe-save-error"
-import type { Save } from "@/module/profile/helpers/use-profile"
-import type { Edit } from "@/module/profile/helpers/write-profile"
-import type { Basics, JobSearch, Language, Profile, SearchPack, SocialProfile, Toggle } from "@/module/profile/types"
-import { assertNever } from "@/module/scout/result"
+import { useTheme } from "@components/theme-provider"
+import type { Theme } from "@components/theme-provider"
+import { Button } from "@ui/button"
+import { Checkbox } from "@ui/checkbox"
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@ui/field"
+import { Input } from "@ui/input"
+import { Label } from "@ui/label"
+import { Textarea } from "@ui/textarea"
+import { cn } from "@lib/utils"
+import { describeSaveError } from "@module/profile/helpers/describe-save-error"
+import type { Save } from "@module/profile/helpers/use-profile"
+import type { Edit } from "@module/profile/helpers/write-profile"
+import type { Basics, JobSearch, Language, Profile, SearchPack, SocialProfile, Toggle } from "@module/profile/types"
+import { assertNever } from "@module/scout/result"
 
 type PanelId = "profile" | "basics" | "profiles" | "languages" | "search" | "filters" | "packs"
 

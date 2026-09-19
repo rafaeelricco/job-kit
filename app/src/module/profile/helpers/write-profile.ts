@@ -4,8 +4,8 @@ export type { Edit, Loaded, SaveError }
 import { isScalar, isSeq, parseDocument } from "yaml"
 import type { Document, YAMLSeq } from "yaml"
 
-import { err, ok } from "@/module/scout/result"
-import type { Result } from "@/module/scout/result"
+import { err, ok } from "@module/scout/result"
+import type { Result } from "@module/scout/result"
 
 type Path = readonly (string | number)[]
 

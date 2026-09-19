@@ -1,8 +1,8 @@
 export { toApplyPrompt }
 
-import { httpHref } from "@/module/scout/helpers/href"
-import { assertNever } from "@/module/scout/result"
-import { type Dossier, type Writer } from "@/module/scout/types"
+import { httpHref } from "@module/scout/helpers/href"
+import { assertNever } from "@module/scout/result"
+import { type Dossier, type Writer } from "@module/scout/types"
 
 type Apply = { readonly kind: "apply"; readonly row: Dossier }
 type Skip = { readonly kind: "skip"; readonly row: Dossier; readonly reasons: readonly string[] }

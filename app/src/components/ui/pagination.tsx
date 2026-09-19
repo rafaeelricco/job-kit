@@ -2,8 +2,8 @@ import * as React from "react"
 import { ArrowLeft01Icon, ArrowRight01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@lib/utils"
+import { Button } from "@ui/button"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (

@@ -1,11 +1,11 @@
 import * as decoder from "./decoder"
 import * as encoder from "./encoder"
-import { type Result, Success, Failure } from "../result"
+import { type Result, Success, Failure } from "@lib/result"
 import { Decoder, type DecoderDef, type DecoderOptional } from "./decoder"
 import { Encoder, type EncoderDef, type EncoderOptional } from "./encoder"
 import type { Json } from "./types"
-import type { Maybe, Nullable } from "../maybe"
-import { filterMap, mapValues, isRecord } from "../helpers/object"
+import type { Maybe, Nullable } from "@lib/maybe"
+import { filterMap, mapValues, isRecord } from "@lib/helpers/object"
 
 /** Infer the type from a schema definition. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

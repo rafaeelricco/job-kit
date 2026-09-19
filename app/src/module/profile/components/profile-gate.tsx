@@ -3,15 +3,15 @@ export { ProfileGate }
 import type { IconSvgElement } from "@hugeicons/react"
 import type { ReactNode } from "react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AccessGate, LoadingRows } from "@/module/access/access-gate"
-import { useAccess } from "@/module/access/use-access"
-import { ProfileGaps } from "@/module/profile/components/gaps"
-import { useProfile } from "@/module/profile/helpers/use-profile"
-import type { Save } from "@/module/profile/helpers/use-profile"
-import type { Profile } from "@/module/profile/types"
-import { WrongRoot } from "@/module/scout/components/store-gate"
-import { assertNever } from "@/module/scout/result"
+import { Alert, AlertDescription, AlertTitle } from "@ui/alert"
+import { AccessGate, LoadingRows } from "@module/access/access-gate"
+import { useAccess } from "@module/access/use-access"
+import { ProfileGaps } from "@module/profile/components/gaps"
+import { useProfile } from "@module/profile/helpers/use-profile"
+import type { Save } from "@module/profile/helpers/use-profile"
+import type { Profile } from "@module/profile/types"
+import { WrongRoot } from "@module/scout/components/store-gate"
+import { assertNever } from "@module/scout/result"
 
 // All three profile sections open on the same ladder — access, load, fail,
 // resolve — and only diverge once a parsed profile exists.

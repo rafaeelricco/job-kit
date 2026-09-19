@@ -2,13 +2,13 @@ export { useStore, type StoreState }
 
 import { useCallback, useEffect, useState } from "react"
 
-import { loadHandle } from "@/module/access/handle"
-import { toStore } from "@/module/scout/helpers/assemble-store"
-import { readJobs, readSkills, snapshotProbe, trashJobs } from "@/module/scout/helpers/fsa"
-import { parseDossier } from "@/module/scout/parse-dossier"
-import { err } from "@/module/scout/result"
-import type { Result } from "@/module/scout/result"
-import type { Store, TrashOpError, Trashed } from "@/module/scout/types"
+import { loadHandle } from "@module/access/handle"
+import { toStore } from "@module/scout/helpers/assemble-store"
+import { readJobs, readSkills, snapshotProbe, trashJobs } from "@module/scout/helpers/fsa"
+import { parseDossier } from "@module/scout/parse-dossier"
+import { err } from "@module/scout/result"
+import type { Result } from "@module/scout/result"
+import type { Store, TrashOpError, Trashed } from "@module/scout/types"
 
 type StoreState =
   | { readonly kind: "idle" }

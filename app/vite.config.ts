@@ -1,4 +1,3 @@
-import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
@@ -27,8 +26,6 @@ export default defineConfig({
   base: BASE,
   plugins: [react(), tailwindcss(), dedupeDevBase()],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    tsconfigPaths: true,
   },
 })

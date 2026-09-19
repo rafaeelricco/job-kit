@@ -1,7 +1,7 @@
 export { toFixPrompt }
 
-import { assertNever } from "@/module/scout/result"
-import type { ParseError } from "@/module/scout/types"
+import { assertNever } from "@module/scout/result"
+import type { ParseError } from "@module/scout/types"
 
 // No /job-fix skill. Point at profile root + schema home; do not restate schema.
 function toFixPrompt(gaps: readonly ParseError[]): string {

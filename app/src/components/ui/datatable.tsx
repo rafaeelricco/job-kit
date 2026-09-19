@@ -4,7 +4,7 @@ import type { Key, KeyboardEvent, ReactNode } from "react"
 
 import * as React from "react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@ui/dropdown-menu"
 import {
   Pagination,
   PaginationContent,
@@ -23,9 +23,9 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
+} from "@ui/pagination"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@ui/table"
+import { cn } from "@lib/utils"
 
 type SortFun<T> = (a: T, b: T) => number
 

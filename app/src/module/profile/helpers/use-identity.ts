@@ -3,10 +3,10 @@ export type { Identity }
 
 import { useEffect, useState } from "react"
 
-import { subscribeAccessChanged } from "@/module/access/access-events"
-import { loadHandle } from "@/module/access/handle"
-import { parseBasics } from "@/module/profile/helpers/parse-profile"
-import { subscribeProfileChanged } from "@/module/profile/helpers/profile-events"
+import { subscribeAccessChanged } from "@module/access/access-events"
+import { loadHandle } from "@module/access/handle"
+import { parseBasics } from "@module/profile/helpers/parse-profile"
+import { subscribeProfileChanged } from "@module/profile/helpers/profile-events"
 
 type Identity = { readonly name: string; readonly email: string }
 

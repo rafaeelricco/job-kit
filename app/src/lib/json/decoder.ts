@@ -1,8 +1,8 @@
-import { type Result, Success, Failure, traverse } from "../result"
-import { type Maybe, Just, Nothing, type Nullable } from "../maybe"
-import { List } from "../list"
+import { type Result, Success, Failure, traverse } from "@lib/result"
+import { type Maybe, Just, Nothing, type Nullable } from "@lib/maybe"
+import { List } from "@lib/list"
 import type { Json } from "./types"
-import { isRecord } from "../helpers/object"
+import { isRecord } from "@lib/helpers/object"
 
 /** Infer the type from a decoder definition. */
 type Infer<A extends Decoder<unknown>> = A extends Decoder<infer B> ? B : never
