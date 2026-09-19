@@ -75,11 +75,11 @@ const CHART: ChartConfig = {
 // zero-chroma. Mixing toward theme tokens keeps the ramp readable in both
 // themes. The last shade is grey, reserved for the folded "other" bucket.
 const SOURCE_COLORS = [
-  "var(--color-brand)",
-  "color-mix(in oklab, var(--color-brand) 62%, var(--color-foreground))",
-  "color-mix(in oklab, var(--color-brand) 45%, var(--color-card))",
-  "color-mix(in oklab, var(--color-brand) 35%, var(--color-muted-foreground))",
-  "var(--color-muted-foreground)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ] as const
 
 const SOURCE_LIMIT = SOURCE_COLORS.length - 1
@@ -241,7 +241,7 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
 // the icon and the text, and never shouts it in uppercase.
 function SectionTitle({ Icon, children }: { readonly Icon: IconSvgElement; readonly children: ReactNode }) {
   return (
-    <div className="flex w-fit items-center gap-2 text-[15px] text-muted-foreground">
+    <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
       <HugeiconsIcon icon={Icon} className="size-4 shrink-0" aria-hidden="true" />
       <span>{children}</span>
     </div>
@@ -250,7 +250,7 @@ function SectionTitle({ Icon, children }: { readonly Icon: IconSvgElement; reado
 
 function Key({ label, color, count }: { readonly label: string; readonly color: string; readonly count?: number }) {
   return (
-    <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+    <span className="flex items-center gap-2 font-mono text-[11px] text-ink-soft">
       <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
       {label}
       {count === undefined ? null : <span className="text-foreground tabular-nums">{count.toLocaleString()}</span>}
@@ -280,7 +280,7 @@ function TrendCard({
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <SectionTitle Icon={Icon}>{title}</SectionTitle>
-          <p className="text-[28px] leading-none font-semibold tabular-nums">{total.toLocaleString()}</p>
+          <p className="text-2xl leading-none font-semibold tabular-nums">{total.toLocaleString()}</p>
         </div>
 
         <ChartContainer config={CHART} className="h-64 w-full">
@@ -307,7 +307,7 @@ function TrendCard({
                         : ""
                     return (
                       <div className="flex w-full items-center gap-2">
-                        <div className="size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
+                        <div className="size-2.5 shrink-0" style={{ backgroundColor: item.color }} />
                         <span className="flex-1 text-muted-foreground">
                           {isPrior ? "Previous" : "This period"}
                           {priorDate}
@@ -372,7 +372,7 @@ function Pill({
   return (
     <Select items={items} value={value} onValueChange={(v) => onValue(String(v))}>
       <SelectTrigger
-        className="h-9 w-auto gap-2 rounded-full border-border bg-card px-3.5 text-[13px]"
+        className="h-9 w-auto gap-2 border-border bg-card px-3 text-sm"
         icon={<HugeiconsIcon icon={UnfoldMoreIcon} className="pointer-events-none size-3.5 text-muted-foreground" />}
       >
         <HugeiconsIcon icon={Icon} className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -408,13 +408,13 @@ function Tile({
         <SectionTitle Icon={Icon}>{label}</SectionTitle>
         <div className="flex items-end justify-between gap-3">
           <div className="flex items-baseline gap-2">
-            <span className="text-[28px] leading-none font-semibold tabular-nums">{total.toLocaleString()}</span>
+            <span className="text-2xl leading-none font-semibold tabular-nums">{total.toLocaleString()}</span>
             {delta === null ? null : (
               <span
                 className={
                   delta < 0
-                    ? "text-[13px] font-medium text-red-600 tabular-nums"
-                    : "text-[13px] font-medium text-emerald-600 tabular-nums"
+                    ? "text-xs font-medium text-danger tabular-nums"
+                    : "text-xs font-medium text-success tabular-nums"
                 }
               >
                 {delta > 0 ? "+" : ""}
@@ -442,7 +442,7 @@ function Sparkline({ points }: { readonly points: readonly { date: string; count
       {bars.map((value, index) => (
         <span
           key={index}
-          className="w-2 rounded-xs bg-muted-foreground/20"
+          className="w-2 bg-ink-faint/30"
           style={{ height: `${Math.max((value / peak) * 100, 10)}%` }}
         />
       ))}
@@ -488,14 +488,14 @@ function BarList({
             {rows.map((row) => (
               <li key={row.label} className="flex flex-col gap-2">
                 <div className="flex items-baseline gap-3">
-                  <span className="flex-1 truncate text-[15px]">{row.label}</span>
-                  <span className="w-14 text-right text-[15px] text-muted-foreground tabular-nums">
+                  <span className="flex-1 truncate font-mono text-[11px] text-ink-soft">{row.label}</span>
+                  <span className="w-14 text-right text-sm text-muted-foreground tabular-nums">
                     {total === 0 ? "—" : `${Math.round((row.count / total) * 100)}%`}
                   </span>
-                  <span className="w-10 text-right text-[15px] tabular-nums">{row.count.toLocaleString()}</span>
+                  <span className="w-10 text-right text-sm tabular-nums">{row.count.toLocaleString()}</span>
                 </div>
-                <div className="h-2.5 rounded-[3px] bg-muted">
-                  <div className="h-full rounded-[3px] bg-brand" style={{ width: `${(row.count / peak) * 100}%` }} />
+                <div className="h-2.5 bg-muted">
+                  <div className="h-full bg-chart-1" style={{ width: `${(row.count / peak) * 100}%` }} />
                 </div>
               </li>
             ))}

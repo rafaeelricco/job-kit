@@ -1,26 +1,20 @@
 export { AppSidebar }
 
 import { useEffect } from "react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useSearchParams } from "react-router-dom"
 import {
   Briefcase01Icon,
-  ComputerIcon,
   File01Icon,
   FolderOpenIcon,
   GridViewIcon,
   LibraryIcon,
-  Moon02Icon,
-  PaintBoardIcon,
   QuoteDownIcon,
   Settings02Icon,
-  Sun01Icon,
   UnfoldMoreIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
-import { useTheme } from "@/components/theme-provider"
-import type { Theme } from "@/components/theme-provider"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -28,12 +22,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAccess } from "@/module/access/use-access"
@@ -53,9 +42,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-// Taller and larger than the shadcn default, and the label sits at #777777
-// (--muted-foreground) rather than near-black; only the active row goes dark.
-const ITEM = "h-9 gap-2.5 rounded-lg px-2.5 text-[15px] font-normal text-muted-foreground data-active:text-foreground"
+// Rows are 32px tall with a 14px label at --ink-body; the active row sits at --ink-strong over an 8% fill.
+const ITEM = "h-8 gap-2 rounded-[6px] px-2 text-sm font-normal text-ink-body data-active:text-ink-strong"
 
 // A one-word name has no second initial to take, so it falls back to its first
 // two letters rather than rendering a lonely "S".
@@ -73,21 +61,17 @@ const MAIN = [
   { label: "Answers", Icon: LibraryIcon, to: "/answers" },
 ] as const
 
-const THEMES = [
-  { value: "light", label: "Light", Icon: Sun01Icon },
-  { value: "dark", label: "Dark", Icon: Moon02Icon },
-  { value: "system", label: "System", Icon: ComputerIcon },
-] as const
-
 function AppSidebar() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { setOpenMobile } = useSidebar()
 
   // Mobile sidebar is a controlled sheet. Navigating without closing it leaves
   // the destination under the drawer until the user dismisses it by hand.
+  // Settings opens on the search string alone, so watching `pathname` would
+  // leave the drawer stacked under the dialog.
   useEffect(() => {
     setOpenMobile(false)
-  }, [pathname, setOpenMobile])
+  }, [pathname, search, setOpenMobile])
 
   return (
     <Sidebar collapsible="icon">
@@ -95,7 +79,9 @@ function AppSidebar() {
       <SidebarHeader className="p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <img src={`${import.meta.env.BASE_URL}job-kit-mark.png`} alt="" className="size-7 shrink-0 object-contain" />
-          <span className="truncate text-[15px] font-semibold group-data-[collapsible=icon]:hidden">Job Kit</span>
+          <span className="truncate font-logo text-sm font-bold tracking-wide uppercase group-data-[collapsible=icon]:hidden">
+            Job Kit
+          </span>
           <SidebarTrigger className="ml-auto group-data-[collapsible=icon]:hidden" />
         </div>
       </SidebarHeader>
@@ -143,9 +129,9 @@ function AppSidebar() {
 // app can actually do — job-kit has no auth, so there is nothing to log out of.
 function AccountMenu() {
   const identity = useIdentity()
-  const { theme, setTheme } = useTheme()
   const { changeFolder } = useAccess()
-  const { pathname } = useLocation()
+  const [params] = useSearchParams()
+  const settingsOpen = params.has("settings")
 
   // Before a folder is chosen there is no name to show, and the sidebar renders
   // above the access gate, so the product name stands in rather than an empty
@@ -169,14 +155,14 @@ function AccountMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<SidebarMenuButton size="lg" className="gap-2.5 rounded-lg data-[popup-open]:bg-sidebar-accent" />}
+        render={<SidebarMenuButton size="lg" className="gap-2.5 data-[popup-open]:bg-sidebar-accent" />}
       >
         <Avatar className="size-8">
           <AvatarFallback className="text-xs">{initialsOf(name)}</AvatarFallback>
         </Avatar>
         <div className="grid flex-1 text-left leading-tight">
-          <span className="truncate text-[15px] font-medium text-foreground">{name}</span>
-          <span className="truncate text-[13px] text-muted-foreground">{detail}</span>
+          <span className="truncate text-sm font-medium text-foreground">{name}</span>
+          <span className="truncate text-xs text-muted-foreground">{detail}</span>
         </div>
         <HugeiconsIcon icon={UnfoldMoreIcon} className="ml-auto size-4 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>
@@ -188,8 +174,8 @@ function AccountMenu() {
               <AvatarFallback className="text-xs">{initialsOf(name)}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left leading-tight">
-              <span className="truncate text-[15px] font-medium text-foreground">{name}</span>
-              <span className="truncate text-[13px] text-muted-foreground">{detail}</span>
+              <span className="truncate text-sm font-medium text-foreground">{name}</span>
+              <span className="truncate text-xs text-muted-foreground">{detail}</span>
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
@@ -197,8 +183,8 @@ function AccountMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem
-            data-active={pathname === "/settings"}
-            render={<NavLink to="/settings" />}
+            data-active={settingsOpen}
+            render={<NavLink to={{ search: "?settings=profile" }} state={{ settingsPushed: true }} />}
             className="data-active:bg-accent"
           >
             <HugeiconsIcon icon={Settings02Icon} aria-hidden="true" />
@@ -208,25 +194,6 @@ function AccountMenu() {
 
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="gap-1.5 px-1.5 py-1">
-              <HugeiconsIcon icon={PaintBoardIcon} aria-hidden="true" />
-              Theme
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              {/* A radio group, not three items: the menu has to show which
-                  theme is on, and only one can be. */}
-              <DropdownMenuRadioGroup value={theme} onValueChange={(next) => setTheme(next as Theme)}>
-                {THEMES.map((option) => (
-                  <DropdownMenuRadioItem key={option.value} value={option.value}>
-                    <HugeiconsIcon icon={option.Icon} aria-hidden="true" />
-                    {option.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-
           <DropdownMenuItem onClick={repick}>
             <HugeiconsIcon icon={FolderOpenIcon} aria-hidden="true" />
             Change profile folder

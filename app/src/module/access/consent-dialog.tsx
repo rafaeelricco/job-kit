@@ -53,7 +53,7 @@ function ConsentDialog(props: ConsentDialogProps) {
 
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2.5">
-              <span className="grid size-12 place-items-center rounded-xl border bg-background shadow-sm">
+              <span className="grid size-12 place-items-center border bg-surface">
                 <HugeiconsIcon icon={HardDriveIcon} className="size-6" />
               </span>
               <span className="flex gap-1" aria-hidden="true">
@@ -61,13 +61,13 @@ function ConsentDialog(props: ConsentDialogProps) {
                 <span className="size-1.5 rounded-full bg-border" />
                 <span className="size-1.5 rounded-full bg-border" />
               </span>
-              <span className="grid size-12 place-items-center rounded-xl border bg-background shadow-sm">
+              <span className="grid size-12 place-items-center border bg-surface">
                 <HugeiconsIcon icon={Files01Icon} className="size-6" />
               </span>
             </div>
 
             <DialogHeader className="items-center gap-0">
-              <DialogTitle className="pt-3 text-center text-xl font-semibold">Read your job-kit profile</DialogTitle>
+              <DialogTitle className="pt-3 text-center text-base font-semibold">Read your job-kit profile</DialogTitle>
               <DialogDescription className="pt-1 text-center">
                 Nothing is read or changed until you allow it.
               </DialogDescription>
@@ -75,7 +75,7 @@ function ConsentDialog(props: ConsentDialogProps) {
           </div>
         </div>
 
-        <div className="rounded-2xl border px-4 py-2">
+        <div className="border border-divider px-4 py-2">
           {NOTES.map((note) => (
             <div key={note.lead} className="flex flex-col gap-1 border-b py-2.5 last:border-b-0">
               <div className="text-sm font-medium">{note.lead}</div>
@@ -84,7 +84,7 @@ function ConsentDialog(props: ConsentDialogProps) {
           ))}
         </div>
 
-        <Button size="lg" onClick={onAllow} className="h-11 w-full rounded-full">
+        <Button size="lg" onClick={onAllow} className="h-9 w-full">
           Choose profile folder
         </Button>
       </DialogContent>

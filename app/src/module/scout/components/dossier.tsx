@@ -42,6 +42,8 @@ import { COLUMNS, DOSSIER_COLUMNS } from "@/module/scout/helpers/columns"
 import { toDossierText } from "@/module/scout/helpers/dossier-text"
 import { download, toCsv, toJson, toMarkdown } from "@/module/scout/helpers/export"
 import { httpHref } from "@/module/scout/helpers/href"
+import { bandOf } from "@/module/scout/helpers/select"
+import type { ScoreBand } from "@/module/scout/helpers/select"
 import { holdsSkill, splitSkills } from "@/module/scout/helpers/skill-match"
 import { assertNever } from "@/module/scout/result"
 import type { Dossier, FactKey, FactValue, Role } from "@/module/scout/types"
@@ -49,16 +51,24 @@ import { FACT_KEYS, FACT_LABELS, factText } from "@/module/scout/types"
 
 /* -- shared pieces -------------------------------------------------------- */
 
-// Variants come from badge.tsx; there is no "success" there, so 9+ takes the
-// solid default and the tint steps down from it.
-const scoreVariant = (value: number): "default" | "secondary" | "outline" =>
-  value >= 9 ? "default" : value >= 7 ? "secondary" : "outline"
+// One rule for the score's colour, shared with the filter: bandOf is what
+// "Strong 8–10 / Keep 7 / Low ≤6" already means, so a badge and a band chip
+// can never disagree. 7 stays neutral rather than amber — warning on
+// warning-surface is 1.45:1, and that surface is opaque cream in dark.
+const BAND_VARIANT: Readonly<Record<ScoreBand, "success" | "secondary" | "outline">> = {
+  strong: "success",
+  keep: "secondary",
+  low: "outline",
+  unscored: "outline",
+}
 
 function ScoreBadge({ score }: { readonly score: Dossier["score"] }) {
   return score.kind === "unscored" ? (
-    <Badge variant="outline">{factText({ kind: "unknown" })}</Badge>
+    <Badge variant={BAND_VARIANT.unscored}>{factText({ kind: "unknown" })}</Badge>
   ) : (
-    <Badge variant={scoreVariant(score.value)}>{score.value}</Badge>
+    <Badge variant={BAND_VARIANT[bandOf(score)]} className="tabular-nums">
+      {score.value}
+    </Badge>
   )
 }
 
@@ -150,7 +160,9 @@ function DossierTable(props: DossierTableProps) {
       case "salary":
         return <span className="block max-w-56 truncate">{factText(row.facts.salary)}</span>
       case "source":
-        return <span className="block max-w-40 truncate">{row.provenance.source}</span>
+        return (
+          <span className="block max-w-40 truncate font-mono text-[11px] text-ink-soft">{row.provenance.source}</span>
+        )
       case "status":
         return (
           <div className="flex items-center gap-1.5">
@@ -314,7 +326,7 @@ function DossierCards(props: DossierCardsProps) {
 
   if (props.rows.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border p-10 text-center">
+      <div className="border border-dashed border-border p-10 text-center">
         <EmptyNote />
       </div>
     )
@@ -343,7 +355,7 @@ function DossierCards(props: DossierCardsProps) {
               aria-label={`Open ${row.company}`}
               onClick={() => props.onOpen(row.file)}
               onKeyDown={(event) => onBodyKeyDown(event, row.file)}
-              className="cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               <div className="flex flex-wrap items-center gap-1.5">
                 <ScoreBadge score={row.score} />
@@ -378,7 +390,7 @@ type DossierSheetProps = {
 function Section(props: { readonly title: string; readonly action?: ReactNode; readonly children: ReactNode }) {
   return (
     <section className="border-b border-border px-4 py-4 last:border-b-0">
-      <h3 className="mb-2 flex items-center justify-between gap-2 text-[0.7rem] font-medium tracking-[0.07em] text-muted-foreground uppercase">
+      <h3 className="mb-2 flex items-center justify-between gap-2 text-xs font-medium tracking-wider text-ink-muted uppercase">
         {props.title}
         {props.action}
       </h3>
@@ -392,7 +404,7 @@ function Section(props: { readonly title: string; readonly action?: ReactNode; r
 function Fold(props: { readonly title: string; readonly children: ReactNode }) {
   return (
     <details className="group border-b border-border last:border-b-0 open:bg-muted/40">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-[0.7rem] font-medium tracking-[0.07em] text-muted-foreground uppercase">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-xs font-medium tracking-wider text-ink-muted uppercase">
         {props.title}
         <HugeiconsIcon icon={ArrowDown01Icon} className="size-3 transition-transform group-open:rotate-180" />
       </summary>
@@ -519,7 +531,7 @@ function DossierSheet(props: DossierSheetProps) {
               <SheetDescription>{dossier.title}</SheetDescription>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 pt-1.5 text-xs text-muted-foreground">
                 {httpHref(dossier.url) === null ? (
-                  <span className="break-all">{dossier.url}</span>
+                  <span className="font-mono text-[11px] break-all text-ink-soft">{dossier.url}</span>
                 ) : (
                   <a
                     href={dossier.url}
@@ -606,7 +618,7 @@ function DossierSheet(props: DossierSheetProps) {
               )}
 
               <Fold title="Score">
-                <Table className="text-[0.82rem]">
+                <Table className="text-sm">
                   <TableBody>
                     {dossier.verdict.factors.map((factor, index) => (
                       <TableRow key={`${String(index)}-${factor.label}`}>
@@ -630,7 +642,15 @@ function DossierSheet(props: DossierSheetProps) {
                     ))}
                     <TableRow>
                       <TableCell className="w-36 px-1.5 py-1.5 font-medium">Total</TableCell>
-                      <TableCell className="px-1.5 py-1.5 text-right font-medium tabular-nums">
+                      {/* The fold's total is the same number as the header
+                          badge; colouring one and not the other reads as two
+                          different scores. */}
+                      <TableCell
+                        className={cn(
+                          "px-1.5 py-1.5 text-right font-medium tabular-nums",
+                          bandOf(dossier.score) === "strong" && "text-success-strong"
+                        )}
+                      >
                         {dossier.score.kind === "scored" ? String(dossier.score.value) : factText({ kind: "unknown" })}
                       </TableCell>
                     </TableRow>
@@ -685,7 +705,9 @@ function DossierSheet(props: DossierSheetProps) {
                     <TableBody>
                       {dossier.log.map((entry, index) => (
                         <TableRow key={`${String(index)}-${entry.date}`}>
-                          <TableCell className="px-1.5 py-1.5 align-top">{entry.date}</TableCell>
+                          <TableCell className="px-1.5 py-1.5 align-top font-mono text-[11px] text-ink-soft">
+                            {entry.date}
+                          </TableCell>
                           <TableCell className="px-1.5 py-1.5 align-top whitespace-normal">{entry.event}</TableCell>
                           <TableCell className="px-1.5 py-1.5 align-top text-muted-foreground">
                             {entry.writer}

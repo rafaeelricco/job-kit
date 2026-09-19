@@ -138,10 +138,10 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
   }
 
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="overflow-hidden border">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/50">
+          <TableRow>
             {columnOrder.map((id) => {
               const column = columns[id]?.values
               if (column === undefined) return null

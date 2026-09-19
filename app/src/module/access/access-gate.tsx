@@ -10,13 +10,17 @@ import { PermissionEmpty } from "@/module/access/permission-empty"
 import { useAccess } from "@/module/access/use-access"
 
 // The ladder both gates open on: hydrating -> permission -> consent -> granted.
+// `chrome` is "page" for a route (Shell paints the h1 and page padding) and
+// "bare" inside the settings dialog, which paints its own panel header.
 function AccessGate({
   title,
   Icon,
+  chrome = "page",
   children,
 }: {
   readonly title: string
   readonly Icon: IconSvgElement
+  readonly chrome?: "page" | "bare"
   readonly children: () => ReactNode
 }) {
   const { state: access, pick, request } = useAccess()
@@ -24,7 +28,9 @@ function AccessGate({
   const [asking, setAsking] = useState(true)
 
   if (access.kind === "hydrating") {
-    return (
+    return chrome === "bare" ? (
+      <LoadingRows />
+    ) : (
       <Shell title={title} Icon={Icon}>
         <LoadingRows />
       </Shell>
@@ -53,7 +59,9 @@ function AccessGate({
     )
   }
 
-  return (
+  return chrome === "bare" ? (
+    <>{children()}</>
+  ) : (
     <Shell title={title} Icon={Icon}>
       {children()}
     </Shell>

@@ -48,15 +48,15 @@ function PermissionEmpty({ kind, onPrimary, onReview }: PermissionEmptyProps) {
     <div className="grid flex-1 place-items-center px-6 py-12">
       <div className="flex w-full max-w-100 flex-col items-center text-center">
         <img src={`${import.meta.env.BASE_URL}permission-not-granted.png`} alt="" className="size-56 object-contain" />
-        <h1 className="pt-3 text-xl font-semibold">{copy.title}</h1>
+        <h1 className="pt-3 text-base font-semibold">{copy.title}</h1>
         <p className="pt-1 text-sm text-balance text-muted-foreground">{copy.body}</p>
         {copy.primary === null ? null : (
           <div className="flex w-full flex-col gap-2 pt-6 sm:flex-row">
-            <Button size="lg" onClick={onPrimary} className="h-11 flex-1 rounded-full">
+            <Button size="lg" onClick={onPrimary} className="h-9 flex-1">
               {copy.primary}
             </Button>
             {onReview === undefined ? null : (
-              <Button size="lg" variant="outline" onClick={onReview} className="h-11 flex-1 rounded-full">
+              <Button size="lg" variant="outline" onClick={onReview} className="h-9 flex-1">
                 Review permissions
               </Button>
             )}
