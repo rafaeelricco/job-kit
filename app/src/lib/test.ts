@@ -475,8 +475,10 @@ async function execute(test: Test): Promise<string | null> {
 
     return null
   } catch (e) {
-    const err = e as Error
-    return err.stack ? err.stack : err.message
+    if (e instanceof Error) {
+      return e.stack ? e.stack : e.message
+    }
+    return String(e)
   }
 }
 
