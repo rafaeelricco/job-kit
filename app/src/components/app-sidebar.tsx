@@ -62,14 +62,16 @@ const MAIN = [
 ] as const
 
 function AppSidebar() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { setOpenMobile } = useSidebar()
 
   // Mobile sidebar is a controlled sheet. Navigating without closing it leaves
   // the destination under the drawer until the user dismisses it by hand.
+  // Settings opens on the search string alone, so watching `pathname` would
+  // leave the drawer stacked under the dialog.
   useEffect(() => {
     setOpenMobile(false)
-  }, [pathname, setOpenMobile])
+  }, [pathname, search, setOpenMobile])
 
   return (
     <Sidebar collapsible="icon">
