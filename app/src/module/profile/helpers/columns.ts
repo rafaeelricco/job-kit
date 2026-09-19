@@ -1,8 +1,8 @@
 export { ANSWER_COLUMNS, ANSWER_ORDER, DEFAULT_ANSWER_SORT, byConfirmed, byQuestion }
 
 import { ColumnDef } from "@ui/datatable"
-import type { ColumnsConfig, SortState } from "@ui/datatable"
-import type { Answer } from "@module/profile/types"
+import { type ColumnsConfig, type SortState } from "@ui/datatable"
+import { type Answer } from "@module/profile/types"
 
 const byQuestion = (a: Answer, b: Answer): number => a.question.localeCompare(b.question)
 

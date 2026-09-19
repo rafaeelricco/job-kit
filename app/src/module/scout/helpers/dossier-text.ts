@@ -1,6 +1,6 @@
 export { toDossierText }
 
-import type { Dossier } from "@module/scout/types"
+import { type Dossier } from "@module/scout/types"
 import { FACT_KEYS, FACT_LABELS, factText } from "@module/scout/types"
 
 // Mirrors DossierSheet in its own reading order. The exporters in export.ts

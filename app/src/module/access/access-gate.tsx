@@ -2,8 +2,7 @@ export { AccessGate, LoadingRows }
 
 import { useState } from "react"
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
-import type { ReactNode } from "react"
-
+import { type ReactNode } from "react"
 import { Skeleton } from "@ui/skeleton"
 import { ConsentDialog } from "@module/access/consent-dialog"
 import { PermissionEmpty } from "@module/access/permission-empty"

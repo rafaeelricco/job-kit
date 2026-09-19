@@ -1,6 +1,5 @@
 // eslint-disable-next-line react-refresh/only-export-components -- the dialog reads the panel registry and its parser from the module that renders them, so the two can never drift apart.
-export { PANELS, PANEL_ORDER, SettingsPanel, parsePanel }
-export type { PanelId }
+export { PANELS, PANEL_ORDER, SettingsPanel, parsePanel, type PanelId }
 
 import {
   ComputerIcon,

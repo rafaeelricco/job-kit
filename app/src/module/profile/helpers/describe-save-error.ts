@@ -1,6 +1,6 @@
 export { describeSaveError }
 
-import type { SaveError } from "@module/profile/helpers/write-profile"
+import { type SaveError } from "@module/profile/helpers/write-profile"
 import { assertNever } from "@module/scout/result"
 
 // Save-failure copy lives beside the save helpers rather than in one surface:

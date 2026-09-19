@@ -3,7 +3,6 @@ export { SelectionBar, type SelectionBarProps }
 import { Cancel01Icon, Delete02Icon, Download01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
-
 import { Button } from "@ui/button"
 import { CopyButton } from "@ui/copy"
 import { HoldButton } from "@ui/hold-button"
@@ -19,7 +18,7 @@ import {
 import { Separator } from "@ui/separator"
 import { toApplyPrompt } from "@module/scout/helpers/apply-prompt"
 import { download, toCsv, toJson, toMarkdown } from "@module/scout/helpers/export"
-import type { Dossier } from "@module/scout/types"
+import { type Dossier } from "@module/scout/types"
 
 type SelectionBarProps = {
   readonly rows: readonly Dossier[]

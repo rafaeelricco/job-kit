@@ -31,7 +31,15 @@ export {
   type PageSize,
 }
 
-import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting, Score } from "@module/scout/types"
+import {
+  type Bucket,
+  type Channel,
+  type Dossier,
+  type FactValue,
+  type Lifecycle,
+  type Posting,
+  type Score,
+} from "@module/scout/types"
 import { LIFECYCLES } from "@module/scout/types"
 import { assertNever } from "@module/scout/result"
 

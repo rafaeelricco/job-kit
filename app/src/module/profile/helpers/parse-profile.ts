@@ -10,19 +10,18 @@ export {
 }
 
 import { parse } from "yaml"
-
-import type {
-  Answer,
-  Basics,
-  JobSearch,
-  Language,
-  Recommendation,
-  SearchPack,
-  SocialProfile,
-  Toggle,
+import {
+  type Answer,
+  type Basics,
+  type JobSearch,
+  type Language,
+  type Recommendation,
+  type SearchPack,
+  type SocialProfile,
+  type Toggle,
 } from "@module/profile/types"
 import { err, ok } from "@module/scout/result"
-import type { Result } from "@module/scout/result"
+import { type Result } from "@module/scout/result"
 
 const asRecord = (v: unknown): Record<string, unknown> | null =>
   typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null

@@ -2,7 +2,6 @@ export { ResumeList }
 
 import { useRef, useState } from "react"
 import { toast } from "sonner"
-
 import { Badge } from "@ui/badge"
 import { Button } from "@ui/button"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@ui/card"
@@ -10,8 +9,8 @@ import { Field, FieldContent, FieldDescription, FieldLabel } from "@ui/field"
 import { Switch } from "@ui/switch"
 import { loadHandle } from "@module/access/handle"
 import { describeSaveError } from "@module/profile/helpers/describe-save-error"
-import type { Save } from "@module/profile/helpers/use-profile"
-import type { Resume } from "@module/profile/types"
+import { type Save } from "@module/profile/helpers/use-profile"
+import { type Resume } from "@module/profile/types"
 
 const KB = 1024
 

@@ -2,7 +2,6 @@ export { ConsentDialog, type ConsentDialogProps }
 
 import { Cancel01Icon, Files01Icon, HardDriveIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-
 import { Button } from "@ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@ui/dialog"
 

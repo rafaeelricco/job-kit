@@ -1,9 +1,9 @@
 export { toStore }
 
 import { probe } from "@module/scout/helpers/probe"
-import type { ProbeFiles } from "@module/scout/helpers/probe"
+import { type ProbeFiles } from "@module/scout/helpers/probe"
 import { partition } from "@module/scout/result"
-import type { ParsedDossier, Store } from "@module/scout/types"
+import { type ParsedDossier, type Store } from "@module/scout/types"
 
 function toStore(
   label: string,

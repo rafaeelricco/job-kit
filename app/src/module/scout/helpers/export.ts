@@ -1,6 +1,6 @@
 export { download, toCsv, toJson, toMarkdown }
 
-import type { Dossier } from "@module/scout/types"
+import { type Dossier } from "@module/scout/types"
 
 // Header names match the previous viewer, including "route" for the bucket.
 const COLUMNS = [

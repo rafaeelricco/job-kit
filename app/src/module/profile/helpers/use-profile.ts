@@ -1,17 +1,16 @@
 export { useProfile, type ProfileState, type Save }
 
 import { useCallback, useEffect, useRef, useState } from "react"
-
 import { loadHandle } from "@module/access/handle"
 import { notifyProfileChanged } from "@module/profile/helpers/profile-events"
 import { readProfile } from "@module/profile/helpers/read-profile"
 import { readDoc, writeDoc } from "@module/profile/helpers/write-profile"
-import type { Edit, SaveError } from "@module/profile/helpers/write-profile"
-import type { Profile } from "@module/profile/types"
+import { type Edit, type SaveError } from "@module/profile/helpers/write-profile"
+import { type Profile } from "@module/profile/types"
 import { snapshotProbe } from "@module/scout/helpers/fsa"
 import { probe } from "@module/scout/helpers/probe"
 import { err, ok } from "@module/scout/result"
-import type { Result } from "@module/scout/result"
+import { type Result } from "@module/scout/result"
 
 type ProfileState =
   | { readonly kind: "loading" }

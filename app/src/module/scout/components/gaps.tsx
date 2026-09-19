@@ -3,7 +3,7 @@ export { Gaps }
 import { Alert, AlertDescription, AlertTitle } from "@ui/alert"
 import { CopyButton } from "@ui/copy"
 import { toFixPrompt } from "@module/scout/helpers/fix-prompt"
-import type { ParseError } from "@module/scout/types"
+import { type ParseError } from "@module/scout/types"
 
 // Name the gaps here; Copy fix hands repair to an agent via /job-profile-root.
 function Gaps({ gaps }: { readonly gaps: readonly ParseError[] }) {

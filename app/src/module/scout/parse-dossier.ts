@@ -11,20 +11,20 @@ import {
   isWriter,
   toIsoDate,
 } from "@module/scout/types"
-import type {
-  Dossier,
-  Excerpt,
-  FactKey,
-  FactValue,
-  Factor,
-  LogEntry,
-  ParseError,
-  ParsedDossier,
-  Posting,
-  Provenance,
-  Role,
-  Score,
-  Verdict,
+import {
+  type Dossier,
+  type Excerpt,
+  type FactKey,
+  type FactValue,
+  type Factor,
+  type LogEntry,
+  type ParseError,
+  type ParsedDossier,
+  type Posting,
+  type Provenance,
+  type Role,
+  type Score,
+  type Verdict,
 } from "@module/scout/types"
 
 // The grammar below was recovered by round-tripping the corpus on disk, so the

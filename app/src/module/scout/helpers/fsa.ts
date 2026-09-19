@@ -1,10 +1,10 @@
 export { readJobs, readSkills, snapshotProbe, trashJobs }
 
 import { dossierName } from "@module/scout/helpers/dossier-name"
-import type { ProbeFiles } from "@module/scout/helpers/probe"
+import { type ProbeFiles } from "@module/scout/helpers/probe"
 import { err, ok, partition } from "@module/scout/result"
-import type { Result } from "@module/scout/result"
-import type { ParseError, TrashFailure, TrashOpError, Trashed } from "@module/scout/types"
+import { type Result } from "@module/scout/result"
+import { type ParseError, type TrashFailure, type TrashOpError, type Trashed } from "@module/scout/types"
 
 type MovableHandle = FileSystemFileHandle & {
   move: (parent: FileSystemDirectoryHandle, name?: string) => Promise<void>

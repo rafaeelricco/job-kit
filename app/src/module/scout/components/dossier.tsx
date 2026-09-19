@@ -20,7 +20,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@ui/card"
 import { Checkbox } from "@ui/checkbox"
 import { CopyButton } from "@ui/copy"
 import { ColumnDef, DataTable } from "@ui/datatable"
-import type { ColumnsConfig, SortState } from "@ui/datatable"
+import { type ColumnsConfig, type SortState } from "@ui/datatable"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,16 +37,16 @@ import { HoldButton } from "@ui/hold-button"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@ui/sheet"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@ui/table"
 import { toApplyPrompt } from "@module/scout/helpers/apply-prompt"
-import type { ColumnId } from "@module/scout/helpers/columns"
+import { type ColumnId } from "@module/scout/helpers/columns"
 import { COLUMNS, DOSSIER_COLUMNS } from "@module/scout/helpers/columns"
 import { toDossierText } from "@module/scout/helpers/dossier-text"
 import { download, toCsv, toJson, toMarkdown } from "@module/scout/helpers/export"
 import { httpHref } from "@module/scout/helpers/href"
 import { bandOf } from "@module/scout/helpers/select"
-import type { ScoreBand } from "@module/scout/helpers/select"
+import { type ScoreBand } from "@module/scout/helpers/select"
 import { holdsSkill, splitSkills } from "@module/scout/helpers/skill-match"
 import { assertNever } from "@module/scout/result"
-import type { Dossier, FactKey, FactValue, Role } from "@module/scout/types"
+import { type Dossier, type FactKey, type FactValue, type Role } from "@module/scout/types"
 import { FACT_KEYS, FACT_LABELS, factText } from "@module/scout/types"
 
 /* -- shared pieces -------------------------------------------------------- */

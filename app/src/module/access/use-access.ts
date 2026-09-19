@@ -1,7 +1,6 @@
 export { useAccess, type Access }
 
 import { useCallback, useEffect, useState } from "react"
-
 import { notifyAccessChanged } from "@module/access/access-events"
 import {
   hasDirectoryPicker,
@@ -11,9 +10,9 @@ import {
   queryWrite,
   requestWrite,
 } from "@module/access/handle"
-import type { Permission, PickError } from "@module/access/handle"
+import { type Permission, type PickError } from "@module/access/handle"
 import { err, ok } from "@module/scout/result"
-import type { Result } from "@module/scout/result"
+import { type Result } from "@module/scout/result"
 
 type Access =
   | { readonly kind: "hydrating" }

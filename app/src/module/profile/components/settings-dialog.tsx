@@ -2,7 +2,6 @@ export { SettingsDialog }
 
 import { Cancel01Icon, UserIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@ui/dialog"
 import { cn } from "@lib/utils"
 import { ProfileGate } from "@module/profile/components/profile-gate"

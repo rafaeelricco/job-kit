@@ -1,7 +1,7 @@
 export { ProfileGaps }
 
 import { Alert, AlertDescription, AlertTitle } from "@ui/alert"
-import type { Profile } from "@module/profile/types"
+import { type Profile } from "@module/profile/types"
 
 // A file that did not parse leaves its section empty, which reads exactly like
 // a file with nothing in it — the surfaces below even invite you to add rows

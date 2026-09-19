@@ -1,8 +1,6 @@
-export { useIdentity }
-export type { Identity }
+export { useIdentity, type Identity }
 
 import { useEffect, useState } from "react"
-
 import { subscribeAccessChanged } from "@module/access/access-events"
 import { loadHandle } from "@module/access/handle"
 import { parseBasics } from "@module/profile/helpers/parse-profile"

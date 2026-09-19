@@ -11,8 +11,7 @@ import {
   UnavailableIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import type { DateRange } from "react-day-picker"
-
+import { type DateRange } from "react-day-picker"
 import { Badge } from "@ui/badge"
 import { Button } from "@ui/button"
 import { Calendar } from "@ui/calendar"
@@ -30,9 +29,16 @@ import { Input } from "@ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/popover"
 import { Tabs, TabsList, TabsTrigger } from "@ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "@ui/toggle-group"
-import type { ColumnId, View } from "@module/scout/helpers/columns"
+import { type ColumnId, type View } from "@module/scout/helpers/columns"
 import { COLUMNS, VIEWS, columnLabel, isView } from "@module/scout/helpers/columns"
-import type { DayRange, Filter, PostingKind, ScoreBand, Segment, SourceRow } from "@module/scout/helpers/select"
+import {
+  type DayRange,
+  type Filter,
+  type PostingKind,
+  type ScoreBand,
+  type Segment,
+  type SourceRow,
+} from "@module/scout/helpers/select"
 import {
   EMPTY_DAYS,
   POSTINGS,
@@ -46,7 +52,7 @@ import {
   sourceState,
   todayIso,
 } from "@module/scout/helpers/select"
-import type { Bucket, Channel, Lifecycle } from "@module/scout/types"
+import { type Bucket, type Channel, type Lifecycle } from "@module/scout/types"
 import { BUCKETS, CHANNELS, LIFECYCLES } from "@module/scout/types"
 
 type FilterBarProps = {
