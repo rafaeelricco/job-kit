@@ -7,6 +7,7 @@ export {
   SCORE_BANDS,
   SCORE_BAND_LABELS,
   SEGMENTS,
+  bandOf,
   byScore,
   byStatus,
   bySource,
@@ -30,7 +31,7 @@ export {
   type PageSize,
 }
 
-import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting } from "@/module/scout/types"
+import type { Bucket, Channel, Dossier, FactValue, Lifecycle, Posting, Score } from "@/module/scout/types"
 import { LIFECYCLES } from "@/module/scout/types"
 import { assertNever } from "@/module/scout/result"
 
@@ -67,8 +68,10 @@ const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
 
 // Unscored is a band, not a hole. The old `minScore` dropped those rows without
 // saying so; here they are one of the four things you can ask for.
-const bandOf = (d: Dossier): ScoreBand =>
-  d.score.kind === "unscored" ? "unscored" : d.score.value >= 8 ? "strong" : d.score.value >= 7 ? "keep" : "low"
+// Takes the Score, not the Dossier: the badge classifies a score it already
+// holds, and a whole-row parameter would force a cast at that call site.
+const bandOf = (score: Score): ScoreBand =>
+  score.kind === "unscored" ? "unscored" : score.value >= 8 ? "strong" : score.value >= 7 ? "keep" : "low"
 
 /* -- days ----------------------------------------------------------------- */
 
@@ -209,7 +212,7 @@ const matches =
     // other source is included, so the two lists never have to be kept disjoint.
     if (f.excluded.includes(d.provenance.source)) return false
     if (!facet(f.sources, d.provenance.source)) return false
-    if (!facet(f.bands, bandOf(d))) return false
+    if (!facet(f.bands, bandOf(d.score))) return false
     if (!facet(f.buckets, d.bucket)) return false
     if (!facet(f.channels, d.channel)) return false
     if (!facet(f.postings, d.posting.kind)) return false
@@ -266,7 +269,7 @@ function summarize(all: readonly Dossier[]): {
   let applied = 0
   let live = 0
   for (const d of all) {
-    if (d.score.kind === "scored" && d.score.value >= 8) highScore += 1
+    if (bandOf(d.score) === "strong") highScore += 1
     if (d.status === "applied") applied += 1
     if (d.posting.kind === "live") live += 1
   }
