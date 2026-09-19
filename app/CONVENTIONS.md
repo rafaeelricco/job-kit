@@ -302,19 +302,19 @@ Prefer `Future<E, T>` over `Promise` for lazy, cancelable async.
 
 ### TreeMap / TreeSet — Ordered Collections
 
-- Use `TreeMap`/`TreeSet` with explicit comparators for ordered, persistent collections. Reach for them instead of JS `Map`/`Set` when you want an ordering other than insertion order.
+- Use `TreeMap`/`TreeSet` with explicit comparators for ordered collections. Reach for them instead of JS `Map`/`Set` when you want an ordering other than insertion order.
   ```ts
   const map = TreeMap.new<string, number>((x, y) => (x > y ? 1 : x < y ? -1 : 0))
   // Or use stringMap factory / Comparable interface
   const map = stringMap<User>()
   const map = TreeMap.new_<UserId, User>()
   ```
+- **`TreeMap.new()` and `TreeSet.new()` return the mutable variants.** `.set()`, `.remove()`, `.setEntries()`, `.insert()` modify the receiver. Don't share one across state snapshots — an update mutates every snapshot holding it. For persistent, structurally shared values use `ImmutableTreeMap` / `ImmutableTreeSet`: every update returns a new collection and the receiver is untouched.
 - `.get(key)` returns `Maybe<T>` — always handle `Nothing`.
-- Use `.unionWith(other, mergeFn)` for merging with conflict resolution.
-- Use `.difference(other)` and `.intersectionWith(other, fn)` for set operations.
+- **`.union()`, `.unionWith(other, mergeFn)`, `.difference(other)` and `.intersectionWith(other, fn)` never mutate the receiver**, on either variant — they clone and return the merged collection. `set.union(other)` as a statement discards the result; always assign it.
 - Comparator must return `-1 | 0 | 1`. Boolean won't work.
 - `TreeMap` is sorted by comparator, not insertion order.
-- `TreeSet`: `.insert()`, `.remove()`, `.union()` mutate in place. Use `TreeSet.from()` to clone first.
+- Use `TreeSet.from(set)` to clone a mutable set before mutating it.
 - Use `.has()` for O(log n) membership. Don't use `.values().includes()` — that's O(n).
 
 ### MVar & BoundedBuffer — Async Coordination
