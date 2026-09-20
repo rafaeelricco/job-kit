@@ -3,6 +3,7 @@ export { SettingsDialog }
 import { Cancel01Icon, UserIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@ui/dialog"
+import { ScrollArea, ScrollBar } from "@ui/scroll-area"
 import { cn } from "@lib/utils"
 import { ProfileGate } from "@module/profile/components/profile-gate"
 import { PANELS, PANEL_ORDER, SettingsPanel, parsePanel } from "@module/profile/components/settings-surface"
@@ -31,10 +32,10 @@ function SettingsDialog({
         showCloseButton={false}
         className="h-[720px] max-h-[calc(100dvh-4rem)] flex-col gap-0 border border-divider bg-background p-0 sm:max-w-[896px] md:flex-row"
       >
-        <nav className="flex shrink-0 flex-col gap-0.5 border-b border-divider p-3 md:w-48 md:border-r md:border-b-0">
+        <nav className="flex min-h-0 min-w-0 shrink-0 flex-col gap-0.5 border-b border-divider p-3 md:w-48 md:border-r md:border-b-0">
           {/* Close sits before the label, as on the console: the dismiss
               affordance reads first on a surface with no title bar. */}
-          <div className="flex items-center gap-2 px-2 pt-1 pb-2">
+          <div className="flex shrink-0 items-center gap-2 px-2 pt-1 pb-2">
             <DialogClose className="text-ink-muted transition-colors hover:text-ink-strong">
               <HugeiconsIcon icon={Cancel01Icon} className="size-4" />
               <span className="sr-only">Close</span>
@@ -47,7 +48,16 @@ function SettingsDialog({
           {/* A button, not the console's anchor: the panel is a query param, and
               a <NavLink to={{search}}> would rewrite the whole search string and
               drop every other param on the route behind the dialog. */}
-          <div className="flex flex-row gap-0.5 overflow-x-auto md:flex-col md:overflow-x-visible">
+          <ScrollArea
+            className="min-h-0 min-w-0 md:flex-1"
+            viewportProps={{
+              className:
+                "h-auto overflow-x-auto! overflow-y-hidden! md:h-full md:overflow-x-hidden! md:overflow-y-auto!",
+            }}
+            contentProps={{
+              className: "flex w-max min-w-full! flex-row gap-0.5 pb-2.5 md:w-auto md:min-w-0! md:flex-col md:pb-0",
+            }}
+          >
             {PANEL_ORDER.map((id) => (
               <button
                 key={id}
@@ -64,7 +74,8 @@ function SettingsDialog({
                 {PANELS[id].label}
               </button>
             ))}
-          </div>
+            <ScrollBar orientation="horizontal" className="md:hidden" />
+          </ScrollArea>
         </nav>
 
         {/* Header and body are siblings, so the title stays put while the body
@@ -74,11 +85,11 @@ function SettingsDialog({
             <h2 className="truncate text-sm leading-none font-medium tracking-tight text-ink-muted">{meta.label}</h2>
             {meta.file !== null && <span className="font-mono text-xs text-ink-faint">data/{meta.file}</span>}
           </header>
-          <div className="min-h-0 flex-1 overflow-y-auto pt-2 pr-8 pb-8 pl-9">
+          <ScrollArea className="min-h-0 min-w-0 flex-1" contentProps={{ className: "pt-2 pr-8 pb-8 pl-9" }}>
             <ProfileGate title="Account settings" Icon={UserIcon} chrome="bare">
               {(profile, save) => <SettingsPanel panel={active} profile={profile} save={save} />}
             </ProfileGate>
-          </div>
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>

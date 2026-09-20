@@ -3,12 +3,19 @@ export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableC
 import * as React from "react"
 
 import { cn } from "@lib/utils"
+import { ScrollArea, ScrollBar } from "@ui/scroll-area"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <ScrollArea
+      data-slot="table-container"
+      className="w-full min-w-0"
+      viewportProps={{ className: "h-auto overflow-x-auto! overflow-y-hidden!" }}
+      contentProps={{ className: "w-fit min-w-full! pb-2.5" }}
+    >
       <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props} />
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   )
 }
 
