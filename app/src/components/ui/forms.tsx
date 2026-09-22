@@ -1393,7 +1393,8 @@ function FormDateField({
 function timeOfDayToInputValue(t: TimeOfDay | null, step: number): string {
   if (t == null) return ""
   const full = t.pretty()
-  return step >= 60 ? full.slice(0, 5) : full
+  // Drop seconds only when neither the step nor the value uses them, so the input never hides data it submits.
+  return step % 60 === 0 && t.seconds % 60 === 0 ? full.slice(0, 5) : full
 }
 
 function inputValueToTimeOfDay(value: string): TimeOfDay | null {
