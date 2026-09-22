@@ -45,6 +45,10 @@ const listeners = new Set<Listener>()
 // a session that no longer exists, so its result must not be written back over the newer one.
 let generation = 0
 
+// Settles once the last sign-out request has answered. Its reply clears `sid` unconditionally, so a sign-in
+// that lands first would have its fresh cookie deleted by the late clear.
+let signOutSettled: Promise<void> = Promise.resolve()
+
 function setSession(msession: Maybe<Session>): void {
   forgetProfileFolder(msession)
   writeStored(msession)
@@ -137,10 +141,24 @@ function reloadSession(): Future<FetchError, Session> {
 
 /** Sign-in answers with the user id, so the session is set from it; no second, racy whoAmI. */
 function signIn(email: string, password: string): Future<FetchError, UserActor> {
-  return call(signInEndpoint, { email, password }).map(({ userId }) => {
-    const user: UserActor = { type: "User", userId }
-    commitSession(Just(user))
-    return user
+  return afterSignOut()
+    .chain(() => call(signInEndpoint, { email, password }))
+    .map(({ userId }) => {
+      const user: UserActor = { type: "User", userId }
+      commitSession(Just(user))
+      return user
+    })
+}
+
+function afterSignOut(): Future<FetchError, null> {
+  return Future.create<FetchError, null>((_reject, resolve) => {
+    let cancelled = false
+    void signOutSettled.then(() => {
+      if (!cancelled) resolve(null)
+    })
+    return () => {
+      cancelled = true
+    }
   })
 }
 
@@ -156,15 +174,24 @@ function signUp(email: string, password: string): Future<FetchError, UserActor> 
  */
 function signOut(): void {
   commitSession(Nothing())
+  const signedOutAt = generation
+  let settle: () => void = () => {}
+  signOutSettled = new Promise((resolve) => (settle = resolve))
   call(signOutEndpoint, {}).fork(
-    () =>
+    () => {
+      settle()
+      // A sign-in since then was deliberate: its session is the one reloadSession now reports.
+      const stillSignedOut = (): boolean => generation === signedOutAt
       reloadSession().fork(
-        () => toast.error("Could not reach the server to sign out. Try again."),
+        () => {
+          if (stillSignedOut()) toast.error("Could not reach the server to sign out. Try again.")
+        },
         (actor) => {
-          if (actor.type === "User") toast.error("Sign-out failed; you are still signed in.")
+          if (actor.type === "User" && stillSignedOut()) toast.error("Sign-out failed; you are still signed in.")
         }
-      ),
-    () => {}
+      )
+    },
+    () => settle()
   )
 }
 
