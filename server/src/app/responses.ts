@@ -9,8 +9,12 @@ export const internalServerError = json({
   content: { error: { message: "Internal Server Error" } },
 })
 
-export function toResponse<Req, Res>(endpoint: PlainEndpoint<Req, Res>, response: Res): Response {
-  return json({ content: s.encode(endpoint.response, response) })
+export function toResponse<Req, Res>(
+  endpoint: PlainEndpoint<Req, Res>,
+  response: Res,
+  headers: Record<string, string> = {}
+): Response {
+  return json({ headers, content: s.encode(endpoint.response, response) })
 }
 
 /**

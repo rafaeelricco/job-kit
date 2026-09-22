@@ -6,18 +6,28 @@ import { route } from "@lib/router"
 import { toResponse, decodeBody } from "@be/app/responses"
 import { WithEventStore } from "@be/lib/event-sourcing/store"
 import { type CommandController } from "@be/app/handlers"
+import { type AuthGuardResult } from "@be/app/auth/policy"
+import { guardRequest } from "@be/app/resolveAuth"
+import { type SessionStore, Session, sessionToken } from "@be/app/session"
 
 /**
- * Turn a `CommandController` into an Express handler: decode the body, run
- * the handler against the event store, encode the response.
+ * Turn a `CommandController` into an Express handler: decode the body (400),
+ * run the auth guard (401/403), run the handler against the event store, and
+ * encode the response with any `Set-Cookie` the handler's session produced.
  */
-function handleCommand<Command, Res>(
+function handleCommand<Command, Res, Result extends AuthGuardResult>(
   withEventStore: WithEventStore,
-  { endpoint, handler }: CommandController<Command, Res>
+  sessions: SessionStore,
+  { endpoint, authGuard, handler }: CommandController<Command, Res, Result>
 ): express.Handler {
   return route((req) =>
     decodeBody(endpoint.request, req.body, "command").chain((command) =>
-      handler({ payload: command, withEventStore }).map((res) => toResponse(endpoint, res))
+      guardRequest(req, sessions, authGuard).chain(({ actor, auth }) => {
+        const session = new Session(sessions, sessionToken(req))
+        return handler({ payload: command, actor, auth, session, withEventStore }).map((res) =>
+          toResponse(endpoint, res, session.headers)
+        )
+      })
     )
   )
 }

@@ -108,6 +108,39 @@ test("projection consumer authenticates before parsing and requests retry on inv
     assert.match(await invalid.text(), /must_retry/)
   }))
 
+test("note endpoints require a session, and sign-in/sign-out round-trip through the cookie", async () =>
+  live().runCase("auth-session", async () => {
+    const current = live()
+    const anonymous = { Cookie: "" }
+    assert.equal((await current.post(api.query.note_query_notes.path, {}, anonymous)).status, 401)
+    assert.equal(
+      (await current.post(api.command.note_createNote.path, { noteId: "x", title: "t", body: "" }, anonymous)).status,
+      401
+    )
+    const me = await current.call(api.query.auth_query_whoAmI, {})
+    assert.equal(me.actor.type, "User")
+    // a second, private session: sign up, sign in, sign out, then the same cookie is anonymous and 401s
+    const email = `${current.caseId}@example.test`
+    const creds = { email, password: "correct horse battery" }
+    assert.equal((await current.post(api.command.auth_signUp.path, creds, anonymous)).status, 200)
+    assert.equal(
+      (await current.post(api.command.auth_signUp.path, { ...creds, email: email.toUpperCase() }, anonymous)).status,
+      409
+    )
+    assert.equal(
+      (await current.post(api.command.auth_signIn.path, { ...creds, password: "wrong password!" }, anonymous)).status,
+      401
+    )
+    const signedIn = await current.post(api.command.auth_signIn.path, creds, anonymous)
+    const cookie = { Cookie: signedIn.headers.get("set-cookie")?.split(";")[0] ?? "" }
+    assert.equal((await current.post(api.query.note_query_notes.path, {}, cookie)).status, 200)
+    assert.equal((await current.post(api.command.auth_signOut.path, {}, cookie)).status, 200)
+    assert.deepEqual(await (await current.post(api.query.auth_query_whoAmI.path, {}, cookie)).json(), {
+      actor: { type: "Anonymous" },
+    })
+    assert.equal((await current.post(api.query.note_query_notes.path, {}, cookie)).status, 401)
+  }))
+
 test("CRUD, projection delivery, event history, and duplicate delivery remain consistent", async () =>
   live().runCase("crud-and-delivery", async () => {
     const current = live()

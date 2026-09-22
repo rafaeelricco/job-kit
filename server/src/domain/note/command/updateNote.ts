@@ -5,6 +5,7 @@ import { type Result, Success, Failure } from "@lib/result"
 import { Response } from "@lib/router"
 import { type Command, type CommandResponse, endpoint } from "@be/domain/note/command/updateNote.api"
 import { type CommandController, type CommandHandler } from "@be/app/handlers"
+import { Auth } from "@be/app/auth/policy"
 import { Note, activeNote, sameContent } from "@be/domain/note/aggregate/note"
 import { NoteUpdated } from "@be/domain/note/events/note/noteUpdated"
 import { type NoteError, parseTitle, internalError, respond } from "@be/domain/note/command/noteErrors"
@@ -37,5 +38,6 @@ const handler: CommandHandler<Command, CommandResponse> = ({ payload, withEventS
 
 const controller: CommandController<Command, CommandResponse> = {
   endpoint,
+  authGuard: Auth.authenticated(),
   handler,
 }

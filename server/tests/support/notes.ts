@@ -3,6 +3,7 @@ import { fromNullable } from "@lib/maybe"
 import { Response } from "@lib/router"
 import { POSIX } from "@lib/time"
 import { MemoryEventDatabase } from "@tests/support/memory"
+import { asUserCommand } from "@tests/support/auth"
 import { Note } from "@be/domain/note/aggregate/note"
 import { controller as create } from "@be/domain/note/command/createNote"
 import { controller as project, RepoNotes, type NoteDocument, type NotesWriter } from "@be/domain/note/projection/notes"
@@ -36,6 +37,7 @@ async function newNote(
       create.handler({
         payload: { noteId, title, body },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
   ).noteId

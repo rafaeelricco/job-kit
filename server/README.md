@@ -83,13 +83,26 @@ and functions, and 70% branches.
 
 ## Call the API
 
-Everything is a `POST` with JSON.
+Everything is a `POST` with JSON. Notes need a signed-in session; curl keeps
+the session cookie in `cookies.txt`.
+
+Create an account and sign in:
+
+```bash
+curl -sS http://localhost:3010/api/v1/auth/command/sign-up \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+```
+
+```bash
+curl -sS -c cookies.txt http://localhost:3010/api/v1/auth/command/sign-in \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+```
 
 Create a note:
 
 ```bash
 NOTE_ID=$(node -pe 'crypto.randomUUID()')
-curl -sS http://localhost:3010/api/v1/note/command/create-note \
+curl -sS -b cookies.txt http://localhost:3010/api/v1/note/command/create-note \
   -H 'Content-Type: application/json' \
   -d "{\"noteId\":\"$NOTE_ID\",\"title\":\"Shopping\",\"body\":\"Milk\"}"
 ```
@@ -101,21 +114,21 @@ with the same `noteId` and records nothing new. Use that id below in place of
 List notes:
 
 ```bash
-curl -sS http://localhost:3010/api/v1/note/query/list-notes \
+curl -sS -b cookies.txt http://localhost:3010/api/v1/note/query/list-notes \
   -H 'Content-Type: application/json' -d '{}'
 ```
 
 Read one note:
 
 ```bash
-curl -sS http://localhost:3010/api/v1/note/query/get-note \
+curl -sS -b cookies.txt http://localhost:3010/api/v1/note/query/get-note \
   -H 'Content-Type: application/json' -d '{"noteId":"YOUR_NOTE_ID"}'
 ```
 
 Change a note (send both title and body):
 
 ```bash
-curl -sS http://localhost:3010/api/v1/note/command/update-note \
+curl -sS -b cookies.txt http://localhost:3010/api/v1/note/command/update-note \
   -H 'Content-Type: application/json' \
   -d '{"noteId":"YOUR_NOTE_ID","title":"Weekend shopping","body":"Milk and coffee"}'
 ```
@@ -123,12 +136,19 @@ curl -sS http://localhost:3010/api/v1/note/command/update-note \
 Delete a note:
 
 ```bash
-curl -sS http://localhost:3010/api/v1/note/command/delete-note \
+curl -sS -b cookies.txt http://localhost:3010/api/v1/note/command/delete-note \
   -H 'Content-Type: application/json' -d '{"noteId":"YOUR_NOTE_ID"}'
 ```
 
 A new note can take a second to show up in the list. That is normal: the
 event is saved first, and the list is updated right after.
+
+Sign out:
+
+```bash
+curl -sS -b cookies.txt -c cookies.txt http://localhost:3010/api/v1/auth/command/sign-out \
+  -H 'Content-Type: application/json' -d '{}'
+```
 
 ## Look inside the databases
 

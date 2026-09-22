@@ -1,4 +1,5 @@
 import { Future } from "@lib/future"
+import { type Maybe, fromNullable } from "@lib/maybe"
 import { Aggregate, Id, type IdOf } from "@be/lib/event-sourcing/event"
 import {
   DatabaseEntry,
@@ -8,6 +9,7 @@ import {
   evaluate,
 } from "@be/lib/event-sourcing/store"
 import { schemas } from "@be/app/events"
+import { type SessionStore } from "@be/app/session"
 
 /** Exercises the real encoder/hydrator; only persistence is replaced. */
 export class MemoryEventDatabase implements EventStoreDatabase {
@@ -41,4 +43,24 @@ export class MemoryEventDatabase implements EventStoreDatabase {
 
   readonly withEventStore: WithEventStore = (onError, procedure) =>
     Future.attemptP(() => evaluate(createEventStore(this, schemas), procedure)).mapRej(onError)
+}
+
+/** Keeps raw tokens in a map; the Postgres store's hashing is covered by the integration suite. */
+export class MemorySessionStore implements SessionStore {
+  readonly sessions = new Map<string, Id<"User">>()
+  private issued = 0
+
+  readonly create = (userId: Id<"User">): Future<Error, string> =>
+    Future.create((_, resolve) => {
+      const token = `token-${++this.issued}`
+      this.sessions.set(token, userId)
+      resolve(token)
+    })
+  readonly find = (token: string): Future<Error, Maybe<Id<"User">>> =>
+    Future.resolve(fromNullable(this.sessions.get(token) ?? null))
+  readonly destroy = (token: string): Future<Error, void> =>
+    Future.create((_, resolve) => {
+      this.sessions.delete(token)
+      resolve(undefined)
+    })
 }

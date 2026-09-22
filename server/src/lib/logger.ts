@@ -1,5 +1,7 @@
+export { log }
+
 /** Minimal console-backed logger; swap for a real backend without touching call sites. */
-export const log = {
+const log = {
   info(message: string, meta?: unknown) {
     console.info(message, meta ?? "")
   },

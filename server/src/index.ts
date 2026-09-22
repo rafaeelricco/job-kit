@@ -6,6 +6,10 @@ import { handleQuery } from "@be/app/handleQuery"
 import { handleProjection } from "@be/app/handleProjection"
 import { defineAPI, Implementation } from "@be/lib/event-sourcing/server"
 import { EventBusAuthMiddleware } from "@be/lib/event-delivery"
+import { controller as auth_signUp } from "@be/domain/auth/command/signUp"
+import { controller as auth_signIn } from "@be/domain/auth/command/signIn"
+import { controller as auth_signOut } from "@be/domain/auth/command/signOut"
+import { controller as auth_query_whoAmI } from "@be/domain/auth/query/whoAmI"
 import { controller as note_createNote } from "@be/domain/note/command/createNote"
 import { controller as note_updateNote } from "@be/domain/note/command/updateNote"
 import { controller as note_deleteNote } from "@be/domain/note/command/deleteNote"
@@ -18,8 +22,8 @@ import express from "express"
 import env from "@be/app/environment"
 
 const implementation: Implementation<typeof api> = {
-  command: { note_createNote, note_updateNote, note_deleteNote },
-  query: { note_query_note, note_query_notes },
+  command: { auth_signUp, auth_signIn, auth_signOut, note_createNote, note_updateNote, note_deleteNote },
+  query: { auth_query_whoAmI, note_query_note, note_query_notes },
 }
 
 // Status and message live in one table, so a status can never be sent with another status's message.
@@ -63,9 +67,13 @@ function mountApi(app: express.Express, dependencies: Dependencies): void {
   defineAPI(
     api,
     implementation,
-    (endpoint, controller) => app.post(endpoint.path, handleCommand(dependencies.withEventStore, controller)),
     (endpoint, controller) =>
-      app.post(endpoint.path, handleQuery(dependencies.withProjectionReader, dependencies.repositories, controller))
+      app.post(endpoint.path, handleCommand(dependencies.withEventStore, dependencies.sessions, controller)),
+    (endpoint, controller) =>
+      app.post(
+        endpoint.path,
+        handleQuery(dependencies.withProjectionReader, dependencies.repositories, dependencies.sessions, controller)
+      )
   )
 }
 
