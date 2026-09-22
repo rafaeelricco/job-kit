@@ -3,6 +3,7 @@ export { controller, handler }
 import { Just } from "@lib/maybe"
 import { type Command, type CommandResponse, endpoint } from "@be/domain/note/command/createNote.api"
 import { type CommandController, type CommandHandler } from "@be/app/handlers"
+import { Auth } from "@be/app/auth/policy"
 import { Note } from "@be/domain/note/aggregate/note"
 import { NoteCreated } from "@be/domain/note/events/note/noteCreated"
 import { parseTitle, internalError, respond } from "@be/domain/note/command/noteErrors"
@@ -35,5 +36,6 @@ const handler: CommandHandler<Command, CommandResponse> = ({ payload, withEventS
 
 const controller: CommandController<Command, CommandResponse> = {
   endpoint,
+  authGuard: Auth.authenticated(),
   handler,
 }

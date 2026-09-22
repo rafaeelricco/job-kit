@@ -18,6 +18,7 @@ import { type ReadProjections } from "@be/app/projections"
 import { type ProjectionReader } from "@be/app/projectionStore"
 import { Id } from "@be/lib/event-sourcing/event"
 import { result, rejection, newNote, hydrate, info, projectionsHarness, delivery } from "@tests/support/notes"
+import { asUser, asUserCommand } from "@tests/support/auth"
 
 // Compile-time pin, checked by `pnpm typecheck`: a query's view of the read
 // model has no way to write. If `save` ever becomes reachable from
@@ -54,6 +55,7 @@ describe("Notes", () => {
       create.handler({
         payload: { noteId: Id.random<"Note">(), title: " \n ", body: "" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.match(JSON.stringify(error), /400/)
@@ -67,6 +69,7 @@ describe("Notes", () => {
       update.handler({
         payload: { noteId, title: " Updated ", body: "" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     const note = hydrate(db)
@@ -86,6 +89,7 @@ describe("Notes", () => {
       update.handler({
         payload: { noteId, title: " My note ", body: "text" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.equal(db.entries.length, 1)
@@ -98,6 +102,7 @@ describe("Notes", () => {
       update.handler({
         payload: { noteId, title: " ", body: "changed" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.match(JSON.stringify(error), /400/)
@@ -111,12 +116,14 @@ describe("Notes", () => {
       remove.handler({
         payload: { noteId },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     await result(
       remove.handler({
         payload: { noteId },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.deepEqual(
@@ -134,6 +141,7 @@ describe("Notes", () => {
       remove.handler({
         payload: { noteId },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     for (const id of [noteId, new Id<"Note">("missing")]) {
@@ -141,6 +149,7 @@ describe("Notes", () => {
         update.handler({
           payload: { noteId: id, title: "New", body: "new" },
           withEventStore: db.withEventStore,
+          ...asUserCommand(),
         })
       )
       assert.match(JSON.stringify(error), /404/)
@@ -154,6 +163,7 @@ describe("Notes", () => {
       remove.handler({
         payload: { noteId: new Id("unknown") },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.match(JSON.stringify(error), /404/)
@@ -167,12 +177,14 @@ describe("Notes", () => {
       update.handler({
         payload: { noteId, title: "Second", body: "new" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     await result(
       remove.handler({
         payload: { noteId },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     assert.deepEqual(
@@ -191,6 +203,7 @@ describe("Notes", () => {
       update.handler({
         payload: { noteId, title: "Second", body: "new" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     const trigger = new Id<"Event">("trigger")
@@ -238,7 +251,7 @@ describe("Notes", () => {
       }),
       info(noteId, 0)
     ).promise((e) => new Error(JSON.stringify(e)))
-    const response = await result(get.handler({ payload: { noteId }, projections: h.projections }))
+    const response = await result(get.handler({ payload: { noteId }, projections: h.projections, ...asUser }))
     const encoded = s.encode(get.endpoint.response, response)
     assert.deepEqual(Object.keys(encoded as object).sort(), ["note"])
     assert.equal(JSON.stringify(encoded).includes("deleted"), false)
@@ -246,6 +259,7 @@ describe("Notes", () => {
       get.handler({
         payload: { noteId: new Id("missing") },
         projections: h.projections,
+        ...asUser,
       })
     )
     assert.match(JSON.stringify(error), /404/)
@@ -285,6 +299,7 @@ describe("Notes", () => {
       get.handler({
         payload: { noteId: new Id("any") },
         projections: unavailable,
+        ...asUser,
       })
     )
     assert.match(JSON.stringify(error), /500/)

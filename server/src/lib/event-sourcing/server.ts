@@ -1,3 +1,5 @@
+export { type ApiEndpoints, type Implementation, defineAPI }
+
 import { PlainEndpoint } from "@be/app/endpoint"
 import { type CommandController, type QueryController } from "@be/app/handlers"
 
@@ -7,20 +9,22 @@ import { type CommandController, type QueryController } from "@be/app/handlers"
  * regardless of its request/response types" in the conditional types below
  * needs the `any`-bound form (`PlainEndpoint<any, any>`) — the standard,
  * deliberately variance-defeating idiom for that check; `unknown` would make
- * the `extends` clause fail for every concrete endpoint.
+ * the `extends` clause fail for every concrete endpoint. Controllers are likewise
+ * matched with `any` for their guard `Result`, since a handler is contravariant in the proof it receives.
  */
 type Endpoints = Record<string, PlainEndpoint<any, any>>
-export type ApiEndpoints = { command: Endpoints; query: Endpoints }
+type ApiEndpoints = { command: Endpoints; query: Endpoints }
+
 /** The controllers an `ApiEndpoints` needs: one command or query controller per endpoint. */
-export type Implementation<A extends ApiEndpoints> = {
+type Implementation<A extends ApiEndpoints> = {
   command: Commands<A["command"]>
   query: Queries<A["query"]>
 }
 type Commands<Api extends Endpoints> = {
-  [P in keyof Api]: Api[P] extends PlainEndpoint<infer Req, infer Res> ? CommandController<Req, Res> : never
+  [P in keyof Api]: Api[P] extends PlainEndpoint<infer Req, infer Res> ? CommandController<Req, Res, any> : never
 }
 type Queries<Api extends Endpoints> = {
-  [P in keyof Api]: Api[P] extends PlainEndpoint<infer Req, infer Res> ? QueryController<Req, Res> : never
+  [P in keyof Api]: Api[P] extends PlainEndpoint<infer Req, infer Res> ? QueryController<Req, Res, any> : never
 }
 
 /**
@@ -31,12 +35,15 @@ type Queries<Api extends Endpoints> = {
  * site, and to `unknown`/`unknown` (rather than `any`/`any`) so the erasure
  * doesn't leak further than this lookup.
  */
-function commandFor(impl: Implementation<ApiEndpoints>["command"], key: string): CommandController<unknown, unknown> {
-  return impl[key] as CommandController<unknown, unknown>
+function commandFor(
+  impl: Implementation<ApiEndpoints>["command"],
+  key: string
+): CommandController<unknown, unknown, any> {
+  return impl[key] as CommandController<unknown, unknown, any>
 }
 
-function queryFor(impl: Implementation<ApiEndpoints>["query"], key: string): QueryController<unknown, unknown> {
-  return impl[key] as QueryController<unknown, unknown>
+function queryFor(impl: Implementation<ApiEndpoints>["query"], key: string): QueryController<unknown, unknown, any> {
+  return impl[key] as QueryController<unknown, unknown, any>
 }
 
 /**
@@ -44,11 +51,14 @@ function queryFor(impl: Implementation<ApiEndpoints>["query"], key: string): Que
  * `defineQuery`. The framework-specific registration (e.g. mounting an Express
  * route) lives in those two callbacks, not here.
  */
-export function defineAPI<A extends ApiEndpoints>(
+function defineAPI<A extends ApiEndpoints>(
   api: A,
   impl: Implementation<A>,
-  defineCommand: (endpoint: PlainEndpoint<unknown, unknown>, controller: CommandController<unknown, unknown>) => void,
-  defineQuery: (endpoint: PlainEndpoint<unknown, unknown>, controller: QueryController<unknown, unknown>) => void
+  defineCommand: (
+    endpoint: PlainEndpoint<unknown, unknown>,
+    controller: CommandController<unknown, unknown, any>
+  ) => void,
+  defineQuery: (endpoint: PlainEndpoint<unknown, unknown>, controller: QueryController<unknown, unknown, any>) => void
 ): void {
   for (const key of Object.keys(api.command)) {
     const endpoint = api.command[key]

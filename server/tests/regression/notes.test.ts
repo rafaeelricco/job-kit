@@ -13,6 +13,7 @@ import { schemas } from "@be/app/events"
 import { ErrorMustRetry } from "@be/lib/event-delivery"
 import { Id } from "@be/lib/event-sourcing/event"
 import { result, rejection, newNote, info, projectionsHarness, delivery } from "@tests/support/notes"
+import { asUser, asUserCommand } from "@tests/support/auth"
 
 describe("Notes regression cases", () => {
   test("retried create with the same noteId records one event and the same reply", async () => {
@@ -32,6 +33,7 @@ describe("Notes regression cases", () => {
       update.handler({
         payload: { noteId, title: "Second", body: "new" },
         withEventStore: db.withEventStore,
+        ...asUserCommand(),
       })
     )
     const gapped = db.entries.map((e, i) => (i === 1 ? { ...e, aggregate_version: 2 } : e))
@@ -56,8 +58,8 @@ describe("Notes regression cases", () => {
     await delivery(h, created, info(noteId, 0)).promise((e) => new Error(JSON.stringify(e)))
     assert.equal(h.docs.get(noteId.value)?.status === "Deleted", true)
     assert.equal(h.seen.size, 2)
-    assert.deepEqual(await result(list.handler({ payload: {}, projections: h.projections })), { notes: [] })
-    const error = await rejection(get.handler({ payload: { noteId }, projections: h.projections }))
+    assert.deepEqual(await result(list.handler({ payload: {}, projections: h.projections, ...asUser })), { notes: [] })
+    const error = await rejection(get.handler({ payload: { noteId }, projections: h.projections, ...asUser }))
     assert.match(JSON.stringify(error), /404/)
   })
 

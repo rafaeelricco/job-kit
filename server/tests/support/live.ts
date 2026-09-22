@@ -72,6 +72,7 @@ export class LiveFixture {
   private currentCaseId: string | undefined
   private createdIds: Set<Id<"Note">> = new Set()
   private closed = false
+  private cookie: string | undefined
 
   constructor() {
     this.baseUrl = process.env["TEST_API_URL"] ?? "http://localhost:8080"
@@ -138,11 +139,27 @@ export class LiveFixture {
   }
 
   async post(path: string, payload: unknown, headers: Record<string, string> = {}): Promise<Response> {
+    const cookie = this.cookie ?? (await this.signIn())
     return this.request(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...headers },
+      headers: { "Content-Type": "application/json", Cookie: cookie, ...headers },
       body: JSON.stringify(payload),
     })
+  }
+
+  /** Register a throwaway user and keep its session cookie for every later `post`. */
+  private async signIn(): Promise<string> {
+    const credentials = JSON.stringify({ email: `live-${randomUUID()}@example.test`, password: randomUUID() })
+    const send = (path: string) =>
+      this.request(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: credentials })
+    const signedUp = await send(api.command.auth_signUp.path)
+    assert.equal(signedUp.status, 200, await signedUp.text())
+    const signedIn = await send(api.command.auth_signIn.path)
+    assert.equal(signedIn.status, 200, await signedIn.text())
+    const cookie = signedIn.headers.get("set-cookie")?.split(";")[0]
+    assert.ok(cookie, "Sign-in must set the session cookie")
+    this.cookie = cookie
+    return cookie
   }
 
   async call<Req, Res>(endpoint: PlainEndpoint<Req, Res>, payload: Req): Promise<Res> {

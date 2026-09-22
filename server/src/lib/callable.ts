@@ -1,4 +1,6 @@
-export default function Callable<T extends new (...args: never[]) => unknown>(classname: T) {
+export { Callable as default }
+
+function Callable<T extends new (...args: never[]) => unknown>(classname: T) {
   function apply(target: T, _: unknown, argumentsList: ConstructorParameters<T>): InstanceType<T> {
     return new target(...argumentsList) as InstanceType<T>
   }

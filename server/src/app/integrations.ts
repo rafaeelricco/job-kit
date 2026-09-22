@@ -12,6 +12,7 @@ import {
 import { type WithEventStore } from "@be/lib/event-sourcing/store"
 import { schemas } from "@be/app/events"
 import { Repositories, initializeRepositories } from "@be/app/projections"
+import { type SessionStore, initializeSessionTable, postgresSessionStore } from "@be/app/session"
 
 /**
  * Everything a request handler needs: the two datastores, ways to run
@@ -24,6 +25,7 @@ export type Dependencies = {
   withProjectionReader: WithProjectionReader
   withProjectionWriter: WithProjectionWriter
   repositories: Repositories
+  sessions: SessionStore
 }
 
 function postgresFromEnv(): Postgres {
@@ -91,6 +93,7 @@ export function configureDependencies(): Future<Error, Dependencies> {
   const onMongo: WithProjectionWriter = (onError, f) =>
     mongo.withTransaction(onError, (t) => f(new MongoProjectionStore(t)))
   return initializeEventStore(postgres)
+    .chain(() => initializeSessionTable(postgres))
     .chain(() => initializeMongoRepositories(mongo))
     .map((repositories) => ({
       postgres,
@@ -100,5 +103,6 @@ export function configureDependencies(): Future<Error, Dependencies> {
       withProjectionReader: onMongo,
       withProjectionWriter: onMongo,
       repositories,
+      sessions: postgresSessionStore(postgres),
     }))
 }

@@ -10,31 +10,36 @@ import { handleCommand } from "@be/app/handleCommand"
 import { handleQuery } from "@be/app/handleQuery"
 import { type Repositories } from "@be/app/projections"
 import { type ProjectionReader, type WithProjectionReader } from "@be/app/projectionStore"
-import { MemoryEventDatabase } from "@tests/support/memory"
+import { internalServerError } from "@be/app/responses"
+import { Auth, type GuardResult } from "@be/app/auth/policy"
+import { Id } from "@be/lib/event-sourcing/event"
+import { MemoryEventDatabase, MemorySessionStore } from "@tests/support/memory"
 
-type Captured = { status: number; body: unknown }
+type Captured = { status: number; body: unknown; headers: Record<string, string> }
 
-function invoke(handler: express.Handler, body: unknown): Promise<Captured> {
+function invoke(handler: express.Handler, body: unknown, headers: Record<string, string> = {}): Promise<Captured> {
   return new Promise((resolve) => {
     let status = 200
+    let sent: Record<string, string> = {}
     const response = {
       status(code: number) {
         status = code
         return response
       },
-      set() {
+      set(value: Record<string, string>) {
+        sent = { ...sent, ...value }
         return response
       },
       json(value: unknown) {
-        resolve({ status, body: value })
+        resolve({ status, body: value, headers: sent })
         return response
       },
       send(value: unknown) {
-        resolve({ status, body: value })
+        resolve({ status, body: value, headers: sent })
         return response
       },
     } as unknown as express.Response
-    handler({ body } as express.Request, response, (() => {}) as express.NextFunction)
+    handler({ body, headers } as express.Request, response, (() => {}) as express.NextFunction)
   })
 }
 
@@ -47,12 +52,13 @@ describe("HTTP command and query adapters", () => {
     })
     const controller: CommandController<{ value: number }, { accepted: number }> = {
       endpoint,
+      authGuard: Auth.public(),
       handler: ({ payload }) =>
         payload.value < 0
           ? Future.reject(json({ status: 409, content: { error: { message: "value must be nonnegative" } } }))
           : Future.resolve({ accepted: payload.value }),
     }
-    const handler = handleCommand(new MemoryEventDatabase().withEventStore, controller)
+    const handler = handleCommand(new MemoryEventDatabase().withEventStore, new MemorySessionStore(), controller)
 
     const decoded = await invoke(handler, { value: "wrong" })
     assert.equal(decoded.status, 400)
@@ -75,10 +81,12 @@ describe("HTTP command and query adapters", () => {
     })
     const controller: QueryController<{ term: string }, { term: string }> = {
       endpoint,
+      authGuard: Auth.public(),
       handler: ({ payload }) => Future.resolve<Response, { term: string }>({ term: payload.term }),
     }
     const withReader: WithProjectionReader = (_onError, procedure) => procedure({} as ProjectionReader)
-    const handler = handleQuery(withReader, {} as Repositories, controller)
+    const sessions = new MemorySessionStore()
+    const handler = handleQuery(withReader, {} as Repositories, sessions, controller)
 
     const decoded = await invoke(handler, { term: 3 })
     assert.equal(decoded.status, 400)
@@ -89,9 +97,72 @@ describe("HTTP command and query adapters", () => {
     assert.deepEqual(success.body, { term: "notes" })
 
     const unavailableReader: WithProjectionReader = (onError) => Future.reject(onError(new Error("private detail")))
-    const unavailable = await invoke(handleQuery(unavailableReader, {} as Repositories, controller), { term: "notes" })
+    const unavailable = await invoke(handleQuery(unavailableReader, {} as Repositories, sessions, controller), {
+      term: "notes",
+    })
     assert.equal(unavailable.status, 500)
     assert.deepEqual(unavailable.body, { error: { message: "Internal Server Error" } })
     assert.equal(JSON.stringify(unavailable.body).includes("private detail"), false)
+  })
+
+  test("guards run after decoding: 400 first, then 401 without a session, then the handler sees the actor", async () => {
+    const sessions = new MemorySessionStore()
+    const token = await sessions.create(new Id<"User">("u-1")).promise((e) => e)
+    const endpoint = new PlainEndpoint<{}, { userId: string }>({
+      path: "/who",
+      request: s.object({}),
+      response: s.object({ userId: s.string }),
+    })
+    const authGuard = Auth.authenticated()
+    const controller: QueryController<{}, { userId: string }, GuardResult<typeof authGuard>> = {
+      endpoint,
+      authGuard,
+      handler: ({ auth }) => Future.resolve({ userId: auth.actor.userId.value }),
+    }
+    const withReader: WithProjectionReader = (_onError, procedure) => procedure({} as ProjectionReader)
+    const handler = handleQuery(withReader, {} as Repositories, sessions, controller)
+    assert.equal((await invoke(handler, 7)).status, 400)
+    assert.deepEqual(await invoke(handler, {}), {
+      status: 401,
+      body: { error: { message: "Authentication required" } },
+      headers: {},
+    })
+    assert.deepEqual((await invoke(handler, {}, { cookie: "sid=unknown" })).status, 401)
+    assert.deepEqual((await invoke(handler, {}, { cookie: `other=1; sid=${token}` })).body, { userId: "u-1" })
+  })
+
+  test("a command's session changes reach the reply as Set-Cookie", async () => {
+    const sessions = new MemorySessionStore()
+
+    const startEndpoint = new PlainEndpoint<{}, {}>({ path: "/start", request: s.object({}), response: s.object({}) })
+    const startAuthGuard = Auth.public()
+    const startController: CommandController<{}, {}, GuardResult<typeof startAuthGuard>> = {
+      endpoint: startEndpoint,
+      authGuard: startAuthGuard,
+      handler: ({ session }) =>
+        session
+          .start(new Id<"User">("u-1"))
+          .mapRej((): Response => internalServerError)
+          .map(() => ({})),
+    }
+    const startHandler = handleCommand(new MemoryEventDatabase().withEventStore, sessions, startController)
+    const started = await invoke(startHandler, {})
+    assert.deepEqual(started.headers, { "Set-Cookie": "sid=token-1; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400" })
+
+    const endEndpoint = new PlainEndpoint<{}, {}>({ path: "/end", request: s.object({}), response: s.object({}) })
+    const endAuthGuard = Auth.authenticated()
+    const endController: CommandController<{}, {}, GuardResult<typeof endAuthGuard>> = {
+      endpoint: endEndpoint,
+      authGuard: endAuthGuard,
+      handler: ({ session }) =>
+        session
+          .end()
+          .mapRej((): Response => internalServerError)
+          .map(() => ({})),
+    }
+    const endHandler = handleCommand(new MemoryEventDatabase().withEventStore, sessions, endController)
+    const ended = await invoke(endHandler, {}, { cookie: "sid=token-1" })
+    assert.equal(sessions.sessions.has("token-1"), false)
+    assert.match(ended.headers["Set-Cookie"] ?? "", /Max-Age=0$/)
   })
 })

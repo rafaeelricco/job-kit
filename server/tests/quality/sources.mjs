@@ -1,8 +1,11 @@
 /** Shared denominator for critical coverage and mutation testing. */
 export const criticalSources = [
   "src/domain/note/**/*.ts",
-  "src/app/{handleCommand,handleQuery,handleProjection,idempotency,responses,engine}.ts",
+  "src/domain/{auth,user}/**/*.ts",
+  "src/app/auth/**/*.ts",
+  "src/app/{handleCommand,handleQuery,handleProjection,idempotency,responses,engine,resolveAuth,session}.ts",
   "src/lib/event-delivery.ts",
+  "src/lib/password-hash.ts",
   "src/lib/event-sourcing/**/*.ts",
   "src/lib/postgres.ts",
 ]
