@@ -100,7 +100,8 @@ test("projection consumer authenticates before parsing and requests retry on inv
       body: "{",
     })
     assert.equal(malformed.status, 401, "Consumer must authenticate before parsing")
-    assert.equal((await current.post(path, {}, { Authorization: "Basic d3Jvbmc6d3Jvbmc=" })).status, 401)
+    const wrongCredentials = Buffer.from("wrong:wrong").toString("base64")
+    assert.equal((await current.post(path, {}, { Authorization: `Basic ${wrongCredentials}` })).status, 401)
     const credentials = Buffer.from(`${env.EVENT_BUS_USERNAME}:${env.EVENT_BUS_PASSWORD}`).toString("base64")
     const invalid = await current.post(path, {}, { Authorization: `Basic ${credentials}` })
     assert.equal(invalid.status, 200)

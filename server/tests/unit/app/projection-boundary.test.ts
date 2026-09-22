@@ -153,7 +153,7 @@ describe("projection and event-bus HTTP boundaries", () => {
     const missing = await runAuth()
     assert.deepEqual(missing, { body: { error: "Basic authentication required" }, next: false, status: 401 })
 
-    const invalid = await runAuth("Basic d3Jvbmc6d3Jvbmc=")
+    const invalid = await runAuth("Basic " + Buffer.from("wrong:wrong").toString("base64"))
     assert.deepEqual(invalid, { body: { error: "Invalid credentials" }, next: false, status: 401 })
 
     const credentials = Buffer.from(env.EVENT_BUS_USERNAME + ":" + env.EVENT_BUS_PASSWORD).toString("base64")
