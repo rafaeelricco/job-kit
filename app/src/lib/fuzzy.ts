@@ -61,7 +61,8 @@ const scanForChar = (target: string, from: number, ch: string): Maybe<GapScan> =
   let ti = from
   let gapPenalty = 0
   let inGap = false
-  while (ti < target.length && target[ti] !== ch) {
+  // `ch` is one code point, which may span two UTF-16 units, so compare as a substring.
+  while (ti < target.length && !target.startsWith(ch, ti)) {
     gapPenalty += inGap ? PENALTY_GAP_EXTEND : PENALTY_GAP_START
     inGap = true
     ti++
@@ -88,8 +89,9 @@ const scoreToken = (token: string, target: string, from: number): Maybe<TokenSco
     const inner = found.expect("checked above")
     score += inner.gapPenalty + scoreMatchAt(target, inner.matchIndex, prevMatchIndex)
     positions.push(inner.matchIndex)
-    prevMatchIndex = inner.matchIndex
-    ti = inner.matchIndex + 1
+    // Last UTF-16 unit of this match, so the next match counts as consecutive after an astral character.
+    prevMatchIndex = inner.matchIndex + ch.length - 1
+    ti = inner.matchIndex + ch.length
   }
   return Just({ score, end: ti, positions })
 }
