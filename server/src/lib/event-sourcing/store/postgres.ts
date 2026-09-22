@@ -70,8 +70,7 @@ function isRetryableError(e: TransactionError, eventStoreTable: string): boolean
   // duplicate aggregate version.
   if (e instanceof ConstraintViolationError) {
     return (
-      e.constraint === AGGREGATE_VERSION_INDEX ||
-      e.constraint === indexName(eventStoreTable, AGGREGATE_VERSION_INDEX)
+      e.constraint === AGGREGATE_VERSION_INDEX || e.constraint === indexName(eventStoreTable, AGGREGATE_VERSION_INDEX)
     )
   }
   return false
