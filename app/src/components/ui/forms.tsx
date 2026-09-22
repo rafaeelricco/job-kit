@@ -552,6 +552,8 @@ type ComboboxValues<T> = {
 }
 
 class ComboboxInputBase {
+  // Discriminates the two otherwise structurally identical configs in `ItemProps` and friends.
+  readonly kind = "combobox"
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type-erased base; ComboboxInput<T> narrows this.
   readonly values: ComboboxValues<any>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type-erased base; ComboboxInput<T> narrows this.
@@ -628,6 +630,8 @@ type SelectValues<T> = {
 }
 
 class SelectInputBase {
+  // Discriminates the two otherwise structurally identical configs in `ItemProps` and friends.
+  readonly kind = "select"
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type-erased base; SelectInput<T> narrows this.
   readonly values: SelectValues<any>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- type-erased base; SelectInput<T> narrows this.
