@@ -12,7 +12,7 @@ import env from "@be/app/environment"
 const COOKIE = "sid"
 /** Lives in the event-store database but outside the replication publication, so sessions never reach the event bus. */
 const TABLE = "auth_sessions"
-/** Fixed wall-clock lifetime, not sliding — same as HartAgency's `rolling: false`. */
+/** Fixed wall-clock lifetime, not sliding — like a `rolling: false` session store. */
 const TTL_SECONDS = 24 * 60 * 60
 
 /**

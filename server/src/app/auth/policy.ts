@@ -26,7 +26,7 @@ type AuthGuardResult = { result: "allow" } | Deny
 
 /**
  * A pure check over the request's resolved {@link AuthContext}. Guards see
- * privileges, never roles. (HartAgency's async `resolve` stage returns with the
+ * privileges, never roles. (The reference application's async `resolve` stage returns with the
  * first guard that must load domain data before deciding.)
  */
 type AuthGuard<Result extends AuthGuardResult = AuthGuardResult> = (auth: AuthContext) => Result

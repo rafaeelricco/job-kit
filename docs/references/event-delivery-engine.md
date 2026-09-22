@@ -53,7 +53,7 @@ One source is one PostgreSQL table. It requires a unique non-null integer serial
 column, non-null partitioning column, immutable event identity (`event_id` when
 present), and every column needed by the payload. Debezium must configure the
 Kafka key from `partitioningColumn`, never silently from the table primary key.
-HartAgency uses `correlation_id`.
+The reference event-sourced application uses `correlation_id`.
 
 An initial ascending snapshot is followed by WAL streaming. Snapshot reads and
 inserts are accepted. Updates, deletes, truncations, unsupported schema changes,

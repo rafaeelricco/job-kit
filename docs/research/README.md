@@ -4,7 +4,7 @@ These studies retain dated evidence and validation limits; their historical reco
 
 | Study                                                 | Informs                                                                 |
 | ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Integration study](integration-study.md)             | Overall architecture, existing application review, HartAgency findings  |
+| [Integration study](integration-study.md)             | Overall architecture, existing application review, reference findings   |
 | [Authentication](platform-auth.md)                    | Workspace identity and sign-in design                                   |
 | [Provider connections](provider-connections.md)       | Dated provider interface evidence and data eligibility                  |
 | [Agent runtime](agent-runtime.md)                     | Dated skill/runtime evidence and validation                             |
