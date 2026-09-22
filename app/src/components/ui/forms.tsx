@@ -43,7 +43,7 @@ import {
   TextItalicIcon,
   UnfoldMoreIcon,
 } from "@hugeicons/core-free-icons"
-import { useEditor, EditorContent, type Editor } from "@tiptap/react"
+import { useEditor, EditorContent, type Editor, type JSONContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import { fromNullable, fromOptional, type Maybe, Nothing } from "@lib/maybe"
 import { DateOnly, TimeOfDay } from "@lib/time"
@@ -1236,6 +1236,17 @@ function RichTextToolbar({ editor }: { editor: Editor }) {
   )
 }
 
+/** One paragraph per line, so `getText({ blockSeparator: "\n" })` returns the value unchanged. */
+function plainTextDocument(value: string): JSONContent {
+  return {
+    type: "doc",
+    content: value.split("\n").map((line) => ({
+      type: "paragraph",
+      content: line ? [{ type: "text", text: line }] : [],
+    })),
+  }
+}
+
 function FormRichTextField({
   config,
   className,
@@ -1249,20 +1260,31 @@ function FormRichTextField({
   const errorId = `${name}-error`
   const hasError = error.maybe(false, () => true)
 
+  const attributes = {
+    id: name,
+    class: cn("min-h-24 px-3.5 py-3 text-sm outline-none", htmlContentStyles),
+    "aria-invalid": String(hasError),
+    ...(hasError ? { "aria-describedby": errorId } : {}),
+  }
+
   const editor = useEditor({
     extensions: [StarterKit],
-    content: value,
+    // Text mode must not go through Tiptap's HTML parser, or markup in the value renders and newlines collapse.
+    content: mode === "html" ? value : plainTextDocument(value),
     editable: !disabled,
     onUpdate: ({ editor }) =>
       onChange(editor.isEmpty ? "" : mode === "html" ? editor.getHTML() : editor.getText({ blockSeparator: "\n" })),
-    editorProps: {
-      attributes: { id: name, class: cn("min-h-24 px-3.5 py-3 text-sm outline-none", htmlContentStyles) },
-    },
+    editorProps: { attributes },
   })
 
   React.useEffect(() => {
     editor?.setEditable(!disabled)
   }, [editor, disabled])
+
+  React.useEffect(() => {
+    editor?.setOptions({ editorProps: { attributes } })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `attributes` is rebuilt every render from these inputs
+  }, [editor, name, hasError, errorId])
 
   return (
     <FormLabel htmlFor={name} label={label} description={description}>
