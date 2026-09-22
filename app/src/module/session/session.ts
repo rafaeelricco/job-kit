@@ -13,6 +13,7 @@ export {
 }
 
 import * as s from "@lib/json/schema"
+import { toast } from "sonner"
 import { Future } from "@lib/future"
 import { Just, Nothing, fromNullable, type Maybe } from "@lib/maybe"
 import { Loading, type RemoteData } from "@lib/remote-data"
@@ -148,11 +149,21 @@ function signUp(email: string, password: string): Future<FetchError, UserActor> 
   return call(signUpEndpoint, { email, password }).chain(() => signIn(email, password))
 }
 
-/** Optimistic: the UI goes anonymous now; the request only drops the server cookie. */
+/**
+ * Optimistic: the UI goes anonymous now; the request drops the server cookie. If it fails, the cookie may
+ * still be live, so ask the server who we are: a surviving session comes back instead of hiding behind a
+ * signed-out screen until the next reload.
+ */
 function signOut(): void {
   commitSession(Nothing())
   call(signOutEndpoint, {}).fork(
-    () => {},
+    () =>
+      reloadSession().fork(
+        () => toast.error("Could not reach the server to sign out. Try again."),
+        (actor) => {
+          if (actor.type === "User") toast.error("Sign-out failed; you are still signed in.")
+        }
+      ),
     () => {}
   )
 }
