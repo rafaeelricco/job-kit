@@ -157,7 +157,7 @@ type FormConfig<T extends FormInputs> = {
   derive?: FormDerive<NoInfer<T>>
 }
 
-type SubmitEventListener = () => Promise<void>
+type SubmitEventListener = (e?: { preventDefault(): void }) => Promise<void>
 type OnSubmit<T extends FormInputs> = (f: (v: FormOutputs<T>) => void | Promise<void>) => SubmitEventListener
 type HookReturn<T extends FormInputs> = { onSubmit: OnSubmit<T>; fields: FormProps<T> }
 
@@ -1063,7 +1063,8 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
     })
   }
 
-  const onSubmit: OnSubmit<T> = (f) => async () => {
+  const onSubmit: OnSubmit<T> = (f) => async (e) => {
+    e?.preventDefault()
     setValidateOnChange(true)
     const values = getValues(effective)
     const errors = validate(values)
