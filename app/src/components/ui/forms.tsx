@@ -1157,9 +1157,12 @@ function FormTextField({
           {showClear && (
             <button
               type="button"
-              onClick={() => onChange("")}
+              onClick={() => {
+                if (!disabled) onChange("")
+              }}
               aria-label="Clear search"
-              className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed"
+              disabled={disabled}
             >
               <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
             </button>
