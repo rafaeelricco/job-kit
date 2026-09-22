@@ -158,7 +158,7 @@ type FormConfig<T extends FormInputs> = {
 }
 
 type SubmitEventListener = () => Promise<void>
-type OnSubmit<T extends FormInputs> = (f: (v: FormOutputs<T>) => void) => SubmitEventListener
+type OnSubmit<T extends FormInputs> = (f: (v: FormOutputs<T>) => void | Promise<void>) => SubmitEventListener
 type HookReturn<T extends FormInputs> = { onSubmit: OnSubmit<T>; fields: FormProps<T> }
 
 // ============ Text ================
@@ -1029,7 +1029,7 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
     const errors = validate(values)
     setState((s) => updateErrors(errors, s))
     if (Object.values(errors).every((v) => v === null)) {
-      f(values)
+      await f(values)
     }
   }
 
