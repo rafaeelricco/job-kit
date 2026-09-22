@@ -43,7 +43,8 @@ The review tree is a checkout of the PR head with dependencies installed.
 - Otherwise run `git fetch https://github.com/<owner>/<repo> pull/N/head`,
   `git worktree remove --force "$SCRATCH/pr-review-N"` (ignore a failure), and
   `git worktree add --detach "$SCRATCH/pr-review-N" <head sha>`, then
-  `pnpm install --frozen-lockfile` in each touched package (`server/`, `app/`).
+  `pnpm install --frozen-lockfile` in each touched package (`server/`, `app/`,
+  and the repo root when root areas changed).
 
 List the changed files and every CLAUDE.md at the root or in a directory that
 holds a changed file or one of its parents.
@@ -51,9 +52,12 @@ holds a changed file or one of its parents.
 ## 3. Find candidates (parallel)
 
 In one message, launch:
-- **Baseline** (sonnet): in the review tree run, per touched package,
-  `pnpm quality` in `server/` and `pnpm lint`, `pnpm typecheck`, `pnpm build` in
-  `app/`. Return pass or fail per check, with the test count.
+- **Baseline** (sonnet): in the review tree run, per touched area,
+  `pnpm quality` in `server/`; `pnpm lint`, `pnpm typecheck`, `pnpm build` in
+  `app/`; and at the repo root, when `skill/`, `scripts/`, `tests/`,
+  `package.json`, or `pyrightconfig.json` changed, `bash scripts/test.sh --fast`
+  and `pnpm typecheck:release`. Return pass or fail per check, with the test
+  count.
 - **Rules** (two sonnet agents, changed files split between them): CLAUDE.md
   compliance. A rule applies only under its CLAUDE.md's directory. Quote it.
 - **Bugs** (one opus agent per touched area: `server/src/app`,
@@ -180,8 +184,11 @@ than prose:
 - a `text` call tree when the bug lives on a control-flow path (cancel, retry, finally);
 - a Mermaid `sequenceDiagram` when two components race or hand off state.
 
-**Closing line**: what the baseline passed or failed, with counts; then what was
-not run (Docker integration and mutation tests unless a proof ran them; the app
-has no test suite); then `{N} candidates could not be reproduced and were not
-posted.` when N > 0. Example: "All 107 server tests, lint, typecheck, and build
-passed. Docker integration tests were not run."
+**Closing line**: what the baseline passed or failed, with counts, for every
+check it ran; then what was not run (for `server/`, Docker integration and
+mutation tests unless a proof ran them; for `app/`, it has no test suite; for
+root areas, the `scripts/test.sh` mutation stage that `--fast` skips); then
+`{N} candidates could not be reproduced and were not posted.` when N > 0.
+Examples: "All 107 server tests, lint, typecheck, and build passed. Docker
+integration tests were not run." and "`scripts/test.sh --fast` and
+`pnpm typecheck:release` passed. The mutation stage was not run."

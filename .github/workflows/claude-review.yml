@@ -72,12 +72,14 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: |
+            pnpm-lock.yaml
             server/pnpm-lock.yaml
             app/pnpm-lock.yaml
       # --ignore-scripts: PR lifecycle hooks would run here with the job's OIDC
       # variables, before the action's secret scrub applies.
-      - name: Install server and app dependencies
+      - name: Install root, server, and app dependencies
         run: |
+          pnpm install --frozen-lockfile --ignore-scripts
           pnpm --dir server install --frozen-lockfile --ignore-scripts
           pnpm --dir app install --frozen-lockfile --ignore-scripts
 
