@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest"
 import { Client, type PoolClient, type QueryResult } from "pg"
+import { sha256 } from "js-sha256"
 import { EventEmitter } from "node:events"
 import {
   Postgres,
@@ -290,12 +291,12 @@ describe("event-store PostgreSQL adapter", () => {
     expect(sql[3]).toBe("GRANT SELECT ON TABLE events TO replica;")
     expect(sql[4]).toContain("CREATE PUBLICATION pub FOR TABLE events")
     expect(sql.slice(5)).toEqual([
-      "CREATE UNIQUE INDEX IF NOT EXISTS event_store_idx_event_aggregate_id_version ON events(aggregate_id, aggregate_version);",
-      "CREATE UNIQUE INDEX IF NOT EXISTS event_store_idx_event_id ON events(event_id);",
-      "CREATE INDEX IF NOT EXISTS event_store_idx_event_causation_id ON events(causation_id);",
-      "CREATE INDEX IF NOT EXISTS event_store_idx_event_correlation_id ON events(correlation_id);",
-      "CREATE INDEX IF NOT EXISTS event_store_idx_occurred_on ON events(recorded_on);",
-      "CREATE INDEX IF NOT EXISTS event_store_idx_event_name ON events(event_name);",
+      "CREATE UNIQUE INDEX IF NOT EXISTS event_store_idx_event_aggregate_id_version_862417b9e7c3720b ON events(aggregate_id, aggregate_version);",
+      "CREATE UNIQUE INDEX IF NOT EXISTS event_store_idx_event_id_862417b9e7c3720b ON events(event_id);",
+      "CREATE INDEX IF NOT EXISTS event_store_idx_event_causation_id_862417b9e7c3720b ON events(causation_id);",
+      "CREATE INDEX IF NOT EXISTS event_store_idx_event_correlation_id_862417b9e7c3720b ON events(correlation_id);",
+      "CREATE INDEX IF NOT EXISTS event_store_idx_occurred_on_862417b9e7c3720b ON events(recorded_on);",
+      "CREATE INDEX IF NOT EXISTS event_store_idx_event_name_862417b9e7c3720b ON events(event_name);",
     ])
     h.query.mockClear().mockRejectedValueOnce(new Error("DDL failed"))
     await expect(initialize(args)).rejects.toThrow("DDL failed")
@@ -304,6 +305,7 @@ describe("event-store PostgreSQL adapter", () => {
   test.each([
     new SerializationError("conflict"),
     new ConstraintViolationError("duplicate", "event_store_idx_event_aggregate_id_version"),
+    new ConstraintViolationError("duplicate", "event_store_idx_event_aggregate_id_version_862417b9e7c3720b"),
   ])("retries retryable failures up to ten attempts: %s", async (error) => {
     const h = harness()
     let attempts = 0
@@ -320,7 +322,14 @@ describe("event-store PostgreSQL adapter", () => {
     ).rejects.toBe(error)
     expect(attempts).toBe(10)
   })
-  test.each([new Error("offline"), new ConstraintViolationError("duplicate", "other_constraint")])(
+  test.each([
+    new Error("offline"),
+    new ConstraintViolationError("duplicate", "other_constraint"),
+    new ConstraintViolationError(
+      "duplicate",
+      `event_store_idx_event_aggregate_id_version_${sha256("other_events").slice(0, 16)}`
+    ),
+  ])(
     "does not retry unrelated failures: %s",
     async (error) => {
       const h = harness()

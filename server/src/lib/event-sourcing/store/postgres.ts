@@ -2,6 +2,7 @@ export { initialize, evaluate, PostgresEventStoreDb }
 
 import * as s from "@lib/json/schema"
 import { escapeLiteral } from "pg"
+import { sha256 } from "js-sha256"
 
 import { Id, Aggregate, type IdOf } from "@be/lib/event-sourcing/event"
 import {
@@ -44,7 +45,7 @@ function evaluate<T>(
     }
   )
 
-  return retrying(transaction)
+  return retrying(transaction, eventStoreTable)
 }
 
 const MAX_RETRIES = 10
@@ -53,22 +54,25 @@ const MAX_RETRIES = 10
  * Retry on transaction failures caused by conflicts with other parallel transactions.
  * Doesn't backoff because we expect these to be cheap and not associated with load.
  */
-function retrying<T>(f: Future<TransactionError, T>): Future<TransactionError, T> {
+function retrying<T>(f: Future<TransactionError, T>, eventStoreTable: string): Future<TransactionError, T> {
   const attempt = (retries: number): Future<TransactionError, T> =>
     f.chainRej((e: TransactionError) =>
-      isRetryableError(e) && retries + 1 < MAX_RETRIES ? attempt(retries + 1) : Future.reject(e)
+      isRetryableError(e, eventStoreTable) && retries + 1 < MAX_RETRIES ? attempt(retries + 1) : Future.reject(e)
     )
 
   return attempt(0)
 }
 
-function isRetryableError(e: TransactionError): boolean {
+function isRetryableError(e: TransactionError, eventStoreTable: string): boolean {
   if (e instanceof SerializationError) {
     return true
   }
   // duplicate aggregate version.
-  if (e instanceof ConstraintViolationError && e.constraint === "event_store_idx_event_aggregate_id_version") {
-    return true
+  if (e instanceof ConstraintViolationError) {
+    return (
+      e.constraint === AGGREGATE_VERSION_INDEX ||
+      e.constraint === indexName(eventStoreTable, AGGREGATE_VERSION_INDEX)
+    )
   }
   return false
 }
@@ -191,6 +195,12 @@ type SetupNames = {
 
 type SetupStep = { description: string; sql: string }
 
+const AGGREGATE_VERSION_INDEX = "event_store_idx_event_aggregate_id_version"
+
+function indexName(table: string, name: string): string {
+  return `${name}_${sha256(table).slice(0, 16)}`
+}
+
 /**
  * Pure list of the DDL statements that prepare a table as an event store, in order.
  * Kept separate from `initialize` so the SQL text and step order can be inspected
@@ -206,7 +216,7 @@ function setupSteps({
   function index(description: string, options: { unique: boolean }, name: string, columns: string): SetupStep {
     return {
       description,
-      sql: `CREATE ${options.unique ? "UNIQUE " : ""}INDEX IF NOT EXISTS ${name} ON ${table}(${columns});`,
+      sql: `CREATE ${options.unique ? "UNIQUE " : ""}INDEX IF NOT EXISTS ${indexName(table, name)} ON ${table}(${columns});`,
     }
   }
 
@@ -258,7 +268,11 @@ function setupSteps({
      BEGIN
        CREATE PUBLICATION ${replicationPublication} FOR TABLE ${table};
      EXCEPTION WHEN duplicate_object THEN
-       NULL;
+       BEGIN
+         ALTER PUBLICATION ${replicationPublication} ADD TABLE ${table};
+       EXCEPTION WHEN duplicate_object THEN
+         NULL;
+       END;
      END $$;`,
     },
 
@@ -266,7 +280,7 @@ function setupSteps({
     index(
       "Creating aggregate id, aggregate version index",
       { unique: true },
-      "event_store_idx_event_aggregate_id_version",
+      AGGREGATE_VERSION_INDEX,
       "aggregate_id, aggregate_version"
     ),
 
