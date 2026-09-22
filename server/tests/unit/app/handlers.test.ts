@@ -163,6 +163,6 @@ describe("HTTP command and query adapters", () => {
     const endHandler = handleCommand(new MemoryEventDatabase().withEventStore, sessions, endController)
     const ended = await invoke(endHandler, {}, { cookie: "sid=token-1" })
     assert.equal(sessions.sessions.has("token-1"), false)
-    assert.match(ended.headers["Set-Cookie"] ?? "", /Max-Age=0$/)
+    assert.equal(ended.headers["Set-Cookie"], undefined)
   })
 })

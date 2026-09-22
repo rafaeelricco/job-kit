@@ -11,6 +11,9 @@ const MODE = { mode: "readwrite" as const }
 
 // Survives the tab only when IndexedDB put fails after a successful pick.
 let sessionHandle: FileSystemDirectoryHandle | null = null
+// Bumped by every write (persist, clear). A read that started under an older generation answered
+// about a folder that has since been replaced or forgotten, so it must not be cached.
+let generation = 0
 
 type PickError =
   | { readonly kind: "unsupported" }
@@ -92,6 +95,7 @@ function openDb(): Promise<IDBDatabase> {
 }
 
 async function persistHandle(handle: FileSystemDirectoryHandle): Promise<Result<void, string>> {
+  generation += 1
   sessionHandle = handle
   try {
     const db = await openDb()
@@ -110,6 +114,7 @@ async function persistHandle(handle: FileSystemDirectoryHandle): Promise<Result<
 
 async function loadHandle(): Promise<Result<FileSystemDirectoryHandle | null, string>> {
   if (sessionHandle !== null) return ok(sessionHandle)
+  const startedAt = generation
   try {
     const db = await openDb()
     const handle = await new Promise<FileSystemDirectoryHandle | null>((resolve, reject) => {
@@ -122,6 +127,7 @@ async function loadHandle(): Promise<Result<FileSystemDirectoryHandle | null, st
       request.onerror = () => reject(request.error ?? new Error("indexedDB get failed"))
     })
     db.close()
+    if (startedAt !== generation) return ok(sessionHandle)
     if (handle !== null) sessionHandle = handle
     return ok(handle)
   } catch (error) {
@@ -130,6 +136,7 @@ async function loadHandle(): Promise<Result<FileSystemDirectoryHandle | null, st
 }
 
 async function clearHandle(): Promise<Result<void, string>> {
+  generation += 1
   sessionHandle = null
   try {
     const db = await openDb()

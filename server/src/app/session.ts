@@ -106,7 +106,7 @@ function sessionToken(req: Request): Maybe<string> {
 /**
  * The `Set-Cookie` value for `sid`. `HttpOnly` keeps it from page scripts,
  * `SameSite=Lax` from cross-site POSTs, and `Secure` (production only) off plain
- * HTTP. `maxAge = 0` with an empty value tells the browser to delete it.
+ * HTTP.
  */
 function cookieHeader(value: string, maxAge: number): string {
   const secure = env.NODE_ENV === "production" ? "; Secure" : ""
@@ -135,16 +135,15 @@ class Session {
     })
   }
 
-  /** Destroy the request's session, if any, and clear the cookie. */
+  /**
+   * Destroy the request's session, if any. The cookie is left alone: its token now resolves to anonymous, and a
+   * clearing `Set-Cookie` would be unconditional, so a slow reply could delete a newer sign-in's cookie.
+   */
   end(): Future<Error, void> {
-    return this.token
-      .maybe(Future.resolve<Error, void>(undefined), (token) => this.store.destroy(token))
-      .map(() => {
-        this.cookie = Just(cookieHeader("", 0))
-      })
+    return this.token.maybe(Future.resolve<Error, void>(undefined), (token) => this.store.destroy(token))
   }
 
-  /** The headers the reply must carry: `Set-Cookie` once `start` or `end` has run. */
+  /** The headers the reply must carry: `Set-Cookie` once `start` has run. */
   get headers(): Record<string, string> {
     return this.cookie.maybe({} as Record<string, string>, (cookie) => ({ "Set-Cookie": cookie }))
   }

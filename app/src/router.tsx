@@ -4,59 +4,79 @@ import { lazy, Suspense } from "react"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
 import { AppLayout } from "@components/ui/app-layout"
+import { ProtectedRoute } from "@module/session/components/protected-route"
+import { SessionRoot } from "@module/session/components/session-root"
 
 const AnswersPage = lazy(() => import("@pages/answers"))
 const DossiersPage = lazy(() => import("@pages/dossiers"))
 const HomePage = lazy(() => import("@pages/home"))
 const RecommendationsPage = lazy(() => import("@pages/recommendations"))
 const ResumesPage = lazy(() => import("@pages/resumes"))
+const SignInPage = lazy(() => import("@pages/sign-in"))
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, "")
 
 const router = createBrowserRouter(
   [
     {
-      element: <AppLayout />,
+      element: <SessionRoot />,
       children: [
         {
-          path: "/",
+          path: "/sign-in",
           element: (
             <Suspense>
-              <HomePage />
+              <SignInPage />
             </Suspense>
           ),
         },
         {
-          path: "/dossiers",
           element: (
-            <Suspense>
-              <DossiersPage />
-            </Suspense>
+            <ProtectedRoute>
+              <AppLayout />
+            </ProtectedRoute>
           ),
-        },
-        {
-          path: "/resumes",
-          element: (
-            <Suspense>
-              <ResumesPage />
-            </Suspense>
-          ),
-        },
-        {
-          path: "/recommendations",
-          element: (
-            <Suspense>
-              <RecommendationsPage />
-            </Suspense>
-          ),
-        },
-        {
-          path: "/answers",
-          element: (
-            <Suspense>
-              <AnswersPage />
-            </Suspense>
-          ),
+          children: [
+            {
+              path: "/",
+              element: (
+                <Suspense>
+                  <HomePage />
+                </Suspense>
+              ),
+            },
+            {
+              path: "/dossiers",
+              element: (
+                <Suspense>
+                  <DossiersPage />
+                </Suspense>
+              ),
+            },
+            {
+              path: "/resumes",
+              element: (
+                <Suspense>
+                  <ResumesPage />
+                </Suspense>
+              ),
+            },
+            {
+              path: "/recommendations",
+              element: (
+                <Suspense>
+                  <RecommendationsPage />
+                </Suspense>
+              ),
+            },
+            {
+              path: "/answers",
+              element: (
+                <Suspense>
+                  <AnswersPage />
+                </Suspense>
+              ),
+            },
+          ],
         },
       ],
     },

@@ -11,10 +11,16 @@ on:
     branches: ["**"]
     paths:
       - "app/**"
+      - "server/src/**"
+      - "server/package.json"
+      - "server/pnpm-lock.yaml"
       - ".github/workflows/app-ci.yml"
   pull_request:
     paths:
       - "app/**"
+      - "server/src/**"
+      - "server/package.json"
+      - "server/pnpm-lock.yaml"
       - ".github/workflows/app-ci.yml"
 
 permissions:
@@ -35,11 +41,19 @@ jobs:
         with:
           node-version-file: app/.node-version
           cache: pnpm
-          cache-dependency-path: app/pnpm-lock.yaml
+          cache-dependency-path: |
+            app/pnpm-lock.yaml
+            server/pnpm-lock.yaml
 
       - name: Install dependencies
         working-directory: app
         run: pnpm install --frozen-lockfile
+
+      - name: Install server dependencies
+        # The app imports the server's endpoint schemas through `@be/*`, and
+        # those files import packages that live only in server/node_modules.
+        working-directory: server
+        run: pnpm install --frozen-lockfile --prod
 
       - name: Lint
         working-directory: app

@@ -8,6 +8,7 @@ import {
   FolderOpenIcon,
   GridViewIcon,
   LibraryIcon,
+  Logout01Icon,
   QuoteDownIcon,
   Settings02Icon,
   UnfoldMoreIcon,
@@ -27,6 +28,7 @@ import {
 } from "@ui/dropdown-menu"
 import { useAccess } from "@module/access/use-access"
 import { useIdentity } from "@module/profile/helpers/use-identity"
+import { signOut } from "@module/session/session"
 import {
   Sidebar,
   SidebarContent,
@@ -137,7 +139,7 @@ function AppSidebar() {
 // Account settings, appearance and the folder switch are utility navigation,
 // not destinations: NN/G puts primary nav on the left rail and everything about
 // the person behind one identity affordance. Each row here does something the
-// app can actually do — job-kit has no auth, so there is nothing to log out of.
+// app can actually do. Sign-out clears the session at once; the gate then redirects.
 function AccountMenu() {
   const identity = useIdentity()
   const { changeFolder } = useAccess()
@@ -208,6 +210,14 @@ function AccountMenu() {
           <DropdownMenuItem onClick={repick}>
             <HugeiconsIcon icon={FolderOpenIcon} aria-hidden="true" />
             Change profile folder
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={signOut}>
+            <HugeiconsIcon icon={Logout01Icon} aria-hidden="true" />
+            Sign out
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
