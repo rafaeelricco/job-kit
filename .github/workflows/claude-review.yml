@@ -32,15 +32,33 @@ jobs:
         with:
           fetch-depth: 1
 
+      # claude-code-action@v1 pins Claude Code 2.1.278, which predates Opus 5.5
+      # (2.1.280+). Install our own CLI, update it if it is older than that, and
+      # hand it to the action. Drop this step once the action's pin reaches 2.1.280.
+      - name: Ensure Claude Code 2.1.280+
+        run: |
+          min=2.1.280
+          claude="$HOME/.local/bin/claude"
+          [ -x "$claude" ] || curl -fsSL https://claude.ai/install.sh | bash
+          version() { "$claude" --version | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+' || true; }
+          older() { [ "$(printf '%s\n' "$1" "$min" | sort -V | head -n1)" != "$min" ]; }
+          current=$(version)
+          if older "$current"; then
+            echo "Claude Code ${current:-unknown} is older than $min; running claude update"
+            "$claude" update
+            current=$(version)
+          fi
+          if older "$current"; then
+            echo "::error::Claude Code ${current:-unknown} is older than $min, which Opus 5.5 needs"
+            exit 1
+          fi
+          echo "Using Claude Code $current"
+
       - uses: anthropics/claude-code-action@v1
-        env:
-          # The plugin assigns haiku/sonnet/opus per subagent; force them all
-          # onto Opus 5.5. Subagents inherit the session's --effort.
-          CLAUDE_CODE_SUBAGENT_MODEL: claude-opus-5
-          CLAUDE_CODE_SUBAGENT_MODEL_FORCE: "1"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: /home/runner/.local/bin/claude
           plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
           plugins: "code-review@claude-code-plugins"
           prompt: "/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
-          claude_args: '--model claude-opus-5 --effort high --allowedTools "mcp__github_inline_comment__create_inline_comment"'
+          claude_args: '--model claude-opus-5-5 --effort high --allowedTools "mcp__github_inline_comment__create_inline_comment"'
