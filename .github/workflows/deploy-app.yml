@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "app/**"
+      - "server/src/**"
+      - "server/package.json"
+      - "server/pnpm-lock.yaml"
       - ".github/workflows/deploy-app.yml"
   workflow_dispatch:
 
@@ -47,11 +50,17 @@ jobs:
           version: "10.33.0"
 
       - name: Install dependencies
-        # app/ is a standalone pnpm project with its own lockfile; an install at
-        # the repository root resolves prettier and pyright only, none of the
+        # app/ is a pnpm project with its own lockfile; an install at the
+        # repository root resolves prettier and pyright only, none of the
         # dependencies this build needs.
         working-directory: app
         run: pnpm install --frozen-lockfile
+
+      - name: Install server dependencies
+        # The app imports the server's endpoint schemas through `@be/*`, and
+        # those files import packages that live only in server/node_modules.
+        working-directory: server
+        run: pnpm install --frozen-lockfile --prod
 
       - name: Lint
         working-directory: app
