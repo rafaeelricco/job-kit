@@ -183,10 +183,8 @@ slot after recovery because an inactive slot can retain WAL.
 
 ## Learn more
 
-- [How it works](docs/HOW-IT-WORKS.md) — a request followed through every
-  layer, retries, replay, and where this design came from.
 - [CONVENTIONS.md](CONVENTIONS.md) — how code is written here.
-- [VERIFICATION.md](VERIFICATION.md) — the checks this project passed.
+- [Quality checks and test procedures](tests/README.md).
 
 This is a learning project. It has no login and only listens on your own
 computer.
