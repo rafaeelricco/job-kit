@@ -198,6 +198,7 @@ class TextItemState {
 class TextElementConfig {
   readonly values: {
     name: string
+    id: string
     value: string
     type: TextInputType
     label: ReactNode
@@ -209,6 +210,7 @@ class TextElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: string
     type: TextInputType
     label: ReactNode
@@ -255,6 +257,7 @@ class TextareaItemState {
 class TextareaElementConfig {
   readonly values: {
     name: string
+    id: string
     value: string
     label: ReactNode
     description: Maybe<ReactNode>
@@ -265,6 +268,7 @@ class TextareaElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: string
     label: ReactNode
     description: Maybe<ReactNode>
@@ -305,6 +309,7 @@ class RichTextItemState {
 class RichTextElementConfig {
   readonly values: {
     name: string
+    id: string
     value: string
     mode: RichTextMode
     label: ReactNode
@@ -314,6 +319,7 @@ class RichTextElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: string
     mode: RichTextMode
     label: ReactNode
@@ -358,6 +364,7 @@ class DateItemState {
 class DateElementConfig {
   readonly values: {
     name: string
+    id: string
     value: DateOnly | null
     label: ReactNode
     description: Maybe<ReactNode>
@@ -367,6 +374,7 @@ class DateElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: DateOnly | null
     label: ReactNode
     description: Maybe<ReactNode>
@@ -411,6 +419,7 @@ class TimeItemState {
 class TimeElementConfig {
   readonly values: {
     name: string
+    id: string
     value: TimeOfDay | null
     label: ReactNode
     description: Maybe<ReactNode>
@@ -421,6 +430,7 @@ class TimeElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: TimeOfDay | null
     label: ReactNode
     description: Maybe<ReactNode>
@@ -458,6 +468,7 @@ class CheckboxItemState {
 class CheckboxElementConfig {
   readonly values: {
     name: string
+    id: string
     value: boolean
     label: ReactNode
     description: Maybe<ReactNode>
@@ -466,6 +477,7 @@ class CheckboxElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: boolean
     label: ReactNode
     description: Maybe<ReactNode>
@@ -512,6 +524,7 @@ class MoneyItemState {
 class MoneyElementConfig {
   readonly values: {
     name: string
+    id: string
     value: string
     label: ReactNode
     description: Maybe<ReactNode>
@@ -521,6 +534,7 @@ class MoneyElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: string
     label: ReactNode
     description: Maybe<ReactNode>
@@ -582,6 +596,7 @@ class ComboboxItemState {
 
 type ComboboxElementValues = {
   name: string
+  id: string
   items: readonly unknown[]
   value: string | null
   label: ReactNode
@@ -660,6 +675,7 @@ class SelectItemState {
 
 type SelectElementValues = {
   name: string
+  id: string
   items: readonly unknown[]
   value: string | null
   label: ReactNode
@@ -706,6 +722,7 @@ class TagsItemState {
 class TagsElementConfig {
   readonly values: {
     name: string
+    id: string
     value: string[]
     label: ReactNode
     description: Maybe<ReactNode>
@@ -715,6 +732,7 @@ class TagsElementConfig {
   }
   constructor(values: {
     name: string
+    id: string
     value: string[]
     label: ReactNode
     description: Maybe<ReactNode>
@@ -765,6 +783,7 @@ function getInitialState(config: ItemConfig): ItemState<ItemConfig> {
 
 function buildProps(
   name: string,
+  id: string,
   config: ItemConfig,
   state: ItemState<ItemConfig>,
   setState: SetState<ItemConfig>
@@ -774,6 +793,7 @@ function buildProps(
     const { label, placeholder, type, description, icon } = config.values
     return new TextElementConfig({
       name,
+      id,
       value,
       label,
       type,
@@ -789,6 +809,7 @@ function buildProps(
     const { label, placeholder, description, rows } = config.values
     return new TextareaElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -803,6 +824,7 @@ function buildProps(
     const { label, description, mode } = config.values
     return new RichTextElementConfig({
       name,
+      id,
       value,
       mode,
       label,
@@ -816,6 +838,7 @@ function buildProps(
     const { label, description, placeholder, onChange: onValueChange } = config.values
     return new DateElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -832,6 +855,7 @@ function buildProps(
     const { label, description, placeholder, step } = config.values
     return new TimeElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -846,6 +870,7 @@ function buildProps(
     const { label, description } = config.values
     return new CheckboxElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -858,6 +883,7 @@ function buildProps(
     const { label, description, placeholder } = config.values
     return new MoneyElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -882,6 +908,7 @@ function buildProps(
     } = config.values
     return new ComboboxElementConfig({
       name,
+      id,
       items,
       value,
       label,
@@ -902,6 +929,7 @@ function buildProps(
     const { label, description, items, getValue, getLabel, getKey, placeholder, allowClear } = config.values
     return new SelectElementConfig({
       name,
+      id,
       items,
       value,
       label,
@@ -920,6 +948,7 @@ function buildProps(
     const { label, description, placeholder } = config.values
     return new TagsElementConfig({
       name,
+      id,
       value,
       label,
       description: fromOptional(description),
@@ -1002,12 +1031,14 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
   const [state, setState] = useState(initial)
   const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set())
   const [validateOnChange, setValidateOnChange] = useState(false)
+  // Prefix DOM ids per form so two forms sharing a field key don't collide; `name` stays the bare key.
+  const formId = React.useId()
 
   const effective = applyDerive(state, touched, derive)
 
   const props: Record<string, AnyElementConfig> = {}
   for (const key of Object.keys(fields)) {
-    props[key] = buildProps(key, fields[key]!, effective[key]! as never, (s) => {
+    props[key] = buildProps(key, `${formId}-${key}`, fields[key]!, effective[key]! as never, (s) => {
       const isEmptyText = s instanceof TextItemState && s.values.value === ""
       const nextTouched: ReadonlySet<string> = isEmptyText
         ? touched.has(key)
@@ -1079,8 +1110,8 @@ function FormTextField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, type, label, description, placeholder, icon, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { name, id, value, type, label, description, placeholder, icon, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const hasIcon = icon.maybe(false, () => true)
   const showClear = type === "search" && value.length > 0
@@ -1088,7 +1119,7 @@ function FormTextField({
 
   const inputEl = (
     <Input
-      id={name}
+      id={id}
       name={name}
       value={value}
       className={cn(
@@ -1107,7 +1138,7 @@ function FormTextField({
   )
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       {needsWrapper ? (
         <div className="relative">
           {icon.maybe(null, (Icon) => (
@@ -1149,14 +1180,14 @@ function FormTextareaField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, placeholder, rows, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { name, id, value, label, description, placeholder, rows, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <Textarea
-        id={name}
+        id={id}
         name={name}
         value={value}
         rows={rows}
@@ -1260,12 +1291,12 @@ function FormRichTextField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, mode, label, description, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { id, value, mode, label, description, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
 
   const attributes = {
-    id: name,
+    id,
     class: cn("min-h-24 px-3.5 py-3 text-sm outline-none", htmlContentStyles),
     "aria-invalid": String(hasError),
     ...(hasError ? { "aria-describedby": errorId } : {}),
@@ -1288,10 +1319,10 @@ function FormRichTextField({
   React.useEffect(() => {
     editor?.setOptions({ editorProps: { attributes } })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `attributes` is rebuilt every render from these inputs
-  }, [editor, name, hasError, errorId])
+  }, [editor, id, hasError, errorId])
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <div
         aria-invalid={hasError}
         className={cn(
@@ -1322,19 +1353,19 @@ function FormDateField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, placeholder, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { id, value, label, description, placeholder, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const [open, setOpen] = useState(false)
   const selectedJs = value ? new Date(value.year, value.month - 1, value.day) : undefined
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
             <Button
-              id={name}
+              id={id}
               type="button"
               variant="outline"
               disabled={disabled}
@@ -1416,19 +1447,19 @@ function FormTimeField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, step, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { name, id, value, label, description, step, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <div className="relative">
         <HugeiconsIcon
           icon={Clock01Icon}
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          id={name}
+          id={id}
           name={name}
           type="time"
           step={step}
@@ -1461,10 +1492,10 @@ function FormCheckboxField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, error, onCheckedChange } = config.values
-  const errorId = `${name}-error`
+  const { name, id, value, label, description, error, onCheckedChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
-  const checkboxId = `${name}-checkbox`
+  const checkboxId = `${id}-checkbox`
 
   return (
     <div className="space-y-1.5">
@@ -1507,19 +1538,19 @@ function FormMoneyField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, placeholder, error, onChange } = config.values
-  const errorId = `${name}-error`
+  const { name, id, value, label, description, placeholder, error, onChange } = config.values
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <div className="relative">
         <HugeiconsIcon
           icon={DollarCircleIcon}
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
         />
         <Input
-          id={name}
+          id={id}
           name={name}
           type="text"
           inputMode="decimal"
@@ -1551,7 +1582,7 @@ function FormComboboxField({
   disabled: boolean | undefined
 }) {
   const {
-    name,
+    id,
     items,
     value,
     label,
@@ -1567,7 +1598,7 @@ function FormComboboxField({
     onChange,
   } = config.values
 
-  const errorId = `${name}-error`
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -1587,7 +1618,7 @@ function FormComboboxField({
   const hiddenCount = ranked.length - visible.length
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <Popover
         modal
         open={open}
@@ -1599,7 +1630,7 @@ function FormComboboxField({
         <PopoverTrigger
           render={
             <Button
-              id={name}
+              id={id}
               type="button"
               variant="outline"
               role="combobox"
@@ -1674,6 +1705,7 @@ function FormSelectField({
 }) {
   const {
     name,
+    id,
     items,
     value,
     label,
@@ -1687,7 +1719,7 @@ function FormSelectField({
     onChange,
   } = config.values
 
-  const errorId = `${name}-error`
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const showClear = allowClear && value !== null
 
@@ -1708,7 +1740,7 @@ function FormSelectField({
   }
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <Select
         name={name}
         value={selectValue}
@@ -1717,7 +1749,7 @@ function FormSelectField({
         onValueChange={(next) => onChange(showClear && next === clearValue ? null : next)}
       >
         <SelectTrigger
-          id={name}
+          id={id}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
           className={cn("w-full", className)}
@@ -1762,9 +1794,9 @@ function FormTagsField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, value, label, description, placeholder, error, onChange } = config.values
+  const { name, id, value, label, description, placeholder, error, onChange } = config.values
   const [draft, setDraft] = useState("")
-  const errorId = `${name}-error`
+  const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -1789,7 +1821,7 @@ function FormTagsField({
   }
 
   return (
-    <FormLabel htmlFor={name} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} description={description}>
       <div
         aria-invalid={hasError}
         aria-describedby={hasError ? errorId : undefined}
@@ -1823,7 +1855,7 @@ function FormTagsField({
         ))}
         <input
           ref={inputRef}
-          id={name}
+          id={id}
           name={name}
           type="text"
           value={draft}
