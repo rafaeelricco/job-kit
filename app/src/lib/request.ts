@@ -72,13 +72,15 @@ function send(path: string, body: Json): Future<FetchError, Reply> {
       signal: controller.signal,
     })
       .then((res) =>
-        res.text().then((text) =>
-          resolve(
-            res.ok
-              ? { type: "Ok", body: text }
-              : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
+        res
+          .text()
+          .then((text) =>
+            resolve(
+              res.ok
+                ? { type: "Ok", body: text }
+                : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
+            )
           )
-        )
       )
       .catch((err: unknown) => {
         // An abort is our own cancel, not a failure anyone is still listening for.
