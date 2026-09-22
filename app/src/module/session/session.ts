@@ -17,6 +17,7 @@ import { Future } from "@lib/future"
 import { Just, Nothing, fromNullable, type Maybe } from "@lib/maybe"
 import { Loading, type RemoteData } from "@lib/remote-data"
 import { call, type FetchError } from "@lib/request"
+import { clearHandle } from "@module/access/handle"
 import { type Actor, type UserActor, schema_actor } from "@be/app/actor"
 import { endpoint as whoAmI } from "@be/domain/auth/query/whoAmI.api"
 import { endpoint as signInEndpoint } from "@be/domain/auth/command/signIn.api"
@@ -44,6 +45,7 @@ const listeners = new Set<Listener>()
 let generation = 0
 
 function setSession(msession: Maybe<Session>): void {
+  forgetProfileFolder(msession)
   writeStored(msession)
   listeners.forEach((listener) => listener(msession))
 }
@@ -52,6 +54,12 @@ function setSession(msession: Maybe<Session>): void {
 function commitSession(msession: Maybe<Session>): void {
   generation += 1
   setSession(msession)
+}
+
+// The profile folder belongs to whoever picked it. Once nobody is signed in, forget it,
+// so the next account in this browser cannot open the previous one's files.
+function forgetProfileFolder(msession: Maybe<Session>): void {
+  if (msession instanceof Nothing) void clearHandle()
 }
 
 function getSession(): Maybe<Session> {
@@ -99,7 +107,9 @@ function subscribeToSessionUpdates(listener: Listener): () => void {
     if (event.storageArea !== window.localStorage) return
     if (event.key !== null && event.key !== SESSION_KEY) return
     generation += 1
-    listener(fromNullable(event.newValue).chain(decodeStored))
+    const msession = fromNullable(event.newValue).chain(decodeStored)
+    forgetProfileFolder(msession)
+    listener(msession)
   }
   listeners.add(listener)
   window.addEventListener("storage", onStorage)
