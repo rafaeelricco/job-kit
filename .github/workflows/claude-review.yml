@@ -74,10 +74,12 @@ jobs:
           cache-dependency-path: |
             server/pnpm-lock.yaml
             app/pnpm-lock.yaml
+      # --ignore-scripts: PR lifecycle hooks would run here with the job's OIDC
+      # variables, before the action's secret scrub applies.
       - name: Install server and app dependencies
         run: |
-          pnpm --dir server install --frozen-lockfile
-          pnpm --dir app install --frozen-lockfile
+          pnpm --dir server install --frozen-lockfile --ignore-scripts
+          pnpm --dir app install --frozen-lockfile --ignore-scripts
 
       # The subprocess secret scrub needs bubblewrap, which the action installs
       # only for allowed_non_write_users. Same setup as its own step.
