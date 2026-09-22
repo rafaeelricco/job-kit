@@ -148,7 +148,7 @@ class Mongo {
   constructor(values: MongoConfig) {
     this.values = values
     const connectionString =
-      `mongodb://${values.user}:${values.password}@${values.host}` +
+      `mongodb://${encodeURIComponent(values.user)}:${encodeURIComponent(values.password)}@${values.host}` +
       `:${values.port.toString()}/${values.database}` +
       "?serverSelectionTimeoutMS=10000&connectTimeoutMS=10000&authSource=admin"
     this.client = new MongoClient(connectionString, values.settings)

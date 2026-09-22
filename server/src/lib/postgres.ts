@@ -349,7 +349,7 @@ class Postgres {
     database: string
     poolSettings: PoolSettings
   }) {
-    this.connectionString = `postgresql://${values.user}:${values.password}@${values.host}:${values.port}/${values.database}`
+    this.connectionString = `postgresql://${encodeURIComponent(values.user)}:${encodeURIComponent(values.password)}@${values.host}:${values.port}/${values.database}`
     const config: PoolConfig = {
       connectionString: this.connectionString,
       max: values.poolSettings.maxConnections,
