@@ -70,7 +70,10 @@ function hasPassword(verifier: string, password: string, username: string): bool
   return false
 }
 
-async function expectNoObjects(client: Client, names: { schema: string; table: string; role: string; publication: string }) {
+async function expectNoObjects(
+  client: Client,
+  names: { schema: string; table: string; role: string; publication: string }
+) {
   const result = await client.query(
     `SELECT
        EXISTS (SELECT FROM pg_namespace WHERE nspname = $1) AS schema_exists,
@@ -136,12 +139,14 @@ test.each([
 
     await setup()
 
-    const role = await client.query<{ rolpassword: string }>(
-      "SELECT rolpassword FROM pg_authid WHERE rolname = $1",
-      [names.role]
-    )
+    const role = await client.query<{ rolpassword: string }>("SELECT rolpassword FROM pg_authid WHERE rolname = $1", [
+      names.role,
+    ])
     assert.equal(role.rows.length, 1)
-    assert.ok(hasPassword(role.rows[0]!.rolpassword, password, names.role), "PostgreSQL stored a verifier for the exact password bytes")
+    assert.ok(
+      hasPassword(role.rows[0]!.rolpassword, password, names.role),
+      "PostgreSQL stored a verifier for the exact password bytes"
+    )
 
     // The second initialization exercises the duplicate-role and duplicate-publication branches.
     await setup()
@@ -233,13 +238,13 @@ test.each([
       "SELECT schemaname, tablename FROM pg_publication_tables WHERE pubname = $1 AND schemaname = $2 ORDER BY tablename",
       [publication, schema]
     )
-    assert.deepEqual(members.rows.map(({ tablename }) => tablename), [...tables].sort())
+    assert.deepEqual(
+      members.rows.map(({ tablename }) => tablename),
+      [...tables].sort()
+    )
 
     const expectedByTable = new Map(
-      tables.map((table) => [
-        table,
-        indexSpecs.map((spec) => expectedIndexName(`${schema}.${table}`, spec.name)),
-      ])
+      tables.map((table) => [table, indexSpecs.map((spec) => expectedIndexName(`${schema}.${table}`, spec.name))])
     )
     const expectedNames = [...expectedByTable.values()].flat()
     assert.equal(new Set(expectedNames).size, tables.length * indexSpecs.length)
@@ -260,7 +265,10 @@ test.each([
     assert.ok(indexes.rows.every(({ name_length, index_name }) => name_length <= 63 && index_name.length <= 63))
     for (const table of tables) {
       assert.deepEqual(
-        indexes.rows.filter(({ table_name }) => table_name === table).map(({ index_name }) => index_name).sort(),
+        indexes.rows
+          .filter(({ table_name }) => table_name === table)
+          .map(({ index_name }) => index_name)
+          .sort(),
         expectedByTable.get(table)!.sort()
       )
     }

@@ -128,7 +128,12 @@ describe("database connection credential URL encoding", () => {
       })
 
       try {
-        const { credentials: parsedCredentials, hosts, dbName, replicaSet } = mongo.client.options as unknown as {
+        const {
+          credentials: parsedCredentials,
+          hosts,
+          dbName,
+          replicaSet,
+        } = mongo.client.options as unknown as {
           credentials: { username: string; password: string }
           hosts: Array<{ host: string; port: number }>
           dbName: string
@@ -136,7 +141,10 @@ describe("database connection credential URL encoding", () => {
         }
         assert.equal(parsedCredentials.username, credentials.username)
         assert.equal(parsedCredentials.password, credentials.password)
-        assert.deepEqual(hosts.map(({ host: parsedHost, port: parsedPort }) => [parsedHost, parsedPort]), [[host, 27017]])
+        assert.deepEqual(
+          hosts.map(({ host: parsedHost, port: parsedPort }) => [parsedHost, parsedPort]),
+          [[host, 27017]]
+        )
         assert.equal(dbName, database)
         assert.equal(replicaSet, settings.replicaSet)
         assert.equal(mongo.values.user, credentials.username)

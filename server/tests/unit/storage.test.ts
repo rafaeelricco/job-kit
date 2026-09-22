@@ -329,25 +329,22 @@ describe("event-store PostgreSQL adapter", () => {
       "duplicate",
       `event_store_idx_event_aggregate_id_version_${sha256("other_events").slice(0, 16)}`
     ),
-  ])(
-    "does not retry unrelated failures: %s",
-    async (error) => {
-      const h = harness()
-      let attempts = 0
-      vi.spyOn(h.db, "withTransaction").mockReturnValue(
-        Future.create((reject) => {
-          attempts++
-          reject(error)
-        })
-      )
-      await expect(
-        evaluate(h.db, "events", schemas, function* () {
-          return 1
-        }).promise((e) => e)
-      ).rejects.toBe(error)
-      expect(attempts).toBe(1)
-    }
-  )
+  ])("does not retry unrelated failures: %s", async (error) => {
+    const h = harness()
+    let attempts = 0
+    vi.spyOn(h.db, "withTransaction").mockReturnValue(
+      Future.create((reject) => {
+        attempts++
+        reject(error)
+      })
+    )
+    await expect(
+      evaluate(h.db, "events", schemas, function* () {
+        return 1
+      }).promise((e) => e)
+    ).rejects.toBe(error)
+    expect(attempts).toBe(1)
+  })
   test("evaluates a procedure inside a repeatable-read transaction", async () => {
     const h = harness()
     expect(
