@@ -1,0 +1,33 @@
+data_sources:
+  - id: postgres_source
+    description: Notepad events in PostgreSQL
+    type: postgres
+    host: postgres
+    port: 5432
+    username: notepad_replication
+    password: local_notepad_replication
+    database: notepad_events
+    table: event_store
+    columns:
+      - id
+      - event_id
+      - event_name
+      - aggregate_id
+      - aggregate_version
+      - payload
+      - json_metadata
+      - recorded_on
+      - causation_id
+      - correlation_id
+    serialColumn: id
+    partitioningColumn: correlation_id
+
+data_destinations:
+  - id: Note_Projection_Notes
+    description: Notes read model
+    type: http-push
+    endpoint: http://api:8080/api/v1/note/projection/notes
+    username: notepad_event_bus
+    password: local_notepad_event_bus
+    sources:
+      - postgres_source

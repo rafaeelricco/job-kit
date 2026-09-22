@@ -1,0 +1,10 @@
+.DS_Store
+.env
+*.tsbuildinfo
+node_modules/
+dist/
+development/.env
+development/build-files/
+
+reports/
+.stryker-tmp/
