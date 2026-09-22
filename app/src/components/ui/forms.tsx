@@ -1026,6 +1026,11 @@ function applyDerive<T extends FormInputs>(
 }
 
 // ============ useForm ================
+/**
+ * `fields` is read once, on mount: keep the same keys for the life of the form.
+ * For conditional fields, give the form component a React `key` that changes with
+ * the field set so it remounts with fresh state.
+ */
 function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: FormConfig<T>): HookReturn<T> {
   const initial = useMemo(() => initialState(fields), [fields])
   const [state, setState] = useState(initial)
