@@ -500,11 +500,11 @@ class MoneyItemState {
   }
   getValue(): Money | null {
     // Tolerate currency symbols, thousands separators, and whitespace so a value like "$5,000.00"
-    // isn't silently dropped (Number("5,000") is NaN). Empty / non-numeric input reads as "unset".
+    // isn't silently dropped (Number("5,000") is NaN). Empty, non-numeric or non-finite ("1e309") input reads as "unset".
     const cleaned = this.values.value.replace(/[$,\s]/g, "")
     if (cleaned === "") return null
     const dollars = Number(cleaned)
-    if (Number.isNaN(dollars)) return null
+    if (!Number.isFinite(dollars)) return null
     return Money.USD(dollars)
   }
 }
