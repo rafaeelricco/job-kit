@@ -75,13 +75,14 @@ jobs:
             pnpm-lock.yaml
             server/pnpm-lock.yaml
             app/pnpm-lock.yaml
-      # --ignore-scripts: PR lifecycle hooks would run here with the job's OIDC
-      # variables, before the action's secret scrub applies.
+      # --ignore-scripts and --ignore-pnpmfile: PR lifecycle hooks and a PR's
+      # .pnpmfile.cjs would run here with the job's OIDC variables, before the
+      # action's secret scrub applies.
       - name: Install root, server, and app dependencies
         run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          pnpm --dir server install --frozen-lockfile --ignore-scripts
-          pnpm --dir app install --frozen-lockfile --ignore-scripts
+          pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
+          pnpm --dir server install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
+          pnpm --dir app install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
 
       # The subprocess secret scrub needs bubblewrap, which the action installs
       # only for allowed_non_write_users. Same setup as its own step.
