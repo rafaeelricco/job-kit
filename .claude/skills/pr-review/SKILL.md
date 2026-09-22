@@ -38,8 +38,9 @@ Stop when `head` is in `reviewed`. Without `--comment`, review any PR.
 ## 2. Review tree
 
 The review tree is a checkout of the PR head with dependencies installed.
-- When `git rev-parse HEAD` is the head SHA and `git status --porcelain` is
-  empty, it is the current directory.
+- In CI (`$GITHUB_ACTIONS` set), when `git rev-parse HEAD` is the head SHA and
+  `git status --porcelain` is empty, it is the current directory. Local runs
+  always use a worktree, so the review never changes the user's checkout.
 - Otherwise run `git fetch https://github.com/<owner>/<repo> pull/N/head`,
   `git worktree remove --force "$SCRATCH/pr-review-N"` (ignore a failure), and
   `git worktree add --detach "$SCRATCH/pr-review-N" <head sha>`, then
@@ -133,9 +134,7 @@ terminal form. With `--comment`, post
 each finding with `mcp__github_inline_comment__create_inline_comment`
 (`confirmed: true`, `path`, `line` = end, `startLine` = start when it spans
 lines), then the summary with `gh pr comment`, also when there are no findings,
-so the SHA marker exists. Remove the review worktree if step 2 created one;
-when the review tree was the current directory, undo step 2's CLAUDE.md swap:
-`git checkout HEAD -- <path>` for each one the head has, and delete the rest.
+so the SHA marker exists. Remove the review worktree if step 2 created one.
 
 ## Output template
 
