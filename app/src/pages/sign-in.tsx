@@ -65,7 +65,9 @@ function SignInPage() {
         <CardHeader>
           <CardTitle>{mode === "sign-in" ? "Sign in to Job Kit" : "Create your Job Kit account"}</CardTitle>
           <CardDescription>
-            {mode === "sign-in" ? "Use the email and password you registered with." : "You'll be signed in right after."}
+            {mode === "sign-in"
+              ? "Use the email and password you registered with."
+              : "You'll be signed in right after."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,7 +82,14 @@ function SignInPage() {
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </Field>
               <Field data-invalid={submit instanceof Failed}>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
