@@ -28,4 +28,10 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  server: {
+    // Endpoint schemas are imported from ../server, which sits outside the app root.
+    fs: { allow: [".", "../server"] },
+    // The API sets a SameSite=Lax cookie and sends no CORS headers, so it must look same-origin.
+    proxy: { "/api": "http://localhost:3010" },
+  },
 })
