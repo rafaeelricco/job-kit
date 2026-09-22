@@ -5,4 +5,8 @@ node_modules
 __pycache__/
 *.py[cod]
 plans/
-.claude/
+# Local Claude state stays out; the PR review skill is shared with CI.
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/pr-review/
