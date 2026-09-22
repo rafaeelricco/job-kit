@@ -134,7 +134,7 @@ describe("Auth commands and queries", () => {
     assert.equal(sessions.sessions.size, 0)
   })
 
-  test("signOut destroys the session and clears the cookie", async () => {
+  test("signOut destroys the session and sends no clearing cookie", async () => {
     const db = new MemoryEventDatabase()
     const sessions = new MemorySessionStore()
     const userId = Id.random<"User">()
@@ -152,7 +152,7 @@ describe("Auth commands and queries", () => {
       })
     )
     assert.equal(sessions.sessions.has("token-1"), false)
-    assert.match(session.headers["Set-Cookie"] ?? "", /Max-Age=0/)
+    assert.equal(session.headers["Set-Cookie"], undefined)
   })
 
   test("whoAmI passes the resolved actor through unchanged", async () => {

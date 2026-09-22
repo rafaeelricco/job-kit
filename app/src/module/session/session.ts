@@ -45,10 +45,6 @@ const listeners = new Set<Listener>()
 // a session that no longer exists, so its result must not be written back over the newer one.
 let generation = 0
 
-// Settles once the last sign-out request has answered. Its reply clears `sid` unconditionally, so a sign-in
-// that lands first would have its fresh cookie deleted by the late clear.
-let signOutSettled: Promise<void> = Promise.resolve()
-
 function setSession(msession: Maybe<Session>): void {
   forgetProfileFolder(msession)
   writeStored(msession)
@@ -141,24 +137,10 @@ function reloadSession(): Future<FetchError, Session> {
 
 /** Sign-in answers with the user id, so the session is set from it; no second, racy whoAmI. */
 function signIn(email: string, password: string): Future<FetchError, UserActor> {
-  return afterSignOut()
-    .chain(() => call(signInEndpoint, { email, password }))
-    .map(({ userId }) => {
-      const user: UserActor = { type: "User", userId }
-      commitSession(Just(user))
-      return user
-    })
-}
-
-function afterSignOut(): Future<FetchError, null> {
-  return Future.create<FetchError, null>((_reject, resolve) => {
-    let cancelled = false
-    void signOutSettled.then(() => {
-      if (!cancelled) resolve(null)
-    })
-    return () => {
-      cancelled = true
-    }
+  return call(signInEndpoint, { email, password }).map(({ userId }) => {
+    const user: UserActor = { type: "User", userId }
+    commitSession(Just(user))
+    return user
   })
 }
 
@@ -168,18 +150,15 @@ function signUp(email: string, password: string): Future<FetchError, UserActor> 
 }
 
 /**
- * Optimistic: the UI goes anonymous now; the request drops the server cookie. If it fails, the cookie may
+ * Optimistic: the UI goes anonymous now; the request ends the server session. If it fails, the session may
  * still be live, so ask the server who we are: a surviving session comes back instead of hiding behind a
  * signed-out screen until the next reload.
  */
 function signOut(): void {
   commitSession(Nothing())
   const signedOutAt = generation
-  let settle: () => void = () => {}
-  signOutSettled = new Promise((resolve) => (settle = resolve))
   call(signOutEndpoint, {}).fork(
     () => {
-      settle()
       // A sign-in since then was deliberate: its session is the one reloadSession now reports.
       const stillSignedOut = (): boolean => generation === signedOutAt
       reloadSession().fork(
@@ -191,7 +170,7 @@ function signOut(): void {
         }
       )
     },
-    () => settle()
+    () => {}
   )
 }
 
