@@ -1832,8 +1832,6 @@ function FormTagsField({
   return (
     <FormLabel htmlFor={id} label={label} description={description}>
       <div
-        aria-invalid={hasError}
-        aria-describedby={hasError ? errorId : undefined}
         onClick={() => inputRef.current?.focus()}
         className={cn(
           "flex min-h-9 w-full flex-wrap items-center gap-1.5 border border-input bg-input-surface px-3 text-sm focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 focus-within:outline-none dark:bg-input/30",
@@ -1867,6 +1865,8 @@ function FormTagsField({
           id={id}
           name={name}
           type="text"
+          aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
