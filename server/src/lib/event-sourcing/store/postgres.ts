@@ -1,6 +1,7 @@
 export { initialize, evaluate, PostgresEventStoreDb }
 
 import * as s from "@lib/json/schema"
+import { escapeLiteral } from "pg"
 
 import { Id, Aggregate, type IdOf } from "@be/lib/event-sourcing/event"
 import {
@@ -231,12 +232,11 @@ function setupSteps({
     // Create replication user
     {
       description: "Creating replication user",
-      sql: `DO $$
-     BEGIN
-       CREATE USER ${replicationUserName} REPLICATION LOGIN PASSWORD '${replicationUserPass}';
+      sql: `DO ${escapeLiteral(` BEGIN
+       CREATE USER ${replicationUserName} REPLICATION LOGIN PASSWORD ${escapeLiteral(replicationUserPass)};
      EXCEPTION WHEN duplicate_object THEN
        NULL;
-     END $$;`,
+     END `)};`,
     },
 
     // Grant permissions to replication user

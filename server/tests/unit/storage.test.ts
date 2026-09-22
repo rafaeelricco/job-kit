@@ -285,7 +285,7 @@ describe("event-store PostgreSQL adapter", () => {
     const sql = h.query.mock.calls.map((c) => String(c[0]))
     expect(sql).toHaveLength(11)
     expect(sql[0]).toContain("CREATE TABLE IF NOT EXISTS events")
-    expect(sql[1]).toContain("CREATE USER replica REPLICATION LOGIN PASSWORD 'secret'")
+    expect(sql[1]).toContain("CREATE USER replica REPLICATION LOGIN PASSWORD ''secret''")
     expect(sql[2]).toBe('GRANT CONNECT ON DATABASE "db" TO replica;')
     expect(sql[3]).toBe("GRANT SELECT ON TABLE events TO replica;")
     expect(sql[4]).toContain("CREATE PUBLICATION pub FOR TABLE events")
