@@ -104,7 +104,7 @@ The product should use provider/region/board/posting identity plus URL aliases. 
 
 ## What was examined
 
-The review covered the application source, configuration, UI primitives, and design system. It also covered all 103 text files in `skill/`, which include its 13 skills plus references, templates, Python helpers, and tests. The review covered relevant root documentation too. Two parallel agents inspected HartAgency's event infrastructure and asynchronous execution. The review also checked current official documentation for the proposed workflow and supporting technologies. Dependencies, generated bundles and image assets were not treated as application logic. No runtime tests or production validation were performed.
+The review covered the application source, configuration, UI primitives, and design system. It also covered all 103 text files in `skill/`, which include its 13 skills plus references, templates, Python helpers, and tests. The review covered relevant root documentation too. Two parallel agents inspected a reference event-sourced application's event infrastructure and asynchronous execution. The review also checked current official documentation for the proposed workflow and supporting technologies. Dependencies, generated bundles and image assets were not treated as application logic. No runtime tests or production validation were performed.
 
 ## The current application
 
@@ -114,17 +114,17 @@ The application is a React 19 / TypeScript / Vite SPA using React Router, Tailwi
 
 The UI can be retained. Its controlled table and existing cards, sheets, forms and status components provide useful seams for API data. The team should replace filesystem hooks with query/command adapters, and keep the folder integration as an import/export option. The browser-only shell provides no compelling reason to adopt SSR for the authenticated console.
 
-## What HartAgency contributes
+## What the reference application contributes
 
-Hart separates commands and aggregate reconstruction from events, queries, projections, and reactions. Commands append PostgreSQL events; Ambar delivers them to consumers; MongoDB holds projections. Its best reusable patterns are state validation against aggregates, durable command idempotency, projection updates committed with consumer receipts, and explicit authorization scope.
+The reference application separates commands and aggregate reconstruction from events, queries, projections, and reactions. Commands append PostgreSQL events; Ambar delivers them to consumers; MongoDB holds projections. Its best reusable patterns are state validation against aggregates, durable command idempotency, projection updates committed with consumer receipts, and explicit authorization scope.
 
 There are three qualifications to copying it:
 
-1. The general scheduler appears as a documented design. The implemented demo-data supervisor polls inside each backend process and explicitly lacks a proper distributed lease. Some legacy imports use detached promises. It is not a production workflow engine to lift into Job Kit. [Supervisor](/Users/rafaelricco/Projects/ambar/HartAgency/app/backend/src/lib/demoData/supervisor.ts:33), [scheduler proposal](/Users/rafaelricco/Projects/ambar/HartAgency/docs/ambar-es/03_patterns_and_pitfalls.md:172).
-2. Normal event-store transactions currently use `RepeatableRead`, although several comments and local documents say Serializable. Unique stream versions protect concurrent writes to the same stream; arbitrary cross-stream invariants need additional coordination. [Runtime](/Users/rafaelricco/Projects/ambar/HartAgency/app/backend/src/lib/eventSourcing/store/postgres.ts:25).
-3. A consumer receipt does not make an external action atomic. A reaction can send an email and crash before committing its receipt. The same problem is more consequential for a submitted job application. [Reaction wrapper](/Users/rafaelricco/Projects/ambar/HartAgency/app/backend/src/app/handleReaction.ts:42).
+1. The general scheduler appears as a documented design. The implemented demo-data supervisor polls inside each backend process and explicitly lacks a proper distributed lease. Some legacy imports use detached promises. It is not a production workflow engine to lift into Job Kit.
+2. Normal event-store transactions currently use `RepeatableRead`, although several comments and local documents say Serializable. Unique stream versions protect concurrent writes to the same stream; arbitrary cross-stream invariants need additional coordination.
+3. A consumer receipt does not make an external action atomic. A reaction can send an email and crash before committing its receipt. The same problem is more consequential for a submitted job application.
 
-The product should retain the architectural separation without requiring MongoDB, Hart's custom functional framework, or multiple manually synchronized consumer registries. If Ambar is already available as an operated service, it can provide event delivery. The product should give each workflow start one authoritative delivery path; it should not let Ambar reactions and an independent outbox both initiate the same work without shared deduplication.
+The product should retain the architectural separation without requiring MongoDB, the reference application's custom functional framework, or multiple manually synchronized consumer registries. If Ambar is already available as an operated service, it can provide event delivery. The product should give each workflow start one authoritative delivery path; it should not let Ambar reactions and an independent outbox both initiate the same work without shared deduplication.
 
 ## Workflow engine choice
 
