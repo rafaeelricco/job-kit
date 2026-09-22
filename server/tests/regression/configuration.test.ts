@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { afterEach, describe, test, vi } from "vitest"
+import type { NextFunction, Request, Response } from "express"
 import { Client } from "pg"
 import { Mongo } from "@be/lib/mongo"
 import { Postgres } from "@be/lib/postgres"
@@ -50,6 +51,7 @@ function assertPostgresConfig(actual: ParsedPostgresConfig, credentials: Credent
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
 })
 
 describe("database connection credential URL encoding", () => {
@@ -144,4 +146,82 @@ describe("database connection credential URL encoding", () => {
       }
     })
   }
+})
+
+type EventBusMiddleware = (typeof import("@be/lib/event-delivery"))["EventBusAuthMiddleware"]
+
+async function eventBusMiddlewareFor(username: string, password: string): Promise<EventBusMiddleware> {
+  vi.resetModules()
+  vi.stubEnv("EVENT_BUS_USERNAME", username)
+  vi.stubEnv("EVENT_BUS_PASSWORD", password)
+  return (await import("@be/lib/event-delivery")).EventBusAuthMiddleware
+}
+
+function invokeEventBusMiddleware(middleware: EventBusMiddleware, credentials: string) {
+  let statusCode: number | undefined
+  let responseBody: unknown
+  const req = { headers: { authorization: `Basic ${Buffer.from(credentials, "utf8").toString("base64")}` } } as Request
+  const res = {
+    status(code: number) {
+      statusCode = code
+      return this
+    },
+    json(body: unknown) {
+      responseBody = body
+      return this
+    },
+  } as unknown as Response
+  const next = vi.fn()
+  middleware(req, res, next as NextFunction)
+  return { statusCode, responseBody, next }
+}
+
+describe("event bus Basic authentication", () => {
+  const username = "event-bus-user"
+
+  for (const { name, password } of [
+    { name: "ordinary passwords", password: "ordinary-password" },
+    { name: "passwords beginning with a colon", password: ":leading-colon" },
+    { name: "passwords ending with a colon", password: "trailing-colon:" },
+    { name: "passwords with multiple colons", password: "first:middle:last" },
+  ]) {
+    test(`accepts ${name}`, async () => {
+      const middleware = await eventBusMiddlewareFor(username, password)
+      const result = invokeEventBusMiddleware(middleware, `${username}:${password}`)
+      assert.equal(result.next.mock.calls.length, 1)
+      assert.equal(result.statusCode, undefined)
+    })
+  }
+
+  test("rejects credentials without a colon delimiter", async () => {
+    const middleware = await eventBusMiddlewareFor(username, "ordinary-password")
+    const result = invokeEventBusMiddleware(middleware, username)
+    assert.equal(result.next.mock.calls.length, 0)
+    assert.equal(result.statusCode, 401)
+    assert.deepEqual(result.responseBody, { error: "Basic authentication required" })
+  })
+
+  test("rejects a wrong full password even when the username matches", async () => {
+    const middleware = await eventBusMiddlewareFor(username, "first:middle:last")
+    const result = invokeEventBusMiddleware(middleware, `${username}:first:middle`)
+    assert.equal(result.next.mock.calls.length, 0)
+    assert.equal(result.statusCode, 401)
+    assert.deepEqual(result.responseBody, { error: "Invalid credentials" })
+  })
+
+  test("rejects extra colon-delimited password suffixes", async () => {
+    const middleware = await eventBusMiddlewareFor(username, "ordinary-password")
+    const result = invokeEventBusMiddleware(middleware, `${username}:ordinary-password:extra`)
+    assert.equal(result.next.mock.calls.length, 0)
+    assert.equal(result.statusCode, 401)
+    assert.deepEqual(result.responseBody, { error: "Invalid credentials" })
+  })
+
+  test("requires the username to match exactly", async () => {
+    const middleware = await eventBusMiddlewareFor(username, "ordinary-password")
+    const result = invokeEventBusMiddleware(middleware, `${username}-extra:ordinary-password`)
+    assert.equal(result.next.mock.calls.length, 0)
+    assert.equal(result.statusCode, 401)
+    assert.deepEqual(result.responseBody, { error: "Invalid credentials" })
+  })
 })

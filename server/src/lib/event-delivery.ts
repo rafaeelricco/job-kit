@@ -129,8 +129,10 @@ function parseBasicAuth(authHeader: Maybe<string>): Maybe<Credentials> {
     // `Buffer.from(_, "base64")` does not throw on malformed input; it just
     // decodes as much as it can, so no try/catch boundary is needed here.
     const credentials = Buffer.from(base64Credentials, "base64").toString("utf8")
-    const [username, password] = credentials.split(":")
-    if (username === undefined || password === undefined) return Nothing()
+    const separator = credentials.indexOf(":")
+    if (separator === -1) return Nothing()
+    const username = credentials.slice(0, separator)
+    const password = credentials.slice(separator + 1)
     return Just({ username, password })
   })
 }
