@@ -174,6 +174,13 @@ test("login codes: resend waits out the cooldown, five misses lock until expiry,
     assert.notEqual(fresh?.codeHash, seeded?.codeHash, "an expired lock gets a fresh code")
     assert.equal(fresh?.attempts, 0)
 
+    const stale = "stale@example.test"
+    await current.seedLoginCode(stale, "654321")
+    await current.ageLoginCode(stale, { expired: true })
+    await current.ageLoginCode(email, { expired: false })
+    assert.equal((await request()).status, 200)
+    assert.equal(await current.countLoginCodes(stale), 0, "issuing a code sweeps other addresses' expired codes")
+
     await current.seedLoginCode(email, "654321")
     await current.ageLoginCode(email, { expired: true })
     assert.equal(await verify("654321"), 401, "an expired code must fail")

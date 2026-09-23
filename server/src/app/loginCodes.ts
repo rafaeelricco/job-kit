@@ -70,7 +70,10 @@ function postgresLoginCodes(postgres: Postgres, mailer: Mailer, secret: string):
       const code = newCode()
       // Sweeping expired rows on every issue keeps the table bounded without a job. An expired row
       // is past its cooldown and lockout, so deleting it changes nothing the upsert below would decide.
-      await t.query(`DELETE FROM ${TABLE} WHERE expires_at <= now()`)
+      // SKIP LOCKED leaves rows another issue holds to that issue, so two concurrent sweeps never wait on each other.
+      await t.query(
+        `DELETE FROM ${TABLE} WHERE email IN (SELECT email FROM ${TABLE} WHERE expires_at <= now() FOR UPDATE SKIP LOCKED)`
+      )
       // Attempts carry over a resend while the code is live, so resending never buys more guesses.
       const { rows } = await t.query(
         `INSERT INTO ${TABLE} (email, code_hash, expires_at, sent_at, attempts)
