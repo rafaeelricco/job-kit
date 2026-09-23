@@ -31,7 +31,7 @@ type CommandResponse = s.Infer<typeof endpoint.response>
 
 ### Command controller with event-store write
 
-Bind the endpoint, an `Auth.*` guard, and a handler that resolves domain errors as a `Result` before opening `withEventStore`. Same shape as `server/src/domain/note/command/updateNote.ts:18-37`; the full domain-error pattern (`<Area>Errors`, `respond`, `Failure`) is in `commands.md`.
+Bind the endpoint, an `Auth.*` guard, and a handler that resolves domain errors as a `Result` before opening `withEventStore`. Same shape as `server/src/domain/note/command/updateNote.ts:18-37`, including its no-op guard: a retried update that changes nothing returns success without emitting (`commands.md`, "No-op guard"). The full domain-error pattern (`<Area>Errors`, `respond`, `Failure`) is in `commands.md`.
 
 ```ts
 export { controller, handler }
@@ -51,6 +51,7 @@ const handler: CommandHandler<Command, CommandResponse> = ({ payload, withEventS
     withEventStore<Response, Result<<Area>Error, CommandResponse>>(internalError, function* (store) {
       const found = yield* store.try_find(<Aggregate>, payload.<id>)
       if (found instanceof Nothing) return Failure({ type: "not_found" })
+      if (<sameState>(found.value, <field>)) return Success({ success: true }) // no-op guard, like sameContent
       yield* store.emit({
         aggregate: <Aggregate>,
         event: new <Event>({
