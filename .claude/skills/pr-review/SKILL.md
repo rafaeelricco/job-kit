@@ -38,6 +38,7 @@ Stop when `head` is in `reviewed`. Without `--comment`, review any PR.
 ## 2. Review tree
 
 The review tree is a checkout of the PR head with dependencies installed.
+
 - In CI (`$GITHUB_ACTIONS` set), when `git rev-parse HEAD` is the head SHA and
   `git status --porcelain` is empty, it is the current directory. Local runs
   always use a worktree, so the review never changes the user's checkout.
@@ -65,6 +66,7 @@ holds a changed file or one of its parents.
 ## 3. Find candidates (parallel)
 
 In one message, launch:
+
 - **Baseline** (sonnet): in the review tree run, per touched area,
   `pnpm quality` in `server/`; `pnpm lint`, `pnpm typecheck`, `pnpm build` in
   `app/`; and at the repo root, when `skill/`, `scripts/`, `tests/`,
@@ -123,6 +125,7 @@ line; don't post those.
 ## 6. Prioritize
 
 Sort P0 first:
+
 - P0: data loss, auth bypass, secret exposure, or outage on the main path.
 - P1: wrong result or crash on a common path.
 - P2: wrong result, leak, or stuck state on an edge path (cancel, retry, error, concurrency).
@@ -193,6 +196,7 @@ diff.
 
 **Visual**: at most one, ≤ 12 lines, only when it shows the failure or fix faster
 than prose:
+
 - `diff` of the fix shape when the fix is local;
 - a `text` call tree when the bug lives on a control-flow path (cancel, retry, finally);
 - a Mermaid `sequenceDiagram` when two components race or hand off state.
