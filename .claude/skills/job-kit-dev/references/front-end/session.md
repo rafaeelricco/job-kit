@@ -81,8 +81,8 @@ state.
 - **`reloadSession()`** calls `api.whoAmI`. A `User` answer is cached and an `Anonymous` answer clears the cache.
   A rejection (network, 5xx, decode) leaves the cache alone. It resolves with the actor either way; `App` handles
   the failure (§4).
-- **`requestCode(email)`** calls `api.requestCode`. The reply is the same `{}` whether or not the address is on
-  the list. The server ignores a resend within 30 seconds (`RESEND_COOLDOWN_SECONDS`, mirrored by the page) and
+- **`requestCode(email)`** calls `api.requestCode`. There is no allowlist: the server emails a code to any
+  well-formed address, and the reply is always `{}`. The server ignores a resend within 30 seconds (`RESEND_COOLDOWN_SECONDS`, mirrored by the page) and
   locks the address after 5 wrong codes.
 - **`verifyCode(email, code)`** calls `api.verifyCode`, which replies `{ userId }`. The client builds
   `{ type: "User", userId }` and commits it; no follow-up `whoAmI`. Known gap: the reply carries only `userId`.
