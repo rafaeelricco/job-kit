@@ -76,9 +76,9 @@ function send(path: string, body: Json): Future<FetchError, Reply> {
           .text()
           .then((text) =>
             resolve(
-              res.ok
-                ? { type: "Ok", body: text }
-                : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
+              res.ok ?
+                { type: "Ok", body: text }
+              : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
             )
           )
       )

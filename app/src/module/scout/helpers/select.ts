@@ -79,7 +79,10 @@ const SCORE_BAND_LABELS: Readonly<Record<ScoreBand, string>> = {
 // Takes the Score, not the Dossier: the badge classifies a score it already
 // holds, and a whole-row parameter would force a cast at that call site.
 const bandOf = (score: Score): ScoreBand =>
-  score.kind === "unscored" ? "unscored" : score.value >= 8 ? "strong" : score.value >= 7 ? "keep" : "low"
+  score.kind === "unscored" ? "unscored"
+  : score.value >= 8 ? "strong"
+  : score.value >= 7 ? "keep"
+  : "low"
 
 /* -- days ----------------------------------------------------------------- */
 
@@ -181,7 +184,9 @@ type SourceState = "off" | "only" | "not"
 type SourceRow = { readonly source: string; readonly count: number }
 
 const sourceState = (f: Filter, source: string): SourceState =>
-  f.sources.includes(source) ? "only" : f.excluded.includes(source) ? "not" : "off"
+  f.sources.includes(source) ? "only"
+  : f.excluded.includes(source) ? "not"
+  : "off"
 
 // One click narrows to a source, the next banishes it, the third forgets it.
 // Both lists live here rather than in the toolbar so the cycle cannot drift out
@@ -243,7 +248,10 @@ const byScore = (a: Dossier, b: Dossier): number => {
 
 // Sources are operator-minted search-pack slugs, so the order is alphabetical
 // and only meaningful as a grouping — it puts every row from one pack together.
-const byText = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
+const byText = (a: string, b: string): number =>
+  a < b ? -1
+  : a > b ? 1
+  : 0
 const bySource = (a: Dossier, b: Dossier): number => byText(a.provenance.source, b.provenance.source)
 
 // Lifecycle order is semantic (new → dropped), not alphabetical.

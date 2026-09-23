@@ -288,15 +288,15 @@ function parseDossier(file: string, raw: string): ParsedDossier {
   const quoted = sectionAt("## From the posting").filter((line) => line.startsWith(">"))
   // No text key at all when absent — the body reads "_(not printed)_".
   const excerpt: Excerpt =
-    quoted.length === 0
-      ? { kind: "absent" }
-      : {
-          kind: "printed",
-          text: quoted
-            .map((line) => line.replace(/^>\s?/, ""))
-            .join("\n")
-            .trim(),
-        }
+    quoted.length === 0 ?
+      { kind: "absent" }
+    : {
+        kind: "printed",
+        text: quoted
+          .map((line) => line.replace(/^>\s?/, ""))
+          .join("\n")
+          .trim(),
+      }
 
   /* -- provenance --------------------------------------------------------- */
 
@@ -371,11 +371,9 @@ function readLog(tail: readonly string[], fail: (at: string, cause: ParseError["
   // Last transition wins.
   const posting = log.reduce<Posting>(
     (current, entry) =>
-      entry.event.startsWith("posting dead")
-        ? { kind: "dead", since: entry.date }
-        : entry.event === "posting live again"
-          ? { kind: "live" }
-          : current,
+      entry.event.startsWith("posting dead") ? { kind: "dead", since: entry.date }
+      : entry.event === "posting live again" ? { kind: "live" }
+      : current,
     { kind: "live" }
   )
 

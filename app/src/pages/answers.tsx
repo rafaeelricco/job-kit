@@ -92,7 +92,12 @@ function Surface({ answers }: { readonly answers: readonly Answer[] }) {
           <TabsList>
             {SEGMENTS.map((id) => (
               <TabsTrigger key={id} value={id}>
-                {id === "all" ? "All" : id === "answered" ? "Answered" : "Unanswered"} ({counts[id].toLocaleString()})
+                {id === "all" ?
+                  "All"
+                : id === "answered" ?
+                  "Answered"
+                : "Unanswered"}{" "}
+                ({counts[id].toLocaleString()})
               </TabsTrigger>
             ))}
           </TabsList>

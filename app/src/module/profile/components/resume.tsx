@@ -77,23 +77,22 @@ function ResumeList({
         <FieldContent>
           <FieldLabel htmlFor="adapt-per-vacancy">Per-vacancy tailoring</FieldLabel>
           <FieldDescription>
-            {adapt
-              ? "job-apply refines the base resume for each dossier."
-              : "job-apply attaches the base resume unchanged."}
+            {adapt ?
+              "job-apply refines the base resume for each dossier."
+            : "job-apply attaches the base resume unchanged."}
           </FieldDescription>
         </FieldContent>
         <Switch id="adapt-per-vacancy" checked={adapt} disabled={saving} onCheckedChange={setAdapt} />
       </Field>
 
-      {resumes.length === 0 ? (
+      {resumes.length === 0 ?
         <div className="rounded-xl border border-dashed border-border p-10 text-center">
           <p className="text-sm font-medium text-foreground">No PDFs in cv/</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Drop a resume PDF into the profile folder's <code>cv/</code> directory.
           </p>
         </div>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-4">
+      : <div className="grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-4">
           {resumes.map((resume) => (
             <Card key={resume.file}>
               <CardHeader className="gap-x-3">
@@ -118,7 +117,7 @@ function ResumeList({
             </Card>
           ))}
         </div>
-      )}
+      }
     </>
   )
 }

@@ -53,7 +53,11 @@ class POSIX {
   }
 
   compare(other: POSIX): number {
-    return this.value > other.value ? 1 : this.value < other.value ? -1 : 0
+    return (
+      this.value > other.value ? 1
+      : this.value < other.value ? -1
+      : 0
+    )
   }
 
   addDuration(d: Duration) {
@@ -76,8 +80,8 @@ class POSIX {
     // the civil components against the same string parsed in gap-free UTC.
     const civil = "yyyy-MM-dd HH:mm:ss.SSS"
     const requested = DateTime.fromISO(s, { zone: "UTC" })
-    return luxonDate.isValid && luxonDate.toFormat(civil) === requested.toFormat(civil)
-      ? Just(new POSIX(luxonDate.toMillis()))
+    return luxonDate.isValid && luxonDate.toFormat(civil) === requested.toFormat(civil) ?
+        Just(new POSIX(luxonDate.toMillis()))
       : Nothing()
   }
 
@@ -176,19 +180,15 @@ class DateOnly {
   }
 
   compare(other: DateOnly): number {
-    return this.year > other.year
-      ? 1
-      : this.year < other.year
-        ? -1
-        : this.month > other.month
-          ? 1
-          : this.month < other.month
-            ? -1
-            : this.day > other.day
-              ? 1
-              : this.day < other.day
-                ? -1
-                : 0
+    return (
+      this.year > other.year ? 1
+      : this.year < other.year ? -1
+      : this.month > other.month ? 1
+      : this.month < other.month ? -1
+      : this.day > other.day ? 1
+      : this.day < other.day ? -1
+      : 0
+    )
   }
 
   addMonths(months: number): DateOnly {
@@ -300,7 +300,11 @@ class Duration {
   }
 
   compare(other: Duration): number {
-    return this.millis > other.millis ? 1 : this.millis < other.millis ? -1 : 0
+    return (
+      this.millis > other.millis ? 1
+      : this.millis < other.millis ? -1
+      : 0
+    )
   }
 
   /** Quantisation. Divide a duration into buckets of a fixed length. */

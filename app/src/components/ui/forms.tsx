@@ -74,71 +74,44 @@ type ItemConfig =
   | SelectInputBase
   | TagsInput
 
-type ItemProps<T> = T extends TextInput
-  ? TextElementConfig
-  : T extends RichTextInput
-    ? RichTextElementConfig
-    : T extends TextareaInput
-      ? TextareaElementConfig
-      : T extends DateInput
-        ? DateElementConfig
-        : T extends TimeInput
-          ? TimeElementConfig
-          : T extends CheckboxInput
-            ? CheckboxElementConfig
-            : T extends MoneyInput
-              ? MoneyElementConfig
-              : T extends SelectInputBase
-                ? SelectElementConfig
-                : T extends ComboboxInputBase
-                  ? ComboboxElementConfig
-                  : T extends TagsInput
-                    ? TagsElementConfig
-                    : never
+type ItemProps<T> =
+  T extends TextInput ? TextElementConfig
+  : T extends RichTextInput ? RichTextElementConfig
+  : T extends TextareaInput ? TextareaElementConfig
+  : T extends DateInput ? DateElementConfig
+  : T extends TimeInput ? TimeElementConfig
+  : T extends CheckboxInput ? CheckboxElementConfig
+  : T extends MoneyInput ? MoneyElementConfig
+  : T extends SelectInputBase ? SelectElementConfig
+  : T extends ComboboxInputBase ? ComboboxElementConfig
+  : T extends TagsInput ? TagsElementConfig
+  : never
 
-type ItemState<T extends ItemConfig> = T extends TextInput
-  ? TextItemState
-  : T extends RichTextInput
-    ? RichTextItemState
-    : T extends TextareaInput
-      ? TextareaItemState
-      : T extends DateInput
-        ? DateItemState
-        : T extends TimeInput
-          ? TimeItemState
-          : T extends CheckboxInput
-            ? CheckboxItemState
-            : T extends MoneyInput
-              ? MoneyItemState
-              : T extends SelectInputBase
-                ? SelectItemState
-                : T extends ComboboxInputBase
-                  ? ComboboxItemState
-                  : T extends TagsInput
-                    ? TagsItemState
-                    : never
+type ItemState<T extends ItemConfig> =
+  T extends TextInput ? TextItemState
+  : T extends RichTextInput ? RichTextItemState
+  : T extends TextareaInput ? TextareaItemState
+  : T extends DateInput ? DateItemState
+  : T extends TimeInput ? TimeItemState
+  : T extends CheckboxInput ? CheckboxItemState
+  : T extends MoneyInput ? MoneyItemState
+  : T extends SelectInputBase ? SelectItemState
+  : T extends ComboboxInputBase ? ComboboxItemState
+  : T extends TagsInput ? TagsItemState
+  : never
 
-type ItemOutput<T> = T extends TextInput
-  ? string
-  : T extends RichTextInput
-    ? string
-    : T extends TextareaInput
-      ? string
-      : T extends DateInput
-        ? DateOnly | null
-        : T extends TimeInput
-          ? TimeOfDay | null
-          : T extends CheckboxInput
-            ? boolean
-            : T extends MoneyInput
-              ? Money | null
-              : T extends SelectInputBase
-                ? string | null
-                : T extends ComboboxInputBase
-                  ? string | null
-                  : T extends TagsInput
-                    ? string[]
-                    : never
+type ItemOutput<T> =
+  T extends TextInput ? string
+  : T extends RichTextInput ? string
+  : T extends TextareaInput ? string
+  : T extends DateInput ? DateOnly | null
+  : T extends TimeInput ? TimeOfDay | null
+  : T extends CheckboxInput ? boolean
+  : T extends MoneyInput ? Money | null
+  : T extends SelectInputBase ? string | null
+  : T extends ComboboxInputBase ? string | null
+  : T extends TagsInput ? string[]
+  : never
 
 type AnyElementConfig = ItemProps<ItemConfig>
 type FormInputs = Record<string, ItemConfig>
@@ -1054,13 +1027,13 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
   for (const key of Object.keys(fields)) {
     props[key] = buildProps(key, `${formId}-${key}`, fields[key]!, effective[key]! as never, (s) => {
       const isEmptyText = s instanceof TextItemState && s.values.value === ""
-      const nextTouched: ReadonlySet<string> = isEmptyText
-        ? touched.has(key)
-          ? new Set([...touched].filter((k) => k !== key))
+      const nextTouched: ReadonlySet<string> =
+        isEmptyText ?
+          touched.has(key) ?
+            new Set([...touched].filter((k) => k !== key))
           : touched
-        : touched.has(key)
-          ? touched
-          : new Set(touched).add(key)
+        : touched.has(key) ? touched
+        : new Set(touched).add(key)
       setTouched(nextTouched)
       setState((current) => {
         const next = { ...current, [key]: s } as FormState<T>
@@ -1102,13 +1075,11 @@ function FormLabel({
 }) {
   return (
     <div className="space-y-1.5">
-      {typeof label === "string" ? (
+      {typeof label === "string" ?
         <Label htmlFor={htmlFor} className={cn(hideLabel && "sr-only")}>
           {label}
         </Label>
-      ) : (
-        label
-      )}
+      : label}
       {description.maybe(null, (d) => (
         <p className="text-sm text-muted-foreground">{d}</p>
       ))}
@@ -1164,7 +1135,7 @@ function FormTextField({
 
   return (
     <FormLabel htmlFor={id} label={label} hideLabel={hideLabel} description={description}>
-      {needsWrapper ? (
+      {needsWrapper ?
         <div className="relative">
           {icon.maybe(null, (Icon) => (
             <HugeiconsIcon
@@ -1187,9 +1158,7 @@ function FormTextField({
             </button>
           )}
         </div>
-      ) : (
-        inputEl
-      )}
+      : inputEl}
       {error.maybe(null, (e) => (
         <p id={errorId} role="alert" className="text-sm text-destructive">
           {e}
@@ -1339,7 +1308,11 @@ function FormRichTextField({
     content: mode === "html" ? value : plainTextDocument(value),
     editable: !disabled,
     onUpdate: ({ editor }) =>
-      onChange(editor.isEmpty ? "" : mode === "html" ? editor.getHTML() : editor.getText({ blockSeparator: "\n" })),
+      onChange(
+        editor.isEmpty ? ""
+        : mode === "html" ? editor.getHTML()
+        : editor.getText({ blockSeparator: "\n" })
+      ),
     editorProps: { attributes },
   })
 
@@ -1540,13 +1513,11 @@ function FormCheckboxField({
           aria-describedby={hasError ? errorId : undefined}
           onCheckedChange={(v) => onCheckedChange(v === true)}
         />
-        {typeof label === "string" ? (
+        {typeof label === "string" ?
           <Label htmlFor={checkboxId} className="cursor-pointer font-normal">
             {label}
           </Label>
-        ) : (
-          label
-        )}
+        : label}
       </div>
       {description.maybe(null, (d) => (
         <p className="text-sm text-muted-foreground">{d}</p>

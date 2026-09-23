@@ -167,10 +167,9 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
         <CardContent className="flex flex-col gap-4">
           <SectionTitle Icon={GlobeIcon}>Sources over time</SectionTitle>
 
-          {sources.rows.length === 0 ? (
+          {sources.rows.length === 0 ?
             <p className="text-sm text-muted-foreground">No dossiers in this range.</p>
-          ) : (
-            <>
+          : <>
               <ChartContainer config={SOURCE_CHART} className="h-64 w-full">
                 <LineChart data={[...sources.points]} margin={{ left: -16, right: 8 }}>
                   <CartesianGrid vertical={false} strokeDasharray="0" />
@@ -210,7 +209,7 @@ function Dashboard({ dossiers }: { readonly dossiers: readonly Dossier[] }) {
                 ))}
               </div>
             </>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -301,9 +300,9 @@ function TrendCard({
                   formatter={(value, name, item) => {
                     const isPrior = name === "prior"
                     const priorDate =
-                      isPrior && typeof item.payload?.priorDate === "string"
-                        ? ` · ${shortDate(item.payload.priorDate)}`
-                        : ""
+                      isPrior && typeof item.payload?.priorDate === "string" ?
+                        ` · ${shortDate(item.payload.priorDate)}`
+                      : ""
                     return (
                       <div className="flex w-full items-center gap-2">
                         <div className="size-2.5 shrink-0" style={{ backgroundColor: item.color }} />
@@ -411,9 +410,9 @@ function Tile({
             {delta === null ? null : (
               <span
                 className={
-                  delta < 0
-                    ? "text-xs font-medium text-danger tabular-nums"
-                    : "text-xs font-medium text-success tabular-nums"
+                  delta < 0 ?
+                    "text-xs font-medium text-danger tabular-nums"
+                  : "text-xs font-medium text-success tabular-nums"
                 }
               >
                 {delta > 0 ? "+" : ""}
@@ -480,10 +479,9 @@ function BarList({
       <CardContent className="flex flex-col gap-4">
         <SectionTitle Icon={Icon}>{title}</SectionTitle>
 
-        {rows.length === 0 ? (
+        {rows.length === 0 ?
           <p className="text-sm text-muted-foreground">{empty}</p>
-        ) : (
-          <ul className="flex flex-col gap-4">
+        : <ul className="flex flex-col gap-4">
             {rows.map((row) => (
               <li key={row.label} className="flex flex-col gap-2">
                 <div className="flex items-baseline gap-3">
@@ -499,7 +497,7 @@ function BarList({
               </li>
             ))}
           </ul>
-        )}
+        }
       </CardContent>
     </Card>
   )

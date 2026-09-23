@@ -152,7 +152,11 @@ class EncoderOptional<A> {
 const optionalMaybe = <V>(encoder: Encoder<V>): EncoderOptional<Maybe<V>> => EncoderOptional.from(maybe(encoder))
 
 const optionalNullable = <V>(encoder: Encoder<NonNullable<V>>): EncoderOptional<Nullable<V>> =>
-  optionalMaybe(encoder).rmap((v) => (v === null ? Nothing() : v === undefined ? Nothing() : Just<NonNullable<V>>(v)))
+  optionalMaybe(encoder).rmap((v) =>
+    v === null ? Nothing()
+    : v === undefined ? Nothing()
+    : Just<NonNullable<V>>(v)
+  )
 
 const optional = <V>(encoder: Encoder<V>): EncoderOptional<V | undefined> =>
   optionalMaybe(encoder).rmap<V | undefined>((input): Maybe<V> => {

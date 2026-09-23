@@ -27,13 +27,11 @@ function AccessGate({
   const [asking, setAsking] = useState(true)
 
   if (access.kind === "hydrating") {
-    return chrome === "bare" ? (
-      <LoadingRows />
-    ) : (
-      <Shell title={title} Icon={Icon}>
+    return chrome === "bare" ?
         <LoadingRows />
-      </Shell>
-    )
+      : <Shell title={title} Icon={Icon}>
+          <LoadingRows />
+        </Shell>
   }
 
   if (access.kind !== "granted") {
@@ -58,13 +56,11 @@ function AccessGate({
     )
   }
 
-  return chrome === "bare" ? (
-    <>{children()}</>
-  ) : (
-    <Shell title={title} Icon={Icon}>
-      {children()}
-    </Shell>
-  )
+  return chrome === "bare" ?
+      <>{children()}</>
+    : <Shell title={title} Icon={Icon}>
+        {children()}
+      </Shell>
 }
 
 function Shell({

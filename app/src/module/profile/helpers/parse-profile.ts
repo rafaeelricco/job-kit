@@ -26,7 +26,10 @@ import { type Result } from "@module/scout/result"
 const asRecord = (v: unknown): Record<string, unknown> | null =>
   typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 const asArray = (v: unknown): readonly unknown[] => (Array.isArray(v) ? v : [])
-const asText = (v: unknown): string => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "")
+const asText = (v: unknown): string =>
+  typeof v === "string" ? v
+  : typeof v === "number" ? String(v)
+  : ""
 const asBool = (v: unknown): boolean => v === true
 const asNumber = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0)
 const toStrings = (v: unknown): readonly string[] => asArray(v).map(asText)

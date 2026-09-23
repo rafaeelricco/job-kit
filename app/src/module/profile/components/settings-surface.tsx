@@ -567,13 +567,11 @@ function SearchSection({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
             aria-invalid={!scopeValid}
             onChange={(event) => setScope(event.target.value)}
           />
-          {scopeValid ? (
+          {scopeValid ?
             <FieldDescription className="text-[11px] leading-normal text-ink-faint">
               worldwide, or listed to use the locations above.
             </FieldDescription>
-          ) : (
-            <FieldError>Use worldwide or listed, or leave it empty.</FieldError>
-          )}
+          : <FieldError>Use worldwide or listed, or leave it empty.</FieldError>}
         </Field>
       </FieldGroup>
       <SaveButton
@@ -621,9 +619,9 @@ function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; re
   const edits: readonly Edit[] = [
     ...listEdits,
     // prune_score_max is a number in the file; a string here would retype the key.
-    ...(pruneValid && prune !== jobSearch.pruneScoreMax
-      ? [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
-      : []),
+    ...(pruneValid && prune !== jobSearch.pruneScoreMax ?
+      [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
+    : []),
   ]
 
   return (
@@ -653,13 +651,11 @@ function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; re
             aria-invalid={!pruneValid}
             onChange={(event) => setPruneText(event.target.value)}
           />
-          {pruneValid ? (
+          {pruneValid ?
             <FieldDescription className="text-[11px] leading-normal text-ink-faint">
               The job-prune threshold; scout itself ignores it.
             </FieldDescription>
-          ) : (
-            <FieldError>Enter a number.</FieldError>
-          )}
+          : <FieldError>Enter a number.</FieldError>}
         </Field>
       </FieldGroup>
       <SaveButton
@@ -698,12 +694,12 @@ function PacksSection({ packs, save }: { readonly packs: readonly SearchPack[]; 
     if (row === undefined) return []
     const formulations = fromLines(row.formulations)
     return [
-      ...(row.enabled === pack.enabled
-        ? []
-        : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: row.enabled }]),
-      ...(sameList(formulations, pack.formulations)
-        ? []
-        : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
+      ...(row.enabled === pack.enabled ?
+        []
+      : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: row.enabled }]),
+      ...(sameList(formulations, pack.formulations) ?
+        []
+      : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
     ]
   })
 

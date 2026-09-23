@@ -121,7 +121,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
         sources={sources}
       />
 
-      {view === "table" ? (
+      {view === "table" ?
         <DossierTable
           rows={current.rows}
           columns={columns}
@@ -133,9 +133,7 @@ function Surface({ store, trash: trashFiles }: { readonly store: Ready; readonly
           onOpen={setOpen}
           onDelete={onDeleteOne}
         />
-      ) : (
-        <DossierCards rows={current.rows} selected={selected} onToggle={onToggle} onOpen={setOpen} />
-      )}
+      : <DossierCards rows={current.rows} selected={selected} onToggle={onToggle} onOpen={setOpen} />}
 
       <DataTablePagination
         page={current.page}
