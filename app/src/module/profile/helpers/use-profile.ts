@@ -1,6 +1,7 @@
 export { useProfile, type ProfileState, type Save }
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { Future } from "@lib/future"
 import { loadHandle } from "@module/access/handle"
 import { notifyProfileChanged } from "@module/profile/helpers/profile-events"
 import { readProfile } from "@module/profile/helpers/read-profile"
@@ -18,7 +19,7 @@ type ProfileState =
   | { readonly kind: "wrong-root"; readonly label: string; readonly missing: readonly string[] }
   | { readonly kind: "loaded"; readonly profile: Profile }
 
-type Save = (file: string, edits: readonly Edit[]) => Promise<Result<void, SaveError>>
+type Save = (file: string, edits: readonly Edit[]) => Future<SaveError, void>
 
 // No `enabled` argument, unlike useStore: ProfileGate only mounts this below a
 // granted AccessGate, so the handle is already proven reachable.
@@ -79,20 +80,26 @@ function useProfile(): {
   // computed from the fields rendered then, so anything written since would be
   // overwritten silently. The post-write stamp is adopted so a second save on
   // the same card does not refuse itself while the reload is still in flight.
-  const save = useCallback(async (file: string, edits: readonly Edit[]): Promise<Result<void, SaveError>> => {
-    const handle = await loadHandle()
-    if (handle.kind === "err" || handle.value === null) return err({ kind: "stale", file })
-    const loaded = await readDoc(handle.value, file)
-    if (loaded.kind === "err") return loaded
-    const expected = { doc: loaded.value.doc, modified: stamps.current[file] ?? loaded.value.modified }
-    const written = await writeDoc(handle.value, file, expected, edits)
-    if (written.kind === "err") return written
-    stamps.current = { ...stamps.current, [file]: written.value }
-    setNonce((n) => n + 1)
-    // basics.yaml also feeds the sidebar's identity, which lives above this
-    // hook's tree and cannot see the nonce.
-    notifyProfileChanged()
-    return ok(undefined)
+  const save = useCallback((file: string, edits: readonly Edit[]): Future<SaveError, void> => {
+    const write = async (): Promise<Result<void, SaveError>> => {
+      const handle = await loadHandle()
+      if (handle.kind === "err" || handle.value === null) return err({ kind: "stale", file })
+      const loaded = await readDoc(handle.value, file)
+      if (loaded.kind === "err") return loaded
+      const expected = { doc: loaded.value.doc, modified: stamps.current[file] ?? loaded.value.modified }
+      const written = await writeDoc(handle.value, file, expected, edits)
+      if (written.kind === "err") return written
+      stamps.current = { ...stamps.current, [file]: written.value }
+      setNonce((n) => n + 1)
+      // basics.yaml also feeds the sidebar's identity, which lives above this
+      // hook's tree and cannot see the nonce.
+      notifyProfileChanged()
+      return ok(undefined)
+    }
+    // A write already under way can't be taken back, so there is nothing to cancel.
+    return Future.createUncancellable<SaveError, void>((reject, resolve) => {
+      void write().then((result) => (result.kind === "ok" ? resolve(undefined) : reject(result.error)))
+    })
   }, [])
 
   const reload = useCallback((): void => setNonce((n) => n + 1), [])
