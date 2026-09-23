@@ -22,6 +22,9 @@ type Step = { type: "email"; email: string } | { type: "code"; email: string }
 /** The `?error=` values the server's Google callback lands on `/sign-in` with; mirrors `GoogleSignInError` in server/src/lib/google.ts. */
 type GoogleError = "cancelled" | "failed" | "unavailable"
 
+/** Seconds between two sends to one address; mirrors `RESEND_COOLDOWN_SECONDS` in server/src/app/loginCodes.ts, which ignores a resend inside it. */
+const RESEND_COOLDOWN_SECONDS = 30
+
 function SignInPage({ session }: { session: Session }) {
   const location = useLocation()
 
@@ -157,10 +160,18 @@ function EmailForm({ defaultEmail, onSent }: { defaultEmail: string; onSent: (em
 /** Verifies the code mailed to `email`. Success needs no handler: commitSession re-renders App, and SignInPage redirects. */
 function CodeForm({ email, onChangeEmail }: { email: string; onChangeEmail: () => void }) {
   const [submit, setSubmit] = useState<RemoteData<FetchError, never>>(NotAsked())
+  // Mounted right after a send, so the cooldown starts full.
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS)
 
   const cancel = useRef<Cancel>(() => {})
 
   useEffect(() => () => cancel.current(), [])
+
+  useEffect(() => {
+    if (cooldown === 0) return undefined
+    const timer = setTimeout(() => setCooldown((seconds) => seconds - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldown])
 
   const run = (f: () => Cancel): void => {
     cancel.current()
@@ -198,7 +209,9 @@ function CodeForm({ email, onChangeEmail }: { email: string; onChangeEmail: () =
         (error) => setSubmit(Failed(error)),
         () => {
           setSubmit(NotAsked())
-          toast("A new code is on its way.")
+          setCooldown(RESEND_COOLDOWN_SECONDS)
+          // The server also ignores a resend while too many wrong codes lock the address, and its reply doesn't say so.
+          toast("If a new code can be sent, it's on its way. Check your spam folder too.")
         }
       )
     )
@@ -229,10 +242,12 @@ function CodeForm({ email, onChangeEmail }: { email: string; onChangeEmail: () =
           type="button"
           variant="ghost"
           className="flex-1 text-ink-soft"
-          disabled={submit.isLoading}
+          disabled={submit.isLoading || cooldown > 0}
           onClick={resend}
         >
-          Resend code
+          {cooldown > 0 ?
+            <span className="tabular-nums">Resend code ({cooldown}s)</span>
+          : "Resend code"}
         </Button>
         <Button type="button" variant="ghost" className="flex-1 text-ink-soft" onClick={onChangeEmail}>
           Change email
