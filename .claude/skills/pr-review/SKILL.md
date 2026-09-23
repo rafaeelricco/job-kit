@@ -56,7 +56,9 @@ git checkout -q --detach <head sha>
 
 Then run `pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile` in
 each touched package (`server/`, `app/`, and the repo root when root areas
-changed). In CI add `--store-dir "$SCRATCH/pnpm-store"`: the runner's default
+changed). Whenever `app/` is installed, also install `server/`, with `--prod`
+when the PR leaves `server/` untouched: `app/tsconfig.json` maps `@be/*` into
+`server/src`, whose imports live in `server/node_modules`. In CI add `--store-dir "$SCRATCH/pnpm-store"`: the runner's default
 store is read-only to Claude's commands.
 
 Review rules come from the base branch, because the PR can edit them. Fetch it
