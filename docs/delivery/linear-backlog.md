@@ -1,10 +1,10 @@
 # V1 Linear backlog
 
-Status: accepted · Updated: 2026-09-21 · Implementation: not implemented
+Status: accepted · Updated: 2026-09-23 · Implementation: not implemented
 
 [Job Kit AI project](https://linear.app/r1cco/project/job-kit-ai-76a302695ebf/overview) · [Agreed V1 specification](https://linear.app/r1cco/document/v1-platform-specification-agreed-scope-22e7266690a9) · [Delivery roadmap](roadmap.md) · [Machine-readable manifest](linear-backlog.json)
 
-Created **35 V1 issues across five new milestones**, plus **two Post-V1 issues**. All are Backlog and unassigned, with no deadline or estimate. The manifest records stable backlog keys, Linear UUIDs/identifiers, self-contained requirements and actual blocked-by relationships.
+Created **35 V1 issues across five new milestones**, plus **two Post-V1 issues**. On 2026-09-23, R1C-268 was added to Onboarding for the settings AI panel and made a blocker of R1C-265, and R1C-237, R1C-242 and R1C-243 were revised for the selected onboarding design. All are Backlog and unassigned, with no deadline or estimate. The manifest records stable backlog keys, Linear UUIDs/identifiers, self-contained requirements and actual blocked-by relationships.
 
 Milestones describe user outcomes; dependencies determine implementation order. Shared API/database infrastructure belongs to Login, its first consuming milestone. Shared posting/import contracts are established there so profile/dossier import does not wait for scout orchestration. Provider and browser-source experiments are unresolved implementation blockers, not completed integrations.
 
@@ -29,15 +29,16 @@ Linear milestone: `4d38713c-0be1-4cd2-bb87-5e18bfdb9a86`.
 
 Linear milestone: `f344a720-35b4-458b-8330-2a60977eefd5`.
 
-| Issue                                                                                                              | Work package                                                       | Blocked by                                  |
-| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
-| [R1C-237](https://linear.app/r1cco/issue/R1C-237/persist-encrypted-ai-connections-and-execution-readiness)         | Persist encrypted AI connections and execution readiness           | R1C-234                                     |
-| [R1C-238](https://linear.app/r1cco/issue/R1C-238/prove-and-implement-the-openai-hosted-connector)                  | Prove and implement the OpenAI hosted connector                    | R1C-237                                     |
-| [R1C-239](https://linear.app/r1cco/issue/R1C-239/prove-and-implement-the-gemini-hosted-connector)                  | Prove and implement the Gemini hosted connector                    | R1C-237                                     |
-| [R1C-240](https://linear.app/r1cco/issue/R1C-240/prove-and-implement-the-anthropic-hosted-connector)               | Prove and implement the Anthropic hosted connector                 | R1C-237                                     |
-| [R1C-241](https://linear.app/r1cco/issue/R1C-241/prove-and-implement-the-xai-hosted-connector)                     | Prove and implement the xAI hosted connector                       | R1C-237                                     |
-| [R1C-242](https://linear.app/r1cco/issue/R1C-242/build-guided-web-onboarding-for-all-four-ai-providers)            | Build guided web onboarding for all four AI providers              | R1C-235, R1C-238, R1C-239, R1C-240, R1C-241 |
-| [R1C-243](https://linear.app/r1cco/issue/R1C-243/handle-waiting-cancellation-reconnection-and-manual-ai-switching) | Handle waiting, cancellation, reconnection and manual AI switching | R1C-242, R1C-236                            |
+| Issue                                                                                                                  | Work package                                                                    | Blocked by                                  |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------- |
+| [R1C-237](https://linear.app/r1cco/issue/R1C-237/persist-encrypted-ai-connections-and-execution-readiness)             | Persist encrypted AI connections and execution readiness                        | R1C-234                                     |
+| [R1C-238](https://linear.app/r1cco/issue/R1C-238/prove-and-implement-the-openai-hosted-connector)                      | Prove and implement the OpenAI hosted connector                                 | R1C-237                                     |
+| [R1C-239](https://linear.app/r1cco/issue/R1C-239/prove-and-implement-the-gemini-hosted-connector)                      | Prove and implement the Gemini hosted connector                                 | R1C-237                                     |
+| [R1C-240](https://linear.app/r1cco/issue/R1C-240/prove-and-implement-the-anthropic-hosted-connector)                   | Prove and implement the Anthropic hosted connector                              | R1C-237                                     |
+| [R1C-241](https://linear.app/r1cco/issue/R1C-241/prove-and-implement-the-xai-hosted-connector)                         | Prove and implement the xAI hosted connector                                    | R1C-237                                     |
+| [R1C-242](https://linear.app/r1cco/issue/R1C-242/build-guided-web-onboarding-for-all-four-ai-providers)                | Build guided web onboarding for all four AI providers                           | R1C-235, R1C-238, R1C-239, R1C-240, R1C-241 |
+| [R1C-243](https://linear.app/r1cco/issue/R1C-243/handle-waiting-cancellation-reconnection-and-manual-ai-switching)     | Handle waiting, cancellation, reconnection and manual AI switching              | R1C-242, R1C-236                            |
+| [R1C-268](https://linear.app/r1cco/issue/R1C-268/add-an-ai-panel-to-settings-for-connection-status-model-and-provider) | Add an AI panel to settings for connection status, model and provider switching | R1C-242, R1C-243                            |
 
 ## 03 · AI profile
 
@@ -72,15 +73,15 @@ Linear milestone: `3d50046b-62c7-4ffa-84f5-62b75e8a7b3e`.
 
 Linear milestone: `aa453fb4-4468-443c-8b58-8cd565ba4516`.
 
-| Issue                                                                                                               | Work package                                                       | Blocked by                         |
-| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------- |
-| [R1C-259](https://linear.app/r1cco/issue/R1C-259/expose-the-existing-python-scorer-through-a-versioned-contract)    | Expose the existing Python scorer through a versioned contract     | R1C-231                            |
-| [R1C-260](https://linear.app/r1cco/issue/R1C-260/integrate-typesafe-classification-validation-and-user-ai-fallback) | Integrate TypeSafe classification, validation and user-AI fallback | R1C-259, R1C-243                   |
-| [R1C-261](https://linear.app/r1cco/issue/R1C-261/implement-a-recoverable-assessment-worker)                         | Implement a recoverable assessment worker                          | R1C-257, R1C-260                   |
-| [R1C-262](https://linear.app/r1cco/issue/R1C-262/automatically-reassess-saved-postings-after-profile-confirmation)  | Automatically reassess saved postings after profile confirmation   | R1C-261, R1C-244                   |
-| [R1C-263](https://linear.app/r1cco/issue/R1C-263/add-scoped-sorted-and-paginated-dossier-queries)                   | Add scoped, sorted and paginated dossier queries                   | R1C-261                            |
-| [R1C-264](https://linear.app/r1cco/issue/R1C-264/migrate-the-existing-dossiers-ui-to-ranked-api-results)            | Migrate the existing dossiers UI to ranked API results             | R1C-263, R1C-262                   |
-| [R1C-265](https://linear.app/r1cco/issue/R1C-265/verify-the-complete-invited-user-v1-journey-and-recovery-cases)    | Verify the complete invited-user V1 journey and recovery cases     | R1C-236, R1C-249, R1C-258, R1C-264 |
+| Issue                                                                                                               | Work package                                                       | Blocked by                                  |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------- |
+| [R1C-259](https://linear.app/r1cco/issue/R1C-259/expose-the-existing-python-scorer-through-a-versioned-contract)    | Expose the existing Python scorer through a versioned contract     | R1C-231                                     |
+| [R1C-260](https://linear.app/r1cco/issue/R1C-260/integrate-typesafe-classification-validation-and-user-ai-fallback) | Integrate TypeSafe classification, validation and user-AI fallback | R1C-259, R1C-243                            |
+| [R1C-261](https://linear.app/r1cco/issue/R1C-261/implement-a-recoverable-assessment-worker)                         | Implement a recoverable assessment worker                          | R1C-257, R1C-260                            |
+| [R1C-262](https://linear.app/r1cco/issue/R1C-262/automatically-reassess-saved-postings-after-profile-confirmation)  | Automatically reassess saved postings after profile confirmation   | R1C-261, R1C-244                            |
+| [R1C-263](https://linear.app/r1cco/issue/R1C-263/add-scoped-sorted-and-paginated-dossier-queries)                   | Add scoped, sorted and paginated dossier queries                   | R1C-261                                     |
+| [R1C-264](https://linear.app/r1cco/issue/R1C-264/migrate-the-existing-dossiers-ui-to-ranked-api-results)            | Migrate the existing dossiers UI to ranked API results             | R1C-263, R1C-262                            |
+| [R1C-265](https://linear.app/r1cco/issue/R1C-265/verify-the-complete-invited-user-v1-journey-and-recovery-cases)    | Verify the complete invited-user V1 journey and recovery cases     | R1C-236, R1C-249, R1C-258, R1C-264, R1C-268 |
 
 ## Post-V1
 
