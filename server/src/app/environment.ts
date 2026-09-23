@@ -36,6 +36,8 @@ const envDecoder = D.object({
   /** `smtps://user:pass@host:465`. Empty logs mail to stdout (refused in production). */
   SMTP_URL: optionalDefault("", string),
   MAIL_FROM: optionalDefault("Job Kit <login@localhost>", string),
+  /** Key for the HMAC of stored login codes; keep it out of the database. Empty uses a fixed key (refused in production). */
+  LOGIN_CODE_SECRET: optionalDefault("", string),
 })
 
 /**

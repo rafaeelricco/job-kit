@@ -7,6 +7,7 @@ import { PlainEndpoint } from "@be/app/endpoint"
 import { NoteDto } from "@be/domain/note/query/noteSchema"
 import { Id } from "@be/lib/event-sourcing/event"
 import env from "@be/app/environment"
+import { codeDigest, loginCodeSecretFromEnv } from "@be/app/loginCodes"
 
 export const HTTP_TIMEOUT_MS = 10000
 export const EVENTUAL_TIMEOUT_MS = 60000
@@ -253,7 +254,7 @@ export class LiveFixture {
       `INSERT INTO auth_login_codes (email, code_hash, expires_at, sent_at, attempts)
        VALUES ($1, $2, now() + interval '10 minutes', now(), 0)
        ON CONFLICT (email) DO UPDATE SET code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at, sent_at = now(), attempts = 0`,
-      [email, createHash("sha256").update(code).digest("hex")]
+      [email, codeDigest(loginCodeSecretFromEnv(), email, code)]
     )
   }
 

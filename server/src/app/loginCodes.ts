@@ -1,10 +1,11 @@
-export { type LoginCodes, postgresLoginCodes, initializeLoginCodeTable }
+export { type LoginCodes, postgresLoginCodes, initializeLoginCodeTable, loginCodeSecretFromEnv, codeDigest }
 
-import { createHash, randomInt, timingSafeEqual } from "node:crypto"
+import { createHmac, randomInt, timingSafeEqual } from "node:crypto"
 import { Future } from "@lib/future"
 import { Just, Nothing } from "@lib/maybe"
 import { Postgres, type PostgresTransaction } from "@be/lib/postgres"
 import { type Mailer } from "@be/app/mailer"
+import env from "@be/app/environment"
 
 /** Outside the replication publication, like `auth_sessions`: codes never reach the event bus. */
 const TABLE = "auth_login_codes"
@@ -22,7 +23,12 @@ type LoginCodes = {
   readonly consume: (email: string, code: string) => Future<Error, boolean>
 }
 
-const digest = (code: string): string => createHash("sha256").update(code).digest("hex")
+/**
+ * Keyed and bound to the address. A plain SHA-256 of six digits is reversed by trying all 10^6 codes,
+ * so without the key a leaked table cannot be turned back into live codes.
+ */
+const codeDigest = (secret: string, email: string, code: string): string =>
+  createHmac("sha256", secret).update(`${email}\n${code}`).digest("hex")
 /** Six digits; `randomInt` is uniform, so every code is equally likely. */
 const newCode = (): string => randomInt(0, 1_000_000).toString().padStart(6, "0")
 const sameDigest = (a: string, b: string): boolean => timingSafeEqual(Buffer.from(a, "hex"), Buffer.from(b, "hex"))
@@ -44,7 +50,15 @@ function initializeLoginCodeTable(postgres: Postgres): Future<Error, void> {
   )
 }
 
-function postgresLoginCodes(postgres: Postgres, mailer: Mailer): LoginCodes {
+/** `LOGIN_CODE_SECRET`, or a fixed key in development so a local run needs no setup. */
+function loginCodeSecretFromEnv(): string {
+  if (env.LOGIN_CODE_SECRET !== "") return env.LOGIN_CODE_SECRET
+  // A known key makes stored codes as weak as plain SHA-256: allowed in development only.
+  if (env.NODE_ENV === "production") throw new Error("LOGIN_CODE_SECRET is required in production")
+  return "local-login-code-secret"
+}
+
+function postgresLoginCodes(postgres: Postgres, mailer: Mailer, secret: string): LoginCodes {
   const run = <T>(f: (t: PostgresTransaction) => Promise<T>): Future<Error, T> =>
     postgres.withTransaction(
       { isolation: "ReadCommitted" },
@@ -69,7 +83,7 @@ function postgresLoginCodes(postgres: Postgres, mailer: Mailer): LoginCodes {
          WHERE ${TABLE}.sent_at <= now() - make_interval(secs => $4)
            AND (${TABLE}.attempts < $5 OR ${TABLE}.expires_at <= now())
          RETURNING email`,
-        [email, digest(code), CODE_TTL_SECONDS, RESEND_COOLDOWN_SECONDS, MAX_ATTEMPTS]
+        [email, codeDigest(secret, email, code), CODE_TTL_SECONDS, RESEND_COOLDOWN_SECONDS, MAX_ATTEMPTS]
       )
       return rows.length === 1 ? Just(code) : Nothing()
     })
@@ -99,7 +113,7 @@ function postgresLoginCodes(postgres: Postgres, mailer: Mailer): LoginCodes {
         const hash = rows[0]?.["code_hash"]
         const attempts = rows[0]?.["attempts"]
         if (typeof hash !== "string" || typeof attempts !== "number" || attempts >= MAX_ATTEMPTS) return false
-        if (!sameDigest(hash, digest(code))) {
+        if (!sameDigest(hash, codeDigest(secret, email, code))) {
           await t.query(`UPDATE ${TABLE} SET attempts = attempts + 1 WHERE email = $1`, [email])
           return false
         }

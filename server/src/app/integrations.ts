@@ -13,7 +13,12 @@ import { type WithEventStore } from "@be/lib/event-sourcing/store"
 import { schemas } from "@be/app/events"
 import { Repositories, initializeRepositories } from "@be/app/projections"
 import { type SessionStore, initializeSessionTable, postgresSessionStore } from "@be/app/session"
-import { type LoginCodes, initializeLoginCodeTable, postgresLoginCodes } from "@be/app/loginCodes"
+import {
+  type LoginCodes,
+  initializeLoginCodeTable,
+  loginCodeSecretFromEnv,
+  postgresLoginCodes,
+} from "@be/app/loginCodes"
 import { mailerFromEnv } from "@be/app/mailer"
 import { type GoogleOidc, googleOidc } from "@lib/google-oidc"
 import { GOOGLE_CALLBACK_PATH } from "@lib/google"
@@ -111,7 +116,7 @@ export function configureDependencies(): Future<Error, Dependencies> {
       withProjectionWriter: onMongo,
       repositories,
       sessions: postgresSessionStore(postgres),
-      loginCodes: postgresLoginCodes(postgres, mailerFromEnv()),
+      loginCodes: postgresLoginCodes(postgres, mailerFromEnv(), loginCodeSecretFromEnv()),
       google: googleOidc({
         clientId: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
