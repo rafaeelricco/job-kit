@@ -77,7 +77,8 @@ EOF
 
 # is_stale_kit_path DEST NAME
 # Exit 0 when DEST is a kit install whose checkout is gone: a symlink, or a
-# copy's .job-kit marker, naming */skill/NAME at a path that no longer exists.
+# copy's .job-kit marker, naming */skill/NAME (either separator, since
+# PowerShell writes Windows paths) at a path that no longer exists.
 # A renamed or moved repo leaves these behind; they refresh, never block.
 is_stale_kit_path() {
   local dest="$1" name="$2" target
@@ -89,7 +90,7 @@ is_stale_kit_path() {
     return 1
   fi
   case "${target}" in
-    */skill/"${name}") [ ! -e "${target}" ] ;;
+    *[/\\]skill[/\\]"${name}") [ ! -e "${target}" ] ;;
     *) return 1 ;;
   esac
 }
