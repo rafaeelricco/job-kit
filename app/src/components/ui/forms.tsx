@@ -61,9 +61,6 @@ import { Label } from "@ui/label"
 import { cn } from "@lib/utils"
 import { search } from "@lib/fuzzy"
 
-const htmlContentStyles =
-  "[&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-primary [&_a]:underline [&_strong]:font-semibold [&_em]:italic [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-medium [&_hr]:my-3 [&_hr]:border-border"
-
 // ============ Type plumbing ================
 type ItemConfig =
   | TextInput
@@ -163,23 +160,29 @@ type HookReturn<T extends FormInputs> = { onSubmit: OnSubmit<T>; fields: FormPro
 
 // ============ Text ================
 type TextInputType = NonNullable<React.ComponentProps<typeof Input>["type"]>
+/** Native attributes passed straight to the `<input>`; autofill hints and length caps the config cannot infer. */
+type TextInputAttrs = Pick<React.ComponentProps<typeof Input>, "autoComplete" | "inputMode" | "maxLength" | "autoFocus">
 
 class TextInput {
   readonly values: {
     label: ReactNode
+    hideLabel?: boolean
     description?: ReactNode
     type: TextInputType
     defaultValue: string
     placeholder?: string
     icon?: IconSvgElement
+    input?: TextInputAttrs
   }
   constructor(values: {
     label: ReactNode
+    hideLabel?: boolean
     description?: ReactNode
     type: TextInputType
     defaultValue: string
     placeholder?: string
     icon?: IconSvgElement
+    input?: TextInputAttrs
   }) {
     this.values = values
   }
@@ -202,9 +205,11 @@ class TextElementConfig {
     value: string
     type: TextInputType
     label: ReactNode
+    hideLabel: boolean
     description: Maybe<ReactNode>
     placeholder: Maybe<string>
     icon: Maybe<IconSvgElement>
+    input: TextInputAttrs
     error: Maybe<string>
     onChange: (value: string) => void
   }
@@ -214,9 +219,11 @@ class TextElementConfig {
     value: string
     type: TextInputType
     label: ReactNode
+    hideLabel: boolean
     description: Maybe<ReactNode>
     placeholder: Maybe<string>
     icon: Maybe<IconSvgElement>
+    input: TextInputAttrs
     error: Maybe<string>
     onChange: (value: string) => void
   }) {
@@ -790,16 +797,18 @@ function buildProps(
 ): ItemProps<ItemConfig> {
   if (config instanceof TextInput) {
     const { value, error } = (state as TextItemState).values
-    const { label, placeholder, type, description, icon } = config.values
+    const { label, hideLabel, placeholder, type, description, icon, input } = config.values
     return new TextElementConfig({
       name,
       id,
       value,
       label,
+      hideLabel: hideLabel ?? false,
       type,
       description: fromOptional(description),
       placeholder: fromOptional(placeholder),
       icon: fromOptional(icon),
+      input: input ?? {},
       error,
       onChange: (text) => setState(new TextItemState({ value: text, error })),
     })
@@ -1080,18 +1089,26 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
 // ============ Shared UI ================
 function FormLabel({
   label,
+  hideLabel = false,
   description,
   children,
   htmlFor,
 }: {
   label: ReactNode
+  hideLabel?: boolean
   htmlFor: string
   description: Maybe<ReactNode>
   children: ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      {typeof label === "string" ? <Label htmlFor={htmlFor}>{label}</Label> : label}
+      {typeof label === "string" ? (
+        <Label htmlFor={htmlFor} className={cn(hideLabel && "sr-only")}>
+          {label}
+        </Label>
+      ) : (
+        label
+      )}
       {description.maybe(null, (d) => (
         <p className="text-sm text-muted-foreground">{d}</p>
       ))}
@@ -1116,7 +1133,8 @@ function FormTextField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, id, value, type, label, description, placeholder, icon, error, onChange } = config.values
+  const { name, id, value, type, label, hideLabel, description, placeholder, icon, input, error, onChange } =
+    config.values
   const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const hasIcon = icon.maybe(false, () => true)
@@ -1125,6 +1143,7 @@ function FormTextField({
 
   const inputEl = (
     <Input
+      {...input}
       id={id}
       name={name}
       value={value}
@@ -1144,7 +1163,7 @@ function FormTextField({
   )
 
   return (
-    <FormLabel htmlFor={id} label={label} description={description}>
+    <FormLabel htmlFor={id} label={label} hideLabel={hideLabel} description={description}>
       {needsWrapper ? (
         <div className="relative">
           {icon.maybe(null, (Icon) => (
@@ -1306,7 +1325,10 @@ function FormRichTextField({
 
   const attributes = {
     id,
-    class: cn("min-h-24 px-3.5 py-3 text-sm outline-none", htmlContentStyles),
+    class: cn(
+      "min-h-24 px-3.5 py-3 text-sm outline-none",
+      "[&_a]:text-primary [&_a]:underline [&_em]:italic [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-medium [&_hr]:my-3 [&_hr]:border-border [&_li]:mb-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+    ),
     "aria-invalid": String(hasError),
     ...(hasError ? { "aria-describedby": errorId } : {}),
   }

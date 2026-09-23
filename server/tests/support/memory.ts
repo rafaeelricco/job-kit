@@ -10,6 +10,7 @@ import {
 } from "@be/lib/event-sourcing/store"
 import { schemas } from "@be/app/events"
 import { type SessionStore } from "@be/app/session"
+import { type LoginCodes } from "@be/app/loginCodes"
 
 /** Exercises the real encoder/hydrator; only persistence is replaced. */
 export class MemoryEventDatabase implements EventStoreDatabase {
@@ -63,4 +64,17 @@ export class MemorySessionStore implements SessionStore {
       this.sessions.delete(token)
       resolve(undefined)
     })
+}
+
+/** An in-memory `LoginCodes`: one live code per address, single-use, with the sent code readable. */
+export class MemoryLoginCodes implements LoginCodes {
+  readonly live = new Map<string, string>()
+  private issued = 0
+  readonly send = (email: string): Future<Error, void> =>
+    Future.create((_, resolve) => {
+      this.live.set(email, String(100000 + ++this.issued))
+      resolve(undefined)
+    })
+  readonly consume = (email: string, code: string): Future<Error, boolean> =>
+    Future.resolve(this.live.get(email) === code && this.live.delete(email))
 }

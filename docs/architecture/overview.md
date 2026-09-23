@@ -11,7 +11,7 @@ This is the selected design, not an implemented platform or a completed provider
 ```mermaid
 flowchart TD
     UI[Existing React web app in app/] --> API[Fastify TypeScript API]
-    Auth[Better Auth: Google OAuth or email OTP] --> API
+    Auth[In-house auth: Google OIDC or email code] --> API
     API --> DB[(PostgreSQL + Drizzle)]
     DB --> Intent[Durable application work intent and outbox]
     Intent --> Dispatch[pg-boss dispatcher]
@@ -26,7 +26,7 @@ flowchart TD
     API --> SMTP[Existing SMTP account for email OTP]
 ```
 
-All product services and durable state run on the owner's VPS. Remote model providers and public job sites are explicit external integrations; no managed auth, database, workflow, browser, or object-storage service is selected. Authentication establishes one private workspace per user. The auth library owns secure identity linking, so Google and email sign-in do not create duplicate candidate accounts through application-level email comparisons.
+All product services and durable state run on the owner's VPS. Remote model providers and public job sites are explicit external integrations; no managed auth, database, workflow, browser, or object-storage service is selected. Authentication establishes one private workspace per user. Verified email is the identity key, so Google and email sign-in resolve to the same user through one verified email and never create duplicate candidate accounts; an unverified email never joins an account.
 
 The API is the authorization and domain boundary. It validates commands, resolves workspace ownership from authenticated context, and returns durable operation IDs. Workers receive bounded, versioned inputs and scoped credentials through server-side adapters; they do not receive database administrator access. Workers persist observations and progress through authorized server contracts. Public discovery uses fresh, isolated browser profiles and never requires a user's computer or logged-in browser.
 
@@ -37,7 +37,7 @@ The API is the authorization and domain boundary. It validates commands, resolve
 | Web              | Existing React/Vite app in `app/`; retain routes, settings, and design system | Replace local data access through adapters as journeys migrate; preserve import/export compatibility                         |
 | API              | Fastify, TypeScript, Zod contracts                                            | Authenticated commands and queries own validation, authorization, and domain transitions                                     |
 | Data             | PostgreSQL with Drizzle                                                       | Business records, selective domain events, operation receipts, and durable dispatch intent share transactions                |
-| Identity         | Better Auth with Google OAuth or passwordless email OTP                       | Pilot access is limited to the approved email list; existing SMTP sends OTP mail                                             |
+| Identity         | In-house auth with Google OAuth or passwordless email codes                   | Any verified email may sign in; existing SMTP sends code mail                                                                |
 | Work             | `pg-boss` on PostgreSQL                                                       | Durable delivery is backed by application intent and receipts that outlive queue retention                                   |
 | Files            | Private persistent VPS volumes and encrypted server-side provider adapters    | Files stay outside the nginx static root and are accessed through authorized API handlers                                    |
 | Public discovery | Python Browser Use worker and dedicated Chrome on the VPS                     | HTTP ATS adapters and public-only browser routes have explicit source support and bounded capacity                           |

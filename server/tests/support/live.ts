@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { randomUUID } from "node:crypto"
+import { randomUUID, randomBytes, createHash } from "node:crypto"
 import { Pool } from "pg"
 import * as s from "@lib/json/schema"
 import { api } from "@be/api"
@@ -147,19 +147,15 @@ export class LiveFixture {
     })
   }
 
-  /** Register a throwaway user and keep its session cookie for every later `post`. */
+  /** Insert a session for a throwaway user straight into `auth_sessions`, and keep its cookie for every later `post`. */
   private async signIn(): Promise<string> {
-    const credentials = JSON.stringify({ email: `live-${randomUUID()}@example.test`, password: randomUUID() })
-    const send = (path: string) =>
-      this.request(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: credentials })
-    const signedUp = await send(api.command.auth_signUp.path)
-    assert.equal(signedUp.status, 200, await signedUp.text())
-    const signedIn = await send(api.command.auth_signIn.path)
-    assert.equal(signedIn.status, 200, await signedIn.text())
-    const cookie = signedIn.headers.get("set-cookie")?.split(";")[0]
-    assert.ok(cookie, "Sign-in must set the session cookie")
-    this.cookie = cookie
-    return cookie
+    const token = randomBytes(32).toString("base64url")
+    await this.pool.query(
+      `INSERT INTO auth_sessions (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval '1 hour')`,
+      [createHash("sha256").update(token).digest("hex"), `live-${randomUUID()}`]
+    )
+    this.cookie = `sid=${token}`
+    return this.cookie
   }
 
   async call<Req, Res>(endpoint: PlainEndpoint<Req, Res>, payload: Req): Promise<Res> {
@@ -243,12 +239,49 @@ export class LiveFixture {
     return noteId
   }
 
-  async history(noteId: Id<"Note">): Promise<EventRow[]> {
+  async history<Tag extends string>(aggregateId: Id<Tag>): Promise<EventRow[]> {
     const rows = await this.pool.query<EventRow>(
       "SELECT event_id, event_name, aggregate_id, aggregate_version, recorded_on::text AS recorded_on, causation_id, correlation_id, payload FROM event_store WHERE aggregate_id = $1 ORDER BY aggregate_version",
-      [noteId.value]
+      [aggregateId.value]
     )
     return rows.rows
+  }
+
+  /** Seeds `auth_login_codes` directly, the way `postgresLoginCodes.send` would, so a test can drive `verify-code` without mail. */
+  async seedLoginCode(email: string, code: string): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO auth_login_codes (email, code_hash, expires_at, sent_at, attempts)
+       VALUES ($1, $2, now() + interval '10 minutes', now(), 0)
+       ON CONFLICT (email) DO UPDATE SET code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at, sent_at = now(), attempts = 0`,
+      [email, createHash("sha256").update(code).digest("hex")]
+    )
+  }
+
+  /** How many live login-code rows exist for `email` — used to assert `request-code` wrote none for an unlisted address. */
+  async countLoginCodes(email: string): Promise<number> {
+    const { rows } = await this.pool.query<{ count: string }>(
+      "SELECT count(*) FROM auth_login_codes WHERE email = $1",
+      [email]
+    )
+    return Number(rows[0]?.count ?? 0)
+  }
+
+  /** The stored code row for `email`, if any, so a test can see whether `request-code` replaced it. */
+  async loginCode(email: string): Promise<{ codeHash: string; attempts: number } | undefined> {
+    const { rows } = await this.pool.query<{ code_hash: string; attempts: number }>(
+      "SELECT code_hash, attempts FROM auth_login_codes WHERE email = $1",
+      [email]
+    )
+    const row = rows[0]
+    return row === undefined ? undefined : { codeHash: row.code_hash, attempts: row.attempts }
+  }
+
+  /** Move `email`'s code back past the resend cooldown and, when `expired`, past its expiry too. */
+  async ageLoginCode(email: string, { expired }: { expired: boolean }): Promise<void> {
+    await this.pool.query(
+      `UPDATE auth_login_codes SET sent_at = now() - interval '1 minute'${expired ? ", expires_at = now() - interval '1 second'" : ""} WHERE email = $1`,
+      [email]
+    )
   }
 
   async deliver(row: EventRow): Promise<void> {

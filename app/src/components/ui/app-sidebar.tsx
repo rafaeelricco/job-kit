@@ -44,9 +44,6 @@ import {
   useSidebar,
 } from "@ui/sidebar"
 
-// Rows are 32px tall with a 14px label at --ink-body; the active row sits at --ink-strong over an 8% fill.
-const ITEM = "h-8 gap-2 rounded-[6px] px-2 text-sm font-normal text-ink-body data-active:text-ink-strong"
-
 // A one-word name has no second initial to take, so it falls back to its first
 // two letters rather than rendering a lonely "S".
 function initialsOf(name: string): string {
@@ -107,10 +104,11 @@ function AppSidebar() {
             <SidebarMenu>
               {MAIN.map((item) => (
                 <SidebarMenuItem key={item.label}>
+                  {/* Rows are 32px tall with a 14px label at --ink-body; the active row sits at --ink-strong over an 8% fill. */}
                   <SidebarMenuButton
                     isActive={pathname === item.to}
                     tooltip={item.label}
-                    className={ITEM}
+                    className="h-8 gap-2 rounded-[6px] px-2 text-sm font-normal text-ink-body data-active:text-ink-strong"
                     render={<NavLink to={item.to} />}
                   >
                     <HugeiconsIcon icon={item.Icon} aria-hidden="true" />

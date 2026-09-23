@@ -6,6 +6,7 @@ import { WithEventStore } from "@be/lib/event-sourcing/store"
 import { type Actor } from "@be/app/actor"
 import { type AuthGuard, type AuthGuardResult } from "@be/app/auth/policy"
 import { type Session } from "@be/app/session"
+import { type LoginCodes } from "@be/app/loginCodes"
 
 /** What the guard's allow branch proved — the handler's `auth`. */
 type Allowed<Result extends AuthGuardResult> = Extract<Result, { result: "allow" }>
@@ -25,6 +26,7 @@ export type CommandHandler<Req, Res, Result extends AuthGuardResult = AuthGuardR
   actor: Actor
   auth: Allowed<Result>
   session: Session
+  loginCodes: LoginCodes
   withEventStore: WithEventStore
 }) => Future<Response, Res>
 

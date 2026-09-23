@@ -4,7 +4,7 @@ Status: proposed · Updated: 2026-09-21 · Implementation: not implemented
 
 ## Authority and identity
 
-Each authenticated user receives one private [workspace](../domain/workspace.md), containing that user's [Candidate](../domain/candidate.md), provider connections, dossiers, and settings. Better Auth owns Google OAuth and passwordless email OTP identities and sessions. The pilot admits only an approved email list; the API enforces that list at sign-in/provisioning. The existing SMTP account delivers email OTPs. The library's supported linking flow is authoritative: the application never merges users by comparing email strings.
+Each authenticated user receives one private [workspace](../domain/workspace.md), containing that user's [Candidate](../domain/candidate.md), provider connections, dossiers, and settings. In-house server auth owns Google OAuth and passwordless email code identities and sessions. Any verified email may sign in and provision a workspace. The existing SMTP account delivers email codes. Verified email is authoritative: an unverified email never joins an existing user.
 
 Resolve the internal user and workspace from authenticated server context. Neither request-supplied workspace IDs nor model output establish ownership. Provision workspaces idempotently and scope records, object references, operations, and queries by workspace. Every API and worker command must recheck authorization at the server boundary. Database roles and service credentials remain private to services; the browser never receives database credentials.
 

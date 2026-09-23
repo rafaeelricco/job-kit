@@ -457,12 +457,9 @@ function HeaderChips({ dossier }: { readonly dossier: Dossier }) {
 // One shared look for "the profile holds this", so the Stack chip and the
 // Must have counter cannot drift apart. A plain ✓ rather than a lucide icon:
 // the stroked glyph reads heavier than the rest of the chip text.
-const HELD_CHIP = "border-ok/45 text-ok"
-const UNHELD_CHIP = "text-muted-foreground opacity-70"
-
 function HeldBadge({ children, className }: { readonly children: ReactNode; readonly className?: string }) {
   return (
-    <Badge variant="outline" className={cn(HELD_CHIP, className)}>
+    <Badge variant="outline" className={cn("border-ok/45 text-ok", className)}>
       ✓ {children}
     </Badge>
   )
@@ -479,7 +476,7 @@ function StackChips({ value, skills }: { readonly value: FactValue; readonly ski
         skills.length > 0 && holdsSkill(skills, skill) ? (
           <HeldBadge key={skill}>{skill}</HeldBadge>
         ) : (
-          <Badge key={skill} variant="outline" className={UNHELD_CHIP}>
+          <Badge key={skill} variant="outline" className="text-muted-foreground opacity-70">
             {skill}
           </Badge>
         )

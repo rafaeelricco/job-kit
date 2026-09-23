@@ -20,7 +20,7 @@ A candidate is the user's profile inside their [Workspace](workspace.md). Google
 
 ## Rules
 
-- One candidate per authenticated user ID. Google and email OTP sign-in methods resolve through the authentication service to the same user identity; email comparison never merges accounts.
+- One candidate per authenticated user ID. Google and email-code sign-in resolve to the same user through one verified email; an unverified email never joins an account.
 - A generated claim never becomes a confirmed fact by itself. The user confirms it, and the confirmation records who and from what source.
 - Each confirmed profile publication is an immutable whole-profile snapshot. An evaluation or package keeps the snapshot it was built from.
 - Confirmed changes publish a new immutable whole-profile snapshot and automatically request reassessment of affected current matches; old assessments and history remain intact.

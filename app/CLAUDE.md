@@ -8,7 +8,8 @@ Rules a reviewer can check on a diff. Rationale and examples for most live in `C
 - Fallible operations return `Result`. `throw` only for programmer errors and platform boundaries (`JSON.parse`, File System Access, `fetch`).
 - Async UI state is `RemoteData`; related state is one union, not loose `isLoading`/`isError` flags.
 - Dossier strings read from `scout/jobs/` (`FRONTMATTER_KEYS`, `REQUIRED_SECTIONS`, `OWNERSHIP_MARKER` in `src/module/scout/parse-dossier.ts`) stay verbatim, snake case included.
-- Cross-folder imports use the `@components`, `@hooks`, `@lib`, `@module`, `@pages`, `@ui` aliases, not `../../` paths.
+- Cross-folder imports use the `@api`, `@components`, `@hooks`, `@lib`, `@module`, `@pages`, `@ui` aliases, not `../../` paths.
+- Server endpoints are reached through `api` from `@api/endpoints` and `call` from `@api/request`, never imported from `@be/domain/*` directly.
 
 ## UI
 

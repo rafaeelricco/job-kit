@@ -6,8 +6,8 @@ import { handleQuery } from "@be/app/handleQuery"
 import { handleProjection } from "@be/app/handleProjection"
 import { defineAPI, Implementation } from "@be/lib/event-sourcing/server"
 import { EventBusAuthMiddleware } from "@be/lib/event-delivery"
-import { controller as auth_signUp } from "@be/domain/auth/command/signUp"
-import { controller as auth_signIn } from "@be/domain/auth/command/signIn"
+import { controller as auth_requestCode } from "@be/domain/auth/command/requestCode"
+import { controller as auth_verifyCode } from "@be/domain/auth/command/verifyCode"
 import { controller as auth_signOut } from "@be/domain/auth/command/signOut"
 import { controller as auth_query_whoAmI } from "@be/domain/auth/query/whoAmI"
 import { controller as note_createNote } from "@be/domain/note/command/createNote"
@@ -17,12 +17,21 @@ import { controller as note_query_note } from "@be/domain/note/query/getNote"
 import { controller as note_query_notes } from "@be/domain/note/query/listNotes"
 import { controller as notesProjection } from "@be/domain/note/projection/notes"
 import { createEngineProxy } from "@be/app/engine"
+import {
+  GOOGLE_START_PATH,
+  GOOGLE_CALLBACK_PATH,
+  startGoogleSignIn,
+  finishGoogleSignIn,
+  GOOGLE_COOKIE,
+  clearGoogleCookie,
+} from "@lib/google"
+import { Session, sessionToken, readCookie } from "@be/app/session"
 
 import express from "express"
 import env from "@be/app/environment"
 
 const implementation: Implementation<typeof api> = {
-  command: { auth_signUp, auth_signIn, auth_signOut, note_createNote, note_updateNote, note_deleteNote },
+  command: { auth_requestCode, auth_verifyCode, auth_signOut, note_createNote, note_updateNote, note_deleteNote },
   query: { auth_query_whoAmI, note_query_note, note_query_notes },
 }
 
@@ -68,13 +77,45 @@ function mountApi(app: express.Express, dependencies: Dependencies): void {
     api,
     implementation,
     (endpoint, controller) =>
-      app.post(endpoint.path, handleCommand(dependencies.withEventStore, dependencies.sessions, controller)),
+      app.post(
+        endpoint.path,
+        handleCommand(dependencies.withEventStore, dependencies.sessions, dependencies.loginCodes, controller)
+      ),
     (endpoint, controller) =>
       app.post(
         endpoint.path,
         handleQuery(dependencies.withProjectionReader, dependencies.repositories, dependencies.sessions, controller)
       )
   )
+}
+
+/** Google sign-in is two browser navigations, so these are GET redirects outside `mountApi`. */
+function mountGoogleSignIn(app: express.Express, dependencies: Dependencies): void {
+  app.get(GOOGLE_START_PATH, (req, res) => {
+    const returnTo = typeof req.query["returnTo"] === "string" ? req.query["returnTo"] : "/"
+    const { location, cookies } = startGoogleSignIn(dependencies.google, env.APP_URL, returnTo)
+    cookies.forEach((cookie) => res.append("Set-Cookie", cookie))
+    res.redirect(location)
+  })
+  app.get(GOOGLE_CALLBACK_PATH, (req, res) => {
+    const session = new Session(dependencies.sessions, sessionToken(req))
+    finishGoogleSignIn({
+      query: req.query,
+      pending: readCookie(req, GOOGLE_COOKIE),
+      oidc: dependencies.google,
+      base: env.APP_URL,
+      session,
+      withEventStore: dependencies.withEventStore,
+    }).fork(
+      () => {},
+      (location) => {
+        res.append("Set-Cookie", clearGoogleCookie)
+        const sid = session.headers["Set-Cookie"]
+        if (sid !== undefined) res.append("Set-Cookie", sid)
+        res.redirect(location)
+      }
+    )
+  })
 }
 
 /**
@@ -92,6 +133,7 @@ function createApp(dependencies: Dependencies): express.Express {
   mountProjection(app, dependencies)
   app.use(express.json())
   mountApi(app, dependencies)
+  mountGoogleSignIn(app, dependencies)
   app.get("/docker_healthcheck", (_req, res) => res.send("OK"))
   app.use(notFound)
   app.use(errorHandler)

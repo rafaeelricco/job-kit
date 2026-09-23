@@ -31,7 +31,6 @@ class UserRegistered extends CreationEvent<User> {
       aggregateId: this.values.aggregateId,
       aggregateVersion: 0,
       email: this.values.email,
-      passwordHash: this.values.passwordHash,
       createdAt: info.recorded_on,
     })
   }

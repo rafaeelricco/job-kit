@@ -13,7 +13,7 @@ Run the product services on the owner's VPS using Docker Compose. The selected s
 
 - Fastify and TypeScript for the authenticated API and server workers.
 - PostgreSQL with Drizzle for domain records, selective event history, operation receipts, and durable work intent.
-- Better Auth for Google OAuth or passwordless email OTP; use the existing SMTP account to send OTPs and limit pilot access to the approved email list. Do not enable passwords. Auth-library identity linking owns account association; the application does not merge users by email-string comparison.
+- In-house server auth for Google OAuth or passwordless email codes; use the existing SMTP account to send codes. Sign-in is open to any verified email. Do not enable passwords. A user is keyed by verified email (emailed code or Google's email_verified); unverified emails never join an account.
 - `pg-boss` for queue delivery, with durable application intent and operation/effect receipts that prevent redelivery from creating duplicate logical work. Queue retention is not the permanent idempotency record.
 - Private persistent volumes outside nginx's static root. Access files through authorized server handlers that verify workspace ownership. Provider adapters encrypt credentials and tokens before database persistence and decrypt only for authorized provider operations.
 - The Python Browser Use worker and dedicated Chrome runtime selected by [Decision 0006](0006-self-hosted-discovery-browser.md).

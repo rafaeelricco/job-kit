@@ -1,8 +1,8 @@
 import { expect, test, vi } from "vitest"
 import { defineAPI } from "@lib/event-sourcing/server"
 import { api } from "@be/api"
-import { controller as auth_signUp } from "@be/domain/auth/command/signUp"
-import { controller as auth_signIn } from "@be/domain/auth/command/signIn"
+import { controller as auth_requestCode } from "@be/domain/auth/command/requestCode"
+import { controller as auth_verifyCode } from "@be/domain/auth/command/verifyCode"
 import { controller as auth_signOut } from "@be/domain/auth/command/signOut"
 import { controller as auth_query_whoAmI } from "@be/domain/auth/query/whoAmI"
 import { controller as create } from "@be/domain/note/command/createNote"
@@ -23,8 +23,8 @@ test("registers every command and query with its matching controller", () => {
   const query = vi.fn()
   const impl = {
     command: {
-      auth_signUp,
-      auth_signIn,
+      auth_requestCode,
+      auth_verifyCode,
       auth_signOut,
       note_createNote: create,
       note_updateNote: update,
@@ -34,8 +34,8 @@ test("registers every command and query with its matching controller", () => {
   }
   defineAPI(api, impl, command, query)
   expect(command.mock.calls).toEqual([
-    [api.command.auth_signUp, auth_signUp],
-    [api.command.auth_signIn, auth_signIn],
+    [api.command.auth_requestCode, auth_requestCode],
+    [api.command.auth_verifyCode, auth_verifyCode],
     [api.command.auth_signOut, auth_signOut],
     [api.command.note_createNote, create],
     [api.command.note_updateNote, update],

@@ -8,7 +8,7 @@ Seeded working draft. This is a discussion document, not an implemented API or f
 
 ## Purpose
 
-Workspace delimits one user's private space. Each authenticated user has one workspace, whether they sign in with Google or email OTP. Better Auth owns identity linking; the application never merges accounts by comparing email strings. The approved-email pilot controls who may sign up.
+Workspace delimits one user's private space. Each authenticated user has one workspace, whether they sign in with Google or email codes. Verified email is the identity key; an unverified email never joins an account. Any verified email may sign up.
 
 ## Owns
 
@@ -20,7 +20,7 @@ Workspace delimits one user's private space. Each authenticated user has one wor
 ## Rules
 
 - Workspace scope comes from server-validated authenticated context. A model or browser worker cannot choose its own workspace.
-- Google and email OTP are sign-in methods for one user identity/workspace. Better Auth owns secure linking; the application never merges accounts by email comparison. Resource grants remain separate from sign-in.
+- Google and email codes are sign-in methods for one user identity/workspace. Verified email is the identity key; an unverified email never joins an account. Resource grants remain separate from sign-in.
 - Authority is rechecked before each external action. Revocation stops future work; it cannot undo an action already issued.
 - Tokens, keys and personal content stay out of permanent events and logs.
 - TypeSafe's platform-funded key [Evaluation](evaluation.md) uses is not a workspace record. All other AI credentials are user-funded workspace connections.

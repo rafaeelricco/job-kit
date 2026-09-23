@@ -3,15 +3,11 @@ export { type Command, type CommandResponse, endpoint }
 import * as s from "@lib/json/schema"
 
 import { PlainEndpoint } from "@be/app/endpoint"
-import { Id } from "@be/lib/event-sourcing/event"
 
 const endpoint = new PlainEndpoint({
-  path: "/api/v1/auth/command/sign-in",
-  request: s.object({
-    email: s.string,
-    password: s.string,
-  }),
-  response: s.object({ userId: Id.schema<"User">() }),
+  path: "/api/v1/auth/command/request-code",
+  request: s.object({ email: s.string }),
+  response: s.object({}),
 })
 
 type Command = s.Infer<typeof endpoint.request>

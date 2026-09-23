@@ -34,6 +34,38 @@ Is it alive?
 curl --fail http://localhost:3010/docker_healthcheck
 ```
 
+## Set up sign-in
+
+Sign-in works with an email code or a Google account. Both read their
+settings from `development/.env`. Start from the example:
+
+```bash
+cp development/.env.example development/.env
+```
+
+| Variable                                   | What it does                                                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `SMTP_URL`, `MAIL_FROM`                    | Where login codes are sent. With `SMTP_URL` empty, the code is printed in the API log instead. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | The Google OAuth client. Leave both empty and the Google button reports that it is not set up. |
+| `APP_URL`                                  | Where the app runs. Google sends people back to this address.                                  |
+
+To see a login code when `SMTP_URL` is empty:
+
+```bash
+docker compose -f development/docker-compose.yml logs -f api | grep -A3 '\[mail\]'
+```
+
+To turn on Google sign-in:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   create an **OAuth client ID** of type **Web application**.
+2. Add this **Authorized redirect URI**. It is the origin of `APP_URL` plus the
+   callback path, so change it if you change `APP_URL`:
+   `http://localhost:5173/api/v1/auth/google/callback`
+3. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` in `development/.env`.
+4. Run `pnpm run up` again so the API picks up the new values.
+
 ## Stop it
 
 ```bash

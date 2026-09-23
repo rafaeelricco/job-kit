@@ -7,7 +7,6 @@ type UserValues = {
   readonly aggregateId: Id<"User">
   readonly aggregateVersion: number
   readonly email: string
-  readonly passwordHash: string
   readonly createdAt: POSIX
 }
 

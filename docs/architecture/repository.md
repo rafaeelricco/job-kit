@@ -15,7 +15,7 @@ packages/
   domain/               Workspace, candidate, discovery, evaluation, and dossiers
   application/          Commands, policies, use cases, and authorized ports
   persistence/           PostgreSQL/Drizzle repositories, events, receipts, intent
-  providers/             Better Auth and encrypted AI provider adapters
+  providers/             Google OIDC and encrypted AI provider adapters
   sources/               Supported public job-source HTTP adapters
 skill/                  Existing skill authoring and distribution source
 ```
