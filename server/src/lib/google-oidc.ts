@@ -1,4 +1,5 @@
-export { type GoogleOidc, type TokenPayload, googleOidc }
+export { type GoogleOidc, googleOidc }
+export type { TokenPayload } from "google-auth-library"
 
 import { CodeChallengeMethod, OAuth2Client, type TokenPayload } from "google-auth-library"
 import { createHash } from "node:crypto"
