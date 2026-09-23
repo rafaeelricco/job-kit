@@ -34,7 +34,8 @@ function googleOidc(config: {
     transporterOptions: { fetchImplementation: config.fetch ?? fetch },
   })
   return {
-    configured: config.clientId !== "",
+    // A Web application client can't exchange a code without its secret, so an id alone is not set up.
+    configured: config.clientId !== "" && config.clientSecret !== "",
     authorizationUrl: ({ state, nonce, verifier }) =>
       client.generateAuthUrl({
         scope: "openid email",

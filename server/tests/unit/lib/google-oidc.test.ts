@@ -44,6 +44,20 @@ const logged = () => JSON.stringify(vi.mocked(console.error).mock.calls)
 beforeEach(() => void vi.spyOn(console, "error").mockImplementation(() => {}))
 afterEach(() => void vi.restoreAllMocks())
 
+describe("googleOidc.configured", () => {
+  test.each([
+    ["an id and a secret", true, CLIENT_ID, "secret"],
+    ["an id without a secret", false, CLIENT_ID, ""],
+    ["a secret without an id", false, "", "secret"],
+    ["neither", false, "", ""],
+  ])("with %s is %s", (_, configured, clientId, clientSecret) => {
+    assert.equal(
+      googleOidc({ clientId, clientSecret, redirectUri: "http://localhost/callback" }).configured,
+      configured
+    )
+  })
+})
+
 describe("googleOidc.exchange", () => {
   test("returns the verified claims, sending the PKCE verifier", async () => {
     const fetch = fakeGoogle({ id_token: idToken(valid) })
