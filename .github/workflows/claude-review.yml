@@ -42,6 +42,10 @@ jobs:
       # Claude runs, since those commands execute PR code. It also forces the
       # default permission mode, so access comes from --allowedTools below.
       CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: "1"
+      # The action stops at Claude's first result message, abandoning any
+      # subagent still running in the background: PR #153 posted nothing and
+      # PR #152 posted a summary before its finders returned. Foreground only.
+      CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1"
     steps:
       # issue_comment runs with secrets even on fork PRs; refuse them before any
       # PR code is checked out.
@@ -62,27 +66,15 @@ jobs:
           ref: refs/pull/${{ env.PR_NUMBER }}/head
           fetch-depth: 1
 
-      # Provers run the repo's checks and throwaway tests, so the toolchain from
-      # server-ci.yml is installed up front. The app builds on Node 22 too.
+      # Provers run the repo's checks and throwaway tests with the toolchain from
+      # server-ci.yml. The app builds on Node 22 too. pr-review installs
+      # dependencies into its own review tree, so none are installed here.
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            server/pnpm-lock.yaml
-            app/pnpm-lock.yaml
-      # --ignore-scripts and --ignore-pnpmfile: PR lifecycle hooks and a PR's
-      # .pnpmfile.cjs would run here with the job's OIDC variables, before the
-      # action's secret scrub applies.
-      - name: Install root, server, and app dependencies
-        run: |
-          pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
-          pnpm --dir server install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
-          pnpm --dir app install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
 
       # The subprocess secret scrub needs bubblewrap, which the action installs
       # only for allowed_non_write_users. Same setup as its own step.
