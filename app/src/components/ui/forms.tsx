@@ -129,7 +129,12 @@ type FormConfig<T extends FormInputs> = {
 
 type SubmitEventListener = (e?: { preventDefault(): void }) => Promise<void>
 type OnSubmit<T extends FormInputs> = (f: (v: FormOutputs<T>) => void | Promise<void>) => SubmitEventListener
-type HookReturn<T extends FormInputs> = { onSubmit: OnSubmit<T>; fields: FormProps<T> }
+type HookReturn<T extends FormInputs> = {
+  onSubmit: OnSubmit<T>
+  fields: FormProps<T>
+  values: FormOutputs<T>
+  reset: () => void
+}
 
 // ============ Text ================
 type TextInputType = NonNullable<React.ComponentProps<typeof Input>["type"]>
@@ -976,7 +981,7 @@ function getValues<T extends FormInputs>(state: FormState<T>): FormOutputs<T> {
 function updateErrors<T extends FormInputs>(errs: FormErrors<T>, state: FormState<T>): FormState<T> {
   const result: Record<string, unknown> = {}
   for (const key of Object.keys(state)) {
-    result[key] = withError(fromNullable(errs[key]!), state[key]! as ItemState<ItemConfig>)
+    result[key] = withError(fromNullable(errs[key] ?? null), state[key]! as ItemState<ItemConfig>)
   }
   return result as FormState<T>
 }
@@ -1045,10 +1050,11 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
     })
   }
 
+  const values = getValues(effective)
+
   const onSubmit: OnSubmit<T> = (f) => async (e) => {
     e?.preventDefault()
     setValidateOnChange(true)
-    const values = getValues(effective)
     const errors = validate(values)
     setState((s) => updateErrors(errors, s))
     if (Object.values(errors).every((v) => v === null)) {
@@ -1056,7 +1062,13 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
     }
   }
 
-  return { onSubmit, fields: props as FormProps<T> }
+  const reset = (): void => {
+    setState(initial)
+    setTouched(new Set())
+    setValidateOnChange(false)
+  }
+
+  return { onSubmit, fields: props as FormProps<T>, values, reset }
 }
 
 // ============ Shared UI ================
