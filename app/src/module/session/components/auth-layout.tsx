@@ -2,14 +2,14 @@ export { AuthLayout }
 
 import { type ReactNode } from "react"
 import { Link } from "react-router-dom"
-import { PixelField } from "@module/session/components/pixel-field"
+import { AsciiMascot } from "@module/session/components/ascii-mascot"
 
-/** Sign-in chrome: the pixel field from md up, the brand heading above `children`, the legal links below. */
+/** Sign-in chrome: the ASCII mascot panel from md up, the brand heading above `children`, the legal links below. */
 function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main className="grid min-h-dvh w-full bg-background md:grid-cols-2">
-      <PixelField className="hidden md:sticky md:top-0 md:block md:h-dvh" />
-      <div className="flex min-w-0 flex-col pt-10">
+      <AsciiMascot className="hidden md:sticky md:top-0 md:block md:h-dvh" />
+      <div className="flex min-w-0 flex-col border-divider pt-10 md:border-l-[0.5px]">
         <div className="flex flex-1 flex-col items-center justify-center p-8 pb-16 lg:p-16">
           <div className="flex w-full max-w-sm min-w-0 flex-col items-start gap-8">
             <header className="w-full space-y-4">
