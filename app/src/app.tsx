@@ -2,14 +2,8 @@ export { App }
 
 import { lazy, Suspense, useEffect, useState } from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { Failed, Loading, NotAsked } from "@lib/remote-data"
-import {
-  ANONYMOUS,
-  getSession,
-  reloadSession,
-  subscribeToSessionUpdates,
-  type SessionInfo,
-} from "@module/session/session"
+import { Just } from "@lib/maybe"
+import { initialSession, reloadSession, subscribeToSessionUpdates, type Session } from "@module/session/session"
 import { ProtectedRoute } from "@module/session/components/protected-route"
 import { AppLayout } from "@components/ui/app-layout"
 
@@ -45,22 +39,18 @@ function WorkspaceRoutes() {
 }
 
 /**
- * The app's root: the one owner of `SessionInfo`, handed to routes as a prop.
+ * The app's root: the one owner of `Session`, handed to routes as a prop.
  * A cached user renders at once while `whoAmI` revalidates in the background.
  */
 function App() {
-  const [session, setSession] = useState<SessionInfo>(() => ({
-    current: getSession().withDefault(ANONYMOUS),
-    next: Loading(),
-  }))
+  const [session, setSession] = useState<Session>(initialSession)
 
   useEffect(() => {
     // Every write (reload, sign-in, sign-out, another tab) lands here, so the reload's success needs no handler.
-    const unsubscribe = subscribeToSessionUpdates((m) =>
-      setSession({ current: m.withDefault(ANONYMOUS), next: NotAsked() })
-    )
+    const unsubscribe = subscribeToSessionUpdates(setSession)
     const cancel = reloadSession().fork(
-      (error) => setSession((prev) => ({ current: prev.current, next: Failed(error) })),
+      // A cached user stays signed in when the server can't be reached.
+      (error) => setSession((prev) => (prev.type === "SignedIn" ? prev : { type: "SignedOut", error: Just(error) })),
       () => {}
     )
     return () => {

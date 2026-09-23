@@ -6,8 +6,9 @@ import { toast } from "sonner"
 import { type Cancel } from "@lib/future"
 import { cn } from "@lib/utils"
 import { Failed, Loading, NotAsked, type RemoteData } from "@lib/remote-data"
+import { Just, Nothing, type Maybe } from "@lib/maybe"
 import { fetchErrorToString, type FetchError } from "@api/request"
-import { googleSignInHref, requestCode, verifyCode, type SessionInfo } from "@module/session/session"
+import { googleSignInHref, requestCode, verifyCode, type Session } from "@module/session/session"
 import { returnTo } from "@module/session/helpers/return-to"
 import { AuthLayout } from "@module/session/components/auth-layout"
 import { Alert, AlertDescription } from "@ui/alert"
@@ -18,56 +19,58 @@ import { Separator } from "@ui/separator"
 /** Where the email flow is: asking for a code (prefilled with `email` after "Change email"), or entering the one sent to `email`. */
 type Step = { type: "email"; email: string } | { type: "code"; email: string }
 
-/** What `/sign-in` shows for each `?error=` the server's Google callback lands on. */
-const googleSignInMessages = {
-  cancelled: "Google sign-in was cancelled. Try again, or use an email code.",
-  failed: "Google sign-in didn't finish. Try again.",
-  unavailable: "Google sign-in isn't set up on this server yet. Use an email code.",
-}
+/** The `?error=` values the server's Google callback lands on `/sign-in` with; mirrors `GoogleSignInError` in server/src/lib/google.ts. */
+type GoogleError = "cancelled" | "failed" | "unavailable"
 
-function SignInPage({ session }: { session: SessionInfo }) {
+function SignInPage({ session }: { session: Session }) {
   const location = useLocation()
 
-  if (session.current.type !== "User" && session.next instanceof Loading) {
-    return (
+  return (
+    // Sign-in success lands on SignedIn too: setSession broadcasts, App re-renders, this redirects.
+    session.type === "SignedIn" ? <Navigate to={returnTo(location.state)} replace />
+    : session.type === "Checking" ?
       <AuthLayout>
         <p className="text-sm text-muted-foreground">Checking your session…</p>
       </AuthLayout>
-    )
-  }
-
-  if (session.current.type === "User") {
-    // Sign-in success lands here too: setSession broadcasts, App re-renders, this redirects.
-    return <Navigate to={returnTo(location.state)} replace />
-  }
-
-  return <SignInForm session={session} />
+    : session.type === "SignedOut" ? <SignInForm sessionError={session.error} />
+    : (session satisfies never)
+  )
 }
 
 /** Google, or an email code: `step` tracks which half of the email flow is on screen. */
-function SignInForm({ session }: { session: SessionInfo }) {
+function SignInForm({ sessionError }: { sessionError: Maybe<FetchError> }) {
   const location = useLocation()
 
   const [params] = useSearchParams()
   const [step, setStep] = useState<Step>({ type: "email", email: "" })
 
-  const googleError = Object.entries(googleSignInMessages).find(([error]) => error === params.get("error"))?.[1]
+  const error = params.get("error")
+  const googleError: Maybe<GoogleError> =
+    error === "cancelled" || error === "failed" || error === "unavailable" ? Just(error) : Nothing()
 
   return (
     <AuthLayout>
       <>
-        {session.next instanceof Failed && (
+        {sessionError instanceof Just ?
           <Alert variant="destructive">
-            <AlertDescription>{fetchErrorToString(session.next.error)}</AlertDescription>
+            <AlertDescription>{fetchErrorToString(sessionError.value)}</AlertDescription>
           </Alert>
-        )}
-        {googleError !== undefined && step.type === "email" && (
+        : null}
+        {googleError instanceof Just && step.type === "email" ?
           <Alert variant="destructive">
-            <AlertDescription>{googleError}</AlertDescription>
+            <AlertDescription>
+              {googleError.value === "cancelled" ?
+                "Google sign-in was cancelled. Try again, or use an email code."
+              : googleError.value === "failed" ?
+                "Google sign-in didn't finish. Try again."
+              : googleError.value === "unavailable" ?
+                "Google sign-in isn't set up on this server yet. Use an email code."
+              : (googleError.value satisfies never)}
+            </AlertDescription>
           </Alert>
-        )}
+        : null}
 
-        {step.type === "email" ? (
+        {step.type === "email" ?
           <div className="flex w-full min-w-0 flex-col gap-4">
             {/* Reference control height (40px) on this page only; the app's default stays h-9. */}
             <a
@@ -87,9 +90,9 @@ function SignInForm({ session }: { session: SessionInfo }) {
             </div>
             <EmailForm defaultEmail={step.email} onSent={(email) => setStep({ type: "code", email })} />
           </div>
-        ) : (
+        : step.type === "code" ?
           <CodeForm email={step.email} onChangeEmail={() => setStep({ type: "email", email: step.email })} />
-        )}
+        : (step satisfies never)}
       </>
     </AuthLayout>
   )
@@ -114,11 +117,9 @@ function EmailForm({ defaultEmail, onSent }: { defaultEmail: string; onSent: (em
     },
     validate: (values) => ({
       email:
-        values.email.trim() === ""
-          ? "Enter your email address."
-          : !values.email.includes("@")
-            ? "Enter a valid email address."
-            : null,
+        values.email.trim() === "" ? "Enter your email address."
+        : !values.email.includes("@") ? "Enter a valid email address."
+        : null,
     }),
   })
 
@@ -141,11 +142,11 @@ function EmailForm({ defaultEmail, onSent }: { defaultEmail: string; onSent: (em
       className="flex flex-col gap-4"
     >
       <FormInput config={fields.email} className="h-10" disabled={submit.isLoading} />
-      {submit instanceof Failed && (
+      {submit instanceof Failed ?
         <Alert variant="destructive">
           <AlertDescription>{fetchErrorToString(submit.error)}</AlertDescription>
         </Alert>
-      )}
+      : null}
       <Button type="submit" className="h-10 w-full px-6" disabled={submit.isLoading}>
         Send code
       </Button>
@@ -215,11 +216,11 @@ function CodeForm({ email, onChangeEmail }: { email: string; onChangeEmail: () =
         A 6-digit code is on its way to <span className="font-mono text-xs">{email}</span>. It expires in 10 minutes.
       </p>
       <FormInput config={fields.code} className="h-10 font-mono tracking-[0.3em]" disabled={submit.isLoading} />
-      {submit instanceof Failed && (
+      {submit instanceof Failed ?
         <Alert variant="destructive">
           <AlertDescription>{fetchErrorToString(submit.error)}</AlertDescription>
         </Alert>
-      )}
+      : null}
       <Button type="submit" className="h-10 w-full px-6" disabled={submit.isLoading}>
         Verify code
       </Button>
