@@ -241,13 +241,13 @@ Per-endpoint idempotency is automatic; semantic idempotency is the reaction's jo
 
 - **Marker event, state check first.** Emit `<Marker>` (for example `ApplicationNudgeSent`) after the effect, and have the handler `store.try_find` the aggregate and skip when its state already shows the marker. This is the default for effects a human would notice twice.
 - **Inherently idempotent effect.** The effect dedupes itself: a provider idempotency key derived from `info.event_id`, an upsert, a deterministic object key. No marker is needed for safety, but you can still emit one for the domain record.
-- **Deterministic marker id.** Derive the marker's event id from the trigger and check it inside the same event-store flow, before doing anything:
+- **Deterministic marker id.** Derive the marker's event id from the triggering event's `info.event_id` and check it inside the same event-store flow, before doing anything:
 
 ```ts
 withEventStore(
   (err): AmbarResponse => new ErrorMustRetry(err.message),
   function* (store) {
-    const markerId = Id.deterministicForEvent(<Marker>, event.values.aggregateId.value).unwrap((message) => message)
+    const markerId = Id.deterministicForEvent(<Marker>, info.event_id.value).unwrap((message) => message)
     if (yield* store.doesEventAlreadyExist(markerId)) return
 
     yield* store.emit({
@@ -259,7 +259,7 @@ withEventStore(
 )
 ```
 
-`Id.deterministicForEvent` (`server/src/lib/event-sourcing/event.ts:51`) returns a `Result`, so unwrap it like `deterministicForAggregate`. `emit` accepts an explicit `event_id` (`EmitArgs`, `server/src/lib/event-sourcing/store.ts:558-561`), and `store.doesEventAlreadyExist` (`store.ts:615`) reads it back. Use this form when the effect is itself an event-store write (a follow-up event). For an external effect, check the marker, perform the effect outside the generator, then emit the marker. A crash between the effect and the marker repeats the effect once, so the effect must still tolerate a duplicate.
+Seed with the trigger's event id, not the aggregate id: an aggregate id gives every trigger on that aggregate the same marker id, so the first marker suppresses every later legitimate effect. `Id.deterministicForEvent` (`server/src/lib/event-sourcing/event.ts:51`) returns a `Result`, so unwrap it like `deterministicForAggregate`. `emit` accepts an explicit `event_id` (`EmitArgs`, `server/src/lib/event-sourcing/store.ts:558-561`), and `store.doesEventAlreadyExist` (`store.ts:615`) reads it back. Use this form when the effect is itself an event-store write (a follow-up event). For an external effect, check the marker, perform the effect outside the generator, then emit the marker. A crash between the effect and the marker repeats the effect once, so the effect must still tolerate a duplicate.
 
 ### Reaction registration
 
