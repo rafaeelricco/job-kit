@@ -118,16 +118,26 @@ and functions, and 70% branches.
 Everything is a `POST` with JSON. Notes need a signed-in session; curl keeps
 the session cookie in `cookies.txt`.
 
-Create an account and sign in:
+Sign in with an email code. There is no separate sign-up: the first sign-in
+creates your account. Ask for a code:
 
 ```bash
-curl -sS http://localhost:3010/api/v1/auth/command/sign-up \
-  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+curl -sS http://localhost:3010/api/v1/auth/command/request-code \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com"}'
 ```
 
+With `SMTP_URL` empty, the six-digit code is printed in the API log (see
+[Set up sign-in](#set-up-sign-in)):
+
 ```bash
-curl -sS -c cookies.txt http://localhost:3010/api/v1/auth/command/sign-in \
-  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+docker compose -f development/docker-compose.yml logs -f api | grep -A3 '\[mail\]'
+```
+
+Trade the code for a session. It works once and expires in 10 minutes:
+
+```bash
+curl -sS -c cookies.txt http://localhost:3010/api/v1/auth/command/verify-code \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com","code":"123456"}'
 ```
 
 Create a note:
@@ -238,5 +248,4 @@ slot after recovery because an inactive slot can retain WAL.
 - [CONVENTIONS.md](CONVENTIONS.md) — how code is written here.
 - [Quality checks and test procedures](tests/README.md).
 
-This is a learning project. It has no login and only listens on your own
-computer.
+This is a learning project. It only listens on your own computer.
