@@ -23,7 +23,7 @@ Workspace delimits one user's private space. Each authenticated user has one wor
 - Workspace scope comes from server-validated authenticated context. A model or browser worker cannot choose its own workspace.
 - Google and email codes are sign-in methods for one user identity/workspace. Verified email is the identity key; an unverified email never joins an account. Resource grants remain separate from sign-in.
 - Authority is rechecked before each external action. Revocation stops future work; it cannot undo an action already issued.
-- Switching providers is an explicit user decision. The new connection must pass readiness and the user must confirm the billing change before it becomes active. Work already running keeps its pinned connection, and the replaced credentials are deleted. Disconnecting deletes credentials and leaves new AI work waiting until another connection is active.
+- Switching providers is an explicit user decision. The new connection must pass readiness and the user must confirm the billing change before it becomes active. Work already running keeps its pinned connection. The replaced encrypted credentials stay usable only by attempts already pinned to them and are deleted once every such attempt reaches a terminal state. Disconnecting deletes credentials and leaves new AI work waiting until another connection is active.
 - Tokens, keys and personal content stay out of permanent events and logs.
 - TypeSafe's platform-funded key [Evaluation](evaluation.md) uses is not a workspace record. All other AI credentials are user-funded workspace connections.
 
