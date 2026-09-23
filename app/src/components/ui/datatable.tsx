@@ -99,13 +99,10 @@ function cycle(current: SortState, column: string): SortState {
 type ColumnSort = "none" | "increasing" | "decreasing"
 
 const ariaSort = (state: ColumnSort | null) =>
-  state === null
-    ? undefined
-    : state === "none"
-      ? ("none" as const)
-      : state === "increasing"
-        ? ("ascending" as const)
-        : ("descending" as const)
+  state === null ? undefined
+  : state === "none" ? ("none" as const)
+  : state === "increasing" ? ("ascending" as const)
+  : ("descending" as const)
 
 function SortableHeader(props: {
   readonly label: ReactNode
@@ -117,13 +114,11 @@ function SortableHeader(props: {
     <div className="inline-flex items-center gap-2 [&_svg]:size-4 [&_svg]:shrink-0">
       {props.label}
       <button type="button" aria-label="Toggle sort" className="inline-flex cursor-pointer" onClick={props.onSort}>
-        {props.state === "increasing" ? (
+        {props.state === "increasing" ?
           <HugeiconsIcon icon={SortingUpIcon} className="text-foreground" />
-        ) : props.state === "decreasing" ? (
+        : props.state === "decreasing" ?
           <HugeiconsIcon icon={SortingDownIcon} className="text-foreground" />
-        ) : (
-          <HugeiconsIcon icon={ArrowUpDownIcon} className="text-muted-foreground hover:text-foreground" />
-        )}
+        : <HugeiconsIcon icon={ArrowUpDownIcon} className="text-muted-foreground hover:text-foreground" />}
       </button>
     </div>
   )
@@ -147,13 +142,10 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
               const column = columns[id]?.values
               if (column === undefined) return null
               const state: ColumnSort | null =
-                column.sortFun === null
-                  ? null
-                  : sort.column !== String(id)
-                    ? "none"
-                    : sort.sorting === "increasing"
-                      ? "increasing"
-                      : "decreasing"
+                column.sortFun === null ? null
+                : sort.column !== String(id) ? "none"
+                : sort.sorting === "increasing" ? "increasing"
+                : "decreasing"
               return (
                 <TableHead
                   key={String(id)}
@@ -171,14 +163,13 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.length === 0 ? (
+          {rows.length === 0 ?
             <TableRow>
               <TableCell colSpan={columnOrder.length} className="h-32 text-center whitespace-normal">
                 {emptyMessage}
               </TableCell>
             </TableRow>
-          ) : (
-            rows.map((row) => (
+          : rows.map((row) => (
               <TableRow
                 key={row.key}
                 tabIndex={row.onClick === undefined ? undefined : 0}
@@ -199,7 +190,7 @@ function DataTable<T, C extends ColumnsConfig<T>>(props: DataTableProps<T, C>) {
                 ))}
               </TableRow>
             ))
-          )}
+          }
         </TableBody>
       </Table>
     </div>
@@ -246,7 +237,7 @@ function DataTablePagination<S extends number>(
     <div className="flex items-center gap-2">
       {props.status === undefined ? null : <div className="flex-1 text-sm text-muted-foreground">{props.status}</div>}
       <div className="flex w-full items-center justify-between gap-2">
-        {props.sizes ? (
+        {props.sizes ?
           <React.Fragment>
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">Rows per page</p>
@@ -277,7 +268,7 @@ function DataTablePagination<S extends number>(
               </DropdownMenu>
             </div>
           </React.Fragment>
-        ) : null}
+        : null}
         <Pagination className="mx-0 w-auto">
           <PaginationContent>
             <PaginationItem>
@@ -288,17 +279,15 @@ function DataTablePagination<S extends number>(
               />
             </PaginationItem>
             {pageWindow(props.page, props.pages).map((n, i) =>
-              n === null ? (
+              n === null ?
                 <PaginationItem key={`gap-${i}`}>
                   <PaginationEllipsis />
                 </PaginationItem>
-              ) : (
-                <PaginationItem key={n}>
+              : <PaginationItem key={n}>
                   <PaginationLink isActive={n === props.page} onClick={() => props.onPage(n)}>
                     {n}
                   </PaginationLink>
                 </PaginationItem>
-              )
             )}
             <PaginationItem>
               <PaginationNext

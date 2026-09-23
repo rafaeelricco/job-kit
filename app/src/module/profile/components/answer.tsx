@@ -37,11 +37,10 @@ function AnswerTable({
           // back into wrapping on the cell itself — a column className only
           // reaches the header.
           question: <span className="block whitespace-normal">{row.question}</span>,
-          answer: row.answered ? (
-            <span className="block whitespace-normal">{row.answer}</span>
-          ) : (
-            <Badge variant="outline">Unanswered</Badge>
-          ),
+          answer:
+            row.answered ?
+              <span className="block whitespace-normal">{row.answer}</span>
+            : <Badge variant="outline">Unanswered</Badge>,
           scope: <span className="text-muted-foreground">{row.scope ?? "—"}</span>,
           confirmedAt: <span className="text-muted-foreground tabular-nums">{row.confirmedAt}</span>,
         },

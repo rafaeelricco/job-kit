@@ -27,6 +27,12 @@ services:
       EVENT_BUS_PASSWORD: local_notepad_event_bus
       ENGINE_OPERATOR_URL: http://postie:8081
       ENGINE_OPERATOR_TOKEN: ${ENGINE_OPERATOR_TOKEN:-change-me}
+      APP_URL: ${APP_URL:-http://localhost:5173/jobs/}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      SMTP_URL: ${SMTP_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-Job Kit <login@localhost>}
+      LOGIN_CODE_SECRET: ${LOGIN_CODE_SECRET:-}
     ports:
       - "127.0.0.1:${API_PORT:-3010}:8080"
     volumes:

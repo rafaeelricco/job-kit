@@ -13,7 +13,7 @@ import { type ProjectionReader, type WithProjectionReader } from "@be/app/projec
 import { internalServerError } from "@be/app/responses"
 import { Auth, type GuardResult } from "@be/app/auth/policy"
 import { Id } from "@be/lib/event-sourcing/event"
-import { MemoryEventDatabase, MemorySessionStore } from "@tests/support/memory"
+import { MemoryEventDatabase, MemorySessionStore, MemoryLoginCodes } from "@tests/support/memory"
 
 type Captured = { status: number; body: unknown; headers: Record<string, string> }
 
@@ -58,7 +58,12 @@ describe("HTTP command and query adapters", () => {
           ? Future.reject(json({ status: 409, content: { error: { message: "value must be nonnegative" } } }))
           : Future.resolve({ accepted: payload.value }),
     }
-    const handler = handleCommand(new MemoryEventDatabase().withEventStore, new MemorySessionStore(), controller)
+    const handler = handleCommand(
+      new MemoryEventDatabase().withEventStore,
+      new MemorySessionStore(),
+      new MemoryLoginCodes(),
+      controller
+    )
 
     const decoded = await invoke(handler, { value: "wrong" })
     assert.equal(decoded.status, 400)
@@ -145,7 +150,12 @@ describe("HTTP command and query adapters", () => {
           .mapRej((): Response => internalServerError)
           .map(() => ({})),
     }
-    const startHandler = handleCommand(new MemoryEventDatabase().withEventStore, sessions, startController)
+    const startHandler = handleCommand(
+      new MemoryEventDatabase().withEventStore,
+      sessions,
+      new MemoryLoginCodes(),
+      startController
+    )
     const started = await invoke(startHandler, {})
     assert.deepEqual(started.headers, { "Set-Cookie": "sid=token-1; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400" })
 
@@ -160,7 +170,12 @@ describe("HTTP command and query adapters", () => {
           .mapRej((): Response => internalServerError)
           .map(() => ({})),
     }
-    const endHandler = handleCommand(new MemoryEventDatabase().withEventStore, sessions, endController)
+    const endHandler = handleCommand(
+      new MemoryEventDatabase().withEventStore,
+      sessions,
+      new MemoryLoginCodes(),
+      endController
+    )
     const ended = await invoke(endHandler, {}, { cookie: "sid=token-1" })
     assert.equal(sessions.sessions.has("token-1"), false)
     assert.equal(ended.headers["Set-Cookie"], undefined)

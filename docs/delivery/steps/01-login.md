@@ -1,6 +1,6 @@
 # Login
 
-Status: proposed · Updated: 2026-09-21 · Implementation: not implemented
+Status: accepted · Updated: 2026-09-22 · Implementation: in progress (sign-in and provisioning done; record isolation per workspace is R1C-234)
 
 [Delivery roadmap](../roadmap.md) · [Workspace](../../domain/workspace.md) · [Identity and data](../../architecture/identity-and-data.md)
 
@@ -10,7 +10,7 @@ An approved pilot user signs in with Google or a passwordless email one-time cod
 
 ## Current state
 
-The app currently requests [local profile-folder access](../../../app/src/module/access/access-gate.tsx). Better Auth is selected for platform authentication, but it is not implemented.
+Sign-in uses the in-house auth from PR #143: server sessions (`sid`), emailed one-time codes, and Google OIDC (authorization code + PKCE, state, nonce). Only the Google token exchange and ID token check use a library: `google-auth-library`, wrapped in `server/src/lib/google-oidc.ts`.
 
 ## Design reference
 
@@ -25,16 +25,15 @@ The primary reference is the [TypeSafe login page](https://console.typesafe.ai/l
 
 ## V1 boundaries and dependencies
 
-The pilot is invite-only through an approved email list. Use Better Auth for Google sign-in and passwordless email OTP; do not add password login. Better Auth's supported identity-linking flow owns secure account association. Google and email sign-in methods are not separate candidates when the library's verified linking maps them to the same authenticated user. The app must never merge users or workspaces by comparing email strings. Provision one private workspace per authenticated user, idempotently. Follow [Workspace](../../domain/workspace.md) and [identity and data](../../architecture/identity-and-data.md) for scope and access rules. Login provides the authenticated workspace for [onboarding](02-onboarding.md).
+Sign-in is open to any verified email. Use the in-house server auth for Google sign-in and passwordless email codes; there is no password login. A user is keyed by a verified email: an emailed code, or Google's `email_verified`. Unverified emails never join an account. Google and email sign-in methods are not separate candidates when they resolve to the same authenticated user. The app never links an account on an unverified email. Provision one private workspace per authenticated user, idempotently. Follow [Workspace](../../domain/workspace.md) and [identity and data](../../architecture/identity-and-data.md) for scope and access rules. Login provides the authenticated workspace for [onboarding](02-onboarding.md).
 
 ## Acceptance criteria
 
 - The login screen preserves the reference layout at equivalent desktop and mobile viewport sizes, with Job Kit branding and the email controls required for request-code and verify-code states.
 - Google sign-in is available. Email sign-in requests a one-time code, then verifies it; resend and change-email actions recover the flow.
 - No TypeSafe branding, example email address, or legal destinations remain.
-- Only email identities on the approved pilot list can provision or enter a workspace; denied addresses receive a clear, non-enumerating response.
-- Better Auth email OTP is passwordless, expires, is single-use, and can be resent or recovered without weakening the pilot allowlist.
-- Google and email identities resolve through Better Auth's supported verified linking only. The app has no email-string-based user or workspace merge path.
+- In-house email codes are passwordless, expire, are single-use, and can be resent or recovered.
+- Google and email identities resolve through verified email only. An unverified email cannot claim an existing user or workspace.
 - New and returning users reach the correct workspace.
 - Repeated and concurrent sign-in or provisioning requests do not create duplicate workspaces.
 - Cancelled or expired authentication is recoverable.
@@ -42,4 +41,4 @@ The pilot is invite-only through an approved email list. Use Better Auth for Goo
 
 ## Decisions for this step
 
-Use the accepted self-hosted platform auth direction and configure Better Auth for Google OAuth and passwordless email OTP using [auth research](../../research/platform-auth.md). Implement and verify the separate send-code and verify-code states, including resend and change-email recovery. Keep the pilot list as explicit configuration and use Better Auth's verified account-linking behavior; do not implement application-level merging.
+Use the accepted self-hosted platform auth direction and configure in-house auth for Google OAuth and passwordless email codes using [auth research](../../research/platform-auth.md). Implement and verify the separate send-code and verify-code states, including resend and change-email recovery. Link accounts by verified email only.

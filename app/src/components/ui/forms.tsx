@@ -61,9 +61,6 @@ import { Label } from "@ui/label"
 import { cn } from "@lib/utils"
 import { search } from "@lib/fuzzy"
 
-const htmlContentStyles =
-  "[&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-primary [&_a]:underline [&_strong]:font-semibold [&_em]:italic [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-medium [&_hr]:my-3 [&_hr]:border-border"
-
 // ============ Type plumbing ================
 type ItemConfig =
   | TextInput
@@ -77,71 +74,44 @@ type ItemConfig =
   | SelectInputBase
   | TagsInput
 
-type ItemProps<T> = T extends TextInput
-  ? TextElementConfig
-  : T extends RichTextInput
-    ? RichTextElementConfig
-    : T extends TextareaInput
-      ? TextareaElementConfig
-      : T extends DateInput
-        ? DateElementConfig
-        : T extends TimeInput
-          ? TimeElementConfig
-          : T extends CheckboxInput
-            ? CheckboxElementConfig
-            : T extends MoneyInput
-              ? MoneyElementConfig
-              : T extends SelectInputBase
-                ? SelectElementConfig
-                : T extends ComboboxInputBase
-                  ? ComboboxElementConfig
-                  : T extends TagsInput
-                    ? TagsElementConfig
-                    : never
+type ItemProps<T> =
+  T extends TextInput ? TextElementConfig
+  : T extends RichTextInput ? RichTextElementConfig
+  : T extends TextareaInput ? TextareaElementConfig
+  : T extends DateInput ? DateElementConfig
+  : T extends TimeInput ? TimeElementConfig
+  : T extends CheckboxInput ? CheckboxElementConfig
+  : T extends MoneyInput ? MoneyElementConfig
+  : T extends SelectInputBase ? SelectElementConfig
+  : T extends ComboboxInputBase ? ComboboxElementConfig
+  : T extends TagsInput ? TagsElementConfig
+  : never
 
-type ItemState<T extends ItemConfig> = T extends TextInput
-  ? TextItemState
-  : T extends RichTextInput
-    ? RichTextItemState
-    : T extends TextareaInput
-      ? TextareaItemState
-      : T extends DateInput
-        ? DateItemState
-        : T extends TimeInput
-          ? TimeItemState
-          : T extends CheckboxInput
-            ? CheckboxItemState
-            : T extends MoneyInput
-              ? MoneyItemState
-              : T extends SelectInputBase
-                ? SelectItemState
-                : T extends ComboboxInputBase
-                  ? ComboboxItemState
-                  : T extends TagsInput
-                    ? TagsItemState
-                    : never
+type ItemState<T extends ItemConfig> =
+  T extends TextInput ? TextItemState
+  : T extends RichTextInput ? RichTextItemState
+  : T extends TextareaInput ? TextareaItemState
+  : T extends DateInput ? DateItemState
+  : T extends TimeInput ? TimeItemState
+  : T extends CheckboxInput ? CheckboxItemState
+  : T extends MoneyInput ? MoneyItemState
+  : T extends SelectInputBase ? SelectItemState
+  : T extends ComboboxInputBase ? ComboboxItemState
+  : T extends TagsInput ? TagsItemState
+  : never
 
-type ItemOutput<T> = T extends TextInput
-  ? string
-  : T extends RichTextInput
-    ? string
-    : T extends TextareaInput
-      ? string
-      : T extends DateInput
-        ? DateOnly | null
-        : T extends TimeInput
-          ? TimeOfDay | null
-          : T extends CheckboxInput
-            ? boolean
-            : T extends MoneyInput
-              ? Money | null
-              : T extends SelectInputBase
-                ? string | null
-                : T extends ComboboxInputBase
-                  ? string | null
-                  : T extends TagsInput
-                    ? string[]
-                    : never
+type ItemOutput<T> =
+  T extends TextInput ? string
+  : T extends RichTextInput ? string
+  : T extends TextareaInput ? string
+  : T extends DateInput ? DateOnly | null
+  : T extends TimeInput ? TimeOfDay | null
+  : T extends CheckboxInput ? boolean
+  : T extends MoneyInput ? Money | null
+  : T extends SelectInputBase ? string | null
+  : T extends ComboboxInputBase ? string | null
+  : T extends TagsInput ? string[]
+  : never
 
 type AnyElementConfig = ItemProps<ItemConfig>
 type FormInputs = Record<string, ItemConfig>
@@ -163,23 +133,29 @@ type HookReturn<T extends FormInputs> = { onSubmit: OnSubmit<T>; fields: FormPro
 
 // ============ Text ================
 type TextInputType = NonNullable<React.ComponentProps<typeof Input>["type"]>
+/** Native attributes passed straight to the `<input>`; autofill hints and length caps the config cannot infer. */
+type TextInputAttrs = Pick<React.ComponentProps<typeof Input>, "autoComplete" | "inputMode" | "maxLength" | "autoFocus">
 
 class TextInput {
   readonly values: {
     label: ReactNode
+    hideLabel?: boolean
     description?: ReactNode
     type: TextInputType
     defaultValue: string
     placeholder?: string
     icon?: IconSvgElement
+    input?: TextInputAttrs
   }
   constructor(values: {
     label: ReactNode
+    hideLabel?: boolean
     description?: ReactNode
     type: TextInputType
     defaultValue: string
     placeholder?: string
     icon?: IconSvgElement
+    input?: TextInputAttrs
   }) {
     this.values = values
   }
@@ -202,9 +178,11 @@ class TextElementConfig {
     value: string
     type: TextInputType
     label: ReactNode
+    hideLabel: boolean
     description: Maybe<ReactNode>
     placeholder: Maybe<string>
     icon: Maybe<IconSvgElement>
+    input: TextInputAttrs
     error: Maybe<string>
     onChange: (value: string) => void
   }
@@ -214,9 +192,11 @@ class TextElementConfig {
     value: string
     type: TextInputType
     label: ReactNode
+    hideLabel: boolean
     description: Maybe<ReactNode>
     placeholder: Maybe<string>
     icon: Maybe<IconSvgElement>
+    input: TextInputAttrs
     error: Maybe<string>
     onChange: (value: string) => void
   }) {
@@ -790,16 +770,18 @@ function buildProps(
 ): ItemProps<ItemConfig> {
   if (config instanceof TextInput) {
     const { value, error } = (state as TextItemState).values
-    const { label, placeholder, type, description, icon } = config.values
+    const { label, hideLabel, placeholder, type, description, icon, input } = config.values
     return new TextElementConfig({
       name,
       id,
       value,
       label,
+      hideLabel: hideLabel ?? false,
       type,
       description: fromOptional(description),
       placeholder: fromOptional(placeholder),
       icon: fromOptional(icon),
+      input: input ?? {},
       error,
       onChange: (text) => setState(new TextItemState({ value: text, error })),
     })
@@ -1045,13 +1027,13 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
   for (const key of Object.keys(fields)) {
     props[key] = buildProps(key, `${formId}-${key}`, fields[key]!, effective[key]! as never, (s) => {
       const isEmptyText = s instanceof TextItemState && s.values.value === ""
-      const nextTouched: ReadonlySet<string> = isEmptyText
-        ? touched.has(key)
-          ? new Set([...touched].filter((k) => k !== key))
+      const nextTouched: ReadonlySet<string> =
+        isEmptyText ?
+          touched.has(key) ?
+            new Set([...touched].filter((k) => k !== key))
           : touched
-        : touched.has(key)
-          ? touched
-          : new Set(touched).add(key)
+        : touched.has(key) ? touched
+        : new Set(touched).add(key)
       setTouched(nextTouched)
       setState((current) => {
         const next = { ...current, [key]: s } as FormState<T>
@@ -1080,18 +1062,24 @@ function useForm<T extends FormInputs>({ fields, validate = noErrors, derive }: 
 // ============ Shared UI ================
 function FormLabel({
   label,
+  hideLabel = false,
   description,
   children,
   htmlFor,
 }: {
   label: ReactNode
+  hideLabel?: boolean
   htmlFor: string
   description: Maybe<ReactNode>
   children: ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      {typeof label === "string" ? <Label htmlFor={htmlFor}>{label}</Label> : label}
+      {typeof label === "string" ?
+        <Label htmlFor={htmlFor} className={cn(hideLabel && "sr-only")}>
+          {label}
+        </Label>
+      : label}
       {description.maybe(null, (d) => (
         <p className="text-sm text-muted-foreground">{d}</p>
       ))}
@@ -1116,7 +1104,8 @@ function FormTextField({
   className: string | undefined
   disabled: boolean | undefined
 }) {
-  const { name, id, value, type, label, description, placeholder, icon, error, onChange } = config.values
+  const { name, id, value, type, label, hideLabel, description, placeholder, icon, input, error, onChange } =
+    config.values
   const errorId = `${id}-error`
   const hasError = error.maybe(false, () => true)
   const hasIcon = icon.maybe(false, () => true)
@@ -1125,6 +1114,7 @@ function FormTextField({
 
   const inputEl = (
     <Input
+      {...input}
       id={id}
       name={name}
       value={value}
@@ -1144,8 +1134,8 @@ function FormTextField({
   )
 
   return (
-    <FormLabel htmlFor={id} label={label} description={description}>
-      {needsWrapper ? (
+    <FormLabel htmlFor={id} label={label} hideLabel={hideLabel} description={description}>
+      {needsWrapper ?
         <div className="relative">
           {icon.maybe(null, (Icon) => (
             <HugeiconsIcon
@@ -1168,9 +1158,7 @@ function FormTextField({
             </button>
           )}
         </div>
-      ) : (
-        inputEl
-      )}
+      : inputEl}
       {error.maybe(null, (e) => (
         <p id={errorId} role="alert" className="text-sm text-destructive">
           {e}
@@ -1306,7 +1294,10 @@ function FormRichTextField({
 
   const attributes = {
     id,
-    class: cn("min-h-24 px-3.5 py-3 text-sm outline-none", htmlContentStyles),
+    class: cn(
+      "min-h-24 px-3.5 py-3 text-sm outline-none",
+      "[&_a]:text-primary [&_a]:underline [&_em]:italic [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-medium [&_hr]:my-3 [&_hr]:border-border [&_li]:mb-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+    ),
     "aria-invalid": String(hasError),
     ...(hasError ? { "aria-describedby": errorId } : {}),
   }
@@ -1317,7 +1308,11 @@ function FormRichTextField({
     content: mode === "html" ? value : plainTextDocument(value),
     editable: !disabled,
     onUpdate: ({ editor }) =>
-      onChange(editor.isEmpty ? "" : mode === "html" ? editor.getHTML() : editor.getText({ blockSeparator: "\n" })),
+      onChange(
+        editor.isEmpty ? ""
+        : mode === "html" ? editor.getHTML()
+        : editor.getText({ blockSeparator: "\n" })
+      ),
     editorProps: { attributes },
   })
 
@@ -1518,13 +1513,11 @@ function FormCheckboxField({
           aria-describedby={hasError ? errorId : undefined}
           onCheckedChange={(v) => onCheckedChange(v === true)}
         />
-        {typeof label === "string" ? (
+        {typeof label === "string" ?
           <Label htmlFor={checkboxId} className="cursor-pointer font-normal">
             {label}
           </Label>
-        ) : (
-          label
-        )}
+        : label}
       </div>
       {description.maybe(null, (d) => (
         <p className="text-sm text-muted-foreground">{d}</p>

@@ -34,6 +34,39 @@ Is it alive?
 curl --fail http://localhost:3010/docker_healthcheck
 ```
 
+## Set up sign-in
+
+Sign-in works with an email code or a Google account. Both read their
+settings from `development/.env`. Start from the example:
+
+```bash
+cp development/.env.example development/.env
+```
+
+| Variable                                   | What it does                                                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `SMTP_URL`, `MAIL_FROM`                    | Where login codes are sent. With `SMTP_URL` empty, the code is printed in the API log instead. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | The Google OAuth client. Leave either empty and the Google button reports it is not set up.    |
+| `APP_URL`                                  | Where the app runs. Google sends people back to this address.                                  |
+| `LOGIN_CODE_SECRET`                        | Key for hashing stored login codes. Empty uses a development key; production requires one.     |
+
+To see a login code when `SMTP_URL` is empty:
+
+```bash
+docker compose -f development/docker-compose.yml logs -f api | grep -A3 '\[mail\]'
+```
+
+To turn on Google sign-in:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials),
+   create an **OAuth client ID** of type **Web application**.
+2. Add this **Authorized redirect URI**. It is the origin of `APP_URL` plus the
+   callback path, so change it if you change `APP_URL`:
+   `http://localhost:5173/api/v1/auth/google/callback`
+3. Copy the client ID and secret into `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` in `development/.env`.
+4. Run `pnpm run up` again so the API picks up the new values.
+
 ## Stop it
 
 ```bash
@@ -86,16 +119,26 @@ and functions, and 70% branches.
 Everything is a `POST` with JSON. Notes need a signed-in session; curl keeps
 the session cookie in `cookies.txt`.
 
-Create an account and sign in:
+Sign in with an email code. There is no separate sign-up: the first sign-in
+creates your account. Ask for a code:
 
 ```bash
-curl -sS http://localhost:3010/api/v1/auth/command/sign-up \
-  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+curl -sS http://localhost:3010/api/v1/auth/command/request-code \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com"}'
 ```
 
+With `SMTP_URL` empty, the six-digit code is printed in the API log (see
+[Set up sign-in](#set-up-sign-in)):
+
 ```bash
-curl -sS -c cookies.txt http://localhost:3010/api/v1/auth/command/sign-in \
-  -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"correct horse battery"}'
+docker compose -f development/docker-compose.yml logs -f api | grep -A3 '\[mail\]'
+```
+
+Trade the code for a session. It works once and expires in 10 minutes:
+
+```bash
+curl -sS -c cookies.txt http://localhost:3010/api/v1/auth/command/verify-code \
+  -H 'Content-Type: application/json' -d '{"email":"me@example.com","code":"123456"}'
 ```
 
 Create a note:
@@ -206,5 +249,4 @@ slot after recovery because an inactive slot can retain WAL.
 - [CONVENTIONS.md](CONVENTIONS.md) — how code is written here.
 - [Quality checks and test procedures](tests/README.md).
 
-This is a learning project. It has no login and only listens on your own
-computer.
+This is a learning project. It only listens on your own computer.

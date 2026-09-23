@@ -1,13 +1,13 @@
 export { AppLayout }
 
-import { type CSSProperties } from "react"
-import { Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom"
+import { type CSSProperties, type ReactNode } from "react"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { AppSidebar } from "@components/ui/app-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@ui/sidebar"
 import { ScrollArea } from "@ui/scroll-area"
 import { SettingsDialog } from "@module/profile/components/settings-dialog"
 
-function AppLayout() {
+function AppLayout({ children }: { children: ReactNode }) {
   const [params, setParams] = useSearchParams()
 
   const location = useLocation()
@@ -54,7 +54,7 @@ function AppLayout() {
           <header className="flex h-12 shrink-0 items-center px-3 md:hidden">
             <SidebarTrigger />
           </header>
-          <Outlet />
+          {children}
         </ScrollArea>
       </SidebarInset>
       <SettingsDialog open={settingsOpen} panel={panel} onPanelChange={selectPanel} onOpenChange={closeSettings} />

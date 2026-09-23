@@ -1,4 +1,4 @@
-export { type SessionStore, Session, postgresSessionStore, initializeSessionTable, sessionToken }
+export { type SessionStore, Session, postgresSessionStore, initializeSessionTable, sessionToken, readCookie, setCookie }
 
 import { createHash, randomBytes } from "node:crypto"
 import { type Request } from "express"
@@ -8,11 +8,16 @@ import { Postgres, type PostgresTransaction } from "@be/lib/postgres"
 import { Id } from "@be/lib/event-sourcing/event"
 import env from "@be/app/environment"
 
-/** Cookie name; the value is the raw token, never the user id. */
+/** The session cookie's name. Its value is the raw token, never the user id. */
 const COOKIE = "sid"
-/** Lives in the event-store database but outside the replication publication, so sessions never reach the event bus. */
+
+/**
+ * The sessions table. It lives in the event-store database but outside the
+ * replication publication, so sessions never reach the event bus.
+ */
 const TABLE = "auth_sessions"
-/** Fixed wall-clock lifetime, not sliding — like a `rolling: false` session store. */
+
+/** Session lifetime in seconds. It runs from sign-in and does not slide, like express-session with `rolling: false`. */
 const TTL_SECONDS = 24 * 60 * 60
 
 /**
@@ -28,10 +33,13 @@ type SessionStore = {
   readonly destroy: (token: string) => Future<Error, void>
 }
 
-/** What the table stores and looks up by: SHA-256 is enough here, since the token is 256 random bits, not a guessable password. */
+/**
+ * Hash a token for storage and lookup. SHA-256 is enough because the token is
+ * 256 random bits, not a guessable password.
+ */
 const digest = (token: string): string => createHash("sha256").update(token).digest("hex")
 
-/** Create the sessions table and its expiry index if missing; runs at startup next to the event-store setup. */
+/** Create the sessions table and its expiry index if missing. Runs at startup, beside the event-store setup. */
 function initializeSessionTable(postgres: Postgres): Future<Error, void> {
   return postgres.withTransaction(
     { isolation: "ReadCommitted" },
@@ -96,21 +104,30 @@ function postgresSessionStore(postgres: Postgres): SessionStore {
  * ```
  */
 function sessionToken(req: Request): Maybe<string> {
+  return readCookie(req, COOKIE)
+}
+
+/** A cookie's value from the `Cookie` header; `Nothing` when absent or empty. */
+function readCookie(req: Request, name: string): Maybe<string> {
   const pair = (req.headers.cookie ?? "")
     .split(";")
     .map((part) => part.trim())
-    .find((part) => part.startsWith(`${COOKIE}=`))
-  return fromOptional(pair?.slice(COOKIE.length + 1)).chain((token) => (token.length > 0 ? Just(token) : Nothing()))
+    .find((part) => part.startsWith(`${name}=`))
+  return fromOptional(pair?.slice(name.length + 1)).chain((value) => (value.length > 0 ? Just(value) : Nothing()))
 }
 
 /**
- * The `Set-Cookie` value for `sid`. `HttpOnly` keeps it from page scripts,
- * `SameSite=Lax` from cross-site POSTs, and `Secure` (production only) off plain
- * HTTP.
+ * Build the `Set-Cookie` value for `name`. `HttpOnly` hides the cookie from
+ * page scripts, `SameSite=Lax` keeps it off cross-site POSTs, and `Secure`
+ * (production only) keeps it off plain HTTP.
+ *
+ * ```ts
+ * setCookie("sid", token, 60) // "sid=…; HttpOnly; SameSite=Lax; Path=/; Max-Age=60"
+ * ```
  */
-function cookieHeader(value: string, maxAge: number): string {
+function setCookie(name: string, value: string, maxAge: number, path = "/"): string {
   const secure = env.NODE_ENV === "production" ? "; Secure" : ""
-  return `${COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure}`
+  return `${name}=${value}; HttpOnly; SameSite=Lax; Path=${path}; Max-Age=${maxAge}${secure}`
 }
 
 /**
@@ -128,16 +145,23 @@ class Session {
     this.token = token
   }
 
-  /** Issue a fresh token for `userId`. The request's token is never reused, so a planted cookie cannot be elevated. */
+  /**
+   * Issue a fresh token for `userId` and queue its `Set-Cookie`. The request's
+   * own token is never reused, so a cookie planted before sign-in cannot
+   * become a signed-in session.
+   */
   start(userId: Id<"User">): Future<Error, void> {
     return this.store.create(userId).map((token) => {
-      this.cookie = Just(cookieHeader(token, TTL_SECONDS))
+      this.cookie = Just(setCookie(COOKIE, token, TTL_SECONDS))
     })
   }
 
   /**
-   * Destroy the request's session, if any. The cookie is left alone: its token now resolves to anonymous, and a
-   * clearing `Set-Cookie` would be unconditional, so a slow reply could delete a newer sign-in's cookie.
+   * Destroy the request's session, if it has one. The cookie stays: its token
+   * now resolves to anonymous.
+   *
+   * A clearing `Set-Cookie` would apply unconditionally, so a slow reply could
+   * delete the cookie of a newer sign-in.
    */
   end(): Future<Error, void> {
     return this.token.maybe(Future.resolve<Error, void>(undefined), (token) => this.store.destroy(token))

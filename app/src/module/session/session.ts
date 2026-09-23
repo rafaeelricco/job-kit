@@ -1,80 +1,103 @@
 export {
-  getSession,
+  initialSession,
   subscribeToSessionUpdates,
   reloadSession,
-  signIn,
-  signUp,
+  requestCode,
+  verifyCode,
+  googleSignInHref,
   signOut,
-  sessionGate,
   type Session,
-  type SessionInfo,
-  type SessionGate,
-  ANONYMOUS,
 }
 
 import * as s from "@lib/json/schema"
+
 import { toast } from "sonner"
 import { Future } from "@lib/future"
 import { Just, Nothing, fromNullable, type Maybe } from "@lib/maybe"
-import { Loading, type RemoteData } from "@lib/remote-data"
-import { call, type FetchError } from "@lib/request"
+import { api } from "@api/endpoints"
+import { call, type FetchError } from "@api/request"
 import { clearHandle } from "@module/access/handle"
 import { type Actor, type UserActor, schema_actor } from "@be/app/actor"
-import { endpoint as whoAmI } from "@be/domain/auth/query/whoAmI.api"
-import { endpoint as signInEndpoint } from "@be/domain/auth/command/signIn.api"
-import { endpoint as signUpEndpoint } from "@be/domain/auth/command/signUp.api"
-import { endpoint as signOutEndpoint } from "@be/domain/auth/command/signOut.api"
 
-/** The server's answer to "who am I?". Cached only so the first frame renders; it grants nothing. */
-type Session = Actor
-/** `current` is the last known identity; `next` only tracks a refresh, so it can never hold a value. */
-type SessionInfo = { current: Session; next: RemoteData<FetchError, never> }
-/** What a route should do with the visitor. */
-type SessionGate = "pending" | "anonymous" | "signed-in"
+/**
+ * The session as the UI sees it. `Checking`: nobody cached, `whoAmI` in flight.
+ * `SignedOut.error`: the `whoAmI` that failed, if any. A cached user is
+ * `SignedIn` at once while `whoAmI` revalidates; the cached copy grants nothing.
+ */
+type Session =
+  { type: "Checking" } | { type: "SignedOut"; error: Maybe<FetchError> } | { type: "SignedIn"; user: UserActor }
 
 const SESSION_KEY = "session"
-const ANONYMOUS: Session = { type: "Anonymous" }
-// `s.stringified`, not JSON.parse: a corrupt or out-of-date entry decodes to a Failure, never a throw.
+
+/** The stored entry's schema. A corrupt or outdated entry decodes to a `Failure`, where `JSON.parse` would throw. */
 const schema_stored = s.stringified(schema_actor)
 
-type Listener = (msession: Maybe<Session>) => void
+type Listener = (muser: Maybe<UserActor>) => void
+
+/** This tab's subscribers. `setSession` calls them directly. */
 const listeners = new Set<Listener>()
 
-// Bumped whenever the identity changes for a reason newer than the server's last answer: a sign-in or
-// sign-out here, or one in another tab. A whoAmI that started under an older generation answered about
-// a session that no longer exists, so its result must not be written back over the newer one.
+/**
+ * Counts identity changes newer than the server's last answer: a sign-in or
+ * sign-out in this tab or another one. A `whoAmI` that started under an older
+ * generation describes a session that no longer exists, so `reloadSession`
+ * drops its answer instead of writing it over the newer one.
+ */
 let generation = 0
 
-function setSession(msession: Maybe<Session>): void {
-  forgetProfileFolder(msession)
-  writeStored(msession)
-  listeners.forEach((listener) => listener(msession))
+/** Store or clear `muser`, then notify this tab's listeners. */
+function setSession(muser: Maybe<UserActor>): void {
+  forgetProfileFolder(muser)
+  writeStored(muser)
+  listeners.forEach((listener) => listener(muser))
 }
 
-/** A sign-in or sign-out: supersedes any whoAmI still in flight. */
-function commitSession(msession: Maybe<Session>): void {
+/** Record a sign-in or sign-out. It supersedes any `whoAmI` still in flight. */
+function commitSession(muser: Maybe<UserActor>): void {
   generation += 1
-  setSession(msession)
+  setSession(muser)
 }
 
-// The profile folder belongs to whoever picked it. Once nobody is signed in, forget it,
-// so the next account in this browser cannot open the previous one's files.
-function forgetProfileFolder(msession: Maybe<Session>): void {
-  if (msession instanceof Nothing) void clearHandle()
+/**
+ * Forget the chosen profile folder once nobody is signed in. The folder
+ * belongs to whoever chose it, so the next account in this browser must not be
+ * able to open the previous account's files.
+ */
+function forgetProfileFolder(muser: Maybe<UserActor>): void {
+  if (muser instanceof Nothing) void clearHandle()
 }
 
-function getSession(): Maybe<Session> {
-  return readStored().chain(decodeStored)
-}
-
-function decodeStored(raw: string): Maybe<Session> {
-  return s.decode(schema_stored, raw).either<Maybe<Session>>(
-    () => Nothing(),
-    (session) => Just(session)
+/** The first frame's session: the cached user, else `Checking` until `whoAmI` answers. */
+function initialSession(): Session {
+  const cached = readStored().chain(decodeStored)
+  return (
+    cached instanceof Just ? { type: "SignedIn", user: cached.value }
+    : cached instanceof Nothing ? { type: "Checking" }
+    : (cached satisfies never)
   )
 }
 
-// localStorage is a platform boundary: disabled or full storage means "nothing cached", as in filter-store.ts.
+/** A cache write as the UI sees it: the stored user, or signed out with no error. */
+function fromCache(muser: Maybe<UserActor>): Session {
+  return (
+    muser instanceof Just ? { type: "SignedIn", user: muser.value }
+    : muser instanceof Nothing ? { type: "SignedOut", error: Nothing() }
+    : (muser satisfies never)
+  )
+}
+
+/** Decode a stored entry. A decode failure, or a stale `Anonymous` entry, reads as "nothing cached". */
+function decodeStored(raw: string): Maybe<UserActor> {
+  return s.decode(schema_stored, raw).either<Maybe<UserActor>>(
+    () => Nothing(),
+    (actor) => (actor.type === "User" ? Just(actor) : Nothing())
+  )
+}
+
+/**
+ * Read the raw entry. `localStorage` is a platform boundary, so disabled or
+ * full storage means "nothing cached", as in `filter-store.ts`.
+ */
 function readStored(): Maybe<string> {
   try {
     return fromNullable(window.localStorage.getItem(SESSION_KEY))
@@ -83,83 +106,124 @@ function readStored(): Maybe<string> {
   }
 }
 
-function writeStored(msession: Maybe<Session>): void {
+/**
+ * Write or remove the entry. A storage failure is ignored: the cache is a
+ * convenience, and `setSession` still notifies listeners for this visit.
+ */
+function writeStored(muser: Maybe<UserActor>): void {
   try {
     switch (true) {
-      case msession instanceof Just:
-        // s.encode is required: `userId` is an `Id` instance that JSON.stringify alone would not round-trip.
-        window.localStorage.setItem(SESSION_KEY, JSON.stringify(s.encode(schema_actor, msession.value)))
+      case muser instanceof Just:
+        // `userId` is an `Id` instance, which JSON.stringify alone would not round-trip.
+        window.localStorage.setItem(SESSION_KEY, JSON.stringify(s.encode(schema_actor, muser.value)))
         break
-      case msession instanceof Nothing:
+      case muser instanceof Nothing:
         window.localStorage.removeItem(SESSION_KEY)
         break
       default:
-        msession satisfies never
+        muser satisfies never
     }
   } catch {
-    // The cache is a convenience; listeners still hear the change this visit.
+    // Ignored on purpose; see above.
   }
 }
 
-/** This tab hears every `setSession`; other tabs arrive through `storage`, which the browser fires only there. */
-function subscribeToSessionUpdates(listener: Listener): () => void {
+/**
+ * Call `listener` with the new `Session` on every change, and return a function that
+ * unsubscribes it.
+ *
+ * Changes made in this tab arrive through `setSession`. Changes made in
+ * another tab arrive through the `storage` event, which the browser fires in
+ * every tab except the one that wrote.
+ */
+function subscribeToSessionUpdates(listener: (session: Session) => void): () => void {
+  const notify: Listener = (muser) => listener(fromCache(muser))
   const onStorage = (event: StorageEvent): void => {
-    // `key === null` is `localStorage.clear()`, which also drops the session.
+    // `key === null` means `localStorage.clear()`, which also drops the session.
     if (event.storageArea !== window.localStorage) return
     if (event.key !== null && event.key !== SESSION_KEY) return
+
+    // The other tab signed in or out, so any `whoAmI` in flight here is now stale.
     generation += 1
-    const msession = fromNullable(event.newValue).chain(decodeStored)
-    forgetProfileFolder(msession)
-    listener(msession)
+
+    const muser = fromNullable(event.newValue).chain(decodeStored)
+    forgetProfileFolder(muser)
+    notify(muser)
   }
-  listeners.add(listener)
+  listeners.add(notify)
   window.addEventListener("storage", onStorage)
   return () => {
-    listeners.delete(listener)
+    listeners.delete(notify)
     window.removeEventListener("storage", onStorage)
   }
 }
 
 /**
- * A rejection (network, 5xx, decode) leaves the cache alone; only a resolved Anonymous clears it.
- * An answer that lands after a sign-in or sign-out is returned but not written: it describes the old session.
+ * Ask the server who we are and cache the answer. Only a resolved `Anonymous`
+ * clears the cache. A rejection (network, 5xx, or decode) leaves it alone.
+ *
+ * An answer that arrives after a sign-in or sign-out is returned but not
+ * cached, because it describes the old session.
  */
-function reloadSession(): Future<FetchError, Session> {
-  // Read the generation when the Future runs, not when it is built: a Future does nothing until forked.
+function reloadSession(): Future<FetchError, Actor> {
+  // Read `generation` when the Future runs, not when it is built: a Future does nothing until forked.
   return Future.resolve<FetchError, null>(null).chain(() => {
     const startedAt = generation
-    return call(whoAmI, {}).map(({ actor }) => {
+    return call(api.whoAmI, {}).map(({ actor }) => {
       if (startedAt === generation) setSession(actor.type === "User" ? Just(actor) : Nothing())
       return actor
     })
   })
 }
 
-/** Sign-in answers with the user id, so the session is set from it; no second, racy whoAmI. */
-function signIn(email: string, password: string): Future<FetchError, UserActor> {
-  return call(signInEndpoint, { email, password }).map(({ userId }) => {
+/**
+ * Ask the server to email a sign-in code to `email`. The reply is the same
+ * for every well-formed address, whether or not it is on the list; the server
+ * decides who gets mail.
+ */
+function requestCode(email: string): Future<FetchError, void> {
+  return call(api.requestCode, { email }).map(() => undefined)
+}
+
+/**
+ * Exchange `email` and `code` for a session, and store it. The reply carries
+ * the user id, so no second `whoAmI` is needed, and none can race this one.
+ */
+function verifyCode(email: string, code: string): Future<FetchError, UserActor> {
+  return call(api.verifyCode, { email, code }).map(({ userId }) => {
     const user: UserActor = { type: "User", userId }
     commitSession(Just(user))
     return user
   })
 }
 
-/** The server's sign-up starts no session, so a new account signs straight in. */
-function signUp(email: string, password: string): Future<FetchError, UserActor> {
-  return call(signUpEndpoint, { email, password }).chain(() => signIn(email, password))
+/**
+ * The URL that starts Google sign-in and comes back to `returnTo`. Navigate
+ * to it instead of fetching it, because Google's consent screen needs the
+ * whole window. The server re-checks `returnTo`.
+ *
+ * ```ts
+ * googleSignInHref("/dossiers") // "/api/v1/auth/google/start?returnTo=%2Fdossiers"
+ * ```
+ */
+function googleSignInHref(returnTo: string): string {
+  return `/api/v1/auth/google/start?${new URLSearchParams({ returnTo })}`
 }
 
 /**
- * Optimistic: the UI goes anonymous now; the request ends the server session. If it fails, the session may
- * still be live, so ask the server who we are: a surviving session comes back instead of hiding behind a
- * signed-out screen until the next reload.
+ * Sign out optimistically: the UI goes anonymous at once, and the request ends
+ * the server session in the background.
+ *
+ * If the request fails, the server session may still be live, so ask the
+ * server who we are. A surviving session comes back with a toast, instead of
+ * hiding behind a signed-out screen until the next reload.
  */
 function signOut(): void {
   commitSession(Nothing())
   const signedOutAt = generation
-  call(signOutEndpoint, {}).fork(
+  call(api.signOut, {}).fork(
     () => {
-      // A sign-in since then was deliberate: its session is the one reloadSession now reports.
+      // A sign-in since then was deliberate, and `reloadSession` now reports that session, so stay quiet.
       const stillSignedOut = (): boolean => generation === signedOutAt
       reloadSession().fork(
         () => {
@@ -172,18 +236,4 @@ function signOut(): void {
     },
     () => {}
   )
-}
-
-/** A cached user never waits; an anonymous visitor waits one round trip instead of bouncing to /sign-in early. */
-function sessionGate(info: SessionInfo): SessionGate {
-  switch (info.current.type) {
-    case "User":
-      return "signed-in"
-    case "Anonymous":
-      return info.next instanceof Loading ? "pending" : "anonymous"
-    default: {
-      const _exhaustiveCheck: never = info.current
-      throw new Error(`Unknown: ${JSON.stringify(_exhaustiveCheck)}`)
-    }
-  }
 }

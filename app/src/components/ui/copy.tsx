@@ -55,7 +55,9 @@ function CopyButton({
       className={cn(className)}
       {...props}
     >
-      {copied ? <HugeiconsIcon icon={Tick02Icon} /> : <HugeiconsIcon icon={Copy01Icon} />}
+      {copied ?
+        <HugeiconsIcon icon={Tick02Icon} />
+      : <HugeiconsIcon icon={Copy01Icon} />}
       {copied ? copiedLabel : label}
     </Button>
   )

@@ -181,11 +181,11 @@ const object = <A>(decoders: DecoderDef<A>): Decoder<A> =>
       const decoder = decoders[field]
 
       const decoded =
-        decoder instanceof DecoderOptional
-          ? obj[field] === undefined
-            ? decoder.decoder.run({ nothing: {} })
-            : decoder.decoder.run({ just: obj[field] })
-          : decoder.run(obj[field])
+        decoder instanceof DecoderOptional ?
+          obj[field] === undefined ?
+            decoder.decoder.run({ nothing: {} })
+          : decoder.decoder.run({ just: obj[field] })
+        : decoder.run(obj[field])
 
       switch (true) {
         case decoded instanceof Success:

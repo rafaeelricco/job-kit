@@ -16,12 +16,12 @@ function toDossierText(d: Dossier): string {
     ...(d.posting.kind === "dead" ? ["", `Posting marked dead since ${d.posting.since}.`] : []),
     "",
     ...(d.role.snapshot === "" ? [] : ["## The role", d.role.snapshot, ""]),
-    ...(d.role.responsibilities.length === 0
-      ? []
-      : ["## What you'd do", ...d.role.responsibilities.map((item) => `- ${item}`), ""]),
-    ...(d.role.requirements.length === 0
-      ? []
-      : ["## Must have", ...d.role.requirements.map((item) => `- ${item}`), ""]),
+    ...(d.role.responsibilities.length === 0 ?
+      []
+    : ["## What you'd do", ...d.role.responsibilities.map((item) => `- ${item}`), ""]),
+    ...(d.role.requirements.length === 0 ?
+      []
+    : ["## Must have", ...d.role.requirements.map((item) => `- ${item}`), ""]),
     ...(d.facts.required_skills.kind === "known" ? ["## Stack", factText(d.facts.required_skills), ""] : []),
     // Same legacy branch the sheet takes: prose from before scout wrote roles.
     ...(emptyRole && d.excerpt.kind === "printed" ? ["## From the posting", d.excerpt.text, ""] : []),
@@ -41,8 +41,8 @@ function toDossierText(d: Dossier): string {
     ...(d.provenance.contact.kind === "known" ? [`- Contact: ${factText(d.provenance.contact)}`] : []),
     ...(d.provenance.matchedQuery.kind === "known" ? [`- Pack query: ${factText(d.provenance.matchedQuery)}`] : []),
     `- Search date: ${d.provenance.date}`,
-    ...(d.log.length === 0
-      ? ["- No entries"]
-      : d.log.map((entry) => `- ${entry.date} — ${entry.event} (${entry.writer})`)),
+    ...(d.log.length === 0 ?
+      ["- No entries"]
+    : d.log.map((entry) => `- ${entry.date} — ${entry.event} (${entry.writer})`)),
   ].join("\n")
 }

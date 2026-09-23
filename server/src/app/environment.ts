@@ -29,6 +29,15 @@ const envDecoder = D.object({
   EVENT_BUS_PASSWORD: optionalDefault("local_notepad_event_bus", string),
   ENGINE_OPERATOR_URL: optionalDefault("http://postie:8081", string),
   ENGINE_OPERATOR_TOKEN: optionalDefault("change-me", string),
+  /** Where the SPA lives; Google redirects land here, and the OAuth redirect URI is derived from its origin. */
+  APP_URL: optionalDefault("http://localhost:5173/jobs/", string),
+  GOOGLE_CLIENT_ID: optionalDefault("", string),
+  GOOGLE_CLIENT_SECRET: optionalDefault("", string),
+  /** `smtps://user:pass@host:465`. Empty logs mail to stdout (refused in production). */
+  SMTP_URL: optionalDefault("", string),
+  MAIL_FROM: optionalDefault("Job Kit <login@localhost>", string),
+  /** Key for the HMAC of stored login codes; keep it out of the database. Empty uses a fixed key (refused in production). */
+  LOGIN_CODE_SECRET: optionalDefault("", string),
 })
 
 /**

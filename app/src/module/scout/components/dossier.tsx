@@ -64,20 +64,20 @@ const BAND_VARIANT: Readonly<Record<ScoreBand, "success" | "secondary" | "outlin
 }
 
 function ScoreBadge({ score }: { readonly score: Dossier["score"] }) {
-  return score.kind === "unscored" ? (
-    <Badge variant={BAND_VARIANT.unscored}>{factText({ kind: "unknown" })}</Badge>
-  ) : (
-    <Badge variant={BAND_VARIANT[bandOf(score)]} className="tabular-nums">
-      {score.value}
-    </Badge>
-  )
+  return score.kind === "unscored" ?
+      <Badge variant={BAND_VARIANT.unscored}>{factText({ kind: "unknown" })}</Badge>
+    : <Badge variant={BAND_VARIANT[bandOf(score)]} className="tabular-nums">
+        {score.value}
+      </Badge>
 }
 
 function StatusBadges({ row }: { readonly row: Dossier }) {
   return (
     <>
       <Badge variant="secondary">{row.status}</Badge>
-      {row.posting.kind === "dead" ? <Badge variant="destructive">dead</Badge> : null}
+      {row.posting.kind === "dead" ?
+        <Badge variant="destructive">dead</Badge>
+      : null}
     </>
   )
 }
@@ -457,12 +457,9 @@ function HeaderChips({ dossier }: { readonly dossier: Dossier }) {
 // One shared look for "the profile holds this", so the Stack chip and the
 // Must have counter cannot drift apart. A plain ✓ rather than a lucide icon:
 // the stroked glyph reads heavier than the rest of the chip text.
-const HELD_CHIP = "border-ok/45 text-ok"
-const UNHELD_CHIP = "text-muted-foreground opacity-70"
-
 function HeldBadge({ children, className }: { readonly children: ReactNode; readonly className?: string }) {
   return (
-    <Badge variant="outline" className={cn(HELD_CHIP, className)}>
+    <Badge variant="outline" className={cn("border-ok/45 text-ok", className)}>
       ✓ {children}
     </Badge>
   )
@@ -476,13 +473,11 @@ function StackChips({ value, skills }: { readonly value: FactValue; readonly ski
   return (
     <div className="flex flex-wrap gap-1.5">
       {splitSkills(value.text).map((skill) =>
-        skills.length > 0 && holdsSkill(skills, skill) ? (
+        skills.length > 0 && holdsSkill(skills, skill) ?
           <HeldBadge key={skill}>{skill}</HeldBadge>
-        ) : (
-          <Badge key={skill} variant="outline" className={UNHELD_CHIP}>
+        : <Badge key={skill} variant="outline" className="text-muted-foreground opacity-70">
             {skill}
           </Badge>
-        )
       )}
     </div>
   )
@@ -531,10 +526,9 @@ function DossierSheet(props: DossierSheetProps) {
               <SheetTitle>{dossier.company}</SheetTitle>
               <SheetDescription>{dossier.title}</SheetDescription>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 pt-1.5 text-xs text-muted-foreground">
-                {httpHref(dossier.url) === null ? (
+                {httpHref(dossier.url) === null ?
                   <span className="font-mono text-[11px] break-all text-ink-soft">{dossier.url}</span>
-                ) : (
-                  <a
+                : <a
                     href={dossier.url}
                     target="_blank"
                     rel="noreferrer"
@@ -543,7 +537,7 @@ function DossierSheet(props: DossierSheetProps) {
                     <HugeiconsIcon icon={LinkSquare02Icon} className="size-3.5" />
                     Open posting
                   </a>
-                )}
+                }
                 {/* Same line as the posting link: both act on the posting, and
                     a row of its own held a single button. */}
                 <CopyButton
@@ -692,10 +686,9 @@ function DossierSheet(props: DossierSheetProps) {
                   <KvRow label="Search date" value={dossier.provenance.date} />
                 </dl>
 
-                {dossier.log.length === 0 ? (
+                {dossier.log.length === 0 ?
                   <p className="mt-3 text-sm text-muted-foreground">No entries</p>
-                ) : (
-                  <Table className="mt-3 text-[0.82rem]">
+                : <Table className="mt-3 text-[0.82rem]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-28 px-1.5">Date</TableHead>
@@ -717,7 +710,7 @@ function DossierSheet(props: DossierSheetProps) {
                       ))}
                     </TableBody>
                   </Table>
-                )}
+                }
                 {dossier.applications > 0 && (
                   <p className="mt-3 text-xs text-muted-foreground">
                     {dossier.applications.toLocaleString()} application record

@@ -70,11 +70,6 @@ const THEMES = [
 
 type Path = readonly (string | number)[]
 
-// Measured off the console: 12px labels at 65% ink, 11px hints at 35%. Our
-// Label is 14px/medium and FieldDescription 14px, so both need the override.
-const LABEL = "text-xs leading-none font-normal text-ink-soft"
-const HINT = "text-[11px] leading-normal text-ink-faint"
-
 const toLines = (values: readonly string[]): string => values.join("\n")
 
 // A blank line is spacing the user typed, not a list entry, so it never reaches
@@ -145,6 +140,9 @@ function SaveButton({
   )
 }
 
+// Measured off the console: 12px labels at 65% ink, 11px hints at 35%. Our
+// Label is 14px/medium and FieldDescription 14px, so every label and hint in
+// this file carries the override.
 function TextField({
   id,
   label,
@@ -165,12 +163,17 @@ function TextField({
       {/* Hidden, not dropped: base-ui only fills aria-labelledby under a
           Field.Root this app never renders, so deleting the element would
           leave the input with no accessible name at all. */}
-      <FieldLabel htmlFor={id} className={labelHidden === true ? "sr-only" : LABEL}>
+      <FieldLabel
+        htmlFor={id}
+        className={labelHidden === true ? "sr-only" : "text-xs leading-none font-normal text-ink-soft"}
+      >
         {label}
       </FieldLabel>
       {/* max-w-sm: the console's 384px field width, not the full column. */}
       <Input id={id} value={value} className="max-w-sm" onChange={(event) => onValueChange(event.target.value)} />
-      {hint !== undefined && <FieldDescription className={HINT}>{hint}</FieldDescription>}
+      {hint !== undefined && (
+        <FieldDescription className="text-[11px] leading-normal text-ink-faint">{hint}</FieldDescription>
+      )}
     </Field>
   )
 }
@@ -180,7 +183,7 @@ function TextField({
 function Block({ label, children }: { readonly label: string; readonly children: ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className={LABEL}>{label}</Label>
+      <Label className="text-xs leading-none font-normal text-ink-soft">{label}</Label>
       {children}
     </div>
   )
@@ -201,11 +204,11 @@ function ListField({
 }) {
   return (
     <Field>
-      <FieldLabel htmlFor={id} className={LABEL}>
+      <FieldLabel htmlFor={id} className="text-xs leading-none font-normal text-ink-soft">
         {label}
       </FieldLabel>
       <Textarea id={id} value={value} rows={4} onChange={(event) => onValueChange(event.target.value)} />
-      <FieldDescription className={HINT}>
+      <FieldDescription className="text-[11px] leading-normal text-ink-faint">
         {hint === undefined ? "One entry per line." : `${hint} One entry per line.`}
       </FieldDescription>
     </Field>
@@ -230,7 +233,7 @@ function ToggleField({
   return (
     <Field orientation="horizontal">
       <Checkbox id={id} checked={checked} onCheckedChange={(next: boolean) => onCheckedChange(next)} />
-      <FieldLabel htmlFor={id} className={LABEL}>
+      <FieldLabel htmlFor={id} className="text-xs leading-none font-normal text-ink-soft">
         {label}
       </FieldLabel>
     </Field>
@@ -329,7 +332,7 @@ function SocialsSection({ socials, save }: { readonly socials: readonly SocialPr
       <FieldGroup>
         {draft.map((row, position) => (
           <FieldSet key={row.id}>
-            <FieldLegend variant="label" className={LABEL}>
+            <FieldLegend variant="label" className="text-xs leading-none font-normal text-ink-soft">
               {row.network === "" ? `Profile ${row.id}` : row.network}
             </FieldLegend>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -524,10 +527,12 @@ function SearchSection({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
       <FieldGroup>
         {TOGGLE_GROUPS.map((group) => (
           <FieldSet key={group.field}>
-            <FieldLegend variant="label" className={LABEL}>
+            <FieldLegend variant="label" className="text-xs leading-none font-normal text-ink-soft">
               {group.label}
             </FieldLegend>
-            {group.hint !== undefined && <FieldDescription className={HINT}>{group.hint}</FieldDescription>}
+            {group.hint !== undefined && (
+              <FieldDescription className="text-[11px] leading-normal text-ink-faint">{group.hint}</FieldDescription>
+            )}
             {toggles[group.field].map((row) => (
               <ToggleField
                 key={row.key}
@@ -552,7 +557,7 @@ function SearchSection({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
         ))}
 
         <Field>
-          <FieldLabel htmlFor="job-search-location-scope" className={LABEL}>
+          <FieldLabel htmlFor="job-search-location-scope" className="text-xs leading-none font-normal text-ink-soft">
             Location scope
           </FieldLabel>
           <Input
@@ -562,11 +567,11 @@ function SearchSection({ jobSearch, save }: { readonly jobSearch: JobSearch; rea
             aria-invalid={!scopeValid}
             onChange={(event) => setScope(event.target.value)}
           />
-          {scopeValid ? (
-            <FieldDescription className={HINT}>worldwide, or listed to use the locations above.</FieldDescription>
-          ) : (
-            <FieldError>Use worldwide or listed, or leave it empty.</FieldError>
-          )}
+          {scopeValid ?
+            <FieldDescription className="text-[11px] leading-normal text-ink-faint">
+              worldwide, or listed to use the locations above.
+            </FieldDescription>
+          : <FieldError>Use worldwide or listed, or leave it empty.</FieldError>}
         </Field>
       </FieldGroup>
       <SaveButton
@@ -614,9 +619,9 @@ function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; re
   const edits: readonly Edit[] = [
     ...listEdits,
     // prune_score_max is a number in the file; a string here would retype the key.
-    ...(pruneValid && prune !== jobSearch.pruneScoreMax
-      ? [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
-      : []),
+    ...(pruneValid && prune !== jobSearch.pruneScoreMax ?
+      [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
+    : []),
   ]
 
   return (
@@ -634,7 +639,7 @@ function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; re
         ))}
 
         <Field>
-          <FieldLabel htmlFor="job-search-prune-score-max" className={LABEL}>
+          <FieldLabel htmlFor="job-search-prune-score-max" className="text-xs leading-none font-normal text-ink-soft">
             Prune score max
           </FieldLabel>
           <Input
@@ -646,11 +651,11 @@ function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; re
             aria-invalid={!pruneValid}
             onChange={(event) => setPruneText(event.target.value)}
           />
-          {pruneValid ? (
-            <FieldDescription className={HINT}>The job-prune threshold; scout itself ignores it.</FieldDescription>
-          ) : (
-            <FieldError>Enter a number.</FieldError>
-          )}
+          {pruneValid ?
+            <FieldDescription className="text-[11px] leading-normal text-ink-faint">
+              The job-prune threshold; scout itself ignores it.
+            </FieldDescription>
+          : <FieldError>Enter a number.</FieldError>}
         </Field>
       </FieldGroup>
       <SaveButton
@@ -689,12 +694,12 @@ function PacksSection({ packs, save }: { readonly packs: readonly SearchPack[]; 
     if (row === undefined) return []
     const formulations = fromLines(row.formulations)
     return [
-      ...(row.enabled === pack.enabled
-        ? []
-        : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: row.enabled }]),
-      ...(sameList(formulations, pack.formulations)
-        ? []
-        : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
+      ...(row.enabled === pack.enabled ?
+        []
+      : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: row.enabled }]),
+      ...(sameList(formulations, pack.formulations) ?
+        []
+      : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
     ]
   })
 
@@ -706,7 +711,7 @@ function PacksSection({ packs, save }: { readonly packs: readonly SearchPack[]; 
           if (row === undefined) return null
           return (
             <FieldSet key={pack.id}>
-              <FieldLegend variant="label" className={cn(LABEL, "font-mono")}>
+              <FieldLegend variant="label" className="font-mono text-xs leading-none font-normal text-ink-soft">
                 {pack.id}
               </FieldLegend>
               <ToggleField

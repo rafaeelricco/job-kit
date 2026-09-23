@@ -84,11 +84,9 @@ function Resolved({
         </Alert>
       )
     case "loaded":
-      return state.store.kind === "wrong-root" ? (
-        <WrongRoot label={state.store.label} missing={state.store.missing} onRepick={onRepick} />
-      ) : (
-        children(state.store, { reload, trash })
-      )
+      return state.store.kind === "wrong-root" ?
+          <WrongRoot label={state.store.label} missing={state.store.missing} onRepick={onRepick} />
+        : children(state.store, { reload, trash })
     default:
       return assertNever(state)
   }

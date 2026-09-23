@@ -28,17 +28,17 @@ function applyBlock(selected: number, apply: readonly Apply[]): readonly string[
     return [selected === 1 ? `0 of 1 selected is apply-ready.` : `0 of ${selected} selected are apply-ready.`]
   }
   const intro =
-    selected === 1
-      ? [
-          "/job-apply this posting.",
-          "Resolve paths with /job-profile-root. STOP if scout/jobs/{file} is missing there.",
-          "Use /job-list when you need dossier facts from disk.",
-        ]
-      : [
-          "/job-apply each posting below, one at a time.",
-          "Resolve paths with /job-profile-root. STOP if scout/jobs/{file} is missing there.",
-          "Use /job-list when you need dossier facts from disk.",
-        ]
+    selected === 1 ?
+      [
+        "/job-apply this posting.",
+        "Resolve paths with /job-profile-root. STOP if scout/jobs/{file} is missing there.",
+        "Use /job-list when you need dossier facts from disk.",
+      ]
+    : [
+        "/job-apply each posting below, one at a time.",
+        "Resolve paths with /job-profile-root. STOP if scout/jobs/{file} is missing there.",
+        "Use /job-list when you need dossier facts from disk.",
+      ]
   return [...intro, "", ...apply.map((item) => line(item.row))]
 }
 

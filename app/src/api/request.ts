@@ -33,7 +33,7 @@ class UnableToDecode {
 
 type FetchError = NetworkError | BadStatus | UnableToDecode
 
-/** Structural, so `lib/` imports nothing from `@be`; the server's `PlainEndpoint` satisfies it. */
+/** Structural, so `call` needs nothing from `@be`; the server's `PlainEndpoint` satisfies it. */
 type Endpoint<Req, Res> = { readonly path: string; readonly request: s.Schema<Req>; readonly response: s.Schema<Res> }
 
 /** What came back, before any decoding; a union so an "ok" reply can't carry a failure status. */
@@ -76,9 +76,9 @@ function send(path: string, body: Json): Future<FetchError, Reply> {
           .text()
           .then((text) =>
             resolve(
-              res.ok
-                ? { type: "Ok", body: text }
-                : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
+              res.ok ?
+                { type: "Ok", body: text }
+              : { type: "BadStatus", status: res.status, statusText: res.statusText, body: text }
             )
           )
       )

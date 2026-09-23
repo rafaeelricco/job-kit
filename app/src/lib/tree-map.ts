@@ -7,9 +7,8 @@ const hasNestedDefault = (
   m: typeof sortedBtreeModule
 ): m is typeof sortedBtreeModule & { default: typeof sortedBtreeModule } =>
   "default" in m && typeof m.default === "function"
-const BTree: typeof sortedBtreeModule = hasNestedDefault(sortedBtreeModule)
-  ? sortedBtreeModule.default
-  : sortedBtreeModule
+const BTree: typeof sortedBtreeModule =
+  hasNestedDefault(sortedBtreeModule) ? sortedBtreeModule.default : sortedBtreeModule
 
 import { type Maybe, Just, Nothing } from "@lib/maybe"
 
@@ -20,7 +19,12 @@ import { type Maybe, Just, Nothing } from "@lib/maybe"
  */
 const lookup = <K, V>(tree: BTreeType<K, V>, k: K): Maybe<V> => (tree.has(k) ? Just(tree.get(k) as V) : Nothing())
 
-const stringMap = <T>(): TreeMap<string, T> => TreeMap.new((x: string, y: string) => (x > y ? 1 : x < y ? -1 : 0))
+const stringMap = <T>(): TreeMap<string, T> =>
+  TreeMap.new((x: string, y: string) =>
+    x > y ? 1
+    : x < y ? -1
+    : 0
+  )
 
 interface Comparable<T> {
   compare(other: T): number

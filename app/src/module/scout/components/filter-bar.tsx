@@ -114,14 +114,15 @@ function FilterBar(props: FilterBarProps) {
   // A picker range is undefined when nothing is chosen, and `to` is undefined
   // between the first and second click.
   const foundRange: DateRange | undefined =
-    filter.found.from === null
-      ? undefined
-      : { from: dateOf(filter.found.from), to: filter.found.to === null ? undefined : dateOf(filter.found.to) }
+    filter.found.from === null ?
+      undefined
+    : { from: dateOf(filter.found.from), to: filter.found.to === null ? undefined : dateOf(filter.found.to) }
 
   // Rebuilt from COLUMNS so re-adding a column restores its table position.
   const toggleColumn = (id: ColumnId) => {
-    const next = columns.includes(id)
-      ? columns.filter((one) => one !== id)
+    const next =
+      columns.includes(id) ?
+        columns.filter((one) => one !== id)
       : COLUMNS.filter((one) => one === id || columns.includes(one))
     if (next.length === 0) return
     onColumns(next)
@@ -165,9 +166,9 @@ function FilterBar(props: FilterBarProps) {
       label: `Not: ${value}`,
       remove: () => onFilter({ ...filter, excluded: filter.excluded.filter((one) => one !== value) }),
     })),
-    ...(filter.found.from === null && filter.found.to === null
-      ? []
-      : [{ key: "found", label: `Found: ${foundLabel(filter.found)}`, remove: () => setFound(EMPTY_DAYS) }]),
+    ...(filter.found.from === null && filter.found.to === null ?
+      []
+    : [{ key: "found", label: `Found: ${foundLabel(filter.found)}`, remove: () => setFound(EMPTY_DAYS) }]),
   ]
 
   const clearAll = () =>
@@ -273,7 +274,9 @@ function FilterBar(props: FilterBarProps) {
                         data-checked={state === "only"}
                         onSelect={() => setSource(row.source)}
                       >
-                        {state === "not" ? <HugeiconsIcon icon={UnavailableIcon} className="text-destructive" /> : null}
+                        {state === "not" ?
+                          <HugeiconsIcon icon={UnavailableIcon} className="text-destructive" />
+                        : null}
                         <span className={state === "not" ? "text-muted-foreground line-through" : undefined}>
                           {row.source}
                         </span>
@@ -365,7 +368,9 @@ function FilterBar(props: FilterBarProps) {
         >
           {VIEWS.map((id) => (
             <ToggleGroupItem key={id} value={id} aria-label={VIEW_LABELS[id]} title={VIEW_LABELS[id]}>
-              {id === "table" ? <HugeiconsIcon icon={RowsThreeIcon} /> : <HugeiconsIcon icon={GridViewIcon} />}
+              {id === "table" ?
+                <HugeiconsIcon icon={RowsThreeIcon} />
+              : <HugeiconsIcon icon={GridViewIcon} />}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

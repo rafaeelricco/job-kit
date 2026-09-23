@@ -25,6 +25,7 @@
 
     "paths": {
       "@/*": ["./src/*"],
+      "@api/*": ["./src/api/*"],
       "@be/*": ["../server/src/*"],
       "@components/*": ["./src/components/*"],
       "@hooks/*": ["./src/hooks/*"],
