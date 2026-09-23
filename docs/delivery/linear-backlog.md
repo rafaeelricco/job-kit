@@ -1,10 +1,10 @@
 # V1 Linear backlog
 
-Status: accepted · Updated: 2026-09-21 · Implementation: not implemented
+Status: accepted · Updated: 2026-09-23 · Implementation: not implemented
 
 [Job Kit AI project](https://linear.app/r1cco/project/job-kit-ai-76a302695ebf/overview) · [Agreed V1 specification](https://linear.app/r1cco/document/v1-platform-specification-agreed-scope-22e7266690a9) · [Delivery roadmap](roadmap.md) · [Machine-readable manifest](linear-backlog.json)
 
-Created **35 V1 issues across five new milestones**, plus **two Post-V1 issues**. All are Backlog and unassigned, with no deadline or estimate. The manifest records stable backlog keys, Linear UUIDs/identifiers, self-contained requirements and actual blocked-by relationships.
+Created **35 V1 issues across five new milestones**, plus **two Post-V1 issues**. On 2026-09-23, R1C-268 was added to Onboarding for the settings AI panel, and R1C-237, R1C-242 and R1C-243 were revised for the selected onboarding design. All are Backlog and unassigned, with no deadline or estimate. The manifest records stable backlog keys, Linear UUIDs/identifiers, self-contained requirements and actual blocked-by relationships.
 
 Milestones describe user outcomes; dependencies determine implementation order. Shared API/database infrastructure belongs to Login, its first consuming milestone. Shared posting/import contracts are established there so profile/dossier import does not wait for scout orchestration. Provider and browser-source experiments are unresolved implementation blockers, not completed integrations.
 
@@ -29,15 +29,16 @@ Linear milestone: `4d38713c-0be1-4cd2-bb87-5e18bfdb9a86`.
 
 Linear milestone: `f344a720-35b4-458b-8330-2a60977eefd5`.
 
-| Issue                                                                                                              | Work package                                                       | Blocked by                                  |
-| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------- |
-| [R1C-237](https://linear.app/r1cco/issue/R1C-237/persist-encrypted-ai-connections-and-execution-readiness)         | Persist encrypted AI connections and execution readiness           | R1C-234                                     |
-| [R1C-238](https://linear.app/r1cco/issue/R1C-238/prove-and-implement-the-openai-hosted-connector)                  | Prove and implement the OpenAI hosted connector                    | R1C-237                                     |
-| [R1C-239](https://linear.app/r1cco/issue/R1C-239/prove-and-implement-the-gemini-hosted-connector)                  | Prove and implement the Gemini hosted connector                    | R1C-237                                     |
-| [R1C-240](https://linear.app/r1cco/issue/R1C-240/prove-and-implement-the-anthropic-hosted-connector)               | Prove and implement the Anthropic hosted connector                 | R1C-237                                     |
-| [R1C-241](https://linear.app/r1cco/issue/R1C-241/prove-and-implement-the-xai-hosted-connector)                     | Prove and implement the xAI hosted connector                       | R1C-237                                     |
-| [R1C-242](https://linear.app/r1cco/issue/R1C-242/build-guided-web-onboarding-for-all-four-ai-providers)            | Build guided web onboarding for all four AI providers              | R1C-235, R1C-238, R1C-239, R1C-240, R1C-241 |
-| [R1C-243](https://linear.app/r1cco/issue/R1C-243/handle-waiting-cancellation-reconnection-and-manual-ai-switching) | Handle waiting, cancellation, reconnection and manual AI switching | R1C-242, R1C-236                            |
+| Issue                                                                                                                  | Work package                                                                    | Blocked by                                  |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------- |
+| [R1C-237](https://linear.app/r1cco/issue/R1C-237/persist-encrypted-ai-connections-and-execution-readiness)             | Persist encrypted AI connections and execution readiness                        | R1C-234                                     |
+| [R1C-238](https://linear.app/r1cco/issue/R1C-238/prove-and-implement-the-openai-hosted-connector)                      | Prove and implement the OpenAI hosted connector                                 | R1C-237                                     |
+| [R1C-239](https://linear.app/r1cco/issue/R1C-239/prove-and-implement-the-gemini-hosted-connector)                      | Prove and implement the Gemini hosted connector                                 | R1C-237                                     |
+| [R1C-240](https://linear.app/r1cco/issue/R1C-240/prove-and-implement-the-anthropic-hosted-connector)                   | Prove and implement the Anthropic hosted connector                              | R1C-237                                     |
+| [R1C-241](https://linear.app/r1cco/issue/R1C-241/prove-and-implement-the-xai-hosted-connector)                         | Prove and implement the xAI hosted connector                                    | R1C-237                                     |
+| [R1C-242](https://linear.app/r1cco/issue/R1C-242/build-guided-web-onboarding-for-all-four-ai-providers)                | Build guided web onboarding for all four AI providers                           | R1C-235, R1C-238, R1C-239, R1C-240, R1C-241 |
+| [R1C-243](https://linear.app/r1cco/issue/R1C-243/handle-waiting-cancellation-reconnection-and-manual-ai-switching)     | Handle waiting, cancellation, reconnection and manual AI switching              | R1C-242, R1C-236                            |
+| [R1C-268](https://linear.app/r1cco/issue/R1C-268/add-an-ai-panel-to-settings-for-connection-status-model-and-provider) | Add an AI panel to settings for connection status, model and provider switching | R1C-242, R1C-243                            |
 
 ## 03 · AI profile
 
