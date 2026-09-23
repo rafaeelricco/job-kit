@@ -315,6 +315,19 @@ class BrowserChannelTests(unittest.TestCase):
             )
         self.each_shell(scenario)
 
+    def test_aside_stale_windows_marker_refreshes(self):
+        def scenario(f):
+            dest = f.aside / "job-match"
+            dest.mkdir()
+            (dest / "SKILL.md").write_text("old", encoding="utf-8")
+            (dest / ".job-kit").write_text("C:\\gone\\moved\\skill\\job-match\n", encoding="utf-8")
+            self.success(f.run("aside/install"))
+            self.assertEqual(
+                _marker_skill_tail((dest / ".job-kit").read_text(encoding="utf-8").strip()),
+                _marker_skill_tail(str(f.kit / "skill" / "job-match")),
+            )
+        self.each_shell(scenario)
+
     def test_agents_stale_link_relinks(self):
         def scenario(f):
             gone = f.root / "moved" / "skill" / "job-profile"
