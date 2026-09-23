@@ -79,7 +79,10 @@ Model the read as one `RemoteData<FetchError, T>` cell. Seed `NotAsked()`, set `
 in-flight read is cancelled on unmount or when an input changes (`app.tsx` does the same for `reloadSession`):
 
 ```tsx
-import { type QueryResponse as WhoAmI } from "@be/domain/auth/query/whoAmI.api"
+import * as s from "@lib/json/schema"
+import { api } from "@api/endpoints"
+
+type WhoAmI = s.Infer<typeof api.whoAmI.response>
 
 const [state, setState] = useState<RemoteData<FetchError, WhoAmI>>(NotAsked())
 
