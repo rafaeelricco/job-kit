@@ -249,4 +249,22 @@ slot after recovery because an inactive slot can retain WAL.
 - [CONVENTIONS.md](CONVENTIONS.md) — how code is written here.
 - [Quality checks and test procedures](tests/README.md).
 
-This is a learning project. It only listens on your own computer.
+## Production
+
+Every push to `main` that touches the server runs
+`.github/workflows/deploy-server.yml`. After the quality gate passes, the
+self-hosted runner on r1cco.com starts `development/docker-compose.yml` with
+`deploy/compose.production.yml` as Compose project `job-kit-api`. nginx
+proxies `https://r1cco.com/api/` to `127.0.0.1:3010`.
+
+Secrets live on the VPS in `/etc/job-kit/api.env` (root:r1cco-runner, 0640).
+The deploy fails fast if `EVENT_STORE_PASSWORD`, `MONGODB_PROJECTION_PASSWORD`,
+`ENGINE_OPERATOR_TOKEN`, `SMTP_URL`, or `LOGIN_CODE_SECRET` is missing. The
+Postgres and Mongo passwords are fixed once their volumes exist. The Google
+redirect URI is `https://r1cco.com/api/v1/auth/google/callback`.
+
+Logs on the VPS:
+
+```bash
+docker compose -p job-kit-api logs -f api
+```
