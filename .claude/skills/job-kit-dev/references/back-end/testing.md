@@ -155,12 +155,13 @@ assert.equal(db.entries.at(-1)?.event_name, "<Marker>")
 Also cover the failure path. A mailer that rejects must yield `ErrorMustRetry` and leave no marker, so the redelivery sends again. `rejection` (`server/tests/support/notes.ts:23-27`) is generic over the error type:
 
 ```ts
+const before = db.entries.length
 const failing: Mailer = { send: () => Future.reject(new Error("smtp down")) }
 const error = await rejection(
   <reaction>.controller.handler({ event, info: eventInfo, mailer: failing, withEventStore: db.withEventStore })
 )
 assert.ok(error instanceof ErrorMustRetry)
-assert.equal(db.entries.length, 0)
+assert.equal(db.entries.length, before) // the seeded aggregate stays; no marker is appended
 ```
 
 Build the `Mailer` stub with `Future.create`, not `Future.resolve`, so the send defers like the real `Future.attemptP`-backed mailer (the same reason `projectionsHarness` defers its `save`). For duplicate-delivery behavior, wrap the handler in `withIdempotency` the way `delivery` does for projections (`server/tests/support/notes.ts:105-119`), keyed on the reaction's endpoint path.
