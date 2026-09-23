@@ -17,22 +17,22 @@ import {
 } from "@hugeicons/core-free-icons"
 import type { IconSvgElement } from "@hugeicons/react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import type { ReactNode } from "react"
+import type { ComponentProps, ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import { useTheme } from "@components/ui/theme-provider"
 import type { Theme } from "@components/ui/theme-provider"
+import { Alert, AlertDescription } from "@ui/alert"
 import { Button } from "@ui/button"
-import { Checkbox } from "@ui/checkbox"
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@ui/field"
-import { Input } from "@ui/input"
+import { FieldGroup, FieldLegend, FieldSet } from "@ui/field"
+import { CheckboxInput, FormInput, SelectInput, TextareaInput, TextInput, useForm, type FormOutputs } from "@ui/forms"
 import { Label } from "@ui/label"
-import { Textarea } from "@ui/textarea"
+import { Failed, Loading, NotAsked, Ready, type RemoteData } from "@lib/remote-data"
 import { cn } from "@lib/utils"
 import { describeSaveError } from "@module/profile/helpers/describe-save-error"
 import type { Save } from "@module/profile/helpers/use-profile"
-import type { Edit } from "@module/profile/helpers/write-profile"
+import type { Edit, SaveError } from "@module/profile/helpers/write-profile"
 import type { Basics, JobSearch, Language, Profile, SearchPack, SocialProfile, Toggle } from "@module/profile/types"
 import { assertNever } from "@module/scout/result"
 
@@ -90,92 +90,92 @@ const changed = (path: Path, next: string, before: string): readonly Edit[] =>
 
 const humanize = (key: string): string => key.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase())
 
-// Each card owns its own save: one file, one in-flight guard. Saving Identity's
+// Each card owns its own save: one file, one RemoteData cell. Saving Identity's
 // basics never writes profiles.yaml, so a failure is scoped to the card that
-// caused it.
+// caused it. Success remounts the card (SettingsPanel keys it on the file's
+// stamp), so Ready only shows until the reload lands.
 function useCardSave(
   file: string,
   save: Save
-): { readonly busy: boolean; readonly submit: (edits: readonly Edit[]) => void } {
-  const [busy, setBusy] = useState(false)
+): { readonly submit: RemoteData<SaveError, void>; readonly run: (edits: readonly Edit[]) => void } {
+  const [submit, setSubmit] = useState<RemoteData<SaveError, void>>(NotAsked())
 
-  const submit = (edits: readonly Edit[]): void => {
-    setBusy(true)
-    void save(file, edits).then((result) => {
-      setBusy(false)
-      if (result.kind === "err") toast.error(describeSaveError(result.error))
-      else toast.success(`Saved data/${file}`)
-    })
+  const run = (edits: readonly Edit[]): void => {
+    if (submit.isLoading) return
+    setSubmit(Loading())
+    save(file, edits).fork(
+      (error) => setSubmit(Failed(error)),
+      () => {
+        setSubmit(Ready(undefined))
+        toast.success(`Saved data/${file}`)
+      }
+    )
   }
 
-  return { busy, submit }
+  return { submit, run }
 }
 
 function SaveButton({
-  busy,
-  edits,
-  onSubmit,
+  submit,
+  dirty,
   onReset,
 }: {
-  readonly busy: boolean
-  readonly edits: readonly Edit[]
-  readonly onSubmit: (edits: readonly Edit[]) => void
+  readonly submit: RemoteData<SaveError, void>
+  readonly dirty: boolean
   readonly onReset: () => void
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <Button size="sm" className="h-8 px-3" disabled={busy || edits.length === 0} onClick={() => onSubmit(edits)}>
-        {busy ? "Saving…" : "Save"}
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-8 border-divider-emphasis bg-transparent px-3 text-ink-soft"
-        disabled={busy || edits.length === 0}
-        onClick={onReset}
-      >
-        Reset
-      </Button>
+    <div className="space-y-2">
+      {submit instanceof Failed ?
+        <Alert variant="destructive">
+          <AlertDescription>{describeSaveError(submit.error)}</AlertDescription>
+        </Alert>
+      : null}
+      <div className="flex items-center gap-3">
+        <Button type="submit" size="sm" className="h-8 px-3" disabled={submit.isLoading || !dirty}>
+          {submit.isLoading ? "Saving…" : "Save"}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 border-divider-emphasis bg-transparent px-3 text-ink-soft"
+          disabled={submit.isLoading || !dirty}
+          onClick={onReset}
+        >
+          Reset
+        </Button>
+      </div>
     </div>
   )
 }
 
-// Measured off the console: 12px labels at 65% ink, 11px hints at 35%. Our
-// Label is 14px/medium and FieldDescription 14px, so every label and hint in
-// this file carries the override.
-function TextField({
-  id,
-  label,
-  labelHidden,
-  value,
-  hint,
-  onValueChange,
+// Rows read from the profile key their fields by row id, so a lookup is typed as
+// possibly missing; every key asked for is one the same card put in its config.
+function RowInput({
+  config,
+  disabled,
+  className,
 }: {
-  readonly id: string
-  readonly label: string
-  readonly labelHidden?: boolean
-  readonly value: string
-  readonly hint?: string | undefined
-  readonly onValueChange: (next: string) => void
+  readonly config: ComponentProps<typeof FormInput>["config"] | undefined
+  readonly disabled: boolean
+  readonly className?: string
 }) {
-  return (
-    <Field>
-      {/* Hidden, not dropped: base-ui only fills aria-labelledby under a
-          Field.Root this app never renders, so deleting the element would
-          leave the input with no accessible name at all. */}
-      <FieldLabel
-        htmlFor={id}
-        className={labelHidden === true ? "sr-only" : "text-xs leading-none font-normal text-ink-soft"}
-      >
-        {label}
-      </FieldLabel>
-      {/* max-w-sm: the console's 384px field width, not the full column. */}
-      <Input id={id} value={value} className="max-w-sm" onChange={(event) => onValueChange(event.target.value)} />
-      {hint !== undefined && (
-        <FieldDescription className="text-[11px] leading-normal text-ink-faint">{hint}</FieldDescription>
-      )}
-    </Field>
-  )
+  return config === undefined ? null : <FormInput config={config} className={className} disabled={disabled} />
+}
+
+const listInput = (label: string, hint: string, values: readonly string[]): TextareaInput =>
+  new TextareaInput({ label, description: `${hint} One entry per line.`, defaultValue: toLines(values), rows: 4 })
+
+// Object.fromEntries widens keys to string; every row contributes its own
+// `field`, so the record is total.
+function listFields<Name extends string>(
+  rows: readonly ListRow<Name>[],
+  values: Readonly<Record<Name, readonly string[]>>
+): Record<Name, TextareaInput> {
+  return Object.fromEntries(
+    rows.map((row) => [row.field, listInput(row.label, row.hint, values[row.field])])
+  ) as Record<Name, TextareaInput>
 }
 
 // The console's non-input readout: a 12px label over arbitrary content, used
@@ -186,57 +186,6 @@ function Block({ label, children }: { readonly label: string; readonly children:
       <Label className="text-xs leading-none font-normal text-ink-soft">{label}</Label>
       {children}
     </div>
-  )
-}
-
-function ListField({
-  id,
-  label,
-  value,
-  hint,
-  onValueChange,
-}: {
-  readonly id: string
-  readonly label: string
-  readonly value: string
-  readonly hint?: string | undefined
-  readonly onValueChange: (next: string) => void
-}) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={id} className="text-xs leading-none font-normal text-ink-soft">
-        {label}
-      </FieldLabel>
-      <Textarea id={id} value={value} rows={4} onChange={(event) => onValueChange(event.target.value)} />
-      <FieldDescription className="text-[11px] leading-normal text-ink-faint">
-        {hint === undefined ? "One entry per line." : `${hint} One entry per line.`}
-      </FieldDescription>
-    </Field>
-  )
-}
-
-// No FieldContent around the label: Field's horizontal variant flips itself to
-// items-start (and nudges the box by mt-px) the moment one is a direct child,
-// to make room for a description. A bare toggle has none, so the wrapper only
-// broke the centering.
-function ToggleField({
-  id,
-  label,
-  checked,
-  onCheckedChange,
-}: {
-  readonly id: string
-  readonly label: string
-  readonly checked: boolean
-  readonly onCheckedChange: (next: boolean) => void
-}) {
-  return (
-    <Field orientation="horizontal">
-      <Checkbox id={id} checked={checked} onCheckedChange={(next: boolean) => onCheckedChange(next)} />
-      <FieldLabel htmlFor={id} className="text-xs leading-none font-normal text-ink-soft">
-        {label}
-      </FieldLabel>
-    </Field>
   )
 }
 
@@ -273,30 +222,35 @@ function BasicsForm({
   readonly basics: Basics
   readonly save: Save
 }) {
-  const [draft, setDraft] = useState(basics)
-  const { busy, submit } = useCardSave("basics.yaml", save)
+  const { submit, run } = useCardSave("basics.yaml", save)
+  const config: Record<string, TextInput> = Object.fromEntries(
+    rows.map((row) => [
+      row.field,
+      new TextInput({ label: row.label, type: "text", defaultValue: basics[row.field], description: row.hint }),
+    ])
+  )
+  const { fields, values, onSubmit, reset } = useForm({ fields: config })
 
-  const setField = (field: keyof Basics, value: string): void =>
-    setDraft((current): Basics => ({ ...current, [field]: value }))
-
-  const edits = rows.flatMap<Edit>((row) => changed(row.path, draft[row.field], basics[row.field]))
+  const toEdits = (v: FormOutputs<typeof config>): readonly Edit[] =>
+    rows.flatMap<Edit>((row) => changed(row.path, v[row.field] ?? basics[row.field], basics[row.field]))
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
         {rows.map((row) => (
-          <TextField
-            key={row.field}
-            id={`basics-${row.field}`}
-            label={row.label}
-            value={draft[row.field]}
-            hint={row.hint}
-            onValueChange={(next) => setField(row.field, next)}
-          />
+          <RowInput key={row.field} config={fields[row.field]} className="max-w-sm" disabled={submit.isLoading} />
         ))}
       </FieldGroup>
-      <SaveButton busy={busy} edits={edits} onSubmit={submit} onReset={() => setDraft(basics)} />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
@@ -304,126 +258,122 @@ function BasicsSection({ basics, save }: { readonly basics: Basics; readonly sav
   return <BasicsForm rows={BASICS_ROWS} basics={basics} save={save} />
 }
 
-function SocialsSection({ socials, save }: { readonly socials: readonly SocialProfile[]; readonly save: Save }) {
-  const [draft, setDraft] = useState(socials)
-  const { busy, submit } = useCardSave("profiles.yaml", save)
+const socialKey = (id: string, part: "username" | "url"): string => `${id}:${part}`
+const socialHeading = (row: SocialProfile): string => (row.network === "" ? `Profile ${row.id}` : row.network)
 
-  const setRow = (position: number, field: "username" | "url", value: string): void =>
-    setDraft((current) =>
-      current.map((row, index): SocialProfile => (index === position ? { ...row, [field]: value } : row))
-    )
+function SocialsSection({ socials, save }: { readonly socials: readonly SocialProfile[]; readonly save: Save }) {
+  const { submit, run } = useCardSave("profiles.yaml", save)
+  // The visible name is the legend; the hidden label names the network too, or
+  // three rows read alike.
+  const config: Record<string, TextInput> = Object.fromEntries(
+    socials.flatMap((row): [string, TextInput][] => [
+      [
+        socialKey(row.id, "username"),
+        new TextInput({
+          label: `${socialHeading(row)} username`,
+          hideLabel: true,
+          type: "text",
+          defaultValue: row.username,
+        }),
+      ],
+      [
+        socialKey(row.id, "url"),
+        new TextInput({ label: `${socialHeading(row)} URL`, hideLabel: true, type: "text", defaultValue: row.url }),
+      ],
+    ])
+  )
+  const { fields, values, onSubmit, reset } = useForm({ fields: config })
 
   // `row.id` is the row's place in the file, which is what an edit path
   // addresses; username-less rows were dropped before this list was built.
-  // The network name is a heading now, so no edit targets `row.key` — the
-  // row that spells its label `x` keeps that spelling untouched.
-  const edits = draft.flatMap<Edit>((row, position) => {
-    const before = socials[position]
-    if (before === undefined) return []
-    const index = Number(row.id)
-    return [
-      ...changed(["profiles", index, "username"], row.username, before.username),
-      ...changed(["profiles", index, "url"], row.url, before.url),
-    ]
-  })
+  // The network name is a heading, so no edit targets `row.key`.
+  const toEdits = (v: FormOutputs<typeof config>): readonly Edit[] =>
+    socials.flatMap<Edit>((row) => {
+      const index = Number(row.id)
+      return [
+        ...changed(["profiles", index, "username"], v[socialKey(row.id, "username")] ?? row.username, row.username),
+        ...changed(["profiles", index, "url"], v[socialKey(row.id, "url")] ?? row.url, row.url),
+      ]
+    })
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
-        {draft.map((row, position) => (
+        {socials.map((row) => (
           <FieldSet key={row.id}>
-            <FieldLegend variant="label" className="text-xs leading-none font-normal text-ink-soft">
-              {row.network === "" ? `Profile ${row.id}` : row.network}
-            </FieldLegend>
+            <FieldLegend variant="label">{socialHeading(row)}</FieldLegend>
             <div className="grid gap-4 sm:grid-cols-2">
-              {/* The visible name is the legend above; the hidden label names
-                  the network too, or three rows read alike. */}
-              <TextField
-                id={`social-${row.id}-username`}
-                label={`${row.network === "" ? `Profile ${row.id}` : row.network} username`}
-                labelHidden
-                value={row.username}
-                onValueChange={(next) => setRow(position, "username", next)}
-              />
-              <TextField
-                id={`social-${row.id}-url`}
-                label={`${row.network === "" ? `Profile ${row.id}` : row.network} URL`}
-                labelHidden
-                value={row.url}
-                onValueChange={(next) => setRow(position, "url", next)}
-              />
+              <RowInput config={fields[socialKey(row.id, "username")]} disabled={submit.isLoading} />
+              <RowInput config={fields[socialKey(row.id, "url")]} disabled={submit.isLoading} />
             </div>
           </FieldSet>
         ))}
       </FieldGroup>
-      <SaveButton busy={busy} edits={edits} onSubmit={submit} onReset={() => setDraft(socials)} />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
 function LanguagesSection({ languages, save }: { readonly languages: readonly Language[]; readonly save: Save }) {
-  const [draft, setDraft] = useState(languages)
-  const { busy, submit } = useCardSave("languages.yaml", save)
+  const { submit, run } = useCardSave("languages.yaml", save)
+  const config: Record<string, TextInput> = Object.fromEntries(
+    languages.flatMap((row): [string, TextInput][] => [
+      [`${row.id}:name`, new TextInput({ label: "Language", type: "text", defaultValue: row.name })],
+      [`${row.id}:level`, new TextInput({ label: "Level", type: "text", defaultValue: row.level })],
+    ])
+  )
+  const { fields, values, onSubmit, reset } = useForm({ fields: config })
 
-  const setRow = (position: number, field: "name" | "level", value: string): void =>
-    setDraft((current) =>
-      current.map((row, index): Language => (index === position ? { ...row, [field]: value } : row))
-    )
-
-  const edits = draft.flatMap<Edit>((row, position) => {
-    const before = languages[position]
-    if (before === undefined) return []
-    const index = Number(row.id)
-    return [
-      ...changed(["languages", index, "name"], row.name, before.name),
-      ...changed(["languages", index, "level"], row.level, before.level),
-    ]
-  })
+  const toEdits = (v: FormOutputs<typeof config>): readonly Edit[] =>
+    languages.flatMap<Edit>((row) => {
+      const index = Number(row.id)
+      return [
+        ...changed(["languages", index, "name"], v[`${row.id}:name`] ?? row.name, row.name),
+        ...changed(["languages", index, "level"], v[`${row.id}:level`] ?? row.level, row.level),
+      ]
+    })
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
-        {draft.map((row, position) => (
+        {languages.map((row) => (
           <div key={row.id} className="grid gap-4 sm:grid-cols-2">
-            <TextField
-              id={`language-${row.id}-name`}
-              label="Language"
-              value={row.name}
-              onValueChange={(next) => setRow(position, "name", next)}
-            />
-            <TextField
-              id={`language-${row.id}-level`}
-              label="Level"
-              value={row.level}
-              onValueChange={(next) => setRow(position, "level", next)}
-            />
+            <RowInput config={fields[`${row.id}:name`]} disabled={submit.isLoading} />
+            <RowInput config={fields[`${row.id}:level`]} disabled={submit.isLoading} />
           </div>
         ))}
       </FieldGroup>
-      <SaveButton busy={busy} edits={edits} onSubmit={submit} onReset={() => setDraft(languages)} />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
-type ToggleGroupName = "workModel" | "jobTypes" | "datePosted"
+type ToggleGroupName = "workModel" | "jobTypes"
 
 const TOGGLE_GROUPS: readonly {
   readonly field: ToggleGroupName
   readonly label: string
   readonly key: string
-  // date_posted carries exactly one window: leaving a previous one on means
-  // scout reads the widest of the two and the narrower one has no effect.
-  readonly single?: boolean
-  readonly hint?: string
 }[] = [
   { field: "workModel", label: "Work model", key: "work_model" },
   { field: "jobTypes", label: "Job types", key: "job_types" },
-  { field: "datePosted", label: "Date posted", key: "date_posted", single: true, hint: "One window." },
 ]
-
-const SINGLE_GROUPS: ReadonlySet<ToggleGroupName> = new Set(
-  TOGGLE_GROUPS.filter((group) => group.single === true).map((group) => group.field)
-)
 
 type SearchListName = "positions" | "locations"
 
@@ -472,274 +422,217 @@ const FILTER_LIST_ROWS: readonly ListRow<FilterListName>[] = [
   },
 ]
 
+type SearchFields = {
+  readonly positions: TextareaInput
+  readonly locations: TextareaInput
+  readonly datePosted: SelectInput<Toggle>
+  readonly locationScope: TextInput
+} & Readonly<Record<`${ToggleGroupName}:${string}`, CheckboxInput>>
+
 function SearchSection({ jobSearch, save }: { readonly jobSearch: JobSearch; readonly save: Save }) {
-  const { busy, submit } = useCardSave("job_search.yaml", save)
-  const [toggles, setToggles] = useState<Readonly<Record<ToggleGroupName, readonly Toggle[]>>>({
-    workModel: jobSearch.workModel,
-    jobTypes: jobSearch.jobTypes,
-    datePosted: jobSearch.datePosted,
-  })
-  const [lists, setLists] = useState<Readonly<Record<SearchListName, string>>>({
-    positions: toLines(jobSearch.positions),
-    locations: toLines(jobSearch.locations),
-  })
-  const [scope, setScope] = useState(jobSearch.locationScope)
-
-  // Empty is a profile gap scout reports for itself; a typo is not, and reaches
-  // scout as a scope that matches neither branch.
-  const scopeValid = SCOPES.includes(scope)
-
-  // Turning one row on in a single-select group turns the rest off, so the file
-  // never carries two windows at once.
-  const setToggle = (field: ToggleGroupName, key: string, on: boolean): void =>
-    setToggles((current) => ({
-      ...current,
-      [field]: current[field].map((row): Toggle => {
-        if (row.key === key) return { key, on }
-        return on && SINGLE_GROUPS.has(field) ? { key: row.key, on: false } : row
-      }),
-    }))
-
-  const setList = (field: SearchListName, value: string): void =>
-    setLists((current): Record<SearchListName, string> => ({ ...current, [field]: value }))
-
-  const toggleEdits = TOGGLE_GROUPS.flatMap<Edit>((group) =>
-    toggles[group.field].flatMap<Edit>((row, index) => {
-      const before = jobSearch[group.field][index]
-      if (before === undefined || before.on === row.on) return []
-      return [{ op: "set", path: [group.key, row.key], value: row.on }]
-    })
-  )
-
-  const listEdits = SEARCH_LIST_ROWS.flatMap<Edit>((row) => {
-    const next = fromLines(lists[row.field])
-    return sameList(next, jobSearch[row.field]) ? [] : [{ op: "set", path: row.path, value: [...next] }]
+  const { submit, run } = useCardSave("job_search.yaml", save)
+  // A hand-edited file can carry two windows; the select shows the first, and
+  // the card stays clean until the user picks another.
+  const loadedWindow = jobSearch.datePosted.find((row) => row.on)?.key ?? null
+  const toggleFields: Record<`${ToggleGroupName}:${string}`, CheckboxInput> = {}
+  for (const group of TOGGLE_GROUPS)
+    for (const row of jobSearch[group.field])
+      toggleFields[`${group.field}:${row.key}`] = new CheckboxInput({ label: humanize(row.key), defaultValue: row.on })
+  const config: SearchFields = {
+    ...toggleFields,
+    ...listFields(SEARCH_LIST_ROWS, jobSearch),
+    // date_posted carries exactly one window: two on means scout reads the
+    // widest and the narrower one has no effect. A select can't hold two.
+    datePosted: new SelectInput<Toggle>({
+      label: "Date posted",
+      items: jobSearch.datePosted,
+      defaultValue: loadedWindow,
+      getValue: (row) => row.key,
+      getLabel: (row) => humanize(row.key),
+      placeholder: "None",
+      allowClear: true,
+    }),
+    locationScope: new TextInput({
+      label: "Location scope",
+      type: "text",
+      defaultValue: jobSearch.locationScope,
+      description: "worldwide, or listed to use the locations above.",
+    }),
+  }
+  const { fields, values, onSubmit, reset } = useForm({
+    fields: config,
+    validate: (v) => ({
+      positions: null,
+      locations: null,
+      datePosted: null,
+      // Empty is a profile gap scout reports for itself; a typo is not, and
+      // reaches scout as a scope that matches neither branch.
+      locationScope: SCOPES.includes(v.locationScope) ? null : "Use worldwide or listed, or leave it empty.",
+    }),
   })
 
-  const edits: readonly Edit[] = [
-    ...toggleEdits,
-    ...listEdits,
-    ...(scopeValid ? changed(["location_scope"], scope, jobSearch.locationScope) : []),
+  const toEdits = (v: FormOutputs<SearchFields>): readonly Edit[] => [
+    ...TOGGLE_GROUPS.flatMap<Edit>((group) =>
+      jobSearch[group.field].flatMap<Edit>((row) => {
+        const on = v[`${group.field}:${row.key}`] ?? row.on
+        return on === row.on ? [] : [{ op: "set", path: [group.key, row.key], value: on }]
+      })
+    ),
+    ...(v.datePosted === loadedWindow ? [] : jobSearch.datePosted).flatMap<Edit>((row) => {
+      const on = row.key === v.datePosted
+      return on === row.on ? [] : [{ op: "set", path: ["date_posted", row.key], value: on }]
+    }),
+    ...SEARCH_LIST_ROWS.flatMap<Edit>((row) => {
+      const next = fromLines(v[row.field])
+      return sameList(next, jobSearch[row.field]) ? [] : [{ op: "set", path: row.path, value: [...next] }]
+    }),
+    ...changed(["location_scope"], v.locationScope, jobSearch.locationScope),
   ]
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
         {TOGGLE_GROUPS.map((group) => (
           <FieldSet key={group.field}>
-            <FieldLegend variant="label" className="text-xs leading-none font-normal text-ink-soft">
-              {group.label}
-            </FieldLegend>
-            {group.hint !== undefined && (
-              <FieldDescription className="text-[11px] leading-normal text-ink-faint">{group.hint}</FieldDescription>
-            )}
-            {toggles[group.field].map((row) => (
-              <ToggleField
-                key={row.key}
-                id={`job-search-${group.key}-${row.key}`}
-                label={humanize(row.key)}
-                checked={row.on}
-                onCheckedChange={(next) => setToggle(group.field, row.key, next)}
-              />
+            <FieldLegend variant="label">{group.label}</FieldLegend>
+            {jobSearch[group.field].map((row) => (
+              <RowInput key={row.key} config={fields[`${group.field}:${row.key}`]} disabled={submit.isLoading} />
             ))}
           </FieldSet>
         ))}
-
-        {SEARCH_LIST_ROWS.map((row) => (
-          <ListField
-            key={row.field}
-            id={`job-search-${row.field}`}
-            label={row.label}
-            value={lists[row.field]}
-            hint={row.hint}
-            onValueChange={(next) => setList(row.field, next)}
-          />
-        ))}
-
-        <Field>
-          <FieldLabel htmlFor="job-search-location-scope" className="text-xs leading-none font-normal text-ink-soft">
-            Location scope
-          </FieldLabel>
-          <Input
-            id="job-search-location-scope"
-            value={scope}
-            className="max-w-sm"
-            aria-invalid={!scopeValid}
-            onChange={(event) => setScope(event.target.value)}
-          />
-          {scopeValid ?
-            <FieldDescription className="text-[11px] leading-normal text-ink-faint">
-              worldwide, or listed to use the locations above.
-            </FieldDescription>
-          : <FieldError>Use worldwide or listed, or leave it empty.</FieldError>}
-        </Field>
+        <FormInput config={fields.datePosted} disabled={submit.isLoading} />
+        <FormInput config={fields.positions} disabled={submit.isLoading} />
+        <FormInput config={fields.locations} disabled={submit.isLoading} />
+        <FormInput config={fields.locationScope} className="max-w-sm" disabled={submit.isLoading} />
       </FieldGroup>
-      <SaveButton
-        busy={busy}
-        edits={edits}
-        onSubmit={submit}
-        onReset={() => {
-          setToggles({
-            workModel: jobSearch.workModel,
-            jobTypes: jobSearch.jobTypes,
-            datePosted: jobSearch.datePosted,
-          })
-          setLists({
-            positions: toLines(jobSearch.positions),
-            locations: toLines(jobSearch.locations),
-          })
-          setScope(jobSearch.locationScope)
-        }}
-      />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
 function FiltersSection({ jobSearch, save }: { readonly jobSearch: JobSearch; readonly save: Save }) {
-  const { busy, submit } = useCardSave("job_search.yaml", save)
-  const [lists, setLists] = useState<Readonly<Record<FilterListName, string>>>({
-    excludeLocations: toLines(jobSearch.excludeLocations),
-    excludeCompanies: toLines(jobSearch.excludeCompanies),
-    directRegions: toLines(jobSearch.directRegions),
-    marketCurrencies: toLines(jobSearch.marketCurrencies),
+  const { submit, run } = useCardSave("job_search.yaml", save)
+  const config = {
+    ...listFields(FILTER_LIST_ROWS, jobSearch),
+    pruneScoreMax: new TextInput({
+      label: "Prune score max",
+      type: "number",
+      defaultValue: String(jobSearch.pruneScoreMax),
+      description: "The job-prune threshold; scout itself ignores it.",
+      input: { inputMode: "numeric" },
+    }),
+  }
+  const { fields, values, onSubmit, reset } = useForm({
+    fields: config,
+    validate: (v) => ({
+      excludeLocations: null,
+      excludeCompanies: null,
+      directRegions: null,
+      marketCurrencies: null,
+      pruneScoreMax:
+        v.pruneScoreMax.trim() !== "" && Number.isFinite(Number(v.pruneScoreMax)) ? null : "Enter a number.",
+    }),
   })
-  const [pruneText, setPruneText] = useState(String(jobSearch.pruneScoreMax))
 
-  const prune = Number(pruneText)
-  const pruneValid = pruneText.trim() !== "" && Number.isFinite(prune)
-
-  const setList = (field: FilterListName, value: string): void =>
-    setLists((current): Record<FilterListName, string> => ({ ...current, [field]: value }))
-
-  const listEdits = FILTER_LIST_ROWS.flatMap<Edit>((row) => {
-    const next = fromLines(lists[row.field])
-    return sameList(next, jobSearch[row.field]) ? [] : [{ op: "set", path: row.path, value: [...next] }]
-  })
-
-  const edits: readonly Edit[] = [
-    ...listEdits,
-    // prune_score_max is a number in the file; a string here would retype the key.
-    ...(pruneValid && prune !== jobSearch.pruneScoreMax ?
-      [{ op: "set" as const, path: ["prune_score_max"], value: prune }]
-    : []),
-  ]
+  const toEdits = (v: FormOutputs<typeof config>): readonly Edit[] => {
+    const prune = Number(v.pruneScoreMax)
+    return [
+      ...FILTER_LIST_ROWS.flatMap<Edit>((row) => {
+        const next = fromLines(v[row.field])
+        return sameList(next, jobSearch[row.field]) ? [] : [{ op: "set", path: row.path, value: [...next] }]
+      }),
+      // prune_score_max is a number in the file; a string here would retype the key.
+      ...(prune === jobSearch.pruneScoreMax ? [] : [{ op: "set" as const, path: ["prune_score_max"], value: prune }]),
+    ]
+  }
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
         {FILTER_LIST_ROWS.map((row) => (
-          <ListField
-            key={row.field}
-            id={`job-search-${row.field}`}
-            label={row.label}
-            value={lists[row.field]}
-            hint={row.hint}
-            onValueChange={(next) => setList(row.field, next)}
-          />
+          <FormInput key={row.field} config={fields[row.field]} disabled={submit.isLoading} />
         ))}
-
-        <Field>
-          <FieldLabel htmlFor="job-search-prune-score-max" className="text-xs leading-none font-normal text-ink-soft">
-            Prune score max
-          </FieldLabel>
-          <Input
-            id="job-search-prune-score-max"
-            type="number"
-            inputMode="numeric"
-            value={pruneText}
-            className="max-w-sm"
-            aria-invalid={!pruneValid}
-            onChange={(event) => setPruneText(event.target.value)}
-          />
-          {pruneValid ?
-            <FieldDescription className="text-[11px] leading-normal text-ink-faint">
-              The job-prune threshold; scout itself ignores it.
-            </FieldDescription>
-          : <FieldError>Enter a number.</FieldError>}
-        </Field>
+        <FormInput config={fields.pruneScoreMax} className="max-w-sm" disabled={submit.isLoading} />
       </FieldGroup>
-      <SaveButton
-        busy={busy}
-        edits={edits}
-        onSubmit={submit}
-        onReset={() => {
-          setLists({
-            excludeLocations: toLines(jobSearch.excludeLocations),
-            excludeCompanies: toLines(jobSearch.excludeCompanies),
-            directRegions: toLines(jobSearch.directRegions),
-            marketCurrencies: toLines(jobSearch.marketCurrencies),
-          })
-          setPruneText(String(jobSearch.pruneScoreMax))
-        }}
-      />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
-type PackDraft = { readonly enabled: boolean; readonly formulations: string }
+type PackFields = Readonly<Record<`enabled:${string}`, CheckboxInput>> &
+  Readonly<Record<`formulations:${string}`, TextareaInput>>
 
 function PacksSection({ packs, save }: { readonly packs: readonly SearchPack[]; readonly save: Save }) {
-  const { busy, submit } = useCardSave("search_packs.yaml", save)
-  const [draft, setDraft] = useState<readonly PackDraft[]>(() =>
-    packs.map((pack) => ({ enabled: pack.enabled, formulations: toLines(pack.formulations) }))
-  )
-
-  const setRow = (position: number, patch: PackDraft): void =>
-    setDraft((current) => current.map((row, index) => (index === position ? patch : row)))
+  const { submit, run } = useCardSave("search_packs.yaml", save)
+  // PackFields is Readonly, so the record is built as a mutable local first and
+  // assigned once every row has contributed its two fields.
+  const draft: Record<`enabled:${string}`, CheckboxInput> & Record<`formulations:${string}`, TextareaInput> = {}
+  for (const pack of packs) {
+    draft[`enabled:${pack.id}`] = new CheckboxInput({ label: "Enabled", defaultValue: pack.enabled })
+    draft[`formulations:${pack.id}`] = listInput(
+      "Formulations",
+      `${pack.surface}. [role] expands from positions.`,
+      pack.formulations
+    )
+  }
+  const config: PackFields = draft
+  const { fields, values, onSubmit, reset } = useForm({ fields: config })
 
   // `pack.index` is the row's position in the file, not its position on screen:
   // id-less rows are dropped from this list but still occupy a slot in the YAML.
-  const edits = packs.flatMap<Edit>((pack, position) => {
-    const row = draft[position]
-    if (row === undefined) return []
-    const formulations = fromLines(row.formulations)
-    return [
-      ...(row.enabled === pack.enabled ?
-        []
-      : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: row.enabled }]),
-      ...(sameList(formulations, pack.formulations) ?
-        []
-      : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
-    ]
-  })
+  const toEdits = (v: FormOutputs<PackFields>): readonly Edit[] =>
+    packs.flatMap<Edit>((pack) => {
+      const enabled = v[`enabled:${pack.id}`] ?? pack.enabled
+      const formulations = fromLines(v[`formulations:${pack.id}`] ?? toLines(pack.formulations))
+      return [
+        ...(enabled === pack.enabled ?
+          []
+        : [{ op: "set" as const, path: ["packs", pack.index, "enabled"], value: enabled }]),
+        ...(sameList(formulations, pack.formulations) ?
+          []
+        : [{ op: "set" as const, path: ["packs", pack.index, "formulations"], value: [...formulations] }]),
+      ]
+    })
+  const handleSave = onSubmit((v) => run(toEdits(v)))
 
   return (
-    <div className="space-y-2">
+    <form
+      noValidate
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void handleSave()
+      }}
+    >
       <FieldGroup>
-        {packs.map((pack, position) => {
-          const row = draft[position]
-          if (row === undefined) return null
-          return (
-            <FieldSet key={pack.id}>
-              <FieldLegend variant="label" className="font-mono text-xs leading-none font-normal text-ink-soft">
-                {pack.id}
-              </FieldLegend>
-              <ToggleField
-                id={`pack-${pack.id}-enabled`}
-                label="Enabled"
-                checked={row.enabled}
-                onCheckedChange={(next) => setRow(position, { ...row, enabled: next })}
-              />
-              <ListField
-                id={`pack-${pack.id}-formulations`}
-                label="Formulations"
-                value={row.formulations}
-                hint={`${pack.surface}. [role] expands from positions.`}
-                onValueChange={(next) => setRow(position, { ...row, formulations: next })}
-              />
-            </FieldSet>
-          )
-        })}
+        {packs.map((pack) => (
+          <FieldSet key={pack.id}>
+            <FieldLegend variant="label" className="font-mono">
+              {pack.id}
+            </FieldLegend>
+            <RowInput config={fields[`enabled:${pack.id}`]} disabled={submit.isLoading} />
+            <RowInput config={fields[`formulations:${pack.id}`]} disabled={submit.isLoading} />
+          </FieldSet>
+        ))}
       </FieldGroup>
-      <SaveButton
-        busy={busy}
-        edits={edits}
-        onSubmit={submit}
-        onReset={() =>
-          setDraft(packs.map((pack) => ({ enabled: pack.enabled, formulations: toLines(pack.formulations) })))
-        }
-      />
-    </div>
+      <SaveButton submit={submit} dirty={toEdits(values).length > 0} onReset={reset} />
+    </form>
   )
 }
 
