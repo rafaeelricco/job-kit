@@ -46,7 +46,7 @@ cp development/.env.example development/.env
 | Variable                                   | What it does                                                                                   |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | `SMTP_URL`, `MAIL_FROM`                    | Where login codes are sent. With `SMTP_URL` empty, the code is printed in the API log instead. |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | The Google OAuth client. Leave both empty and the Google button reports that it is not set up. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | The Google OAuth client. Leave either empty and the Google button reports it is not set up.    |
 | `APP_URL`                                  | Where the app runs. Google sends people back to this address.                                  |
 | `LOGIN_CODE_SECRET`                        | Key for hashing stored login codes. Empty uses a development key; production requires one.     |
 
