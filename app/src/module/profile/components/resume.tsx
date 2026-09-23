@@ -41,12 +41,13 @@ function ResumeList({
   // re-reads the file, so adaptPerVacancy stays the source of truth.
   const setAdapt = (next: boolean) => {
     setPending(next)
-    void save("cvs.yaml", [{ op: "set", path: ["adapt_per_vacancy"], value: next }]).then((result) => {
-      if (result.kind === "err") {
+    save("cvs.yaml", [{ op: "set", path: ["adapt_per_vacancy"], value: next }]).fork(
+      (error) => {
         setPending(null)
-        toast.error(describeSaveError(result.error))
-      } else toast.success(`Per-vacancy tailoring ${next ? "on" : "off"}`)
-    })
+        toast.error(describeSaveError(error))
+      },
+      () => toast.success(`Per-vacancy tailoring ${next ? "on" : "off"}`)
+    )
   }
 
   // The directory handle is read at click time rather than held in state: the
