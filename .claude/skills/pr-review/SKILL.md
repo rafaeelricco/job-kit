@@ -180,9 +180,10 @@ Inline comment (GitHub):
 **<sub><sub>![P{n} Badge](https://img.shields.io/badge/P{n}-{color}?style=flat)</sub></sub>  {imperative fix}**
 
 {body}
-
-{visual, optional}
 ```
+
+No code fence under the body: GitHub already shows the commented lines above
+the comment.
 
 `{color}` is `red` for P0, `orange` for P1, `yellow` for P2, and `lightgrey` for P3.
 
@@ -207,16 +208,8 @@ Write the SHA out in full, never as a shell substitution.
 
 **Body**: one paragraph. Lead with what breaks, name the trigger, say how it was reproduced (the
 proof's command and what it showed), and end with the fix direction in one
-sentence. Keep it within about 120 words; detail that doesn't fit goes in the
-visual or is cut. No hedges on reproduced findings, no praise, no restating the
-diff.
-
-**Visual**: at most one, ≤ 12 lines, only when it shows the failure or fix faster
-than prose:
-
-- `diff` of the fix shape when the fix is local;
-- a `text` call tree when the bug lives on a control-flow path (cancel, retry, finally);
-- a Mermaid `sequenceDiagram` when two components race or hand off state.
+sentence. Keep it within about 120 words; cut detail that doesn't fit. No hedges
+on reproduced findings, no praise, no restating the diff.
 
 **Closing line**: what the baseline passed or failed, with counts, for every
 check it ran; then what was not run (for `server/`, Docker integration and
