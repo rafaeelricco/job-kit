@@ -1,6 +1,6 @@
 # Job scout — rank
 
-`score` 0–10 = the share of `required_skills` covered by `data/skills.yaml` `skills[].items`, 10 being all. Covered is direct, not adjacent — `React.js` covers `React`, Vue does not. Either list empty → unscored (`—`); the persist set reports it as Gaps `unscorable`, never as `score<=7`. Never invent requirements from the profile to score it.
+`score` 0–10 = 10 × covered ÷ `required_skills` count, rounded half up (`3` of `4` → `8`), where covered counts the `required_skills` that `data/skills.yaml` `skills[].items` hold. Covered is direct, not adjacent — `React.js` covers `React`, Vue does not. Either list empty → unscored (`—`); the persist set reports it as Gaps `unscorable`, never as `score<=7`. Never invent requirements from the profile to score it.
 
 Bucket, first match — dossier frontmatter only, never chat: printed EOR route and kit EOR Yes → `EOR`; printed contractor/B2B and kit contractor Yes, or location matches `direct_regions` → `direct`; `eligibility` is `incompatible` → `restricted-geo`; else `unbucketed`. Bucket is hiring route; geography is the `eligibility` row.
 
