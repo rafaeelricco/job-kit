@@ -23,7 +23,7 @@ Fixed order. Unfired slots are absent, not empty.
 | 2 Piercing  | always      | The problem behind a direct requirement, sharpened only from the ad                             |
 | 3 Method    | conditional | The decision inside the carrying story and what it replaced                                     |
 | 4 Proof     | conditional | The resulting outcome, not an activity                                                          |
-| 5 Bridge    | conditional | One supporting fact, at most two sentences, answering a requirement the carrying story does not |
+| 5 Bridge    | conditional | One supporting fact, stated briefly, answering a requirement the carrying story does not        |
 | 6 Terms     | conditional | Geo, authorization, or engagement position, with the decision handed back                       |
 | 7 Ask       | always      | One sentence proposing the conversation                                                         |
 
@@ -38,7 +38,8 @@ outcome the deck does not hold.
 ## Short answers
 
 A question field (`Why us?`, `What did you study?`, `Describe a project`) gets
-an answer to that question only, one to four sentences, from the same sources.
+an answer to that question only, as short as a recruiter skimming the form
+needs, from the same sources.
 A part the files do not print is named as not on record in plain words
 (`I do not have a grade figure to share`), never estimated. A word or
 character limit the field prints is a hard limit.

@@ -29,7 +29,7 @@ routed URL for every named location.
   formulation as `matched_query`. Populate standard candidate fields exposed by
   the item; absent fields remain `—` for posting-page extraction.
 - Start at page 1 and stop at the configured total, when a page adds no new
-  posting URL, or at the existing five-page and 40-candidate caps. Either cap as
+  posting URL, or at the five-page and 40-candidate caps. Either cap as
   the reason for stopping → `defect: list_truncated`, as on a DOM run.
 - A successful GET of the exact substituted URL is submission proof. An enabled
   `route_required: true` pack without a complete supported route, or any present
@@ -63,7 +63,7 @@ routed URL for every named location.
   returns non-JSON, or lacks the `items` path is a zero-keep run;
   every slug failing → `defect: route_failed`.
 
-Without `route`, retain the DOM flow. Open `entry`. ATS roots with no browsable
+A pack without `route` runs the DOM flow. Open `entry`. ATS roots with no browsable
 index (`job-boards.greenhouse.io`, `boards.greenhouse.io`, `jobs.lever.co`,
 `jobs.ashbyhq.com`) use `site:{entry host} {formulation}` on a search engine
 instead; an `entry` with a path opens directly. On a `site:` run the search
@@ -79,7 +79,7 @@ no next page or a page adds no new result URL, capped at five pages per
 formulation run. A zero-keep page is not a stop. Cap hit →
 `defect: list_truncated`.
 
-For DOM runs, proof remains the surface echo matching the submitted string;
+For DOM runs, proof is the surface echo matching the submitted string;
 otherwise record `defect: query_not_submitted`. A DOM candidate's
 `matched_query` is the expanded formulation whose echo proved the run,
 verbatim. A card reached any other way — a category or index page, a board

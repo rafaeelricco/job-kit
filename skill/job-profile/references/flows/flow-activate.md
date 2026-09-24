@@ -133,7 +133,7 @@
    - Both channels installed → `Kit channels already installed from <KIT_ROOT>.
 Nothing to run.`
    - Aside not installed →
-     `Install Aside skills (scout, apply, profile, match, list, pitch, inbox):
+     `Install the Aside skills:
 bash "<KIT_ROOT>/scripts/install.sh" aside`
    - Agents probe matched no complete home →
      `Link the agent skills into your agent homes:

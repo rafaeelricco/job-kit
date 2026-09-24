@@ -23,7 +23,7 @@ HF8 (`contract-match.md` hard filter 8, language) → Gaps `match blocked`, drop
 match → MatchResult. With `TYPESAFE_API_KEY` set, run
 `job-match/scripts/typesafe_match.py` (same launcher) with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>}` on stdin instead of
-the match worker; unset, use the worker as before. A row carrying
+the match worker; unset, run the match worker. A row carrying
 `match_error` → Gaps `match unavailable`, drop.
 Then invoke the resolved scorer with
 `{"candidate": <CandidateProfile>, "jobs": <JobProfiles>, "matches": <MatchResults>}`
