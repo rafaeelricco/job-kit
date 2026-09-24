@@ -26,12 +26,11 @@ is not `unverified`.
 - No eligible entry → say the story carries no shippable number and render without
   one. Never substitute a process number, never estimate, never turn a date range
   into an achievement.
-- Years of experience is the only number this skill derives:
-  floor(unique calendar months / 12) over every role's `date` in
-  `data/experiences.yml`. A date is `{Mon[.] YYYY} <sep> {Mon[.] YYYY | Present}`;
-  `<sep>` is `--`, `-`, `–`, or `—` with optional spaces; full or 3-letter month;
-  inclusive; overlapping roles count each month once; `Present` = current month.
-  No parseable role → say the number is unavailable, never 0. Never round up.
+- Years of experience is the only number this skill derives: run the installed
+  `job-match/scripts/years.py` (launcher per
+  `job-match/references/flows/flow-match.md` **score**) on every role's `date`
+  in `data/experiences.yml`. `years: null` → say the number is unavailable,
+  never 0.
 
 ## The credit rule
 

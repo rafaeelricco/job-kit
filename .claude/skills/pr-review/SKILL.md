@@ -7,9 +7,8 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, mcp__github_inline_co
 # PR review
 
 Find candidates wide, then prove each one before reporting it. A finding nobody
-reproduced is not posted. The proof phase follows babysit's `validate.md`:
-finders state a hypothesis, then a different agent proves it fires or disproves
-it.
+reproduced is not posted. Finders state a hypothesis, then a different agent
+proves it fires or disproves it.
 
 Target: the PR in the arguments (`owner/repo/pull/N` means
 `gh pr view N --repo owner/repo`), else the PR this conversation is about.
@@ -78,12 +77,11 @@ holds a changed file or one of its parents.
 
 In one message, launch in the foreground:
 
-- **Baseline** (sonnet): in the review tree run, per touched area,
-  `pnpm quality` in `server/`; `pnpm lint`, `pnpm typecheck`, `pnpm build` in
-  `app/`; and at the repo root, when `skill/`, `scripts/`, `tests/`,
-  `package.json`, or `pyrightconfig.json` changed, `bash scripts/test.sh --fast`
-  and `pnpm typecheck:release`. Return pass or fail per check, with the test
-  count.
+- **Baseline** (sonnet): run this skill's `scripts/baseline.sh` (brief it with
+  the absolute path) with the review tree as its argument and the changed files
+  on stdin, one per line. The script picks the checks for the touched areas.
+  Return its `PASS`, `FAIL`, and `NOT RUN` lines, with the test counts from
+  each check's output.
 - **Rules** (two sonnet agents, changed files split between them): CLAUDE.md
   compliance. A rule applies only under its CLAUDE.md's directory. Quote it.
 - **Bugs** (one opus agent per touched area: `server/src/app`,
@@ -180,9 +178,10 @@ Inline comment (GitHub):
 **<sub><sub>![P{n} Badge](https://img.shields.io/badge/P{n}-{color}?style=flat)</sub></sub>  {imperative fix}**
 
 {body}
-
-{visual, optional}
 ```
+
+No code fence under the body: GitHub already shows the commented lines above
+the comment.
 
 `{color}` is `red` for P0, `orange` for P1, `yellow` for P2, and `lightgrey` for P3.
 
@@ -205,24 +204,15 @@ Found {N} actionable issues.
 Link: `https://github.com/{owner}/{repo}/blob/{full head sha}/{path}#L{start}-L{end}`.
 Write the SHA out in full, never as a shell substitution.
 
-**Body**: one paragraph. Lead with what breaks, name the trigger, say how it was reproduced (the
-proof's command and what it showed), and end with the fix direction in one
-sentence. Keep it within about 120 words; detail that doesn't fit goes in the
-visual or is cut. No hedges on reproduced findings, no praise, no restating the
-diff.
-
-**Visual**: at most one, ≤ 12 lines, only when it shows the failure or fix faster
-than prose:
-
-- `diff` of the fix shape when the fix is local;
-- a `text` call tree when the bug lives on a control-flow path (cancel, retry, finally);
-- a Mermaid `sequenceDiagram` when two components race or hand off state.
+**Body**: one paragraph, read beside the diff. Lead with what breaks, name the
+trigger, say how it was reproduced (the proof's command and what it showed), and
+end with the fix direction in one sentence. State it as fact, since the proof
+reproduced it, and give every sentence one of those four jobs.
 
 **Closing line**: what the baseline passed or failed, with counts, for every
-check it ran; then what was not run (for `server/`, Docker integration and
-mutation tests unless a proof ran them; for `app/`, it has no test suite; for
-root areas, the `scripts/test.sh` mutation stage that `--fast` skips); then
-`{N} candidates could not be reproduced and were not posted.` when N > 0.
+check it ran; then its `NOT RUN` lines as prose, dropping any stage a proof
+ran; then `{N} candidates could not be reproduced and were not posted.` when
+N > 0.
 Examples: "All 107 server tests, lint, typecheck, and build passed. Docker
 integration tests were not run." and "`scripts/test.sh --fast` and
 `pnpm typecheck:release` passed. The mutation stage was not run."

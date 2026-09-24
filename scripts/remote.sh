@@ -140,6 +140,7 @@ skill/job-match/scripts/models.py
 skill/job-match/scripts/scaffold_guidance.py
 skill/job-match/scripts/validate_guidance.py
 skill/job-match/scripts/typesafe_match.py
+skill/job-match/scripts/years.py
 skill/job-resume-refine/scripts/check_parse.py
 skill/job-store/scripts/normalize_url.py
 skill/job-store/scripts/validate_extract.py

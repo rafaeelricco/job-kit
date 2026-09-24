@@ -67,8 +67,8 @@ Resolve every non-held requirement against the complete refine Fact set before
 using it. Valid guidance may order existing role, skill, bullet, and Summary
 selection; it cannot supply wording or provenance.
 
-Missing or invalid guidance is discarded as a whole. Continue through the
-existing ad-led refine contract and record `guidance: fallback`; guidance failure
+Missing or invalid guidance is discarded as a whole. Continue under the ad-led
+refine contract alone and record `guidance: fallback`; guidance failure
 alone is never STOP or FAIL.
 
 ## 4. Draft
