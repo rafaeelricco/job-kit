@@ -55,9 +55,8 @@ sit under, so it never becomes a role bullet.
 A number reaches the page as an `impact_numbers` entry with `kind: outcome` and
 `verified` other than `unverified`. Process counts never print: PRs, lines of
 code, commits, files touched, review comments, or `kind: process`. Years-of-X
-floors from `experiences.yml` dates (including dropped roles) by the
-`years_experience` rule in `job-match/references/schemas/schema-state.md`, restricted
-to the roles that show X: overlapping roles count once, never round up.
+is `job-match/scripts/years.py` on the `experiences.yml` dates of the roles
+that show X, dropped roles included.
 `never_say` wins over any phrasing that contradicts it.
 
 A skill token that enters has a Fact home in the table above. The ad's spelling
