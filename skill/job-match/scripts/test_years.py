@@ -1,8 +1,14 @@
+import json
+import os
+import subprocess
+import sys
 import unittest
+from pathlib import Path
 
 from years import years_payload
 
 TODAY = "2026-09"
+SCRIPT = Path(__file__).parent.resolve() / "years.py"
 
 
 def run(dates, today=TODAY):
@@ -64,6 +70,19 @@ class YearsTests(unittest.TestCase):
     def test_today_defaults_to_the_current_month(self):
         code, result = years_payload({"dates": ["Jan 2000 -- Dec 2000"]})
         self.assertEqual((code, result["years"]), (0, 1))
+
+    def test_piped_stdin_is_utf8_under_an_ansi_code_page(self):
+        # Windows before Python 3.15 decodes a pipe with the ANSI code page.
+        payload = {"dates": ["Oct 2023 – Present", "Jan 2018 — Dec 2020"], "today": TODAY}
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT)],
+            input=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            capture_output=True,
+            check=False,
+            env=dict(os.environ, PYTHONIOENCODING="cp1252"),
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout), {"years": 6, "unparsed": []})
 
 
 if __name__ == "__main__":

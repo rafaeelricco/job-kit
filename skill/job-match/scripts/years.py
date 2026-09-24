@@ -100,7 +100,7 @@ def years_payload(payload: object) -> Tuple[int, Dict[str, object]]:
 
 def main() -> int:
     try:
-        payload = json.load(sys.stdin)
+        payload = json.loads(sys.stdin.buffer.read().decode("utf-8-sig"))
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
         code, result = 1, {"years_error": "invalid JSON: {0}".format(error)}
     else:
