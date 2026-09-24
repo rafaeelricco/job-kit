@@ -1,135 +1,219 @@
 # Pages
 
-A page is a thin route component in `app/src/pages/`. It picks a **gate** that owns every state before the data is
-usable (access, loading, failure, wrong folder) and the page chrome (title + icon), then hands the resolved value to a
-**presentational surface**. The page itself holds no loading state and no error branches.
+Every data-driven page follows one skeleton: a layout shell wraps a **`RemoteData`** cell that a **`Future.fork`**
+fills inside `useEffect`; the render branches **exhaustively** (`instanceof … satisfies never`); a
+**container/presentational split** keeps the page component thin; and the data comes from a **composed `Future` layer**
+(`.map` to project a field, `Future.concurrently` for independent reads, `.chain` for a dependent step, and
+`Future.mapConcurrently` to fan out over a collection). The same skeleton serves list pages, detail pages, dashboards —
+any screen that fetches and renders.
 
-Pages read the local profile folder today, through `StoreGate` and `ProfileGate`; no page reads from the server yet.
-When one does (the hosted migration, R1C-248), its gate or surface holds one **`RemoteData`** cell that a
-**`Future.fork`** fills inside `useEffect`, renders it **exhaustively**, and builds the read as a **composed
-`Future`**. Section 3 shows that shape.
-
-Table a page renders: `./tables.md`. Write that mutates its data: `./forms.md`. Visual constraints:
-`./design-system.md`. Nearby pages: `app/src/pages/resumes.tsx` (smallest), `app/src/pages/dossiers.tsx` (full).
+Table a page renders: `./tables.md`. Write that mutates its data: `./forms.md`. Visual constraints: `./design-system.md`. Nearby pages: `app/src/pages/resumes.tsx` (smallest), `app/src/pages/dossiers.tsx` (full).
 
 ## Audit
 
-- Find the gate the data needs (`StoreGate`, `ProfileGate`, or plain `AccessGate`) and the page it already serves.
-- Read one nearby page before editing — match its gate, its `Surface` split, and how actions reach the surface.
+- Find the layout shell (`AccessGate` in `app/src/module/access/access-gate.tsx`, or the `StoreGate` / `ProfileGate`
+  built on it) and the `RemoteData` / `Future` modules (`app/src/lib/remote-data.ts`, `app/src/lib/future.ts`).
+- Read one nearby page before editing — match its state-cell shape, exhaustive match, and container/presentational
+  split.
 
 Report the audit briefly:
 
 ```md
 Page Audit:
 
-- Gate (and its title / icon):
-- Data the surface receives (and actions: save, trash, reload):
-- Server reads, if any (api.*), and their composition (map / concurrently / chain / mapConcurrently):
+- Layout shell:
+- RemoteData / Future modules:
+- Read endpoints (api.*):
+- Data-layer composition (map / concurrently / chain / mapConcurrently):
 - Container/presentational boundary:
 - Nearby pages referenced:
 ```
 
 ## Canonical references (by role)
 
-- **`@module/access/access-gate`** — `AccessGate` (folder consent, page `Shell` with title + icon), `LoadingRows`.
-- **`@module/scout/components/store-gate`** — `StoreGate`: dossier store, render prop `(store, actions) => …`.
-- **`@module/profile/components/profile-gate`** — `ProfileGate`: parsed profile, render prop `(profile, save) => …`.
 - **`@lib/remote-data`** — `RemoteData`, `NotAsked` / `Loading` / `Failed` / `Ready`.
 - **`@lib/future`** — `Future`, `Future.concurrently`, `Future.mapConcurrently`, `.chain`, `.map`, `.fork`.
-- **`@api/endpoints` / `@api/request`** — typed `api.*`, `call`, `FetchError`, `fetchErrorToString` (see `./forms.md`).
+- **`@api/endpoints` / `@api/request`** — typed `api.*` + `call`, `FetchError`, `fetchErrorToString` (transport
+  error → string) (see `./forms.md`).
+- **`@lib/json/schema`** — `s.Infer<typeof api.<name>.response>` derives a response type.
+- **`@module/access/access-gate`** — `AccessGate` (shell: title + icon) plus `LoadingRows` (loading surface);
+  **`@ui/alert`** — `Alert variant="destructive"` + `AlertDescription` (failure surface).
 - **`@ui/datatable`** — `DataTable` (see `./tables.md`).
 
-## 1. Gate → surface
+## Imports
 
-The route component names the page and chooses the gate; everything it renders is the gate's resolved value. Keep it
-this small:
+    import { Megaphone01Icon } from "@hugeicons/core-free-icons";
+    import * as s from "@lib/json/schema";
+    import { type RemoteData, NotAsked, Loading, Failed, Ready } from "@lib/remote-data";
+    import { Future } from "@lib/future";
+    import { api } from "@api/endpoints";
+    import { call, fetchErrorToString, type FetchError } from "@api/request";
+    import { AccessGate, LoadingRows } from "@module/access/access-gate";
+    import { Alert, AlertDescription } from "@ui/alert";
+    import { DataTable, ColumnDef, type ColumnsConfig } from "@ui/datatable";
 
-```tsx
-export default ResumesPage
+## 1. The page state cell (`RemoteData` + `Future.fork`)
 
-import { File01Icon } from "@hugeicons/core-free-icons"
-import { ProfileGate } from "@module/profile/components/profile-gate"
-import { ResumeList } from "@module/profile/components/resume"
+Model the whole page as one `RemoteData<FetchError, T>` cell. Kick the read in `useEffect`: set `Loading()`,
+then `.fork(onError → Failed, onSuccess → Ready)`. `fork` returns a cancel function — return it from the effect so an
+in-flight read is cancelled on unmount or dependency change (`app/src/app.tsx` does the same for `reloadSession`):
 
-function ResumesPage() {
-  return (
-    <ProfileGate title="Resumes" Icon={File01Icon}>
-      {(profile, save) => (
-        <ResumeList resumes={profile.resumes} adaptPerVacancy={profile.adaptPerVacancy} save={save} />
-      )}
-    </ProfileGate>
-  )
-}
-```
+    const [state, setState] = useState<RemoteData<FetchError, CampaignDetails[]>>(NotAsked());
+    useEffect(() => {
+      setState(Loading());
+      return fetchCampaigns(orgId).fork(e => setState(Failed(e)), v => setState(Ready(v)));
+    }, [orgId]);
 
-A gate is the place for a new pre-data state. Gates switch on their state's `kind` and end in `assertNever`, so a new
-state is a compile error until every gate renders it (`store-gate.tsx`, `profile-gate.tsx`).
+The seed follows the cell's success type. A **data cell** (`RemoteData<E, T>`, where `Ready` holds the content the
+page renders — the shape above) always seeds `NotAsked()` and only sets `Loading()` inside the effect. A
+**status-only cell** (`RemoteData<E, void>` — no content on `Ready`, e.g. a save in flight) also seeds `NotAsked()`;
+`useCardSave` in `app/src/module/profile/components/settings-surface.tsx` is the example.
 
-## 2. Container / presentational split
+## 2. Exhaustive rendering (`instanceof … satisfies never`)
 
-When a page needs view state (filter, sort, selection, pagination), put it in a `Surface` component below the gate
-that receives the ready value as a prop, as `dossiers.tsx` does. The route component stays gate-only; `Surface` owns
-the view state and composes the feature components from `app/src/module/<feature>/components/`. Keep each child
-small and prop-typed.
+Branch every `RemoteData` case with `instanceof`, ending in `(state satisfies never)` so adding a new variant becomes
+a compile error. `Ready` → content; `Loading` / `Failed` / `NotAsked` → status surfaces:
 
-## 3. Server reads: `RemoteData` cell + `Future.fork`
+    {state instanceof Ready ? <Content state={state.value} />
+    : state instanceof Loading || state instanceof NotAsked ? <LoadingRows />
+    : state instanceof Failed ? <Alert variant="destructive"><AlertDescription>{fetchErrorToString(state.error)}</AlertDescription></Alert>
+    : (state satisfies never)}
 
-Model the read as one `RemoteData<FetchError, T>` cell. Seed `NotAsked()`, set `Loading()` inside the effect, then
-`.fork(onError → Failed, onSuccess → Ready)`. `fork` returns a cancel function — return it from the effect so an
-in-flight read is cancelled on unmount or when an input changes (`app.tsx` does the same for `reloadSession`):
+## 3. Container / presentational split
 
-```tsx
-import * as s from "@lib/json/schema"
-import { api } from "@api/endpoints"
+The page component owns state and the exhaustive match — nothing else. A presentational `Content` receives the
+resolved value and renders; the table is its own component. Keep each child small and prop-typed.
 
-type WhoAmI = s.Infer<typeof api.whoAmI.response>
+## 4. Composed `Future` data layer
 
-const [state, setState] = useState<RemoteData<FetchError, WhoAmI>>(NotAsked())
+Build the read as a composition, not nested forks:
 
-useEffect(() => {
-  setState(Loading())
-  return call(api.whoAmI, {}).fork(
-    (error) => setState(Failed(error)),
-    (value) => setState(Ready(value))
-  )
-}, [])
-```
-
-Branch every case with `instanceof` and end in `(state satisfies never)`, so a new variant is a compile error.
-`Ready` → content; the rest → status surfaces from the design system (`LoadingRows`, `Alert variant="destructive"`):
-
-```tsx
-{
-  state instanceof Ready ? <Content value={state.value} />
-  : state instanceof Loading || state instanceof NotAsked ? <LoadingRows />
-  : state instanceof Failed ?
-    <Alert variant="destructive">
-      <AlertDescription>{fetchErrorToString(state.error)}</AlertDescription>
-    </Alert>
-  : (state satisfies never)
-}
-```
-
-A **status-only cell** (`RemoteData<E, void>`, e.g. a save in flight) has no content to render on `Ready`;
-`useCardSave` in `settings-surface.tsx` is the example.
-
-## 4. Composed `Future` reads
-
-Build a multi-request read as one composition, not nested forks:
-
-- `.map` projects a field off a response.
+- `.map` projects a field off a response (`listActivities → result.activities`).
 - `Future.concurrently({ a, b })` runs independent reads together and joins them into one object.
 - `.chain` sequences a dependent step (list → per-row detail).
-- `Future.mapConcurrently(fn, list)` fans out over a list.
+- `Future.mapConcurrently(fn, list)` fans out over the list with bounded concurrency.
 
-Only the effect forks; the composition stays lazy until then.
+Only the page's `useEffect` forks; the layer stays lazy until then.
 
 ## Do / Do not
 
-- Do: choose a gate in the route component and pass its resolved value to a presentational surface.
-- Do: add a pre-data state to the gate, not to the page.
-- Do: for a server read, seed `NotAsked()`, set `Loading()` then `.fork` inside `useEffect`, and return the cancel.
-- Do: end every state match exhaustively (`assertNever` or `satisfies never`).
-- Do: compose the read (`concurrently` / `mapConcurrently` / `chain` / `map`) and fork once.
-- Do not: put loading or error branches in the route component, nest `.fork` calls, fire reads outside
-  `useEffect`, or drop the cancel return.
+- Do: model the page as one `RemoteData` **data** cell (`RemoteData<E, T>`) seeded `NotAsked()`; set `Loading()`
+  then `.fork` inside `useEffect`.
+- Do: return `fork`'s cancel from the effect; key the effect on its inputs (`[orgId]`).
+- Do: end the render match with `(state satisfies never)`.
+- Do: compose the read (`concurrently` / `mapConcurrently` / `chain` / `map`) and fork once, at the page.
+- Do: split the container (state) from the presentational (render) component.
+- Do not: nest `.fork` calls or fire reads outside `useEffect`; do not drop the cancel return.
+- Do not: render off a non-exhaustive match.
+
+## Examples
+
+The campaign / org / activity endpoints below are illustrative: `api` in `app/src/api/endpoints.ts` holds only the
+auth endpoints today. Swap in the real `api.*` entries and derive their types with `s.Infer`.
+
+### The page component — `RemoteData` cell + exhaustive match
+
+The page owns one `RemoteData` cell, fills it with `fetchCampaigns(...).fork` in `useEffect` (returning the cancel),
+and renders an exhaustive `instanceof … satisfies never` match. `CampaignDetails` (defined here) is the resolved row
+shape the rest of the example builds and consumes.
+
+```tsx
+export default CampaignsPage
+
+type ListCampaignsResponse = s.Infer<typeof api.listCampaigns.response>
+type GetOrgResponse = s.Infer<typeof api.getOrg.response>
+type ListActivitiesResponse = s.Infer<typeof api.listActivities.response>
+
+type CampaignDetails = {
+  campaign: ListCampaignsResponse["campaigns"][number]
+  // getOrg returns the org's fields at the top level, so the whole response IS the org.
+  org: GetOrgResponse
+  activities: ListActivitiesResponse["activities"][number][]
+}
+
+function CampaignsPage({ orgId }: { orgId: string }) {
+  const [state, setState] = React.useState<RemoteData<FetchError, CampaignDetails[]>>(NotAsked())
+
+  React.useEffect(() => {
+    setState(Loading())
+    return fetchCampaigns(orgId).fork(
+      (e) => setState(Failed(e)),
+      (v) => setState(Ready(v))
+    )
+  }, [orgId])
+
+  return (
+    <AccessGate title="Campaigns" Icon={Megaphone01Icon}>
+      {() =>
+        state instanceof Ready ? <Content state={state.value} />
+        : state instanceof Loading || state instanceof NotAsked ? <LoadingRows />
+        : state instanceof Failed ?
+          <Alert variant="destructive">
+            <AlertDescription>{fetchErrorToString(state.error)}</AlertDescription>
+          </Alert>
+        : (state satisfies never)
+      }
+    </AccessGate>
+  )
+}
+```
+
+### Container / presentational split
+
+`Content` is presentational — it receives the already-resolved `CampaignDetails[]` and renders. Table row mapping: `./tables.md`.
+
+```tsx
+function Content({ state }: { state: CampaignDetails[] }) {
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">Campaigns</h3>
+          <p className="text-sm text-muted-foreground">Overview of all campaigns.</p>
+        </div>
+      </div>
+      <CampaignsTable data={state} />
+    </div>
+  )
+}
+```
+
+### The composed `Future` data layer
+
+Each read is a small `Future`; they compose without nested forks. `.map` projects a field, `Future.concurrently` runs
+the two independent per-campaign reads together, `.chain` sequences the dependent step, and `Future.mapConcurrently`
+fans out over the list. Nothing executes until the page's `useEffect` forks `fetchCampaigns`.
+
+```tsx
+function fetchActivitiesByCampaignId(
+  campaignId: ListCampaignsResponse["campaigns"][number]["campaignId"]
+): Future<FetchError, ListActivitiesResponse["activities"][number][]> {
+  // listActivities takes a discriminated request; scope it to the campaign, then project the field.
+  return call(api.listActivities, { scope: "Campaign", campaignId }).map((result) => result.activities)
+}
+
+function fetchOrgById(orgId: string): Future<FetchError, GetOrgResponse> {
+  return call(api.getOrg, { orgId })
+}
+
+function fetchCampaignDetails(
+  campaign: ListCampaignsResponse["campaigns"][number]
+): Future<FetchError, CampaignDetails> {
+  // Two independent reads, both derived from the campaign -> run concurrently.
+  return Future.concurrently<
+    FetchError,
+    { org: GetOrgResponse; activities: ListActivitiesResponse["activities"][number][] }
+  >({
+    org: fetchOrgById(campaign.orgId),
+    activities: fetchActivitiesByCampaignId(campaign.campaignId),
+  }).map(({ org, activities }) => ({ campaign, org, activities }))
+}
+
+function fetchCampaigns(orgId: string): Future<FetchError, CampaignDetails[]> {
+  // The list result feeds the per-row fan-out -> .chain, then mapConcurrently over the list.
+  // statuses: [] = no status filter (list every campaign in the org).
+  return call(api.listCampaigns, { orgId, statuses: [] }).chain((result) =>
+    Future.mapConcurrently((campaign) => fetchCampaignDetails(campaign), result.campaigns)
+  )
+}
+```
