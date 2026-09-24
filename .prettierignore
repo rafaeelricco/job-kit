@@ -3,7 +3,6 @@
 **/.pnpm-store
 **/coverage
 tests/golden
-.claude
 pnpm-lock.yaml
 package-lock.json
 yarn.lock

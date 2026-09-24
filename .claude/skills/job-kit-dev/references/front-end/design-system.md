@@ -14,7 +14,11 @@ Flat editorial console: square corners, hairline rules, alpha-composited ink, on
 - Dark mode is **true black canvas** with lifted `#1d1d1d` content — not a grey wash. Hairlines jump from 8% to 25% opacity to survive the darker ground.
 - Density is deliberate: 36px controls, 12px table headers, 53px rows, 14px body.
 
-Tokens live in `src/index.css` — `@theme inline` maps them to Tailwind utilities, `:root` holds light, `.dark` holds the 67 overrides. Theme is a `light`/`dark` class on `<html>` (`src/components/theme-provider.tsx`).
+Tokens live in `app/src/index.css` — `@theme inline` maps them to Tailwind utilities, `:root` holds light, `.dark` holds the dark overrides. Theme is a `light`/`dark` class on `<html>` (`app/src/components/ui/theme-provider.tsx`). Reviewer-checkable rules are in `app/CLAUDE.md` (UI).
+
+`tests/test_design_system.py` pins every color table below to `app/src/index.css`. When this file and the CSS disagree, `index.css` wins on a value and this file wins on intent; fix the loser in the same change.
+
+`index.html` next to this file renders the system in light and dark. Serve the repo root (`python3 -m http.server -d <repo>`) and open `/.claude/skills/job-kit-dev/references/front-end/index.html`. Chrome also renders it from `file://`; browsers with a strict file-origin policy (Firefox) may fall back to system fonts there.
 
 ## Colors
 
@@ -82,12 +86,12 @@ Neutral near-black is the action color. **There is no brand hue** in the UI — 
 
 Muted and earthy — never saturated. Each has a 10% `-surface` tint and a 33% `-outline`, identical in both themes.
 
-| Token              | Hex       | Surface (10%)   | Outline (33%)   | Use                         |
-| ------------------ | --------- | --------------- | --------------- | --------------------------- |
-| `{colors.success}` | `#7da75b` | `#9ece6a` @ 10% | `#9ece6a` @ 33% | Positive, held, applied     |
-| `{colors.danger}`  | `#c95c5c` | `#f7768e` @ 10% | `#f7768e` @ 33% | Error, dead, blocker        |
-| `{colors.warning}` | `#e4c64c` | `#e3a241` @ 10% | `#e3a241` @ 33% | Attention, stale            |
-| `{colors.info}`    | `#7aa2f7` | `#7aa2f7` @ 10% | `#7aa2f7` @ 33% | Informational, neutral note |
+| Token              | Hex       | Surface (10%)                | Outline (33%)   | Use                         |
+| ------------------ | --------- | ---------------------------- | --------------- | --------------------------- |
+| `{colors.success}` | `#7da75b` | `#9ece6a` @ 10%              | `#9ece6a` @ 33% | Positive, held, applied     |
+| `{colors.danger}`  | `#c95c5c` | `#f7768e` @ 10%              | `#f7768e` @ 33% | Error, dead, blocker        |
+| `{colors.warning}` | `#e4c64c` | `#e3a241` 10% over `#f9f7dd` | `#e3a241` @ 33% | Attention, stale            |
+| `{colors.info}`    | `#7aa2f7` | `#7aa2f7` @ 10%              | `#7aa2f7` @ 33% | Informational, neutral note |
 
 ### Charts
 
@@ -101,7 +105,7 @@ Tokyo-Night ramp. Five hues, identical in both themes, assigned by series index 
 | `{colors.chart-4}` | `#e3a241` |
 | `{colors.chart-5}` | `#f7768e` |
 
-`components/ui/chart.tsx` carries no palette of its own; callers pass colors through `ChartConfig`, which emits them as `--color-<key>`.
+`app/src/components/ui/chart.tsx` carries no palette of its own; callers pass colors through `ChartConfig`, which emits them as `--color-<key>`.
 
 ### Primitive Palette
 
@@ -132,7 +136,7 @@ Three families, each with exactly one job. Hierarchy comes from size and weight,
 
 `--font-heading`, `--font-display` and `--font-view-title` all alias `--font-sans`. They exist as seams, not as distinct faces.
 
-**The monospace rule is the signature move.** Any machine-readable value — a search-pack id, a file path, an ISO date, a URL, a lifecycle enum, a hash — renders in Space Mono at 12px (11px where table density demands it). Prose never does. It appears at 22 sites; `font-logo` at exactly one.
+**The monospace rule is the signature move.** Any machine-readable value — a search-pack id, a file path, an ISO date, a URL, a lifecycle enum, a hash — renders in Space Mono at 12px (11px where table density demands it). Prose never does. `font-logo` appears at exactly one site, the wordmark.
 
 ### Hierarchy
 
@@ -149,7 +153,7 @@ Three families, each with exactly one job. Hierarchy comes from size and weight,
 | `{typography.identifier-sm}` | 11px |    400 | Dense monospace in tables (`text-[11px]`)            |
 | `{typography.overline}`      | 12px |    500 | Uppercase section labels, `tracking-[0.6px]`         |
 
-The practical scale is narrow: **14px and 12px carry the product** (81 and 50 sites), with 16px for reading copy and dialog titles, and 20/24px reserved for page orientation. Global tracking is `-0.011em` on `<body>`. Weight is binary in practice — 400 for content, 500 for labels and emphasis; 600 appears only on the few large titles. Tabular nums for counts, money, durations and scores.
+The practical scale is narrow: **14px and 12px carry the product**, with 16px for reading copy and dialog titles, and 20/24px reserved for page orientation. Global tracking is `-0.011em` on `<body>`. Weight is binary in practice — 400 for content, 500 for labels and emphasis; 600 appears only on the few large titles. Tabular nums for counts, money, durations and scores.
 
 ## Layout
 
@@ -181,7 +185,7 @@ Prefer parent-owned `gap` over child margins.
 | Content pane  | fluid           | `{colors.surface}` | 1px left divider; **must** be `bg-surface` |
 | Settings rail | 192px           | transparent        | Inside the dialog, 1px right divider       |
 
-Sidebar width is set as `--sidebar-width` on `SidebarProvider` (`components/app-layout.tsx`) and again as `SIDEBAR_WIDTH` / `SIDEBAR_WIDTH_MOBILE` in `components/ui/sidebar.tsx`. All three are `16rem` and must stay in agreement.
+Sidebar width is set as `--sidebar-width` on `SidebarProvider` (`app/src/components/ui/app-layout.tsx`) and again as `SIDEBAR_WIDTH` / `SIDEBAR_WIDTH_MOBILE` in `app/src/components/ui/sidebar.tsx`. All three are `16rem` and must stay in agreement.
 
 ## Elevation & Depth
 
@@ -207,17 +211,17 @@ Dialogs and sheets are **flat**: no shadow, no ring — they separate by sitting
 | `{rounded.nav}`  |    6px | Sidebar rows and account button only                                               |
 | `{rounded.full}` | 9999px | Avatars, switch tracks, status dots, small clear buttons                           |
 
-`rounded-full` is **not** derived from `--radius` and survives independently — that is why avatars and switches stay round. It appears at 13 sites: avatar (5), switch (2), consent dots (3), chart legend dot, dashboard dot, and the filter-bar clear button. There are no other radii; an in-between value is a bug.
+`rounded-full` is **not** derived from `--radius` and survives independently — that is why avatars and switches stay round. It belongs only on avatars, switch tracks, status and legend dots, the scroll-area thumb, and the filter-bar clear button. There are no other radii; an in-between value is a bug.
 
 ### Geometry
 
 - Wordmark renders in Space Grotesk, uppercase, `tracking-wide` — the sole `font-logo` site.
 - Icons are 16px in controls and nav, 20px in page titles, stroke width 2.
-- Logo assets are vector, in `public/brand/`; `mascot-mark.svg` is the sidebar mark
+- Logo assets are vector, in `app/public/brand/`; `mascot-mark.svg` is the sidebar mark
   and `mascot-mark-dark.svg` its dark-theme twin. Ink `#1d1d1d` is 1.00:1 on the
   dark card, so every ink-on-dark asset needs its variant. The mascot is illegible
   below 32px — use the head-only crop, never the full lockup, in small slots.
-  Rasters under `public/` are generated by `scripts/brand/render.py`; edit the SVG,
+  Rasters under `app/public/` are generated by `scripts/brand/render.py`; edit the SVG,
   never the PNG. `icon-512-maskable.png` is the one plated, inset raster: maskable
   launchers crop to a 40%-radius circle, and the edge-to-edge mark loses its mouth.
 
@@ -309,7 +313,7 @@ The system's most distinctive treatment. Any machine-readable value gets Space M
 
 - Search-pack and source ids · file paths (`data/basics.yaml`) · ISO dates · URLs · user/org ids · lifecycle and bucket enums · skill tokens
 
-Inline `<code>` additionally takes a chip: `{colors.inset}` fill, `2px 6px`, 4px radius — the only 4px in the system. Styled globally in `index.css`, so `<code>` needs no classes.
+Inline `<code>` additionally takes a chip: `{colors.inset}` fill, `2px 6px`, 4px radius — the only 4px in the system. Styled globally in `app/src/index.css`, so `<code>` needs no classes.
 
 ### Motion
 
